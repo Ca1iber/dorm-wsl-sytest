@@ -1,0 +1,120 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Advantest provides container images for a wide range of SmarTest applications from the Advantest Software Center. Containers can be used in offline mode to enable the running of multiple SmarTest versions and sessions on the same workstation in parallel. A SmarTest workstation can be shared by multiple test engineers without interfering with each other. Currently Docker is used to provide the operating system-level isolation to run software in packages or containers."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Running SmarTest in a container</title><meta name="keywords" content="Smar, Test"></head><body id="_354135"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 354135</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Running SmarTest in a container</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="354136.htm" title="Advantest provides an easy way to deploy and run SmarTest with Advantest container images. The container contains the SmarTest components that can be run on a workstation without the need to physically install SmarTest on the workstation itself.">Installing SmarTest Docker images</a></li><li><a href="354137.htm" title="There are two common ways SmarTest can be run in a docker container. You can either directly display the SmarTest user interface on the host workstation’s X Display or in headless mode, where a VNC Server runs inside the container, accessed using a VNC client.">Using SmarTest Docker containers</a></li></ol></div></nav>
+	
+	
+	<div><p>Advantest provides container images for a wide range of SmarTest applications from the
+		Advantest Software Center. Containers can be used in offline mode to enable the running of
+		multiple SmarTest versions and sessions on the same workstation in parallel. A SmarTest
+		workstation can be shared by multiple test engineers without interfering with each other.
+		Currently Docker is used to provide the operating system-level isolation to run software in
+		packages or containers.</p>
+		<p>A container image is a lightweight, standalone, executable package of software that includes
+			everything needed to run an application: code, runtime, system tools, system libraries and
+			settings. For more information, see <a href="https://www.docker.com/resources/what-container" target="_blank" rel="external noopener" class="ex">https://www.docker.com/resources/what-container</a>. </p>
+		<div class="p">
+			<figure class="fignone">
+				
+				<img src="354219.png" alt="A typical Docker arrangement on a Linux workstation">
+			</figure>
+		</div>
+		
+		
+			<p>There are many benefits of running applications in container images over conventional
+				virtualization:</p>
+			<ul>
+				<li>Low performance impact as the container has access to the bare metal resources. There is
+					only the one operating system kernel of the host is running. No CPU emulation required and no
+					memory mapping involved.</li>
+				<li><span class="keyword">namespaces</span> are used for process isolation (<a href="https://man7.org/linux/man-pages/man7/namespaces.7.html" target="_blank" rel="external noopener" class="ex">https://man7.org/linux/man-pages/man7/namespaces.7.html</a>)</li>
+				<li><span class="keyword">cgroups</span> can be used for setting limits (<a href="https://man7.org/linux/man-pages/man7/cgroups.7.html" target="_blank" rel="external noopener" class="ex">https://man7.org/linux/man-pages/man7/cgroups.7.html</a>)</li>
+				<li>Docker host (the bare metal machine) can run any operating system supporting Docker, for
+					example, Linux distributions such as Debian, Ubuntu, Suse, and Centos.</li>
+			</ul>
+		
+		<section class="section"><h2>File system</h2>
+			
+			<p>Containers always start in a clean state. Any changes that you make to the container during
+				run-time are lost when you stop the container. The container image is invariant. This is
+				achieved by using an overlay file system, where all overlay write transactions are discarded
+				when the container is stopped. </p>
+			<p>It is important to recognize that the write performance of the overlay file system is slower
+				than the native host file system. </p>
+			<p>To maintain persistent data, which survives multiple starts of a SmarTest container, Docker
+				uses the concept of volume mounts. These are similar in concept to a Linux
+					<span class="keyword">mount</span> operation. A part of the file system of the host workstation is
+				mounted to a specified file or path inside the container. As this data resides on the host
+				workstation's file system, it is not removed when the container is stopped. Access to data on
+				volume mounts is faster as the higher performance  bare metal hardware is being used. </p>
+			<div class="p">The elements which are mounted from the host into the container are typically:<ul>
+					<li>Tester model file</li>
+					<li>License pointer file</li>
+					<li>Directory where the test program and project resides</li>
+					<li>Log output directories of SmarTest (if you want to maximize performance or want to keep the
+						log files)</li>
+					<li>Custom scripts</li>
+				</ul></div>
+			<p>Volume mounts use the command line option <span class="keyword">-v</span> and the parameter host
+					<span class="keyword">path/filename:container path/filename</span>. For example, to use a model file
+				located on the file system of the Docker host system, </p>
+			<p><kbd class="userinput">-v
+					/<var class="varname">container_model_file_folder</var>/tester.model:/etc/opt/hp93000/soc_common/tester.model
+				</kbd></p>
+			<p>For details of usage, see <a href="354137.htm" title="There are two common ways SmarTest can be run in a docker container. You can either directly display the SmarTest user interface on the host workstation’s X Display or in headless mode, where a VNC Server runs inside the container, accessed using a VNC client.">Using SmarTest Docker containers</a>.</p>
+		</section>
+		
+		<section class="section" id="_354135__network"><h2>Network</h2><p>Containers can communicate with the network but by default they do not expose any network ports
+				to the outside. If you run a SmarTest container in <span class="keyword">headless</span> mode, it starts
+				an internal VNC server. Without additional configuration, this VNC server is not accessible as
+				the container blocks all incoming traffic.</p>
+			<p>To allow incoming network traffic, containers use the concept of port mapping. You can assign
+				any listening port on the outside (towards the host workstation) to any port inside the
+				container where your daemon is listening. </p>
+			
+			<p>In the case of the container's VNC server, the port inside the container is fixed to port
+				5901. On the outside you can pick any port number that is not used by the host workstation. Good
+				choices for VNC are ports in the range 5900 to 5999. However, port 5900 is usually blocked by
+				the host X Server. Port 5901 is often blocked by an additional VNC server. Ports in the range
+				5902 to 5999 are usually available. If you have more VNC servers running, select a port one one
+				higher than your highest host VNC server.</p>
+			<p>The command line option for port mapping is <span class="keyword">-p</span>. For details of usage,
+					see <a href="354137.htm" title="There are two common ways SmarTest can be run in a docker container. You can either directly display the SmarTest user interface on the host workstation’s X Display or in headless mode, where a VNC Server runs inside the container, accessed using a VNC client.">Using SmarTest Docker containers</a>.</p></section>
+		
+		<section class="section" id="_354135__memory"><h2>Memory and CPU</h2>
+			
+			<p>Containers by default have access to all system memory and the full CPU power of the host
+				workstation. However, by default, <span class="keyword">shared memory</span> availability is limited to
+				64MB. Most programs do not require a large amount of shared memory. </p>
+			<p>In contrast, SmarTest makes intensive use of shared memory. Large test programs usually
+				require more than 64MB of shared memory. For SmarTest, it is recommended to declare all the
+				memory of the host workstation as shared memory.</p>
+			<p>The option used to specify the amount of shared memory is: <span class="keyword">--shm-size</span> For
+				example, if your workstation has 64 GB of RAM, you add the command line option
+					<kbd class="userinput">--shm-size="64g"</kbd> to the docker run command:</p>
+			<p><kbd class="userinput">docker run -it --shm-size="64g" ...</kbd></p>
+			<p>For details of usage, see <a href="354137.htm" title="There are two common ways SmarTest can be run in a docker container. You can either directly display the SmarTest user interface on the host workstation’s X Display or in headless mode, where a VNC Server runs inside the container, accessed using a VNC client.">Using SmarTest Docker containers</a>.</p>
+		</section>
+		
+		<section class="section"><h2>Limitations</h2>
+			
+			<p>There are some limitations to be aware of when running SmarTest in a Docker container:</p>
+			<div class="p">
+				<ul>
+					<li>SmarTest offline use only </li>
+					<li>License file must be added before use (typically mapped using the <kbd class="userinput">–v</kbd>
+						option) <div class="p">
+							<div class="note" id="_354135__licensing_type"><span class="title">Note</span> Dedicated docker images are configured for FNE or FNP licensing. Select the
+								appropriate version for your licensing infrastructure.</div>
+						</div></li>
+					<li>V93000 model file must be added before use (typically mapped using the
+							<kbd class="userinput">–v</kbd> option) </li>
+					<li>Test program or device is typically mapped from the host file system to the container </li>
+					<li>Memory options must be set according to the test program or device needs (adapt shared
+						memory size to match test program requirement with physical RAM)</li>
+				</ul>
+			</div>
+
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 8.4.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 354135</span><script type="text/javascript">var ti='354135';var tt='Running SmarTest in a container'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,114 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Use of multibins</title><meta name="keywords" content="multi bin"></head><body id="_145085"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 145085</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Use of multibins</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a></li><li><a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a></li><li><a href="145090.htm" title="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin.">Use of TESTSET and SMC_TEST() test suites with multibin</a></li></ol></div></nav>
+	
+	
+	<div><p>Using the multibin you can create different hardware and software bins in a test
+		suite, where each hardware and software bin pair is related to a <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a>
+		object.</p>
+		
+		<p>Use the multibin feature in the testflow to allow multiple or flexible bin and test
+			number assignments. For more information on the usage of all kinds of bins, see <a href="42606.htm" title="Using bins with multisite tests is basically the same as with single-site tests. You can use stop bins (good or bad bins) and otherwise bins, see Bins.">Use of bins with multisite tests</a>.</p>
+		<div class="note"><span class="title">Note</span> Multibin is mandatory for all test suites in a CCF block so that the
+			correct bins can be set for any of the failing tests, see <a href="20281.htm" title="Special test suites are executed at a particular point in time, which can be either dependent or independent of the testflow. For example, downloading an initial set of values to the test system, or defining what will be executed if you abort the testflow.">Special test suites</a>.</div>
+		<section class="section"><h2>Internal multibin variable</h2>
+			
+			<p>SmarTest differentiates between two multibin related processes:</p>
+			<ul>
+				<li>Setting an internal multibin variable.<p>SmarTest uses the internal multibin
+						variable inside of test suites and for test suites without a bin or
+						multibin. This variable can be overwritten according to the binning rules
+						(see below).</p></li>
+				<li>Logging its value to the multibin.<p>At a multibin node, SmarTest logs the internal multibin
+						variable to the multibin.</p><div class="note"><span class="title">Note</span> 
+						<p>If a multibin was logged at a multibin node, it cannot be overwritten
+							anymore, even not in another multibin node in the same testflow:</p>
+						<p>The first multibin node after a failing test suite logs the multibin
+							value to the multibin. Failing tests of following test suites with
+							multibin nodes will not log to the multibin, with one exception: You
+							call <a href="137378.htm" title="Resets the multibin information of the testflow.">RESET_MULTIBIN</a> after a multibin node and before a test
+							suite followed by another multibin node.</p>
+					</div><div class="p">
+						<figure class="fignone">
+							<img src="145107.png" alt="Multiple test suites">
+						</figure>
+					</div><p>Note: In the example above, the left flow uses only Multi Bin nodes while
+						the right flow uses only <a href="353641.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a> nodes.</p></li>
+			</ul>
+		</section>
+		<section class="section"><h2>Overon testflow flag combined with multibins</h2>
+			
+			<p>The <a href="70340.htm" title="Setting the Overon flag to ON allows you to continue the test flow after a stop bin was reached. The Overon flag can determine how summary statistics are calculated in some of the STDF record fields. The Overon flag is a select button, accessed from either the Testflow Flags dialog or the Bin Dialog window, that switches the Overon flag on or off.">Overon testflow flag</a> allows you continuing the
+				testflow after the stop bin. For information on how to use the flag, refer to <a href="20286.htm" title="The Overon feature allows the testflow to continue after the stop bin. It is useful when developing a testflow.">Using the Overon feature while running a testflow</a>.</p>
+			<div class="p">The following items should be noted when combining the Overon flag with Multibins:<ul>
+					<li>The <a href="342556.htm#_342556__row_global_overon">global_overon</a> must be set
+						to <span class="keyword">on</span>.</li>
+					<li><a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a> allows you defining the <a href="112490.htm#_112490__li_Bin_overon">Bin_overon</a> per SW bin.</li>
+					<li>The test flow for a failing site will continue after binning if<ul>
+							<li>the <span class="keyword">global_overon</span> flag has been set to
+									<span class="keyword">true</span> and</li>
+							<li>all of the failing tests within the test suite have the
+									<span class="keyword">Bin_overon</span> flag set to
+								<span class="keyword">yes</span>.</li>
+						</ul></li>
+					<li>The test flow for a failing site will be stopped after special test suite
+							<a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">bin_disconnect</a> has been executed for the
+						site if<ul>
+							<li>the <span class="keyword">global_overon</span> flag has been set to
+									<span class="keyword">false</span> or</li>
+							<li>any of the failing tests within the test suite have the
+									<span class="keyword">Bin_overon</span> flag set to
+								<span class="keyword">no</span>.</li>
+						</ul></li>
+				</ul></div>
+		</section>
+		<section class="section"><h2>Binning rules</h2><ul>
+				<li>SmarTest logs the multibin per site, and writes it to the data log as
+						<span class="keyword">BinReachedEvent</span> (see <a href="70340.htm" title="Setting the Overon flag to ON allows you to continue the test flow after a stop bin was reached. The Overon flag can determine how summary statistics are calculated in some of the STDF record fields. The Overon flag is a select button, accessed from either the Testflow Flags dialog or the Bin Dialog window, that switches the Overon flag on or off.">Overon flag</a>, <a href="69138.htm" title="The Software Bin Record stores a count of the parts associated with a particular logical bin after testing. This bin count can be for a single test site (when parallel testing) or a total for all test sites. The STDF specification also supports an HBR for physical binning categories. A part can be &#34;logically&#34; associated with a software bin during or after testing.">Software Bin Record (SBR)</a>).</li>
+				<li><span class="keyword">set_fail</span> and <span class="keyword">set_pass</span> flags do not
+					influence the binning, with one exception for the <span class="keyword">set_pass</span>
+					flag: If the <a href="342556.htm#_342556__row_multibin_mode">multibin_mode</a> flag
+					is set to <span class="keyword">suppress_on_set_pass</span>, SmarTest does not set the
+					internal multibin variable.</li>
+				<li>Multiple calling the same non-temporary <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a> object, which can
+					be the system-prepared class object <code>TestSet</code> or the same user
+					object <code>TESTSET</code> &lt;<span class="keyword">object name</span>&gt;:<p>If the
+						same object is multiple called, the first call of the same object with a
+						failing test sets the internal multibin variable. Failing tests of the same
+						object at a later point of time do not change the internal multibin
+						variable.</p></li>
+				<li>If the temporary <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET()</a> object is multiple
+					called, the last called object with a failing test determines the internal
+					multibin variable, and overwrites the internal multibin variable, which was set
+					by a prior object with a failing test.<p>The same rule applies, if the <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a> API is multiple called: The last called <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a> object determines the bin, and overwrites the
+						variable, which was set by prior <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a> objects with
+						failing tests.</p></li>
+				<li>Calling different <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a> objects, which can be the
+					system-prepared class object <span class="keyword">TestSet</span>, different user object
+						<code>TESTSET</code> &lt;<span class="keyword">object name</span>&gt; or a
+					temporary object TESTSET():<p>If different objects are called, the last called
+						object with a failing test determines the internal multibin variable, and
+						overwrites the internal multibin variable, which was set by prior objects
+						with failing tests.</p><p>For more details and examples, see <a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a>.</p></li>
+				<li>The binning information of all <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> calls are validated in
+					the <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> test suite. Inside of the <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a>
+					test suite all <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> calls are validated like calling the same
+					non-temporary TESTSET object in the same test suite: The first failing <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> test suite sets the internal multibin variable for the
+						<a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> test suite.<p>For more details and examples, see
+							<a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a>.</p><div class="note"><span class="title">Note</span> 
+			<p>If you use <span class="keyword">TESTSET</span> within the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC
+					framework</a> instead of <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST</a>, binning
+				happens in <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYCHRONIZE</a> according to the binning
+				rules as for <span class="keyword">SMC_TEST</span>. For details, see <a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a>.</p>
+			<p>If you use, within a testflow, the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC framework</a> and
+					<span class="keyword">TESTSET</span> test suites independent of each other, binning
+				happens according to the binning rules explained in <a href="145090.htm" title="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin.">Use of TESTSET and SMC_TEST() test suites with multibin</a>.</p>
+		</div></li>
+				<li>Using test suites with and test suites without <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a>:<p>If a
+						test fails in a non-SMC test suite, which is called before <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a>, the failing non-SMC test suite determines the
+						multibin value.</p><p>For more details and examples, see <a href="145090.htm" title="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin.">Use of TESTSET and SMC_TEST() test suites with multibin</a>.</p></li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42606.htm" title="Using bins with multisite tests is basically the same as with single-site tests. You can use stop bins (good or bad bins) and otherwise bins, see Bins.">Use of bins with multisite tests</a></div><div><a href="353641.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a></div><div><a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a></div><div><a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a></div><div><a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a></div><div><a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a></div><div><a href="137378.htm" title="Resets the multibin information of the testflow.">RESET_MULTIBIN</a></div><div><a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.4</li><li>SmarTest 7.2.2: Patch1 - New testflow flag multibin_mode</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 145085</span><script type="text/javascript">var ti='145085';var tt='Use of multibins'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

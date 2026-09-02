@@ -1,0 +1,104 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The main difference between legacy and Smart Scale waveforms is that there are now separate sets of edges for drive actions and for tri-state actions. There are thus 16 drive edges each of which can be associated with a different delay. Waveforms for Smart Scale pins can be specified in two formats."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining waveform shapes for Smart Scale pins</title><meta name="keywords" content="SmartScale wave form waveform table"></head><body id="_113740"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113740</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining waveform shapes for Smart Scale pins</h1>
+	
+	
+	<div><p>The main difference between <span>legacy</span> and Smart Scale waveforms is
+		that there are now separate sets of edges for drive actions and for tri-state actions. There are
+		thus 16 drive edges each of which can be associated with a different delay. Waveforms for Smart
+		Scale pins can be specified in two formats.</p>
+		<section class="section"><h2>Modified standard format
+				</h2><p>In
+				this format, the edges for switching the normal driver level are denoted by
+					<span class="keyword">f</span><span class="keyword">i</span> (<span class="keyword">f</span> for "fast"), the tri-state edges
+				by <span class="keyword">s</span><span class="keyword">i</span> (<span class="keyword">s</span> for "slow"); these edge
+				notations replace the former <span class="keyword">d</span><span class="keyword">i</span> notation. This format is
+				also supported by the firmware command <span class="keyword">WFDS</span>. The only admitted action codes
+				are <span class="keyword">1</span>, <span class="keyword">0</span> and <span class="keyword">N</span>.</p><div class="note"><span class="title">Note</span> The names reflect the fact that a switch between the additional levels on a PS9G/HSM8G card
+				takes longer than a switch of the normal levels.
+				</div><p>The
+				old <span class="keyword">d</span><span class="keyword">i</span> notation can also still be used; it is internally
+				converted into a pair of an f- and an s-edge. But note that the
+					<span class="keyword">d</span><span class="keyword">i</span> notation and the
+					<span class="keyword">f</span><span class="keyword">i</span>, <span class="keyword">s</span><span class="keyword">i</span> notation
+				cannot be mixed in one and the same <span class="keyword">PINS</span> block.</p></section>
+		<section class="section"><h2>Edge ordering</h2><p>In contrast to Pin Scale pins, drive edges for Smart Scale pins are not subject to any edge
+				ordering restrictions. The restrictions for receive edges are the same as for<span> the
+					legacy</span> PS800/3600 (HSM2200/HSM3600) pins (see <em><a href="10610.htm" title="As long as no window compares occur in a waveform definition, the order of the receive edges in the waveform is completely arbitrary. However, if a waveform contains at least one window compare, the receive edges must be arranged in ascending temporal and numerical order. Consequently, receive edges with a higher number must be assigned greater delays in all timing sets that are to be used with such a waveform.">Restrictions for receive edges</a></em>).</p><div class="note"><span class="title">Note</span> If the edge order restrictions for drive pins were not observed in a Pin Scale
+				setup, the resulting waveforms will be different when the setup is loaded into a Smart Scale
+				system. Consider the definition <code>"d1:0 d2:1 d3:0"</code> with the delays
+					<code>d1=0</code>, <code>d2=5</code>, und <code>d3=2</code>. The following figure
+				shows the different results on a Pin Scale and on a Smart Scale system: </div><div class="p"><figure class="fignone">
+					<img src="127708.png" alt="Edge order for drive pins: Smart Scale vs. Pin Scale">
+				</figure></div><p>Observe that on the Smart Scale system, the action that is associated with an edge
+				is always executed at the position that is defined for that edge. But on the Pin Scale system,
+				the action that is associated with <span class="keyword">d2</span> is executed at the position of
+					<span class="keyword">d3</span>. This is known as "edge scrambling" or "edge disorder".</p></section>
+		<section class="section"><h2>Native Smart Scale format </h2><p>The native Smart Scale format generalizes the "edge-free" format used for <span>the legacy
+				</span>PS3600 fast pins. For pure drive pins, the waveform is defined by two character strings,
+				one for actions at fast edges, and the other for actions at slow edges. Thus, the format is</p><p>&lt;<span class="keyword">waveform_index</span>&gt;
+					"&lt;<span class="keyword">f_edge_actions</span>&gt;" "&lt;<span class="keyword">s_edge_actions</span>&gt;"
+				</p><p>For pure receive pins, the waveform is again defined by two strings. One of them
+				specifies the actions at the receive edges; the second serves to start and stop window compare
+				actions. The window compare string is optional. Thus the format
+					is</p><p>&lt;<span class="keyword">waveform_index</span>&gt; "&lt;<span class="keyword">compare_actions</span>&gt;"
+					["&lt;<span class="keyword">start_stop_window_compare</span>&gt;"]</p><p>The allowed action codes are the
+				same as for PS3600 fast pins.</p><div class="note"><span class="title">Note</span> One reason for separating the compare actions
+				as such from their usage as edge or window compares is that Smart Scale cards support a special
+				protocol engine test in which no window compares are available. Rather, the window formatter is
+				used for temporarily disabling the transition tracking in such a test (see <em><a href="114309.htm" title="When a bi-directional pin is tracked, and it operates in input mode, then the tracker sees the drive data. Since these are irrelevant to the expected data stream, the tracker must be disabled during these sections of the test. For this purpose, the window formatter is used (which entails that window compares are not possible in protocol engine tests). It must be set to &#34;0&#34; to disable the tracker. This has the consequence that the observation window is &#34;frozen&#34;, that is, it is not adjusted any more, regardless of any internal transitions within the current window.">Tracking bi-directional pins</a></em>). </div><p>Waveforms for an IO pin
+				can contain the two drive action strings and the receive action string, or all four strings.
+				This holds even if the waveform is a pure drive or receive waveform. In this case the two drive
+				strings, or the receive string, can be empty, or they can be filled with dots. The dot stands
+				for "no action". Thus the format is</p><p>&lt;<span class="keyword">waveform_index</span>&gt;
+					"&lt;<span class="keyword">f_edge_actions</span>&gt;" "&lt;<span class="keyword">s_edge_actions</span>&gt;"
+					"&lt;<span class="keyword">compare_actions</span>&gt;"
+				["&lt;<span class="keyword">start_stop_window_compare</span>&gt;"]</p><p>As
+				with PS3600 fast pins, the edge number corresponds to the position of the action within the
+				respective string. </p></section>
+		<h2>Example</h2><div class="example"><p>The following example shows a wavetable fragment for a Smart Scale pin in its native
+				format:</p><pre class="prettyprint linenums copyable">WAVETBL "wavetable 1"
+
+PINS  DS0
+  0 "10" "0."    110
+  1 "101" "0.."  101
+
+PINS DS1
+  0 "0"  "0"     0
+
+PINS  Q0
+  0 "XXL"   "..." XXL
+  1 "HLH"   "..." HLH
+  2 "XLH"   "..." XLH
+  3 "H.H"   "10." HCMP
+
+PINS  IO1
+TTMODE X4
+  0 "...." "...." "LHLH"     LHLH
+  1 "...." "...." "XLXH"     XLXH
+  2 "0110" "0..." "XXXX"     0110</pre><p>The
+				dots stand for "no action".</p><p>If you retrieve these definitions with
+					<span class="keyword">WFDS?</span>, the reply will look as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; wfds? 101,all,,(DS0)
+&lt; WFDS 101,0,,"f1:1 f2:0 s1:0",(DS0)
+&lt; WFDS 101,1,,"f1:1 f2:0 f3:1 s1:0",(DS0)
+
+&gt; wfds? 101,all,,(DS1)
+&lt; WFDS 101,0,,"f1:0 s1:0",(DS1)
+
+&gt; wfds? 101,all,,(Q0)
+&lt; WFDS 101,0,,"r1:EX r2:EX r3:E0",(Q0)
+&lt; WFDS 101,1,,"r1:E1 r2:E0 r3:E1",(Q0)
+&lt; WFDS 101,2,,"r1:EX r2:E0 r3:E1",(Q0)
+&lt; WFDS 101,3,,"r1:W1 r2:WC r3:E1",(Q0)
+
+&gt; wfds? 101,all,,(IO1)
+&lt; WFDS 101,0,,"r1:E0 r2:E1 r3:E0 r4:E1",(IO1)
+&lt; WFDS 101,1,,"r1:EX r2:E0 r3:EX r4:E1",(IO1)
+&lt; WFDS 101,2,,"f1:0 f2:1 f3:1 f4:0 s1:0 r1:EX r2:EX r3:EX r4:EX",(IO1)</pre><p>Note
+				that waveform 3 for pin <code>Q0</code> contains a window compare. Note also that the
+				waveforms are returned in the modified standard format although they are coded in the pure Smart
+				Scale format in the wavetable.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113740</span><script type="text/javascript">var ti='113740';var tt='Defining waveform shapes for Smart Scale pins'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

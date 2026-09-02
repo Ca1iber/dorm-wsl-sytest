@@ -1,0 +1,208 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API calculates the jitter histogram based on the input of error count and timing data. The jitter API returns the following values: mean, rms, peak2peak, median and medist."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_JITTER_HISTOGRAM</title></head><body id="_96861"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 96861</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_JITTER_HISTOGRAM</h1>
+	
+	
+	<div><p>This API calculates the jitter histogram based on the input of error count and timing
+		data. The jitter API returns the following values: mean, rms, peak2peak, median and medist. </p>
+		<section class="section"></section>
+		<section class="section"><h2>JitterHistogramType</h2><p>This type is defined for jitter histogram result. It
+				contains a set of jitter histogram attribute
+			data.</p><pre class="prettyprint linenums copyable">typedef struct 
+{
+  DOUBLE mean; //the mean value
+  DOUBLE rms; //the RMS value
+  DOUBLE peak2peak; //the peak to peak value
+  DOUBLE median; //the middle line of the edge positions list
+  DOUBLE medist; //the maximum edge distance from the jitter median.
+} JitterHistogramType;</pre></section>
+		<section class="section"><h2>Moving window averaging</h2><p>In this API you can choose to use a moving
+				window averaging to processs the error count curve before calculation. For further reading, see
+					"<em>Numerical Recipes 3rd Edition: The Art of Scientific Computing</em>" by William Press, Saul
+				Teukolsky, William Vetterling and Brian Flannery, Cambridge University Press 2007, ISBN
+				0-521-88068-8.</p><p>Depending on the "N" parameter, different moving window averages are
+				used.</p><pre class="prettyprint linenums copyable">N=2    y(n) = 1/3x(n) + 1/3x(n+1) + 1/3x(n-1)
+
+N=4    y(n) = 1/5x(n) + 1/5x(n+1) + 1/5x(n+2) + 1/5x(n-1) + 1/5x(n-2)
+
+N=6    y(n) = 1/7x(n) + 1/7x(n+1) + 1/7x(n+2) + 1/7x(n+3) + 1/7x(n-1) + 1/7x(n-2) + 1/7x(n-3)</pre><div class="note"><span class="title">Note</span> On the edges of the error count curve, no averaging is done to keep the peak-peak
+				jitter value constant.</div><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_JITTER_HISTOGRAM(const std::vector&lt;INT&gt;&amp; errorCount,
+                     const DOUBLE start,
+                     const DOUBLE stepWidth
+                     std::vector&lt;INT&gt;&amp; histogramData,
+                     JitterHistogramType&amp; histogramDataAttribute,
+                     const Boolean movingWindowAveraging = false, 
+                     INT windowSize=2);</pre><table class="frame-none"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_96861__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_96861__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_96861__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">errorCount</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>The container of error count data.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">start</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>The error count start point.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">stepWidth</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>The step width for error count acquiring.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">histogramData</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>The jitter histogram data.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">histogramDataAttribute</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>A set of standard result data reflecting jitter histogram. It has the following
+									members: mean, rms, peak2peak, median, medist.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">movingWindowAveraging</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>The flag to switch on/off the moving window averaging algorithm. By default the
+									algorithm is turned off, and the <em>windowSize</em> parameter is set to 2. For further
+									reading see [1]. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_96861__entry__2"><p><span class="keyword">windowSize</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_96861__entry__3"><p>Window size for the moving window averaging algorithm (2, 4, 6). </p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> This API can be used to compute the histogram for both timing data and
+				level data.</div></div>
+		<h2>Example</h2><div class="example"><p>This example calculates the jitter histogram via left side of bit eye after acquiring
+				the error count on the left transition side of
+				bit.</p><pre class="prettyprint linenums copyable">//acquire error count on the left transition side of bit
+//assume the bit transition is within the [0.0, 0.5] area
+  ERROR_COUNT_ACQUIRE ercAcquire;
+
+  STRING_VECTOR pinVector =
+  PinUtility.getDigitalPinNamesFromPinList("HS_TX1,HS_TX2",TM::ALL_DIGITAL);
+
+  ON_FIRST_INVOCATION_BEGIN();
+//setup search condition
+//The spec name should be the pin name plus the "_offset" suffix!
+string pinname;
+  for (int n = 0; n &lt; pinVector.size(); n++)
+  {
+    pinname = pinVector[n];
+    STRING specName =  pinname + "_offset";
+//setup for two high-speed pins
+    ercAcquire.pin("HS_TX1,HS_TX2")
+                     .port("HS_Port")
+                     .spec(specName,TM::TIM)
+                     .stepWidth(0.01)
+                     .start(0.0)
+                     .stop(0.5)
+                     .errorCountMode(TM::ERROR_PER_EDGE)
+                     .enableFastStop(0.05,9);
+  }
+  ercAcquire.execute(TM::FAST_STOP);
+  ON_FIRST_INVOCATION_END();
+
+//get error count for pins
+  ARRAY_I ercOfHsTx1, ercOfHsTx2;
+  ercOfHsTx1 = ercAcquire.getErrorCount("HS_TX1");
+  ercOfHsTx2 = ercAcquire.getErrorCount("HS_TX2");
+
+//log the error count data
+  PUT_DATALOG("HS_TX1", "errorCountHsTx1", WAVE_LOG(ercOfHsTx1));
+  PUT_DATALOG("HS_TX2", "errorCountHsTx2", WAVE_LOG(ercOfHsTx2));
+
+//calculate the jitter histogram via left side of bit eye
+  JitterHistogramType histogram1, histogram2;
+  std::vector&lt;INT&gt; errorCountVec1,errorCountVec2;
+  std::vector&lt;INT&gt; jitterHistogramDataVec1,jitterHistogramDataVec2;
+  for(int loop = 0; loop &lt; ercOfHsTx1.size(); ++loop)
+  {
+      errorCountVec1.push_back(ercOfHsTx1[loop]);
+  }
+  for(int loop = 0; loop &lt; ercOfHsTx2.size(); ++loop)
+  {
+      errorCountVec2.push_back(ercOfHsTx2[loop]);
+  }
+  std::vector&lt;INT&gt; jitterHistogramData1,jitterHistogramData2;
+  DSP_JITTER_HISTOGRAM(errorCountVec1,0.1,0.01,jitterHistogramDataVec1,histogram1,false,2);
+  DSP_JITTER_HISTOGRAM(errorCountVec2,0.1,0.01,jitterHistogramDataVec2,histogram2,false,2);
+
+//output result to the report window
+  cout&lt;&lt;"Jitter histogram of HS_TX1:"
+      &lt;&lt;"\nmean= "&lt;&lt;histogram1.mean
+      &lt;&lt;"\nrms jitter= "&lt;&lt;histogram1.rms
+      &lt;&lt;"\npeaktopeak Jitter= "&lt;&lt;histogram1.peak2peak &lt;&lt;endl;
+  cout&lt;&lt;"Jitter histogram of HS_TX2:"
+      &lt;&lt;"\nmean= "&lt;&lt;histogram2.mean
+      &lt;&lt;"\nrms jitter= "&lt;&lt;histogram2.rms
+      &lt;&lt;"\npeaktopeak Jitter= "&lt;&lt;histogram2.peak2peak &lt;&lt;endl;
+
+//generate timing axis before display data
+  ARRAY_I timingAxis;
+  for (int m = 0; m &lt; jitterHistogramData1.size(); m++)
+  {
+    timingAxis[m] = m;
+  }
+// translate std::vector&lt;INT&gt; to ARRAY_I
+  ARRAY_I jitterHistogramDataArray1,jitterHistogramDataArray2;
+  int size1=jitterHistogramDataVec1.size();
+  int size2=jitterHistogramDataVec2.size();
+  jitterHistogramDataArray1.resize(size1);
+  jitterHistogramDataArray2.resize(size2);
+
+  for(int loop = 0; loop &lt; size1; ++loop)
+  {
+     jitterHistogramDataArray1[loop] = jitterHistogramDataVec1[loop];
+  }
+  for(int loop = 0; loop &lt; size2; ++loop)
+  {
+    jitterHistogramDataArray2[loop] = jitterHistogramDataVec2[loop];
+  }
+//debug the histogram data on signal analyzer tool
+  PUT_DEBUG("HS_TX1","Jitter Histogram",jitterHistogramDataArray1,timingAxis);
+  PUT_DEBUG("HS_TX2","Jitter Histogram",jitterHistogramDataArray2,timingAxis);
+
+//log the histogram data to the datalog stream
+  PUT_DATALOG("HS_TX1","JitterHistogramHsTx1",WAVE_LOG(jitterHistogramDataArray1));
+  PUT_DATALOG("HS_TX2","JitterHistogramHsTx2",WAVE_LOG(jitterHistogramDataArray2));
+</pre><p>[1]
+					"<em>Numerical Recipes 3rd Edition: The Art of Scientific Computing</em>" by William Press, Saul
+				Teukolsky, William Vetterling and Brian Flannery, Cambridge University Press 2007, ISBN
+				0-521-88068-8</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 6.5.4: New parameters: MovingWindowAveraging, WindowSize</li><li>SmarTest 6.5.4: Changed parameter names in the SmarTest 6.5.4.1 release: errorCount,
+					movingWindowAveraging, windowSize</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 96861</span><script type="text/javascript">var ti='96861';var tt='DSP_JITTER_HISTOGRAM'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

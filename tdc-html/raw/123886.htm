@@ -1,0 +1,66 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The d2s write method allows to write to a register. This is done by generating a static write pattern with the specified register address and data. The d2s-framework will create the corresponding static pattern."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>d2s write</title><meta name="keywords" content="d, 2, s"></head><body id="_123886"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123886</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">d2s write</h1>
+	
+	
+	<div><p>The d2s write method allows to write to a register. This is done by generating a static
+		write pattern with the specified register address and data. The d2s-framework will create the
+		corresponding static pattern.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void write(long long address, long long data);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_123886__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123886__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123886__entry__3"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123886__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123886__entry__2"><p><span class="keyword">address</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123886__entry__3"><p>Defines the register's write address.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123886__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123886__entry__2"><p><span class="keyword">data</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123886__entry__3"><p>Defines the data that will be written to the register.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><p>The following excerpt illustrates how the write method is used to created static
+				pattern to write the corresponding data to the given address.</p><p>In learning mode it will
+				generate two write labels and burst them together under
+				<code>MyBurstLabelName</code>.</p><p>In production mode only the <code>MyBurstLabelName
+				</code> pattern will be executed at
+				<code>d2s_LABEL_END()</code>.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+   d2sFramework fr;
+   d2sJTAG&amp; jtag = d2sJTAG::Instance();
+
+   // Register your protocol with the framework
+   fr.registerTransactionPort(jtag);
+
+   ON_FIRST_INVOCATION_BEGIN();
+      fr.d2s_LABEL_BEGIN("MyBurstLabelName", d2sFrameWorkModeType::LearningMode);
+         jtag.<strong>write</strong>(0xdead, 0xbeaf);
+         jtag.<strong>write</strong>(0xabcd, 0xef);
+      fr.d2s_LABEL_END();
+
+      // do your measurement here
+
+   ON_FIRST_INVOCATION_END();
+   ...
+}</pre><p>The
+				static patterns created by the code above for a single port setup would be saved into the device
+				vector directory as:</p><p><code>d2s_jtag_AT_W_0xdead_0xbeaf</code> and
+					<code>d2s_jtag_AT_W_0xabcd_0xef</code></p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="123839.htm">Configuring write parameters</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123886</span><script type="text/javascript">var ti='123886';var tt='d2s write'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

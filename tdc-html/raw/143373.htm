@@ -1,0 +1,94 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This class provides user control to protect running non-blocking firmware from being interrupted by other firmware commands."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FwGuard</title><meta name="keywords" content="Fw, Guard"></head><body id="_143373"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 143373</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FwGuard</h1>
+	
+	
+	<div><p>This class provides user control to protect running non-blocking firmware from being
+		interrupted by other firmware commands.</p>
+		<section class="section"><p>In some some rare special cases there might be the need for intentionally protecting
+				running non-blocking firmware commands from being interrupted by other firmware calls. Such
+				cases can occur if a graphical user interface (GUI) or an API calls a firmware command during
+				debugging. Examples for GUI and API that may cause this problem in interaction with the running
+				test method are:</p><ul>
+				<li><a href="99157.htm" title="With the Pattern Editor you can:">Pattern Editor</a></li>
+				<li><a href="10403.htm" title="This is a utility program, provided as part of the SmarTest software, which allows you to execute commands directly from a Linux shell window, while the system software is running. The utility is useful especially when debugging testflow programs.">hpt utility</a></li>
+				<li><a href="111031.htm" title="You can directly enter firmware command in the Task text box, or select firmware command from the task history, which includes all the previously-entered commands. The task history is opened as depicted below.">Firmware view</a></li>
+				<li><a href="120068.htm" title="Executes a test by starting the digital sequencer from the specified start label and waits until the digital and analog sequencers have stopped or the specified timeout is reached. It allows hidden upload of data controlled by SmartCalc.">SMC_EXECUTE_TEST()</a></li>
+			</ul><p>In case such calls are initiated on a running non-blocking firmware command, they may
+				cause the sequencer to be interrupted while the DUT is still connected to the power
+				supplies.</p><div class="caution"><span class="title">CAUTION</span> The above mentioned circumstances may damage the
+				DUT.</div><p>SmarTest displays the following messages in the <a href="16382.htm" title="The report window provides constant and immediate feedback about what is happening on the system. Two lines at the top of this window constantly monitor hardware status and system performance.">Report window</a> and <a href="97092.htm" title="The system console is part of the Setup perspective and displays errors that are associated with a particular test system resource (test data component). Errors coming from the test system and from Eclipse plug-ins are displayed in the Error Log View.">System console view</a>:</p><ul>
+				<li>An <code>ERROR: No result data available while tester is running</code> and</li>
+				<li>A <code>WARNING: Current sequencer run will be interrupted</code></li>
+			</ul><p>This class provides a ways to intentionally protect running non-blocking firmware
+				calls.</p><p>The recommended way is to use the FwGuard constructor within a function or a for-,
+				while- or if-block right after the API call that's to be protected. This way the FwGuard object
+				will be destructed at the end the function or for-, while- or if-block. However, one can also
+				use it outside of that narrow scope when utilizing its member functions
+					<code>.acquire()</code> and <code>.free()</code> explicitly.</p><div class="note"><span class="title">Note</span> A
+				non-blocking firmware command de facto turns into a blocking firmware command as long it is
+				protected by this class.</div><div class="note"><span class="title">Note</span> You must not declare a FwGuard object to be
+				global or <code>static</code>! Because this would block the whole SmarTest
+				system!</div><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Extension.h</span>.</p></section>
+		<div class="syntax"><h2>Constructor</h2><pre class="prettyprint copyable singleline">class FwGuard();</pre></div><div class="syntax"><h2>Member functions</h2><pre class="prettyprint linenums copyable">void acquire();
+void free();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		
+		<h2>Example</h2><div class="example"><p>The following example show the implicit
+				locking.</p><pre class="prettyprint linenums copyable">// some variables
+int i;
+
+// execute the following test in a loop
+for (i=1; i&lt;10; i++) {
+   // The firmware call of the following API will be locked
+   SMC_EXECUTE_TEST(i*0.1, &amp;timeout_s, &amp;mis_trg_s);
+
+   // instantiate the guard
+   // it will be automatically destructed at the end of the for-loop!
+   FwGuard implGuard;
+
+   // do something, for example calculations, that does not
+   // interfere with the firmware call above
+   // Note: firmware calls put in here are blocked from being executed!
+   }
+// here you can used code that also issues firmware commands.
+....</pre><p>The
+				following example show the explicit
+			locking.</p><pre class="prettyprint linenums copyable">// some variables
+int i;
+
+// execute a non-blocking firmware command
+SMC_EXECUTE_TEST(0.1 sec, &amp;timeout_s, &amp;mis_trg_s);
+
+// initiate the guard that protects firmware command called above
+FwGuard explGuard;
+
+// do something, for example calculations, that does not
+// interfere with the firmware call above
+// Note: firmware calls put in here are blocked from being executed!
+....
+// release the lock
+explGuard.free();
+
+// here one can used code that also issues firmware commands.
+....
+
+// execute the following test in a loop
+for (i=1; i&lt;10; i++) {
+
+   // The firmware call of the following API will be locked
+   SMC_EXECUTE_TEST(i*0.1, &amp;timeout_s, &amp;mis_trg_s);
+
+   // use the explGuard for locking the firmware command called by above API
+   explGuard.acquire();
+
+   // do something, for example calculations, that does not
+   // interfere with the firmware call above
+   // Note: firmware calls put in here are blocked from being executed!
+   }
+// here you can used code that also issues firmware commands.
+....</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="55436.htm" title="Only certain API functions can be used to execute concurrent test. The choice of execution APIs depends on the types of tests necessary for the device ports. The following API functions can be used to execute concurrent tests:">APIs for executing concurrent tests</a></div><div><a href="55547.htm" title="The non-blocking feature prevents conflicts between digital and analog sequencers. With non-blocking, the digital sequencer can remain active while analog firmware commands are being executed. This is not a default tester operation.">Non-Blocking Digital Capture</a></div><div><a href="118901.htm">SmartCalc API overview</a></div><div><a href="118841.htm" title="As soon the Hidden upload has finished the calculation thread continues on different CPU cores in parallel hidden behind the test currently being executed.">Hidden upload and calculation</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 143373</span><script type="text/javascript">var ti='143373';var tt='FwGuard'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

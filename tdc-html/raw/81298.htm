@@ -1,0 +1,168 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Continuity</title></head><body id="_81298"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 81298</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Continuity</h1>
+	
+	
+	<div><p></p>
+		<p>This test method checks for continuity of the test signal paths and for short circuits.
+			The test method can be executed for single or both polarities using the PPMU (parallel
+			test).</p>
+		<p>For PPMU parallel test, the tester class is retrieved. If the test is on P/C/Ce system,
+			the precharge voltage will be set to 0 V or disabled according to the related
+			parameters.</p>
+		<p>The test method detects open-circuits and short-circuits between the measured pin and
+			ground.</p>
+		<p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p>
+		<section class="section"><h2>Continuity test using PPMU</h2><div class="p"><figure class="fignone">
+					
+					<img src="26307.png" alt="Continuity Test using the PPMU or MCx PMU">
+				</figure></div><p>This test is used to: </p><ul>
+				<li>check the chip bonding and connections to the test fixture, </li>
+				<li>check protection circuits in the DUT such as input clamp diodes by forcing a
+					current into a device pin and measuring the voltage between that pin and ground, </li>
+				<li>check for short-circuits. </li>
+			</ul><p>Use the <strong>both</strong> polarities test if both input clamp diodes are present in
+				the DUT, use the <strong>single</strong> polarity test if only one diode is present. In the
+				latter case you must correctly specify the current direction. </p><p>Prior to
+				execution of the test, the status of the test system is checked to determine if it
+				is currently <em>connected</em> or <em>disconnected</em>. If it is <em>connected</em>,
+				then the DISCONNECT() is executed. If it is already <em>disconnected</em>, then the
+				continuity test method continues. </p><p>Each pin specified in the pin list is then
+				connected to the respective PPMU, which forces a test current into it and measures
+				the voltage between the pin and ground. The test is passed if the measured voltage
+				is in the range of the pass limit.</p><p>When there is an internal DUT connection
+				between the DUT pin and ground, the voltage detected is the forward bias voltage of
+				the internal device protection diode.</p><p>If there is no internal connection
+				between pin and ground, the result voltage will equal the voltage rail of the PPMU
+				because the PPMU cannot force/sink the current specified. If the result is 0V, then
+				a short circuit has been detected.</p><p>In case of bipolarities test, positive and
+				negative tests always are measured. The overall test result is consolidated
+				together.</p><p>The end state for the test is <em>disconnected</em>.</p><p>If you want
+				to get a result for the negative polarity even if the positive polarity test fails,
+				you must execute the Continuity test method separately with two single polarity
+				tests. </p><div class="note"><span class="title">Note</span>  To improve the throughput, it's recommended to set
+					<code>offcurr=act</code> in the primary set for DPS. </div><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_81298__entry__1">Parameter</th>
+							<th class="colsep-1" id="_81298__entry__2">Type</th>
+							<th class="colsep-1" id="_81298__entry__3">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">pinlist</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">PinString</td>
+							<td class="colsep-1" headers="_81298__entry__3">The pins to be tested. This can be @ for all applicable pins, or any number of
+								applicable single pins.<p>Valid pin types include: I, O,
+								IO.</p></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1">testCurrent</td>
+							<td class="colsep-1" headers="_81298__entry__2">SpecValue</td>
+							<td class="colsep-1" headers="_81298__entry__3">The force current value<p>It is in the format of
+									<kbd class="userinput">value[unit]</kbd></p><p>Default value is
+										<kbd class="userinput">10[uA]</kbd>.</p></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">settlingTime</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">SpecValue</td>
+							<td class="colsep-1" headers="_81298__entry__3">The settling time. The settling time will be in addition to the settling time
+								calculated by the system.<p>It is in the format of value[unit].
+									Default value is <kbd class="userinput">1[ms]</kbd>.</p></td>
+						</tr>
+						<tr id="_81298__row_measurementMode" class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">measurementMode</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">string</td>
+							<td class="colsep-1" headers="_81298__entry__3">The measurement mode. It can be:<div class="p">
+									<ul>
+										<li><span class="keyword">PPMUpar</span> - use PPMU to measure (in
+											parallel).</li>
+									</ul>
+								</div></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">polarity</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">string</td>
+							<td class="colsep-1" headers="_81298__entry__3">The measurement polarity. It can be:<ul>
+									<li>SPOL - single polarity.</li>
+									<li>BPOL - both polarities.</li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">prechargeToZeroVol</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">string</td>
+							<td class="colsep-1" headers="_81298__entry__3">Enable or disable 0 V as the precharge voltage before the current forcing (PPMU only).<ul>
+									<li>ON - enable 0 V precharge voltage before current
+										forcing.</li>
+									<li>OFF - disable precharge voltage.</li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">testName</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">string</td>
+							<td class="colsep-1" headers="_81298__entry__3">The test names to be used as limits.<p>Default is <code>passVolt_mV</code>.</p><p>If you want to use the test names defined in the test table or testflow limits, type in
+			the test names manually. Make sure the test names are in the <span class="uicontrol">Test name
+			</span>column of the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in the <span class="uicontrol">Test
+				Name</span> column of Tests page of Flow Data Editor.</p></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_81298__entry__1"><span class="keyword">output</span></td>
+							<td class="colsep-1" headers="_81298__entry__2">string</td>
+							<td class="colsep-1" headers="_81298__entry__3"><p>Controls how to output the per pin test result. It can be:</p>
+								<ul>
+									<li><kbd class="userinput">None</kbd>: Do not output the per pin result.</li>
+									<li><kbd class="userinput">ReportUI</kbd>: Output all the per pin result to the report
+				window.</li>
+								 <li><kbd class="userinput">ShowFailOnly</kbd>: Only outputs the failed
+									pin result to the report window.</li></ul>
+							</td>
+						</tr>
+					</tbody></table></section>
+		
+
+
+		<section class="section"><h2>Limit</h2><table><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p><span class="keyword">passVolt_mV</span></p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the measured voltage</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Implementation pseudo
+			code</h2><pre class="prettyprint linenums copyable">IF not already disconnected THEN
+  disconnect DUT
+ENDIF
+IF PPMU parallel measurement THEN
+  IF DPS not in LOZ state THEN
+    switch to LOZ state
+  ENDIF
+  IF single polarity measurement THEN
+    IF test current is positive THEN
+      measure the voltage with positive pass limit
+    ELSE
+        measure the voltage with negative pass limit
+    ENDIF
+  ELSE
+    measure the voltage with positive force current
+    measure the voltage with negative force current
+  ENDIF
+  retrieve measurement results
+  restore DPS status
+ELSE
+  clear sequencer status with SQGB
+  FOR all pins specified in pin list
+    define the measurement conditions with DFCT
+    execute the measurement with CTST?
+  retrieve measurement results
+ENDIF
+datalog test results</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: Change parameter type of pinList to PinString for UTM
+					library.</li><li>SmarTest 6.5.2: Change parameter type of testCurrent and settlingTime to SpecValue
+					for UTM library.</li><li>SmarTest 7.0.3:  Classic test method library removed.</li><li>SmarTest 7.1.1:  Test table is supported in TML 2.1.1.</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is
+					supported in TML 2.1.1.</li><li>SmarTest 7.1.1:  New parameter testName is added in TML 2.1.1.</li><li>SmarTest 7.2.1:  New option ShowFailOnly for the parameter output in TML
+					2.2.0.</li><li>SmarTest 7.3.4: New test flow variable CommutVtOffset introduced in patch 4.</li><li>SmarTest 7.10.2: Measurement Mode "Progload" no longer supported.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 81298</span><script type="text/javascript">var ti='81298';var tt='Continuity'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

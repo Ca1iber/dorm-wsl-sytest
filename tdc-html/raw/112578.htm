@@ -1,0 +1,572 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This BLC example below provides the following functionalities."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Example of maintaining level structure with level control API</title></head><body id="_112578"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 112578</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Example of maintaining level structure with level control API</h1>
+	
+	
+	<div><p>This BLC example below provides the following functionalities.</p>
+		<section class="section"><ul>
+				<li>The level structure is maintained with BLC API in the shared memory;</li>
+				<li>The EDL events are generated implicitly and the STDF data formatter can work with these
+					events.</li>
+				<li>The HVM events are issued either implicitly (whenever possible) or explicitly.</li>
+				<li>The handler driver functions are called via the BLC APIs.</li>
+				<li>The number of the lot and package is controlled either by a "for" loop or by the PH driver
+					function <a href="42267.htm" title="A call of this function informs the prober driver that the test of the current lot is finished. The implementation of the function depends on the plug-in.">ph_lot_done</a> and <a href="42265.htm" title="This function gets the binning and pass/fail information from SmarTest, applies a binning map on this data (optional), and tells the handler how to bin the tested devices.">ph_device_done</a>.</li>
+			</ul><p>The diagram below shows the test logic in the example code. It also shows the
+				corresponding part of application model on the left side.</p><div class="p"><figure class="fignone">
+					<img src="113359.png" alt="BLC example test logic and application model">
+				</figure></div><pre class="prettyprint linenums copyable">//header file 
+#include "xoc/hvmapi/hvmapi.hpp"
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+ 
+extern "C" {
+#include &lt;stdlib.h&gt;
+#include &lt;unistd.h&gt;
+}
+ 
+using namespace std;
+using namespace xoc::hvmapi;
+ 
+/**
+* Function: cleanup()
+*
+* Description: Clear and reset the BLC execution environment.
+* This function should be called before exiting 
+* the BLC execution
+**/
+inline void cleanup()
+{
+syncCommand("ResetBLCProfile", ParamList(), LOCAL_SESSION_ID);
+}
+ 
+/**
+* Function: processStatus()
+*
+* Description: process the return status of each API call
+* this function is called after the completion 
+* of each API
+**/
+inline void processStatus(Status &amp;s)
+{
+if(s.isError())
+{
+cout&lt;&lt;"****************ERROR**************\n"
+&lt;&lt;"Code:\"" &lt;&lt;s.code() &lt;&lt; "\"\n"
+&lt;&lt;"Text:\"" &lt;&lt;s.text() &lt;&lt; "\"\n"
+&lt;&lt;"***********************************"&lt;&lt;endl;
+cleanup();
+exit(1);
+}
+}
+ 
+/**
+* Function: checkPauseState()
+* 
+* Description: check and respond to the SmarTest PAUSE state
+**/
+inline void checkPauseState()
+{
+ParamList inputParam, outputParam;
+Status retVal;
+ 
+retVal = query("IsPaused", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+if(outputParam["IS_PAUSED"] == "TRUE")
+{
+//Issue the TESTPROGRAM_EXEC_PAUSED HVM event
+inputParam.clear();
+inputParam["EXECUTION_STATE"] = "TESTPROGRAM_EXEC_PAUSED";
+inputParam["TESTPROGRAM_NAME"] = "BLC";
+retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Call the ph_pause_start PH driver function 
+inputParam.clear();
+inputParam["FUNCTION_NAME"] = "ph_pause_start";
+retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+while(true)
+{
+//Enter a infinite loop until the PAUSE state is cleared
+outputParam.clear();
+retVal = query("IsPaused", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+if(outputParam["IS_PAUSED"] == "FALSE") break;
+}
+ 
+//Call the ph_pause_done PH driver function 
+inputParam.clear();
+inputParam["FUNCTION_NAME"] = "ph_pause_done";
+retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Issue the TESTPROGRAM_EXEC_RESUMED event
+inputParam.clear();
+inputParam["TESTPROGRAM_NAME"] = "BLC";
+inputParam["EXECUTION_STATE"] = "TESTPROGRAM_EXEC_RESUMED";
+retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+}
+ 
+/**
+* Function: checkAbortState()
+*
+* Description: check the SmarTest ABORT and RESET state
+**/
+inline bool checkAbortState()
+{
+ParamList inputParam, outputParam;
+Status retVal;
+ 
+retVal = query("IsInterrupted", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+if(outputParam["IS_INTERRUPTED"] == "TRUE")
+{
+return true;
+}
+else
+{
+return false;
+}
+}
+ 
+/**
+* Function: startALevel()
+*
+*Description: start a level
+**/
+inline void startALevel(const string &amp;levelType,const string &amp;levelName)
+{
+ParamList inputParam;
+Status retVal;
+inputParam.clear();
+inputParam["LEVEL_TYPE"] = levelType;
+inputParam["LEVEL_NAME"] = levelName;
+retVal = syncCommand("StartLevel", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+/**
+* Function: loopALevel()
+*
+* Description: enter the loop of a level
+**/
+inline void loopALevel()
+{
+Status retVal = syncCommand("LoopLevel", ParamList(), LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+ 
+/**
+* Function: completeALevel()
+*
+* Description: Completer a level
+**/
+inline void completeALevel()
+{
+Status retVal;
+retVal = syncCommand("CompleteLevel", ParamList(), LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+/**
+** Function: issueHVMforLot()
+**
+** Description: issue an HVM event for lot level
+**/
+inline void issueHVMforLot(string eventName,string lotID)
+{
+ParamList inputParam;
+Status retVal;
+inputParam.clear();
+inputParam["EXECUTION_STATE"] = eventName;
+inputParam["TESTPROGRAM_NAME"] = "BLC";
+inputParam["OPERATOR_NAME"] = "operator1";
+inputParam["LOT_ID"] = lotID; 
+retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+} 
+ 
+/**
+** Function: issueHVMforPackage()
+**
+** Description: issue an HVM event for device level
+**/
+inline void issueHVMforPackage(string eventName,string lotID,string siteID,
+                               string siteSetup,string packageID)
+{
+ParamList inputParam;
+Status retVal;
+inputParam.clear();
+inputParam["EXECUTION_STATE"] = eventName;
+inputParam["LOT_ID"] = lotID;
+inputParam["SITE_ID_FOR_SITES"] = siteID;
+inputParam["SITE_SETUP_FOR_SITES"] = siteSetup;
+inputParam["PACKAGE_ID_FOR_SITES"] = packageID;
+retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+/**
+*Function: initializeBLC() 
+*
+*Description: initialize the BLC environment
+**/
+inline void initializeBLC(int fileNum)
+{
+ParamList inputParam;
+Status retVal;
+ 
+ 
+//check if there are input file provided
+if(fileNum&lt;=1)
+{
+cout&lt;&lt;"Please sepecify a BLC input file!!!"&lt;&lt;endl;
+cleanup();
+exit(1);
+}
+ 
+//Initialize the BLC environment
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Set BLC Profile"&lt;&lt;endl;
+inputParam["TEST_TYPE"] = "PACKAGE_TEST";
+inputParam["ENABLE_IMPLICIT_EVENT"] = "TRUE"; 
+retVal = syncCommand("SetBLCProfile", inputParam, LOCAL_SESSION_ID);
+ 
+if(retVal.isError() &amp;&amp; retVal.text()=="the SmarTest state is not IDLE")
+{
+//if the current SmarTest state is not IDLE, clear up first
+cleanup();
+retVal = syncCommand("SetBLCProfile", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+ 
+}
+/**
+*Function: parseInputFile() 
+*
+*Description: parse the BLC input file to get the setup information
+**/
+inline void parseInputFile(string inputFile,string &amp;phLib,string &amp;phConfig,
+                           string &amp;testflow, string &amp;eiLib, string &amp;dbLib)
+{
+ParamList inputParam, outputParam;
+Status retVal;
+ 
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Parse the BLC input file:"&lt;&lt;inputFile&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+retVal = evalBLCInputFile(inputFile, outputParam);
+processStatus(retVal);
+phLib = outputParam["PH_LIB"];
+phConfig = outputParam["PH_CONFIG"];
+testflow = outputParam["TESTFLOW"];
+eiLib = outputParam["EI_LIB"];
+dbLib = outputParam["DB_LIB"];
+ 
+}
+/**
+*Function: loadSetups() 
+*
+*Description: load the setups and libraries
+**/
+inline void loadSetups(string testflow,string phLib,string phConfig,string eiLib,string dbLib)
+{
+ParamList inputParam, outputParam;
+Status retVal;
+ 
+//Download the testflow
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Download test flow:"&lt;&lt;testflow&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["TESTFLOW_NAME"] = testflow;
+retVal = syncCommand("DownloadTestflowSync", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Load the Prober Handler Driver
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Load the PH driver:"&lt;&lt;phLib&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["PH_DRIVER_LIB"] = phLib;
+inputParam["PH_DRIVER_CONFIG_FILE"] = phConfig;
+retVal = syncCommand("LoadPHDriverLib", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Load the execute input lib 
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Load the execute input lib:"&lt;&lt;eiLib&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["EXEC_INPUT_LIB"] = eiLib;
+retVal = syncCommand("LoadExecInputLib", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Load the data bridge lib
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Load the data bridge lib:"&lt;&lt;dbLib&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["DATA_BRIDGE_LIB"] = dbLib;
+retVal = syncCommand("LoadDataBridgeLib", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+/**
+*Function: addVariables() 
+*
+*Description: add variables to the shared memory
+**/
+inline void addVariables()
+{
+//Add new variables
+ParamList inputParam;
+Status retVal;
+inputParam.clear();
+inputParam["VARIABLE_NAME"] = "Operator_id";
+inputParam["VARIABLE_VALUE"] = "operator1";
+retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+inputParam.clear();
+inputParam["VARIABLE_NAME"] = "Tester_id";
+inputParam["VARIABLE_VALUE"] = "tester1";
+retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+
+inputParam.clear();
+inputParam["VARIABLE_NAME"] = "STDF_FILE";
+inputParam["VARIABLE_VALUE"] = "/home/demo/stdf/my_stdf_file";
+retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+/**
+** Function: callAPhDriverFunc()
+** 
+** Description: call a prober/handler driver function
+**/
+inline void callAPhDriverFunc(const string funcName)
+{
+ParamList inputParam, outputParam;
+Status retVal;
+inputParam.clear();
+inputParam["FUNCTION_NAME"] = funcName;
+retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+}
+ 
+/**
+**Function:packageTest()
+**
+**Description:do the package test
+**/
+ 
+inline void packageTest(string lotID)
+{
+ParamList inputParam,outputParam;
+Status retVal;
+ 
+startALevel("DEVICE_LEVEL","package");
+ 
+while(true)
+{//Enter the package level loop
+loopALevel();
+ 
+//Call the ph_device_start PH driver function
+callAPhDriverFunc("ph_device_start");
+ 
+//check if the operator interrupts the BLC execution
+if(checkAbortState())
+{
+//leave the current level
+break;
+}
+ 
+//Query if the level_end index is set by the driver
+outputParam.clear();
+retVal = query("IsDeviceDone", outputParam, ParamList(), LOCAL_SESSION_ID);
+processStatus(retVal);
+//If all devices are finished, break the loop
+if(outputParam["IS_DEVICE_DONE"] == "TRUE") break;
+ 
+//update the header and subheader of the result display window
+static int packageNum = 1;
+char sPackageNum[10] = "";
+sprintf(sPackageNum, "%d", packageNum);
+inputParam.clear();
+inputParam["HEADER"] = "PACKAGE TEST";
+inputParam["SUBHEADER"] = string("PACKAGE#") + sPackageNum;
+retVal = syncCommand("UpdateResultDisplay", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Set the package ID to something like 1.1, 1.2 etc. 
+inputParam.clear();
+inputParam["PACKAGE_ID"] = sPackageNum;
+retVal = syncCommand("SetPackageID", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+packageNum++;
+ 
+//Get the site setup information in order to issue the DIE_STARTED/DIE_COMPLETED HVM events
+outputParam.clear();
+retVal = query("GetSiteSetup", outputParam, ParamList(), LOCAL_SESSION_ID);
+string siteID = outputParam["SITE_ID_FOR_SITES"];
+string siteSetup = outputParam["SITE_SETUP_FOR_SITES"];
+string packageID = outputParam["PACKAGE_ID_FOR_SITES"];
+processStatus(retVal);
+ 
+//Issue the PACKAGE_STARTED HVM event
+issueHVMforPackage("PACKAGE_STARTED",lotID,siteID,siteSetup,packageID);
+ 
+/************************
+* Execute the testflow *
+************************/
+ 
+//check if the operator interrupts the BLC execution
+if(checkAbortState())
+{
+//leave the current level before the testflow execution
+break;
+}
+ 
+inputParam.clear();
+retVal = syncCommand("ExecTestflowSync", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+ 
+//Check if the operator pauses the BLC execution
+checkPauseState();
+ 
+//Call the ph_device_done PH driver function
+callAPhDriverFunc("ph_device_done");
+ 
+//Issue the PACKAGE_COMPLETED HVM event
+issueHVMforPackage("PACKAGE_COMPLETED",lotID,siteID,siteSetup,packageID);;
+} //end of package level loop
+ 
+}
+ 
+/**
+* Function: main()
+*
+* Description: the main function 
+**/
+ 
+int main(int argc, char* argv[])
+{
+ParamList inputParam, outputParam;
+Status retVal;
+string testflow,phLib,phConfig,eiLib,dbLib;
+ 
+/**********************
+* Initialize the BLC *
+**********************/
+initializeBLC(argc);
+ 
+/**********************
+* parse the input file*
+**********************/
+parseInputFile(argv[1],phLib,phConfig,testflow,eiLib,dbLib);
+ 
+/**********************
+* Load all the setups*
+**********************/
+ 
+loadSetups(testflow,phLib,phConfig,eiLib,dbLib);
+ 
+/****************************
+* Start the superlot level *
+****************************/
+startALevel("CUSTOM_LEVEL","superlot");
+ 
+//Add new variables
+addVariables();
+ 
+ 
+//Call the ph_driver_start PH driver function
+callAPhDriverFunc("ph_driver_start");
+ 
+//the top level can only be executed once
+ 
+{ //enter the superlot level loop
+loopALevel();
+ 
+/***********************
+* Start the lot level *
+***********************/
+startALevel("CUSTOM_LEVEL","lot");
+ 
+for(int lotNum=1; lotNum&lt;=1; lotNum++)
+{ //enter the lot level loop
+loopALevel();
+ 
+//Call the ph_lot_start PH driver function
+callAPhDriverFunc("ph_lot_start");
+ 
+//Call the ph_get_id PH driver function
+inputParam.clear();
+outputParam.clear();
+inputParam["FUNCTION_NAME"] = "ph_get_id";
+inputParam["PARAMETER"] = "lot";
+retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+string lotID = outputParam["OUTPUT_STRING"];
+ 
+//check if the operator interrupts the BLC execution
+if(checkAbortState())
+{
+//leave the current level
+break;
+}
+ 
+//Issue the LOT_STARTED HVM event
+issueHVMforLot("LOT_STARTED",lotID);
+ 
+/***************************
+* Start the package level *
+***************************/
+packageTest(lotID);
+ 
+/******************************
+* complete the package level *
+******************************/
+completeALevel();
+ 
+//Call the ph_lot_done PH driver function
+callAPhDriverFunc("ph_lot_done");
+ 
+//Issue the LOT_COMPLETED HVM event
+issueHVMforLot("LOT_COMPLETED",lotID);
+
+string sid = LOCAL_SESSION_ID;
+inputParam.clear();
+inputParam["DEST_EDL_FILE"] = "/tmp/new_datalog_file.log";
+retVal = syncCommand("MoveEDLStream", inputParam, sid);
+if ( retVal.isError() ) 
+{
+  cout&lt;&lt;"error code= " &lt;&lt; retVal.code() &lt;&lt; " description=" &lt;&lt; retVal.text() &lt;&lt; endl;
+}
+ 
+} //end of the lot level loop
+ 
+/**************************
+* complete the lot level *
+**************************/
+completeALevel();
+ 
+} //end of the superlot leve loop
+ 
+//Call the ph_driver_done PH driver function
+callAPhDriverFunc("ph_driver_done");
+ 
+/**********************************
+* complete the superlot level *
+**********************************/
+completeALevel();
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;End of the level control"&lt;&lt;endl;
+ 
+/***********
+* The end *
+***********/
+cleanup();
+return 0;
+}</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li><li>SmarTest 7.1.0:  GDF logging is obsolete.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 112578</span><script type="text/javascript">var ti='112578';var tt='Example of maintaining level structure with level control API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

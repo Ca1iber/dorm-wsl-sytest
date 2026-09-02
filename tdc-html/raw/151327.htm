@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies a combined voltage and current measurement."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>viMeas()</title><meta name="keywords" content="vi, Meas"></head><body id="_151327"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 151327</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">viMeas()</h1>
+	
+	
+	<div><p>Specifies a combined voltage and current measurement.</p>
+		<section class="section"><p>This function is only for the <a href="350661.htm" title="The XPS256 is a high-density scalable DUT power supply and V/I card for all SOC test applications. The card belongs to the DC Scale family and can reside in any channel card slot of a V93000 EXA Scale system.">DC Scale XPS256 card</a>. The
+				function can be only used in the pattern‑based mode.</p><p>Two measurement
+				events (one is for the voltage measurement, and the other is for the current
+				measurement) are inserted into the related SmartRDI pattern. The maximum sample rate
+				is therefore defined by the required time for 64 vectors. The sample values are
+				taken from the continuous stream of voltage measurement samples and current
+				measurement samples that are simultaneously provided by the digital closed loop
+				control of <span>XPS256</span>channels.</p><p>The function must always be programmed in combination
+				with function <a href="144802.htm" title="Specifies the number of samples to capture when the PPMU, the board ADC or the DC Scale pin is used as digitizer.">samples()</a> and the related functions for setting the
+				sample rate: <a href="144783.htm" title="Specifies the sampling frequency when PPMU, board ADC or DC Scale pin is used as digitizer.">FS()</a>, <a href="146750.htm" title="Specifies the number of tester cycles between two adjacent samples to capture.">sampleCycle()</a>, or <a href="146751.htm" title="Specifies the sampling period to capture the waveform.">samplePeriod()</a>.</p>
+			<div class="p">Using the <span class="keyword">viMeas()</span> function in combination with <a href="142823.htm" title="Specifies the number of samples used to do the averaging. The result of the measurement has been averaged.">average()</a> is supported but the following issues must be observed:<ul>
+					<li>Without averaging, the time difference between the two measurement is
+						defined by the time for transferring the 32 vectors and for capturing the
+						value for the second measurement event from the continuous stream of data.
+						The delay will be about 1 μs for a pattern sequencer frequency higher than
+						32 MHz.</li>
+					<li>With averaging enabled, the two measurements are pulled apart by the time
+						required for averaging if this exceeds the time for transferring the 32
+						vectors of the second measurement event.</li>
+					<li>The maximum sample rate is not only defined by the required time for 2 * 32
+						vectors but also by the time required for averaging as far as it exceeds the
+						time for the 32 vectors per measurement event.</li>
+				</ul></div><p>The measured values can be retrieved by three
+				functions returning the results as an array of type <a href="125211.htm" title="ARRAY_D defines an array holding the DOUBLE type of data and defines the functions to access and process the data.">ARRAY_D</a>:</p><ul>
+				<li>Function <a href="146752.htm" title="Retrieves the raw waveform.">getWaveform()</a> returns both the voltage measurement values and
+					the current measurement values in one array. The size of the array is twice the
+					number of samples that has been set by function <a href="144802.htm" title="Specifies the number of samples to capture when the PPMU, the board ADC or the DC Scale pin is used as digitizer.">samples()</a>: Even
+					elements [0, 2, 4, ...] are the voltage measurement values; odd elements [1, 3,
+					5, ...] are the current measurement values.</li>
+				<li>The two functions <a href="151364.htm" title="Retrieves the current measurement values from a previously performed combined voltage and current measurement.">getCurrentWaveform()</a> and <a href="151365.htm" title="Retrieves the voltage measurement values from a previously performed combined voltage and current measurement.">getVoltageWaveform()</a> return the
+					current measurement values or the voltage measurement values in a single array.
+					The size of the array corresponds to the number of samples that has been set by
+					function <a href="144802.htm" title="Specifies the number of samples to capture when the PPMU, the board ADC or the DC Scale pin is used as digitizer.">samples()</a>.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">dcBase&amp; viMeas();</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">List of parameters</dt>
+					<dd>There are no parameters.</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>A reference to the <span class="keyword">dcBase</span> object.</dd>
+				
+			</dl>
+		</div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+{
+    rdi.dc().pin("Pin_1")
+            .vForce(0.0 V).vForceRange(10.0 V)
+            .iClamp(-20.0 mA, 20.0 mA).iForceRange(50 mA)
+            .execute();
+
+    RDI_BEGIN();
+    {
+        rdi.dc("viDGT").pin("Pin_1")
+                .viMeas()
+                .samples(20)
+                .FS(10 kHz)
+                .execute();
+    }
+    RDI_END();
+}
+ON_FIRST_INVOCATION_END();
+
+ARRAY_D measuredValues;
+double measuredVoltage_1, measuredVoltage_2;
+double measuredCurrent_1, measuredCurrent_2;
+
+measuredValues = rdi.id("viDGT").getWaveform("Pin_1");
+
+measuredVoltage_1 = measuredValues[0];
+measuredCurrent_1 = measuredValues[1];
+measuredVoltage_2 = measuredValues[2];
+measuredCurrent_2 = measuredValues[3];</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144802.htm" title="Specifies the number of samples to capture when the PPMU, the board ADC or the DC Scale pin is used as digitizer.">samples()</a></div><div><a href="144783.htm" title="Specifies the sampling frequency when PPMU, board ADC or DC Scale pin is used as digitizer.">FS()</a></div><div><a href="146752.htm" title="Retrieves the raw waveform.">getWaveform()</a></div><div><a href="151364.htm" title="Retrieves the current measurement values from a previously performed combined voltage and current measurement.">getCurrentWaveform()</a></div><div><a href="151365.htm" title="Retrieves the voltage measurement values from a previously performed combined voltage and current measurement.">getVoltageWaveform()</a></div><div><a href="125211.htm" title="ARRAY_D defines an array holding the DOUBLE type of data and defines the functions to access and process the data.">ARRAY_D</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.3</li><li>SmarTest 7.5.0: DC Scale FVI16 card added.</li><li>SmarTest 7.6.1: Parallel waveform sourcing and sampling on the same pin or multiple
+					pins are supported.</li><li>SmarTest 7.10.1: DC Scale XPS256 card added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 151327</span><script type="text/javascript">var ti='151327';var tt='viMeas()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

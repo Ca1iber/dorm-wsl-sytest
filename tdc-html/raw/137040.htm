@@ -1,0 +1,140 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Example: Using sync markers within test methods</title><meta name="keywords" content="testmethod"></head><body id="_137040"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 137040</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Example: Using sync markers within test methods</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This example shows how to implement sync markers to UTM.</p><p>It only points out the
+				sync marker specifics.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p><strong>Device &amp; Protocol details:</strong></p><p>It is presumed that the setup has been done
+				as detailed in <a href="128293.htm" title="This example demonstrates how to transfer a device independent protocol definition to SmarTest and how to link it to the device dependent details.">Example: Defining a MDIO protocol</a>.</p><p>In addition, you should have created a 'control
+				pattern' that runs in the same sync group as your protocol.</p><p><strong>UTM details:</strong></p><p>An
+				UTM project <span class="keyword">MDIO_DEV_tml</span> has been created as described in <a href="98955.htm" title="This topic shows how to create a universal test method project step by step in SmarTest.">How to create a universal test method project</a>.</p><p>An UTM Class <span class="keyword">MDc_synctest</span> has been created as
+				described in <a href="98956.htm" title="This topic shows how to create a test method class step by step in SmarTest.">How to create a universal test method class</a>, without entering parameters or limits in the
+			wizard.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Add the sync marker <span class="keyword">mySyncMark1</span> to your 'control pattern' as described
+					in: <a href="128299.htm" title="A sync marker is a vector attachment added to a vector of a certain pin.">Adding synchronization markers</a>.</span>
+			</li><li class="stepexpand">
+				<span>Open the <span class="keyword">MDc_synctest</span> class for editing.</span>
+			</li><li class="stepexpand">
+				<span>Insert the transaction code line that will be executed when <span class="keyword">mySyncMark1</span>
+					is reached at your desired location.</span>
+				<div><pre class="prettyprint copyable singleline">mdioTest.syncTransaction("write", "poNonMD", "<strong>mySyncMark1</strong>").set("phyaddr", 0x1F).set("regaddr", 0x1F).set("data", 0xFFFF);</pre></div>
+			</li><li class="stepexpand">
+				<span>Complete your UTM code and build your UTM project.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You have created a write transaction that will be executed once
+					<span class="keyword">mySyncMark1</span> is reached in the 'control pattern'.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>This class, together with the example device setup detailed in <a href="128293.htm" title="This example demonstrates how to transfer a device independent protocol definition to SmarTest and how to link it to the device dependent details.">Example: Defining a MDIO protocol</a>, can be copied to your UTM class and used as a reference to the previous
+			description.</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+
+//for test method API interfaces
+#include "mapi.hpp"
+using namespace std;
+
+/**
+ * Test method class.
+ *
+ * For each testsuite using this test method, one object of this
+ * class is created.
+ */
+class MDc_synctest: public testmethod::TestMethod {
+
+protected:
+  /**
+   *Initialize the parameter interface to the testflow.
+   *This method is called just once after a testsuite is created.
+   *
+   *Note: Test Method API should not be used in this method.
+   */
+  virtual void initialize()
+  {
+    //Add your initialization code here
+  }
+
+  /**
+   *This test is invoked per site.
+   */
+  virtual void run()
+  {
+     SYNCHRONIZED_TEST mdioTest("poMD");
+     SYNCHRONIZED_TEST mdioComplement("poMDc");
+
+     ON_FIRST_INVOCATION_BEGIN();
+
+        cout &lt;&lt; " ========== MDIO Simulated ==============" &lt;&lt; endl;
+        cout &lt;&lt; " poMD used as real MDIO port"&lt;&lt; endl;
+        cout &lt;&lt; " poMDc used to stimulus/reply to poMD" &lt;&lt; endl;
+        cout &lt;&lt; " Phy addr, reg addr and data are written on poMD" &lt;&lt; endl;
+        cout &lt;&lt; " Phy addr, reg addr and data are checked on poMDc" &lt;&lt; endl;
+        cout &lt;&lt; " The roles are then reversed" &lt;&lt; endl;
+        cout &lt;&lt; " Test will pass based on current settings" &lt;&lt; endl;
+        cout &lt;&lt; " Change any of the write addr or data to simulate a failure"  &lt;&lt; endl;
+        cout &lt;&lt;  endl;
+
+        // Writes data on poMD
+        // Verified by "expect" on poMDc below
+        mdioTest.transaction("write").set("phyaddr", 0x1F).set("regaddr", 0x1F).set("data", 0xFFFF);
+        mdioTest.transaction("write").set("phyaddr", 0x1F).set("regaddr", 0x1F).set("data", 0xFFFF);
+
+        // Reads data from poMDc
+        // Compares expect data with what is written
+        mdioTest.transaction("read").set("phyaddr", 0x0F).set("regaddr", 0x15).expect("data", 0xA0A0);
+        mdioTest.transaction("read").set("phyaddr", 0x0F).set("regaddr", 0x15).expect("data", 0xCCCC);
+
+        cout &lt;&lt; "==&gt; performing transaction synchronized to 'mySyncMark1'...."  &lt;&lt; endl;
+<strong>        mdioTest.syncTransaction("write", "poNonMD", "mySyncMark1")</strong>
+<strong>                 .set("phyaddr", 0x1F).set("regaddr", 0x1F).set("data", 0xFFFF);</strong>
+         cout &lt;&lt; "==&gt; synchronized transaction to 'mySyncMark1' - D O N E !!!"  &lt;&lt; endl;
+
+        if (!mdioTest.flush()) {
+           cerr &lt;&lt; "flush error \n";
+           ERROR_EXIT(TM::ABORT_FLOW);
+        }
+
+        mdioComplement.transaction("checkWrite").expect("phyaddr", 0x1F).expect("regaddr", 0x1F).expect("data", 0xFFFF);
+        mdioComplement.transaction("nop");
+        mdioComplement.transaction("setForRead").set("data", 0xA0A0);
+        mdioComplement.transaction("checkSetForRead").expect("phyaddr", 0x0F).expect("regaddr", 0x15).set("data", 0xCCCC);
+
+        if (!mdioComplement.flush()) {
+           cerr &lt;&lt; "flush error \n";
+           ERROR_EXIT(TM::ABORT_FLOW);
+        }
+
+        FUNCTIONAL_TEST();
+
+     ON_FIRST_INVOCATION_END();
+
+     SYNCHRONIZED_TEST::unlink();
+     //Add your test code here.
+        return;
+     }
+
+  /**
+   *This function will be invoked once the specified parameter's value is changed.
+   *@param parameterIdentifier
+   *
+   *Note: Test Method API should not be used in this method.
+   */
+  virtual void postParameterChange(const string&amp; parameterIdentifier)
+  {
+    //Add your code
+    return;
+  }
+
+  /**
+   *This function will be invoked once the Select Test Method Dialog is opened.
+   */
+  virtual const string getComment() const 
+  {
+    string comment = " please add your comment for this method.";
+    return comment;
+  }
+};
+REGISTER_TESTMETHOD("MDc_synctest", MDc_synctest);</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125390.htm" title="The SYNCHRONIZED_TEST class sets up a synchronized test within a test method. It is derived from the PROTOCOL_TEST class.">SYNCHRONIZED_TEST</a></div><div><a href="125165.htm" title="With synchronized protocol tests, the test method API provides means to attach a sequence of transactions to a synchronization point. Synchronization points (markers) can be set up in a user vector of a concurrently running port.">Vector based synchronization</a></div><div><a href="128298.htm" title="A synchronization marker ('sync marker') allows to control the execution of protocol transactions from the patterns running on non-protocol ports.">Synchronizing transactions to vectors</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 137040</span><script type="text/javascript">var ti='137040';var tt='Example: Using sync markers within test methods'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

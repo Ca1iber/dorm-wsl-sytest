@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC event example: ADC linearity test</title></head><body id="_117728"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117728</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC event example: ADC linearity test</h1>
+	<div>
+		<section class="section"><h2>Setup test
+			method</h2><pre class="prettyprint linenums copyable">virtual void run()
+{
+  // Define the waveform
+  ANALOG_WAVEFORM rampUp("rampUp");
+  rampUp.definition(TM::RAMP)
+        .direction(TM::POS)
+        .samples(1024)
+        .min(0.0).max(1.2);
+
+  // Define the waveform force event and attach it to the pattern
+  PATTERN_CONTROLLER pc;
+  PATTERN &amp; pattern(pc.label("ADC_lin_pat"));
+  VEC_EVENTS &amp; events(pattern.vecEvents("Analog_in"));
+
+  EVENT_WAVEFORM_VF event_adc_ramp("event_adc_ramp");
+  event_adc_ramp.vForce(rampUp);
+  event_adc_ramp.sampleVectorDistance(32);
+
+  // attach event to the pattern and download
+  events.insert(85, event_adc_ramp);
+  events.setup();
+}</pre></section>
+		<section class="section"><h2>Execution test
+			method</h2><pre class="prettyprint linenums copyable">virtual void run()
+{
+  ARRAY_I    ADC_lin_capt, ADC_histogram;
+  ARRAY_D    ile, dle;
+  INT        num_miss_codes;
+  INT        miss_codes[1024]; 
+  INT        num_samples = 1024;
+  LINEARtype lin_result;
+
+  // Execute the test
+  DIGITAL_CAPTURE_TEST( 1.0 );
+
+  // Retrieve the capture values
+  ADC_lin_capt = VECTOR( "VV_ADC_par" ).getVectors( );
+  ADC_lin_capt.resize(num_samples);
+
+  // Post-processing: Calculate the linearity errors
+  DSP_HISTOGRAM(ADC_lin_capt, ADC_histogram, 0.5, 254.5, 256);
+  DSP_ADC_HISTOGRAM(ADC_histogram, &amp;lin_result, dle, ile,
+                    &amp;num_miss_codes,   miss_codes, MIN_RMS, 1.0);
+
+  // Pass/Fail judgment
+  TEST("Analog_in", "INL", lin_result.iamax, TM::CONTINUE);
+  TEST("Analog_in", "DNL", lin_result.damax, TM::CONTINUE);
+  TEST("Analog_in", "Missing_codes", num_miss_codes);   
+}</pre></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117728</span><script type="text/javascript">var ti='117728';var tt='DC event example: ADC linearity test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

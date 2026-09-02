@@ -1,0 +1,92 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The collisions that may happen in timing master file include EQNSET number, WAVETABLE name, MULTIPORT name, CLOCK_SET number (contain related MULTIPORT) and TESTDATA name (DC Dynamic)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Collision handling for the timing master file</title><meta name="keywords" content="masterfile"></head><body id="_105671"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105671</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Collision handling for the timing master file</h1>
+	
+	
+	<div><p>The collisions that may happen in timing master file include <code>EQNSET</code>
+		number, <code>WAVETABLE</code> name, <code>MULTIPORT</code> name,
+			<code>CLOCK_SET</code> number (contain related MULTIPORT) and <code>TESTDATA</code> name
+		(DC Dynamic).</p>
+		<p><code>CLOCK_SET</code> is not used in SmarTest 7.10, as the MCLK is fixed.</p>
+		<p>The collisions can be handled automatically by the setup management tool or manually by clearly
+			specifying the new definitions.</p>
+		<p>When the <code>WAVETABLE</code> name collision is resolved, the
+			<code>EQNSET</code>(spec included), <code>MULTIPORT</code>(spec included) and
+				<code>CLOCK_SET</code>(spec included) need to be updated.</p>
+		<p>When the <code>EQNSET</code> number collision is resolved, the related
+				<code>MULTIPORT</code>(spec included) and <code>CLOCK_SET</code>(spec included) need to
+			be updated.</p>
+		<p>The above two kinds of Bind can be handled automatically by the tool if the relationship can be
+			identified. If the tool cannot identify the relationships from the timing master file, you need
+			to specify the <code>Bind</code> clearly in it. Then the collision can be resolved by the
+			setup management tool.</p>
+		<section class="section"><h2>Split strategy</h2><p>When you split the loaded setup file according to the
+				timing master file, the <code>EQNSET</code> number, <code>WAVETABLE</code> name,
+					<code>MULTIPORT</code> name, <code>CLOCK_SET</code> name and <code>TESTDATA</code>
+				name in the sub-setup files will follow the left column number/name of the master
+				file.</p><p>For
+					example,</p><pre class="prettyprint copyable singleline">WAVETABLE wtbl_1[REMAP wtbl_2]: ../../rf/timing/part1.tim</pre><p><code>WAVETABLE
+					wtbl_2</code> in the combination setup file will be changed to <code>WAVETABLE
+					wtbl_1</code> of <span class="filepath">../../rf/timing/part1.tim</span>.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Automatically Bind</h3><p>In this example, the timing files for usb test are in
+				one directory and the timing files for rf test are in another directory. The collision can be
+				handled automatically and the related parts will be updated automatically.</p><p>Before
+				assembling, the master file
+				is:</p><pre class="prettyprint linenums copyable">EQNSET 1: ../../usb/timing/eqnset_01.tim
+EQNSET 1: ../../rf/timing/eqnset_01.tim
+WAVETABLE wtbl_1: ../../usb/timing/part1.tim
+WAVETABLE wtbl_1: ../../rf/timing/part1.tim
+MULTIPORT_SPEC "spec_1": ../../usb/timing/spec_1.tim
+MULTIPORT_SPEC "spec_1": ../../rf/timing/spec_1.tim
+CLOCK_SET clset_1: ../../usb/timing/clock_1.tim
+CLOCK_SET clset_1: ../../rf/timing/clock_1.tim</pre><p>After
+				assembling, the master file
+			is:</p><pre class="prettyprint linenums copyable">EQNSET 1: ../../usb/timing/eqnset_01.tim
+EQNSET 1[REMAP 2]: ../../rf/timing/eqnset_01.tim
+WAVETABLE wtbl_1: ../../usb/timing/part1.tim
+WAVETABLE wtbl_1[REMAP wtbl_2]: ../../rf/timing/part1.tim
+MULTIPORT_SPEC "spec_1": ../../usb/timing/spec_1.tim
+MULTIPORT_SPEC "spec_1"[REMAP "spec_2"]: ../../rf/timing/spec_1.tim
+CLOCK_SET clset_1: ../../usb/timing/clock_1.tim
+CLOCK_SET clset_1[Remap clset_2]: ../../rf/timing/clock_1.tim</pre></div>
+		<div class="example"><h3>Manually Bind</h3><p>In this example all the timing files are located in one
+				directory. The setup management tool does not know which parts need to be updated after collision
+				resolved. You need to clearly specify the <strong>Bind</strong> files before assembling.</p><p>Before
+				assembling, the timing master file looks like
+				below:</p><pre class="prettyprint linenums copyable">EQNSET 1: ../../ALL/timing/eqnset_01.tim
+EQNSET 1: ../.. /ALL /timing/aaa.tim
+       [Bind: ../../ ALL /timing/ddd.tim]
+
+WAVETABLE wtbl_1: ../../ ALL /timing/part1.tim
+WAVETABLE wtbl_1: ../../ ALL /timing/ddd.tim
+
+MULTIPORT_SPEC "spec_1": ../../ ALL /timing/spec_1.tim
+MULTIPORT_SPEC "spec_1": ../../ ALL /timing/cccc.tim
+       [Bind ../../ ALL /timing/ddd.tim;
+             ../../ ALL /timing/aaa.tim;]
+
+CLOCK_SET clset_1: ../../ ALL /timing/clock_1.tim
+CLOCK_SET clset_1: ../.. /ALL /timing/ffff.tim
+       [Bind ../../ ALL /timing/ddd.tim;
+             ../../ ALL /timing/aaa.tim;]</pre><p>After
+				assembling, the master file will be changed
+			to:</p><pre class="prettyprint linenums copyable">EQNSET 1: ../../ALL/t"iming/eqnset_01.tim
+EQNSET 1[REMAP 2]: ../.. /ALL /timing/aaa.tim
+                           [Bind: ../../ ALL /timing/ddd.tim] 
+
+WAVETABLE wtbl_1: ../../ ALL /timing/part1.tim
+WAVETABLE wtbl_1 [REMAP wtbl_2]: ../../ ALL /timing/ddd.tim
+
+MULTIPORT_SPEC "spec_1": ../../ ALL /timing/spec_1.tim
+MULTIPORT_SPEC "spec_1" [REMAP "spec_2"]: ../../ ALL /timing/cccc.tim
+                           [Bind ../../ ALL /timing/ddd.tim;
+                                 ../../ ALL /timing/aaa.tim;]
+
+CLOCK_SET clset_1: ../../ ALL /timing/clock_1.tim
+CLOCK_SET clset_1 [REMAP "clset_2"]: ../.. /ALL /timing/ffff.tim
+                           [Bind ../../ ALL /timing/ddd.tim;
+                                 ../../ ALL /timing/aaa.tim;]</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="91498.htm" title="The first line of a timing master file must be">Master file format for timing setup</a></div><div><a href="91575.htm" title="The first line of a level master file must be">Master file format for level setup</a></div><div><a href="105670.htm" title="The collision that may happen in the level master file is the equation set number collision. The setup management tool can handle the collision automatically. You can also manually resolve the collision.">Collision handling for the level master file</a></div><div><a href="105673.htm" title="The collision that may happen in waveform master file is the label name collision of sub-files.">Collision handling for the waveform master file</a></div><div><a href="91462.htm" title="Equation based level and timing setups are stored in the setup file as a string parameter of the EQSP firmware command, which serves to download the setup data to the tester. One parameter of this command is the number of bytes that are to be downloaded. If the actual size of the setup data does not match the specified number, EQSP issues an error. This makes it difficult to edit a normal setup file outside of SmarTest, because you will usually have to adjust the number of bytes when you change the data.">Editing the level and timing subfiles</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105671</span><script type="text/javascript">var ti='105671';var tt='Collision handling for the timing master file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

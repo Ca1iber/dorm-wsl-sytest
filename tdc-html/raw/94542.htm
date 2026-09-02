@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Understanding the Output of Debug Mode 3</title></head><body id="_94542"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 94542</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Understanding the Output of Debug Mode 3</h1>
+	
+	<div>
+		<p>The output of debug mode 3 is structured according to the application model. Timing information
+			is given for the complete test and for every level of the application model. The core of the
+			output is the information about the test flow (corresponds to the
+				<kbd class="userinput">DEVICE_TEST</kbd> level), to which the following explanations will be
+			restricted.</p>
+		<p>The format of the debug 3 output is explained by the example of a simple test flow which
+			comprises two test suites, <kbd class="userinput">cont</kbd> and <kbd class="userinput">func</kbd>, in this
+			order. <kbd class="userinput">cont</kbd> performs a continuity test, <kbd class="userinput">func</kbd> a
+			functional test. Note that both test suites only ask for a global PASS/FAIL result. The test flow
+			is executed 3 times for 2 sites, resulting in 6 devices. </p>
+		<p>The first figure displays the results when the test flow is not optimized:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="94560.png" alt="Debug 3 Output for unoptimized testflow">
+			</figure></div>
+		<p>Observe the following points in the listing:</p>
+		<ul>
+			<li>The <kbd class="userinput"># of measure.</kbd> column in the <kbd class="userinput">TESTFLOW
+					INFORMATION</kbd> specifies the number of test flow repetitions. The number of
+				measurements that is specified on the test suite level in the <kbd class="userinput">seq setup</kbd>
+				and <kbd class="userinput">test suite exec.</kbd> rows specifies how often the respective test suite
+				is executed. If the test flow is not optimized, this number is the number of test flow
+				repetitions <em>multiplied</em> by the number of sites. The reason for this is that the two sites
+				are processed serially in an un-optimized test flow, so that the test suite must be called twice
+				in every test flow repetition.</li>
+			<li>Note that the time spent for execution of connect/disconnect sequences is not explicitly
+				specified in an un-optimized test flow. It is included in the test suite execution time. This is
+				in contrast to the output for optimized test flows, for which see below. In both optimized and
+				un-optimized test flows a test suite executes a connect/disconnect sequence only if this is
+				necessary.</li>
+			<li>The test suites are ordered as they are defined in the test flow file.</li>
+			<li>The total time of the test flow is greater than the sum of all total test suite times. There
+				are several reasons for this. For example, the test flow can contain nodes which are not test
+				suites, such as <strong>Assign Value</strong> nodes.</li>
+		</ul>
+		<p>The second figure displays the results after the test flow has been optimized:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="94561.png" alt="Debug mode 3 output for optimized testflow">
+			</figure></div>
+		<p>Observe the following points in this listing:</p>
+		<ul>
+			<li>An additional line <kbd class="userinput">set connect</kbd> is specified for the test suite
+					<kbd class="userinput">func</kbd>, but not for <kbd class="userinput">cont</kbd>. This shows that a
+				connect/disconnect sequence is executed for <kbd class="userinput">func</kbd>, but not for
+					<kbd class="userinput">cont</kbd>. In fact, since the tester is in the <strong>DISCONNECTED</strong> state at
+				the start of a test flow, and the continuity test of the first test suite must be executed in
+				the <strong>DISCONNECTED</strong> state, it is not necessary to disconnect it again. But the functional
+				test of <kbd class="userinput">func</kbd> must be executed in the <strong>CONNECTED</strong> state, and
+				therefore a connect sequence must be executed at the start of the second test suite.</li>
+			<li>The benefit of downloading the setup data only once can be read off from the <kbd class="userinput">seq
+					setup</kbd> line of <kbd class="userinput">cont</kbd>. The advantage of executing all sites in
+				parallel can be read off from the <kbd class="userinput">test suite execution</kbd> lines of both test
+				suites. The parallel execution of the two sites is also reflected by the number of measurements
+				for the <kbd class="userinput">seq setup</kbd> and <kbd class="userinput">test suite execution</kbd> rows (3
+				instead of 6).</li>
+		</ul>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 94542</span><script type="text/javascript">var ti='94542';var tt='Understanding the Output of Debug Mode 3'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

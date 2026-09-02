@@ -1,0 +1,221 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Maintenance operations (refreshes) can be manually enabled and disabled under program control in the APG program file. This is optional for single refresh maintenance operations but mandatory for multiple refreshes maintenance operations."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Enabling and disabling maintenance operations in APG program file</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_118570"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118570</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Enabling and disabling maintenance operations in APG program file</h1>
+	
+	
+	<div><p>Maintenance operations (refreshes) can be manually enabled and disabled under program
+		control in the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>. This is optional for single refresh maintenance operations
+		but mandatory for multiple refreshes maintenance operations.</p>
+		<section class="section"><h2>For single refresh maintenance operations</h2><p>Once a single refresh
+				maintenance operation is defined as described in <a href="103635.htm" title="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled.">Setting up a maintenance operation</a>, the refresh is
+				automatically enabled when a pattern begins to execute, and disabled when a pattern ends the
+				execution.</p><p>To manually disable and enable the refresh during the course of a pattern,
+				insert the following refresh control instructions to your <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>:</p><ul>
+				<li><span class="keyword">REFRESH_CTRL(STOP)</span>: Disables the refresh during the course of a
+						pattern.<p>When this instruction is executed, single refresh operations are disabled in the
+						test processor until they are re-enabled by a <span class="keyword">REFRESH_CTRL(START)</span>
+						instruction.</p></li>
+				<li><span class="keyword">REFRESH_CTRL(START)</span>: Enables the refresh which is disabled by
+						<span class="keyword">REFRESH_CTRL(STOP)</span> during the course of a pattern.<div class="note"><span class="title">Note</span> The two
+						refresh control instructions above are ignored if there is no singe refresh maintenance
+						operation defined as described in <a href="103635.htm" title="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled.">Setting up a maintenance operation</a>.</div>
+				</li>
+			</ul></section>
+		<section class="section"><h2>For multiple refreshes maintenance operations</h2><p>After a multiple refreshes
+				maintenance operation is defined, as described in <a href="103635.htm" title="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled.">Setting up a maintenance operation</a>, all refreshes are
+				disabled initially. To enable and disable any one of the defined refreshes, you must insert the
+				following instructions to your <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">program</a>:</p><ul>
+				<li><span class="keyword">REFRESH_CTRL(START,</span> <span class="keyword">maint_op_ID</span><span class="keyword">)</span>:
+					Enables the multiple refreshes maintenance operation by enabling the first refresh used in a
+						pattern.<p>Use this instruction only when all refreshes are disabled. Otherwise, you will
+						achieve errors when compiling.</p>
+					<p><span class="keyword">maint_op_ID</span>: The ID of the first refresh used in a pattern. Refresh IDs
+						are listed in the <span class="keyword">:operation:</span> column of the maintenance operation table in
+						the <a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">Device architecture file</a>.</p></li>
+				<li><span class="keyword">REFRESH_CTRL(SWITCH,</span> <span class="keyword">maint_op_ID,
+						guard_expr</span><span class="keyword">)</span>: Disables the current refresh and enables another
+					refresh. Once this function is executed, the value of refreshCount() is reset to 0 in order to
+					count the insertions of the new refresh. refreshCount() is described below.<p>Do not use this
+						instruction when no refresh is enabled. Otherwise, you will achieve errors when compiling.</p>
+					<p><span class="keyword">maint_op_ID</span>: The ID of the refresh which you want to enable when you
+						disable the current refresh. Refresh IDs are listed in the <span class="keyword">:operation:</span>
+						column in the <a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">Device architecture file</a>.</p>
+					<p><span class="keyword">guard_expr</span>: An optional compare expression supports only ==, !=, &lt;=,
+						&gt;=, &lt;, &gt; compare expressions, which is used to set the execution condition and cannot
+						include loop dependent variables.</p><ul>
+						<li>If no guard expression is used in this instruction, the switch action is executed
+							immediately.</li>
+						<li>If a guard expression is present and the expression does not include refreshCount(), the
+							switch action is either executed immediately or ignored depending on whether the result of
+							the expression is true or false.</li>
+						<li>If a guard expression is present and the expression includes refreshCount(), the switch
+							action is executed immediately if the result of the expression is true.<p>If the result of
+								the expression is false, the switch action becomes a pending switch action which is delayed
+								to be executed until the result of the expression comes true.</p>
+							<p>If any pending switch action exists after a pattern ends, warning messages will be
+								displayed after compiling.</p></li>
+					</ul></li>
+				<li><span class="keyword">REFRESH_CTRL(STOP,</span> <span class="keyword">guard_expr</span><span class="keyword">)</span>:
+					Disables the multiple refreshes maintenance operation. Once the multiple refreshes maintenance
+					operation is disabled, the value of refreshCount() is reset to
+							0.<p><span class="keyword">guard_expr</span>: An optional compare expression supports only ==, !=,
+						&lt;=, &gt;=, &lt;, &gt; compare expressions, which is used to set the execution condition and
+						cannot include loop dependent variables.</p><ul>
+						<li>If no guard expression is used in this instruction, the multiple refreshes operation is
+							disabled immediately.</li>
+						<li>If a guard expression is present and the expression does not include refreshCount(), the
+							disabling action is either executed immediately or ignored depending on whether the result of
+							the expression is true or false.</li>
+						<li>If a guard expression is present and the expression includes refreshCount(), the multiple
+							refreshes maintenance operation is disabled immediately if the result of the expression is
+								true.<p>If the result of the expression is false, the disabling action becomes a pending
+								action which is delayed to disable the multiple refreshes maintenance operation until the
+								result of the expression comes true.</p>
+							<p>If any pending disabling action exits after a pattern ends, errors occur when
+								compiling.</p></li>
+					</ul></li>
+				<li><span class="keyword">refreshCount()</span>: Counts how many times a refresh is inserted between the
+					locations of enabling the refresh and using refreshCount() in a
+							pattern.<p><span class="keyword">refreshCount()</span> is used only by <span class="keyword">guard_expr</span> in
+							<span class="keyword">REFRESH_CTRL(SWTCH,</span> <span class="keyword">maint_op_ID,
+							guard_expr</span><span class="keyword">)</span> and <span class="keyword">REFRESH_CTRL(STOP,
+							</span><span class="keyword">guard_expr</span><span class="keyword">)</span> to make actions pending . For
+						details, see the description of <span class="keyword">guard_expr</span>.</p>
+					<p>If there are more than one pending action like a number of pending switch actions and
+						pending disabling actions waiting during the course of pattern:</p><ul>
+						<li>Which pending action to be executed first depends on whose guard expression comes true
+							first.</li>
+						<li>If more than one pending action becomes executable simultaneously since their guard
+							expressions all come true at the same time,<p>-If these actions switch to the same refresh,
+								or all disable this multiple refreshes operation, MTL executes one action and remove all
+								these pending actions.</p>
+							<p>-Otherwise, errors occur when compiling.</p>
+							<p>This function:</p></li>
+						<li>No parameters</li>
+						<li>The value of refreshcount() is 0 when the multiple refreshes maintenance option is
+							disabled.</li>
+						<li>The value of <span class="keyword">refreshCount()</span> will be reset to 0 as soon as
+								<span class="keyword">REFRESH_CTRL(SWTCH,</span> <span class="keyword">maint_op_ID,
+								guard_expr</span><span class="keyword">)</span> or <span class="keyword">REFRESH_CTRL(STOP,
+								</span><span class="keyword">guard_expr</span><span class="keyword">)</span> is executed.<div class="note"><span class="title">Note</span> If
+								there is no multiple refreshes maintenance operation defined as described in <a href="103635.htm" title="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled.">Setting up a maintenance operation</a>, all the refresh control instructions above are ignored.</div>
+						</li>
+					</ul></li>
+			</ul></section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>Set up a single dynamic refresh maintenance operation. It is
+				requested to enable and disable the refresh manually in the program.</p><p>In the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>:</p><pre class="prettyprint linenums copyable">:maintenanceOperation:
+{
+ :name: dynamic_compensated_refresh
+ :table:
+ {
+ :format:
+ { :operation: :subroutine: :timerMode: :intervalMode: }
+ { maintop_time_a dynamic_refresh dynamic compensated }
+ }
+}</pre><p>In
+				the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>:</p><pre class="prettyprint linenums copyable">...
+:maintenanceOperation: dynamic_compensated_refresh
+...</pre><p>In
+				the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>:</p><pre class="prettyprint linenums copyable">SPECS
+ cycleTime [ns]
+ refreshTime [ns]
+TIMINGSET 1 "withRefresh
+ period = cycleTime
+ maintop_time_a = refreshTime
+PINS
+ ...</pre><p>In
+				the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">program file</a>:
+			</p><pre class="prettyprint linenums copyable">dynamic_refresh()
+{
+ ...
+}
+main() 
+{
+ REFRESH_CTRL(STOP);
+ for(i=0;i&lt;loopSize;i++)
+ {
+ WriteBackground();
+ }
+ REFRESH_CTRL(START);
+ ...
+ ...
+}</pre></div>
+		<div class="example"><h3>Example 2</h3><p>Set up a multiple static refreshes maintenance
+				operation.</p><p>In the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>:</p><pre class="prettyprint linenums copyable">:maintenanceOperation:
+{
+ :name: static_multiple_refreshes
+ :table:
+ {
+ :format:
+ { :operation: :subroutine: :timerMode: :intervalMode: }
+ { static_maintop_time_a static_routine_a static accumulated }
+ { static_maintop_time_b static_routine_b static accumulated }
+ }
+}</pre><p>In
+				the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>:</p><pre class="prettyprint linenums copyable">...
+:maintenanceOperation: static_multiple_refreshes
+...
+...
+...
+:timing:
+{
+ :file: "../../../timing/staticRefTest_x6.tim"
+ :eqns: "functional-refresh"
+ :tims: "standard"
+ :spec: "1333-999_32ms"
+}
+...</pre><p>In
+				the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>:</p><pre class="prettyprint linenums copyable">SPECS
+ cycleTime [ns]
+ refreshTime_a [ns]
+ refreshTime_b [ns]
+TIMINGSET 1 "standard"
+ period = cycleTime
+ static_maintop_time_a = refreshTime_a
+ static_maintop_time_b = refreshTime_b
+PINS
+ ...</pre><p>In
+				the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">program file</a>:
+			</p><pre class="prettyprint linenums copyable">static_routine_a()
+{
+ ...
+}
+static_routine_b()
+{
+ ...
+}
+main{)
+{
+ REFRESH_CTRL(START, static_maintop_time_a); //Enable maintenance operation by enabling the static_a refresh
+ writeBackground();
+
+ readBackground();
+
+ REFRESH_CTRL(SWITCH, static_maintop_time_b); //Disable static_a and enable static_b, reset refreshCount() to 0.
+
+ readBackgroundB();
+
+ REFRESH_CTRL(SWITCH, static_maintop_time_a, refreshCount()%4 == 0);
+ //If the refresh insertion count of static_b is multiple of 4, disable static_b and enable static_a,
+ //and reset refreshCount() to 0.
+ //If the refresh insertion count of static_b is not multiple of 4, this switch action becomes pending.
+
+ readBackgroundB();
+ //If the above switch action has been pending, the static_b refresh is still enabled.
+ //Once the static_b refresh insertion count recorded by refreshCount() reaches multiple of 4,
+ //this pending switch action will be executed, which disables static_b and enables static_a,
+ //and resets refreshCount() to 0.
+
+ REFRESH_CTRL(STOP, refreshCount()%4 == 0);
+ //If the refresh insertion count of static_a is multiple of 4, disable maintenance operation immediately.
+ //If the refresh insertion count of static_a is not multiple of 4, MTL throws an error here because
+ //a pending disabling action exits after a pattern ends.
+
+ // MTL compiler will show a warning if the condition is never met before the pattern ends.
+
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="75895.htm" title="Maintenance operations are procedures that need to be performed regularly during the testing of a device, most commonly refreshes.">Maintenance operations</a></div><div><a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a></div><div><a href="102814.htm" title="MTL includes some predefined macros and functions for use in the APG program file.">Macros and functions in program files</a></div><div><a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.0.1</li><li>MTP 3.1.6: (MTP on SOC 103.3.0) New refresh control instructions for the multiple static
+					refreshes maintenance operations are added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118570</span><script type="text/javascript">var ti='118570';var tt='Enabling and disabling maintenance operations in APG program file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

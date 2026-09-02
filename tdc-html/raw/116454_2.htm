@@ -1,0 +1,59 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The keyword TTMODE marks a pin or pin group as a protocol engine test pin. It defines the x-mode for the protocol engine test and must be specified within the timing set immediately below the PINS statement. Possible x-modes are X4 and X6."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining edge delays and period length for a protocol engine test</title></head><body id="_116454"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116454</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining edge delays and period length for a protocol engine test</h1>
+	
+	
+	<div><p>The keyword <span class="keyword">TTMODE</span> marks a pin or pin group as a protocol engine test
+		pin. It defines the x-mode for the protocol engine test and must be specified within the timing
+		set immediately below the <span class="keyword">PINS</span> statement. Possible x-modes are
+			<span class="keyword">X4</span> and <span class="keyword">X6</span>.</p>
+		<p>The x-mode of the protocol engine test must be the same for all timing sets of the same
+			equation set for the same pin. Also, if a pin is activated as a protocol engine test pin in one
+			timing set, it must be activated in all timing sets. If these requirements are not satisfied, the
+			configuration found first will be used for all timing sets.</p>
+		<p>The <span class="keyword">TTMODE</span> keyword must also be specified in the wavetable. When a wavetable
+			is combined with a timing set in a timing specification, both must specify the same value for
+			this keyword.</p>
+		<p>In addition, the following special features must be observed: </p>
+		<ul>
+			<li>Only the first receive edge (<span class="keyword">r1</span>) is programmable. The other edges are
+				distributed equidistantly within one tester cycle. The distance between two edges will be one
+				UI. <p>The delay that is defined for <span class="keyword">r1</span> will determine the position of the
+					first observation window. For more information see <em><a href="116558.htm" title="In many cases, the transition tracker issues the error ErrJMP2 when it detects a BC transition. However, it does not do this when it finds only one such transition, and this is the very first transition at test start or after a IO pin has switched from drive to receive mode.">Positioning the first observation window and jump by 2</a></em>.</p>
+				<p>The receive edges also determine the delays for the transition tracking actions<span>
+							(4<sup>th</sup> action string of native Pin Scale 9G waveforms)</span>.</p></li>
+			<li>By default, the first 4 or the first 6 drive edges, depending on the current
+					<span class="keyword">TTMODE</span> value, are also distributed equidistantly within one tester cycle.
+				But you can override these default values.</li>
+			<li>If the protocol engine test is to run in x6-mode, the period length must be 1, 2, 3, or 4
+				times the clock resolution.<span> The range of the clock resolution on the Pin Scale 9G cards is
+					0.88 ≤ <span class="keyword">clock_resolution</span> &lt; 1.86 ns. Thus the range for the user period
+						<span class="keyword">TTMODE_X6_period</span> of an x6 protocol engine test is 0.88 ≤
+						<span class="keyword">TTMODE_X6_period</span> &lt; 4 * 1.86 = 7.44 ns.</span><p>The clock resolution is
+					calculated as <span class="keyword">period_resolution</span> / <span class="keyword">p</span>, where
+						<span class="keyword">p</span> is an integer (for details see <a href="98412.htm" title="From the period resolution, SmarTest derives two other time spans which it needs internally. These are the clock resolution and the master clock period. Both of them are usually of interest only for debugging purposes.">Period resolution, clock resolution, and master clock period</a>). Note that even if
+						<span class="keyword">user_period</span> &lt; 4 * 1.86 = 7.44 ns, <span class="keyword">p</span> can be set to an
+					integer &gt; 4. For example, it will be set to 5 if 5 produces an exact result, but no smaller
+					integer does (within the admitted range). In this case a protocol engine test in x6 mode is not
+					possible. However, this problem can only arise if the user period has more than 7 decimal
+					places (up to 9 decimal places are taken into account, and division by 4 requires 2 additional
+					decimal places at most).</p>
+				
+				
+				
+				
+				
+			</li>
+		</ul>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">TIMINGSET 1 "eq 1 ts 1"
+period=150
+
+PINS  IO1
+TTMODE X4
+r1=22.5</pre><p>If
+				this definition is queried with <span class="keyword">ETDS?</span>, the answer will be as
+			follows:</p><pre class="prettyprint linenums copyable">&gt; ETDS? 101,1,,(IO1)
+&lt; ETDS 101,1,,"f1:0 f2:37.5 f3:75 f4:112.5 s1:0 s2:37.5 s3:75 s4:112.5 r1:22.5 r2:60 r3:97.5 r4:135",(IO1)</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116454</span><script type="text/javascript">var ti='116454';var tt='Defining edge delays and period length for a protocol engine test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

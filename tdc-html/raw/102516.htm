@@ -1,0 +1,265 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The syntax of the pin mapping file is similar to that of the Pin configuration file, although not identical to it."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Pin mapping file syntax</title></head><body id="_102516"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102516</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Pin mapping file syntax</h1>
+	
+	
+	<div><p>The syntax of the pin mapping file is similar to that of the <a href="102016.htm" title="A pin configuration file specifies which pins are available on the DUT.">Pin configuration file</a>,
+		although not identical to it.</p>
+		<section class="section"><p>Specifically, a pin mapping file looks like
+				this:</p><pre class="prettyprint linenums copyable"># declarations
+<span class="keyword">[</span>using pinconfig <span class="keyword">&lt;pinConfigFile&gt;]</span>
+<span class="keyword">[</span>using port <span class="keyword">&lt;portName&gt;]</span>
+using defaultxmode <span class="keyword">&lt;defaultXmode&gt;</span>
+<span class="keyword">[</span>using modecontext <span class="keyword">&lt;modeContext&gt;]</span>
+<span class="keyword">[</span>using interruptCtrl <span class="keyword">&lt;refreshMode&gt;]</span>
+<span class="keyword">[</span>using protocol "&lt;name&gt;" @(specification = "&lt;hwprtocolID&gt;", revision = "&lt;rev_str&gt;", type = "&lt;stype_str&gt;", port = "&lt;port name&gt;")<span class="keyword">]</span>
+# individual pins
+<span class="keyword">[&lt;mtlPinName&gt;[</span>(<span class="keyword">&lt;refPinName&gt;</span>)<span class="keyword">]</span>=<span class="keyword">&lt;smartestPinName&gt;[</span>@(<span class="keyword">&lt;pinAtt&gt;</span>=<span class="keyword">&lt;attValue&gt;</span>;<span class="keyword">...</span>)]]
+<span class="keyword">[&lt;mtlPinName&gt;</span>(<span class="keyword">&lt;refPinName&gt;</span>)=<span class="keyword">&lt;smartestPinName&gt;</span>@(bitseq=copy)<span class="keyword">]</span>
+<span class="keyword">...</span>
+# pin groups
+<span class="keyword">[&lt;mtlPingroupName&gt;</span>=<span class="keyword">&lt;smartestPingroupName&gt;[</span>@(<span class="keyword">&lt;pinAtt&gt;</span>=<span class="keyword">&lt;attValue&gt;</span>;<span class="keyword">...</span>)<span class="keyword">]]</span>
+<span class="keyword">[&lt;mtlPingroupName&gt;.&lt;nnn&gt;</span>=<span class="keyword">&lt;smartestPinName&gt;[</span>@(<span class="keyword">&lt;pinAtt&gt;</span>=<span class="keyword">&lt;attValue&gt;</span>;<span class="keyword">...</span>)<span class="keyword">]]</span>
+<span class="keyword">...</span>
+# buses
+<span class="keyword">[</span>configure bus <span class="keyword">&lt;busName&gt;</span> (<span class="keyword">&lt;pinList&gt;</span>)<span class="keyword">]</span>
+<span class="keyword">...</span>
+
+</pre><div class="note"><span class="title">Note</span> While each individual pin or pin group mapping statement is optional, the pin
+				mapping file must map all pins that you want to use, either as individual pins or as members of
+				pin groups.</div><p>The order of configuration statements shown above is typical, but not
+				required; you can rearrange the statements as desired. The comments shown are entirely optional
+				and included here only to clarify the file's structure; you can omit them as
+				desired.</p><p>Italic text indicates meta-syntax, as described in <a href="101937.htm" title="This section describes the notation used to describe configuration file syntax.">Syntax conventions</a>.</p></section>
+		<section class="section"><h2>Keywords and parameters</h2><p>These are the keywords and their parameters in
+				alphabetical order:</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_102516__entry__1"><p>Keyword</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_102516__entry__2"><p>Parameters and descriptions</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">using defaultxmode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;defaultXmode&gt;</span>: The default <a href="67809.htm" title="An x-mode is a way to send multiple edges to the DUT in one test system cycle. For example, x4 mode means that the test system can send four edges to the DUT in each cycle.">x-mode</a> to be used for all pins.</p>
+								<p>Supported values include:</p>
+								<ul>
+									<li>For normal operation: 1, 2, 3, 4, 6, 8</li>
+									
+									
+								</ul><p>You can override the default x-mode for individual pins or pin groups using the
+										<span class="keyword">xmode</span> pin attribute.</p>
+								<p>This parameter overrides the <span class="keyword">:xModeDefinition:</span> parameter from the
+										<a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a>, if both are used. This parameter was supported in earlier versions
+									of MTL and should no longer be used.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">using interruptCtrl</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;refreshMode&gt;</span>: The default refresh mode for all pins that
+									have not been assigned a mode using the interruptCtrl pin attribute (see <em>Pin
+										attributes</em>, below):</p>
+								
+								<p><span class="keyword">VEC</span> or <span class="keyword">VECTOR</span>: Refreshes (maintenance operations)
+									are triggered at runtime by counters. They occur at the next interruptible waveform (that
+									is, a waveform with an index below 0x80) in the pattern stream.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">using modecontext</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;modeContext&gt;</span>: The SmarTest context from the timing
+									equation set and wavetable in which the test will be executed (see <a href="88550.htm" title="MTL will generate waveforms for you if it detects that you have not defined any waveforms. During compilation it will generate suitable waveforms by analyzing the pattern setups. It will either create new wavetables or complement the existing ones.">Automatic waveform generation</a>
+									for further information).</p>
+								<p>This parameter is optional; it is required for automatic waveform generation and for
+									creating a test label.</p>
+								<p>The <code>using modecontext</code> statement overrides the
+										<span class="keyword">:modeContext:</span> parameter from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>, if both are
+									used. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">using pinconfig</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;pinConfigFile&gt;</span>: The <a href="102016.htm" title="A pin configuration file specifies which pins are available on the DUT.">Pin configuration file</a> to be used. </p>
+								<p>This parameter is optional; it is required whenever the <code>using port</code>
+									statement is used, for example, for automatic waveform generation.</p>
+								<p>The <code>using pinconfig</code> statement overrides the
+										<span class="keyword">:pinConfig:</span> parameter from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>, if both are
+									used. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">using port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;portName&gt;</span>: The name of a port that is to be used for
+										<a href="101480.htm" title="Multiport operation allows you to test different parts of a DUT with independent timing sets or spec variables using a single memory test pattern.">multiport operations</a>.</p>
+								<p>This keyword is optional, which is only required in multiport operations. When using
+										"<span class="keyword">using port</span>", you must specify the pin configuration file (see above). </p>
+								<p>You can specify multiple "<span class="keyword">using
+										port</span><span class="keyword">&lt;portName&gt;</span>" in your pin mapping file. However,
+									those specified ports must not overlap with each other.</p>
+								<p>When the "<span class="keyword">using port</span>" statement is configured in the pin mapping file,
+									the pins which have been defined in the file but do not belong to any ports will not be
+									compiled with vectors. During the compilation, no warnings or error messages will be
+									issued, but error messages may show up in the Error Log view when the vector files are bing
+									loaded in SmarTest.</p>
+							</td>
+						</tr>
+						
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">using protocol</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p>Currently no cards use protocol-aware transaction.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p>(individual pins)</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;mtlPinName&gt;</span>: The name of the pin as it is to be used in
+									the <a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a>.</p>
+								<p><span class="keyword">&lt;refPinName&gt;</span>: The MTL name of a pin (called reference pin) to
+									which the pin being defined is to be aligned. Aligning pins to reference pins is required
+									for DC Scale pins to be mapped to specific tester cycles. See <a href="99199.htm" title="Reference pins are standard MTL pins to which other pins can be aligned, that is, from which they receive their tester cycle counts and maintenance operation interrupts.">Reference pins</a> for
+									details.</p>
+								<p><span class="keyword">&lt;smartestPinName&gt;</span>: The name of a SmarTest pin from the <a href="102016.htm" title="A pin configuration file specifies which pins are available on the DUT.">Pin configuration file</a>. This pin is mapped to the MTL pin being defined, that is, whenever the
+									MTL pin is used in the program, the resulting waveforms are sent to the specified SmarTest
+									pin.</p>
+								<p><span class="keyword">&lt;pinAtt&gt;</span>: An attribute for the MTL pin being defined. See the
+									"Pin attributes" table, below, for a list of available attributes. </p>
+								<p><span class="keyword">&lt;attValue&gt;</span>: The value for the pin attribute. See the "Pin
+									attributes" table, below, for a discussion of the values that each attribute supports.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p>(pin groups)</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;mtlPingroupName&gt;</span>: The name of the pin group as it is to
+									be used in the <a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a>.</p>
+								<p><span class="keyword">&lt;smartestPingroupName&gt;</span>: The name of a SmarTest pin group from
+									the <a href="102016.htm" title="A pin configuration file specifies which pins are available on the DUT.">Pin configuration file</a>. </p>
+								<p><span class="keyword">&lt;nnn&gt;</span>: A three-digit number specifying an individual pin from a
+									pin group.</p>
+								<p><span class="keyword">&lt;smartestPinName&gt;</span>: The name of a SmarTest pin from the <a href="102016.htm" title="A pin configuration file specifies which pins are available on the DUT.">Pin configuration file</a>. (See "individual pins", above.)</p>
+								<p><span class="keyword">&lt;pinAtt&gt;</span>: See "individual pins", above.</p>
+								<p><span class="keyword">&lt;attValue&gt;</span>: See "individual pins", above.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__1"><p><span class="keyword">configure bus</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__2"><p><span class="keyword">&lt;busName&gt;</span>: The name of the bus as it is to be used in the
+										<a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a>. The name must not contain a space.</p>
+								<p><span class="keyword">&lt;pinList&gt;</span>: A list of the pin that belong to the bus. The list
+									must contain the MTL pin names (not the SmarTest pin names); the pin names must be
+									separated by commas.</p>
+								<p>List the pins in their bit order: The most significant bit first and the least
+									significant bit last.</p>
+								<p>See <a href="121727.htm" title="Buses are collections of pins that can be used in device accesses. You can use buses wherever MTL pin groups can be used (that is, pin groups defined in the pin mapping file).">Buses</a> for details.</p>
+							</td>
+						</tr>
+						
+						
+					</tbody></table><table class="frame-topbot"><caption><span>Pin attributes</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_102516__entry__21"><p>Attribute</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_102516__entry__22"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">bitseq</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>This attribute always has the value of <code>copy</code>.</p>
+								<p>This attribute-value combination causes the compiler to copy the compiled vector for the
+									reference pin to the MTL pin, thereby speeding up the compilation process.</p>
+								<p>See <a href="121672.htm" title="The bitseq attribute, which always has the value copy, allows you to instruct the MTL compiler to copy the vector from the reference pin instead of compiling a new vector for a pin, thereby speeding up the compilation process.">Copying vectors</a> for details.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">cycleratio</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>The ratio of the specified pin's base rate to the standard base rate. Supported
+									ratios are <code>1:1</code>, <code>1:2</code>, and <code>1:4</code>. </p>
+								<p>If no ratio is specified, the pin ratio is <code>1:1</code>.</p>
+								<p>Pins that are used as reference pins (that is, pins that are specified in parentheses
+									after a pin name, as described in <em>(individual pin)</em>, above) must have a pin ratio of
+									1:1.</p>
+								<p>We recommend to always run DC Scale pins at a ratio of 1:4. (This requires setting up a
+									separate port for these pins.)</p>
+								<p>When no reference pins are specified in the file, the cycle ratio is determined by the
+									default standard base rate or default xMode.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">exps</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>The expansion size for the pin.</p>
+								<p>Larger expansion sizes decrease the risk of Data Queue Empty errors at the expense of
+									requiring more vector memory. The expansion size value is proportional to the loop lengths
+									and can range from 60 to 1,000,000. </p>
+								<p>If this attribute is set, it overrides the <code>-e</code> compiler switch (see <a href="68431.htm" title="You can run the MTL compiler from the command line, if desired. Numerous command switches let you control the processing and post-processing options.">Starting the MTL compiler from the command line</a>) for this pin.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">interruptCtrl</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>The refresh mode:</p>
+								<ul>
+									<li><span class="keyword">VEC</span> or <span class="keyword">VECTOR</span>: Same as for the <span class="keyword">using
+											interruptCtrl</span> statement. (See <em>Keywords and parameters</em>, above.)</li>
+									
+								</ul><p>If the <span class="keyword">interruptCtrl</span> attribute is not specified, the pin has the
+									refresh mode specified by the <span class="keyword">using interruptCtrl</span> statement. (If that
+									statement is not present, the default is <span class="keyword">VEC</span>.</p>
+							</td>
+						</tr>
+						
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">type</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>The type of the specified pin. </p>
+								<p>Currently, the types <code>dcscale</code> (for DC Scale pins) and
+										<code>digital</code> (for standard data pins) are supported. If no pin type is
+									specified, the type is assumed to be <code>digital</code>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">xmode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>The x-mode for this pin.</p>
+								<p>If this attribute is set, it overrides for this pin both the <code>using
+										defaultxmode</code> statement (see above) and any <span class="keyword">:xModeDefinition:</span>
+									settings from the device access file.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">system</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>Value for it is <span class="keyword">true</span> or <span class="keyword">false</span>. The default
+									value is <span class="keyword">false</span>.</p>
+								<p>When <kbd class="userinput">system = true</kbd>, SmarTest will generate corresponding programs
+									for those pins (system generated). No vector data will be generated for those pins by
+									MTP.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__21"><p><span class="keyword">optional</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102516__entry__22"><p>Value for it is <span class="keyword">true</span> or <span class="keyword">false</span>. The default
+									value is <span class="keyword">false</span>.</p>
+								<p>When <kbd class="userinput">optional = true</kbd>, even these pins are missed in the pin
+									configuration file, SmarTest will skip these pins and run the relative patterns without
+									warning.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: New pin attribute: interruptCtrl</li><li>MTP 3.0.1: New pin attribute: bitseq</li><li>MTP 3.0.1: New keyword: configure bus</li><li>MTP 3.3.1: New keyword: using protocol</li><li>MTP 3.3.1: New pin attributes: system, optional</li><li>MTP 3.3.2: Adds a new limitation to the "using port" keyword that the ports specified by
+					"using port" cannot overlap with each other.</li><li>MTP 3.3.2: Adds syntaxes for HSM16G fastdiff differential pins.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102516</span><script type="text/javascript">var ti='102516';var tt='Pin mapping file syntax'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

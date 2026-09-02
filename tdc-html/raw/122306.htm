@@ -1,0 +1,100 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This function defines how SmartCalc is supported by the concurrent test framework."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CCTenableSMC</title><meta name="keywords" content="CC, Tenable, SMC"></head><body id="_122306"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122306</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CCTenableSMC</h1>
+	
+	
+	<div><p>This function defines how SmartCalc is supported by the concurrent test
+		framework.</p>
+		<section class="section"><p>This function is usually used in the <code>init()</code> function but not used in
+			the other functions of the CCF test method template.</p><p>The framework can handle the SmartCalc in the following
+				three modes:</p><ul>
+				<li>SMC_AUTO</li>
+			</ul><p>In this mode, the framework will automatically request the hidden upload resources and
+				start the process() method in a separate thread. User should put hidden upload and calculation
+				code in process method and ensure its thread safety.</p><ul>
+				<li>SMC_CONFIG_HIDDEN_UPLOAD</li>
+			</ul><p>In this mode the framework will request the hidden upload resources. But you need to
+				write your own upload and calculation code to your <span class="keyword">SMC_backgroundProcessing()</span>
+				method and start it manually in a separate thread.</p><ul>
+				<li>SMC_NONE</li>
+			</ul><p>In this mode, the framework will do nothing specific for SmartCalc. You can write your
+				own calculation code to your <span class="keyword">SMC_backgroundProcessing()</span> method and start it
+				manually in a separate thread. Or you can handle result process without SmartCalc. Hidden upload
+				is not supported in this mode.</p><p>This function is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/segments/tml/include/CCTestMethod.hpp</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void CCTenableSMC(bool option)</pre><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">yn</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Enable SmartCalc or not. It can be <kbd class="userinput">SMC_AUTO</kbd>,</p>
+								<p><kbd class="userinput">SMC_CONFIG_HIDDEN_UPLOAD</kbd> or <kbd class="userinput">SMC_NONE</kbd>.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Using SMC_AUTO
+			mode</h3><pre class="prettyprint linenums copyable">void init()
+{
+    CCTsetExecMode(EXM_DIGITAL_CAPTURE_TEST);
+    CCTsetResultArea(digcapPin, 8096);
+    CCTenableSMC(SMC_AUTO);
+    ...
+}
+
+void process()
+{
+    ARRAY_I data = SMC_GET_VECTORS(capture_name, CCTgetResultArea());
+    DSP_ADC_HISTOGRAM(data, &amp;result, ..);
+    SMC_TEST(...);
+}</pre></div>
+		<div class="example"><h3>Using SMC_CONFIG_HIDDEN_UPLOAD
+			mode</h3><pre class="prettyprint linenums copyable">void init()
+{
+  CCTsetExecMode(EXM_DIGITAL_CAPTURE_TEST);
+  CCTsetResultArea(digcapPin, 8096);
+  CCTenableSMC(SMC_CONFIG_HIDDEN_UPLOAD);
+  ...
+}
+
+void process()
+{
+  // do some other non threading -safe code
+  // or non hidden supported upload and calc
+  ...
+  SMC_ARM();
+  ..
+}
+
+void SMC_backgroundProcessing()
+{
+  ARRAY_I data = SMC_GET_VECTORS(capture_var, CCTgetResultArea());
+  DSP_ADC_HISTOGRAM(data, &amp;result, ..);
+  SMC_TEST(...);
+}</pre></div>
+		<div class="example"><h3>Using SMC_NONE
+			mode</h3><pre class="prettyprint linenums copyable">void init()
+{
+    CCTsetExecMode(EXM_DIGITAL_CAPTURE_TEST);
+    CCTenableSMC(SMC_NONE);
+    ...
+}
+
+void process()
+{
+    // do some other non threading -safe code
+    // or non hidden supported upload and calc
+
+    ARRAY_I data = VECTOR(capture_var).getVectors();
+    SMC_ARM(data);
+    ..
+}
+
+void SMC_backgroundProcessing(ARRAY_I &amp;data)
+{
+    DSP_ADC_HISTOGRAM(data, &amp;result, ..);
+    SMC_TEST(...);
+}
+</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122306</span><script type="text/javascript">var ti='122306';var tt='CCTenableSMC'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

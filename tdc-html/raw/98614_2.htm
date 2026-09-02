@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GETC? - (GET Cycles)</title><meta name="keywords" content="GETC_"></head><body id="_98614"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98614</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GETC? - (GET Cycles)</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="note"><span class="title">Note</span> The <span class="keyword">GETC?</span> query is no longer maintained. Advantest
+				recommends using the <a href="98618.htm" title="The GETX? query connects a cycle and a vector in the test that is referenced by the current start label.">GETX? - (GET eXtended vector information)</a> query instead. It provides more parameters and makes
+				the <span class="keyword">GETC?</span> query redundant.</div><p>The <span class="keyword">GETC?</span> query allows
+				you to determine the cycle number within the Error Map for a logical vector number of the
+				current start label (as set by <span class="keyword">SQSL</span>). </p><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<section class="section"><h2>Mode of operation</h2><p>The label must be a main label. If test results are
+				available, the cycle number is calculated from the received data, otherwise from the expected
+				data.</p><p>The cycle number can be larger or smaller than the vector number. It can be larger
+				if some of the previous vectors have been executed in a loop (<span class="keyword">RPTV</span> or
+					<span class="keyword">RPTJ</span> instruction). It can be smaller if a match loop occurs before the
+				vector, because match loop cycles are not recorded in the Error Map.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">GETC?</span> {(<span class="keyword">vector_no</span>)}</pre><p>returns:
+				</p><pre class="prettyprint copyable singleline"><span class="keyword">GETC</span> {(<span class="keyword">cycle_no</span>)}</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">vector_no</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The vector number for which you want to obtain the matching cycle number.
+										<span class="keyword">vector_no</span> must be a positive integer that does not exceed the maximum
+									vector address allowed by the system. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">cycle_no</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of the cycle that results when the vector at <span class="keyword">vector_no</span> is executed. The cycle numbers do not always linearly follow the vector numbers.
+									The relationship between the two depends on the sequencer program. The system returns a
+										<span class="keyword">cycle_no</span> in the range of 0 to 2<sup>48</sup>. </p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>DC tests of "IDDQ" and "Output DC".</p><div class="note"><span class="title">Note</span> The
+					<span class="keyword">GETC?</span> query is no longer maintained. Advantest recommends to use the <a href="98618.htm" title="The GETX? query connects a cycle and a vector in the test that is referenced by the current start label.">GETX? - (GET eXtended vector information)</a> query instead. It provides more parameters and makes the
+					<span class="keyword">GETC?</span> query redundant.</div></div><div class="syntax"><h2>Errors</h2><p>An error is generated if: </p><ul>
+				<li>No valid test is enabled. </li>
+				<li>The <span class="keyword">cycle_no</span> is negative. </li>
+			</ul></div>
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&gt; SQPG? ALL,(@)
+&lt; SQPG 0,STVA,0,,,(@)
+&lt; SQPG 1,STSA,,,,(@)
+&lt; SQPG 2,GENV,103,,,(@)
+&lt; SQPG 3,GENV,7,,,(@)
+&lt; SQPG 4,MACT,256,,,(@)
+&lt; SQPG 5,GENV,1,,,(@)
+&lt; SQPG 6,MRPT,1,,,(@)
+&lt; SQPG 7,RPTV,1544,100,,(@)
+&lt; SQPG 8,GENV,1,,,(@)
+&lt; SQPG 9,STOP,,,,(@)
+&gt; GETC? 112
+&lt; GETC 104 
+&gt; GETC? 1656
+&lt; GETC 154504</pre><p>In
+				this example, the cycle numbers are calculated from the expected values. Vector 112 is the first
+				vector after the match loop. The last 6 vectors before the match loop are not recorded in the
+				Error Map, because the sequencers consider them to be part of the match loop (see <em><a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a></em>). The two match loop vectors proper are also not recorded in the Error
+				Map. Since no other loop has occurred before vector 112, the cycle number corresponding to
+				vector 112 is calculated as 112 - 8 = 104.</p><p>The cycle number of vector 1656, the last
+				vector of the label, is calculated as 104 + 100 * 1544 = 154504.</p><p>The calculation is more
+				complicated if it is based on the received data, because the last match loop cycles may be
+				recorded in the Error Map (see again <em><a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a></em><kbd class="userinput">)</kbd>.
+			</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98618.htm" title="The GETX? query connects a cycle and a vector in the test that is referenced by the current start label.">GETX? - (GET eXtended vector information)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98614</span><script type="text/javascript">var ti='98614';var tt='GETC? - (GET Cycles)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

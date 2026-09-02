@@ -1,0 +1,139 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Retrieves the reference to the SMC_PIN_ERROR_MAP object that is specified by the pin name passed to this function."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SMC_PIN_ERROR_MAP_ACCESSOR.getSmcPinErrorMap()</title><meta name="keywords" content="command set programming interface"></head><body id="_149670"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149670</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SMC_PIN_ERROR_MAP_ACCESSOR.getSmcPinErrorMap()</h1>
+	
+	
+	<div><p>Retrieves the reference to the <a href="140809.htm" title="Uploads the error map data for the specified pin and result area. It provides SmartCalc support and Hidden upload. Also, it is compatible with pin scale cards.">SMC_PIN_ERROR_MAP</a> object that is specified by the
+		pin name passed to this function.</p>
+		<section class="section"><h2>Syntax</h2><pre class="prettyprint copyable singleline">SMC_PIN_ERROR_MAP &amp; getSmcPinErrorMap(const STRING &amp;pinName);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149670__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149670__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149670__entry__1"><p><span class="keyword">pinName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149670__entry__2"><p>The pin name that specifies a <a href="140809.htm" title="Uploads the error map data for the specified pin and result area. It provides SmartCalc support and Hidden upload. Also, it is compatible with pin scale cards.">SMC_PIN_ERROR_MAP</a> object.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Return value</h2><p>Returns a reference to the <a href="140809.htm" title="Uploads the error map data for the specified pin and result area. It provides SmartCalc support and Hidden upload. Also, it is compatible with pin scale cards.">SMC_PIN_ERROR_MAP</a> object
+				that is specified by <span class="keyword">pinName</span>.</p></section>
+		<h2>Example</h2><div class="example"><p>This example shows how to specify the <span class="keyword">CYCLE_XMODE_MAPPING</span> to be used
+			with the <span class="keyword">getFirstFailingXmodeCycles</span> API and how to use the
+				<span class="keyword">SMC_PIN_ERROR_MAP_ACCESSOR</span> with multiple pins and a result
+			area.</p><pre class="prettyprint linenums copyable">protected:
+
+    virtual void initialize()
+    {
+    }
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+        {
+            //
+            // Configure error map modes before test execution
+            //
+            ERROR_MAP_TEST emap(TM::XMODE_CYCLES);
+
+            //
+            // Results must be in RAM for the SMC_PIN_ERROR_MAP API
+            //
+            emap.pin("@").setLocation(TM::RAM)
+                         .setRecordingMode(TM::PF);
+
+            //
+            // Optionally: configure a result area
+            //
+            RESULT_AREA_CONFIG_SET resConfig("resultAreaName");
+
+            resConfig.pin("@").setErrorMapResultAreaSize(100000);
+            resConfig.setAsPrimary();
+
+            SMC_FUNCTIONAL_TEST();
+
+            resConfig.deselectGlobally();
+        }
+        ON_FIRST_INVOCATION_END();
+
+        //
+        // Add the pins that are passed to SMC_PIN_ERROR_MAP_ACCESSOR.
+        // This enables you to access the error maps of multiple pins
+        //
+        std::vector&lt;STRING&gt; pins;
+
+        pins.push_back("DATA1");
+        pins.push_back("DATA2");
+        pins.push_back("DATA3");
+        pins.push_back("DATA4");
+
+        //
+        // The amount of data to upload
+        //
+        const int maxFailsPerPin = 16;
+
+        //
+        // Arm a background process per site
+        //
+        SMC_ARM(pins, maxFailsPerPin);
+
+        return;
+
+    } // virtual void run()
+
+public:
+
+    void SMC_backgroundProcessing(std::vector&lt;STRING&gt; pins, int maxFailsPerPin)
+    {
+        ARRAY_LL    failCycles;
+        int         site        = SMC_SITE_NUMBER();
+
+        //
+        // You can use an empty string "" if you do not use a result area
+        //
+        SMC_PIN_ERROR_MAP_ACCESSOR errorMaps(site, pins, "resultAreaName", maxFailsPerPin);
+
+        SMC_PIN_ERROR_MAP &amp;errorMapsResults(errorMaps.getSmcPinErrorMap("DATA4"));
+
+        //
+        // Define how the edge results are mapped to x-mode cycles
+        // here the entire pattern is specified to be x4-mode
+        //
+        CYCLE_XMODE_MAPPING                 xModeMapping;
+        std::vector&lt;CYCLE_XMODE_MAPPING&gt;    cycleXmodeMapping;
+
+        xModeMapping.startTesterCycle = 0;
+        xModeMapping.xMode            = 4;
+
+        cycleXmodeMapping.push_back(xModeMapping);
+
+        //
+        // Retrieve the first 16 failing cycles
+        //
+        const LONG_LONG startCycle      = 0;
+        const LONG_LONG maxFailCycles   = 16;
+
+        bool fewerFailsReturnedDueToEmapFull;
+
+        errorMapsResults.getFirstFailingXmodeCycles(startCycle, maxFailCycles, cycleXmodeMapping, failCycles, fewerFailsReturnedDueToEmapFull);
+
+        cout &lt;&lt; "Site " &lt;&lt; site &lt;&lt; ": " &lt;&lt; failCycles &lt;&lt; endl;
+
+    } // SMC_backgroundProcessing(std::vector&lt;STRING&gt; pins, int maxFailsPerPin)</pre><div></div>
+			<div class="note"><span class="title">Note</span> 
+				<p>The example above contains a call of <span class="keyword">cout</span> in function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>. <span class="keyword">cout</span> is not
+					thread safe. In production test <span class="keyword">cout</span> must never be used in a
+					background process.</p>
+				<p id="_149670__d5627e36">When using <span class="keyword">cout</span> in a background process,
+					you have to expect a mix up of the output in the
+						<span class="uicontrol">ui_report</span> window and possibly other unwanted
+					behavior. For more information, refer to <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>.</p>
+			</div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="140809.htm" title="Uploads the error map data for the specified pin and result area. It provides SmartCalc support and Hidden upload. Also, it is compatible with pin scale cards.">SMC_PIN_ERROR_MAP</a></div><div><a href="149668.htm" title="Retrieves the failing tester cycles that occur after the specified start tester cycle. This reports failing tester cycles in x1-mode only.">SMC_PIN_ERROR_MAP.getFirstFailingTesterCycles()</a></div><div><a href="149669.htm" title="Retrieves the failing tester cycles that occur after the specified start tester cycle. This records failing tester cycles in the specified x-mode.">SMC_PIN_ERROR_MAP.getFirstFailingXmodeCycles()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149670</span><script type="text/javascript">var ti='149670';var tt='SMC_PIN_ERROR_MAP_ACCESSOR.getSmcPinErrorMap()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

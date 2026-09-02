@@ -1,0 +1,78 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI supports the Offline Result Emulation (ORE) to evaluate test programs on offline base."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using Offline Result Emulation in SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_343520"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343520</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using Offline Result Emulation in SmartRDI</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="343526.htm" title="Applying Offline Result Emulation in SmartRDI involves enabling ORE mode and specify the ORE file path.">Applying Offline Result Emulation in SmartRDI</a></li><li><a href="346614.htm" title="The SmartRDI's ORE template is an XML file. SmartRDI can automatically generate template files.">ORE template files</a></li><li><a href="343529.htm" title="An ORE file, as an XML file, follows common XML rules while has its own XML structure.">ORE file format</a></li></ol></div></nav>
+	
+	
+	<div><p>SmartRDI supports the Offline Result Emulation (ORE) to evaluate test programs on
+		offline base.</p>
+<section class="section"><h2>Offline Result Emulation</h2>
+	<p>ORE supports the usage of defined test&nbsp;results in an emulation file and to return these results
+				in an offline mode. </p>
+			<p>ORE is commonly used for:</p>
+			<div class="p"><ul>
+					<li>Verifying the test programs&nbsp;before the device is available</li>
+					<li>Evaluating the test programs to detect different kinds of failures</li>
+				</ul>In SmartRDI 2.5.0, ORE is supported. You can specify an XML-format ORE file containing the
+				emulation results.</div>
+			<div class="note"><span class="title">Note</span> Before using ORE, guarantee that your test program can be executed without any
+				error.</div></section>
+		<section class="section"><h2>ORE master file</h2>
+			
+			<p>An ORE master file can contain several single ORE files to support collaborative
+				development.</p>
+			<p>The format of an ORE master file is shown as follows: </p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="346602.png" alt="ORE master file">
+				</figure>
+			</div>
+			<p>The file path can be an absolute path or relative path. If it is a relative path, it is based
+				on the current device directory.</p>
+			<p>You can specify the master file either in the <a href="146692.htm#_146692__row_ORE_FILE">ORE_FILE</a> option in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a> or use the <a href="343528.htm" title="Specifies a path to save ORE files when ORE is applied.">rdi.oreFile()</a> command in your code. The latter setting will override the setting in the
+					<a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>.</p>
+		</section>
+		<section class="section" id="_343520__testflow_variable"><h2>Testflow variable RDI_ORE_FILE</h2>
+			
+			<div class="p">You can use this variable to specify an ORE file for each execution. There are two main ways
+				to change this variable: <ul>
+					<li>Change this variable value from an external production tool.</li>
+					<li>Use <a href="29748.htm" title="This API sets the specified user-defined testflow variable to a particular value, which can have been stored at a defined site. The variable must have been previously declared as type STRING, and the site must have been previously declared as type INT.">SET_USER_STRING()</a> to change this variable.</li>
+				</ul></div>
+		</section>
+		<h2>Example</h2><div class="example">
+			<div class="p">ORE file locations must be loaded before <span class="keyword">RDI_INIT()</span> in the first test
+				suite.<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+  static int i = 0;
+  string oreFile[4];
+
+// Load ORE files before RDI_INIT() in the first test suite.
+  oreFile[0] = "./demo1.xml";
+  oreFile[1] = "./demo2.xml";
+  oreFile[2] = "./demo3.xml";
+  oreFile[3] = "./demo4.xml";
+
+  SET_USER_STRING("RDI_ORE_FILE", oreFile[i]);
+
+  RDI_INIT();
+
+  ON_FIRST_INVOCATION_BEGIN();
+
+    RDI_BEGIN();
+      rdi.emap("emap").label("funcPass").pin("DATA2").failCount(2).execute();
+    RDI_END();
+
+  i++;
+
+  ON_FIRST_INVOCATION_END();
+
+  cout&lt;&lt;"in run "&lt;&lt;i&lt;&lt;" , ore getFailCout result"&lt;&lt; rdi.id("emap").getFailCount()&lt;&lt;endl;
+
+  return;
+}</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="343526.htm" title="Applying Offline Result Emulation in SmartRDI involves enabling ORE mode and specify the ORE file path.">Applying Offline Result Emulation in SmartRDI</a></div><div><a href="343529.htm" title="An ORE file, as an XML file, follows common XML rules while has its own XML structure.">ORE file format</a></div><div><a href="343542.htm" title="SmartRDI provides a mechanism for generating an ORE file that can be used as a template.">Template file from the first run</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.5.0</li><li>SmartRDI 7.5.1: ORE master file</li><li>SmartRDI 7.5.2: Testflow variable RDI_ORE_FILE</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343520</span><script type="text/javascript">var ti='343520';var tt='Using Offline Result Emulation in SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

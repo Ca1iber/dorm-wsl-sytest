@@ -1,0 +1,85 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Burst upload allows to combine multiple waveforms into one single upload (burst) to reduce upload times."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Burst upload</title></head><body id="_121848"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121848</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Burst upload</h1>
+	
+	
+	<div><p>Burst upload allows to combine multiple waveforms into one single upload (burst) to
+		reduce upload times.</p>
+		<div class="note"><span class="title">Note</span> Burst upload cannot be used together with SmartCalc for analog cards in IQ core
+			function.</div><p>When capturing multiple, consecutive waveforms usually each waveform is uploaded separately.
+			This costs at least the time for issuing the appropriate firmware command as well as establishing
+			the link between system controller and tester. Burst upload saves time because multiple waveforms
+			are combined into one array, thus reducing overhead. In addition, the upload speed increases with
+			bigger waveforms.</p>
+		<p>With burst upload the smaller waveforms become an element in a single array. This results in a
+			large waveform being uploaded.</p>
+		<p>In order to work with the individual waveforms they can be addressed by their index within the
+			array.</p>
+		<h2>Example</h2><div class="example"><p>The following example shows how three consecutive waveforms
+					(<span class="keyword">NumberOfWaveforms</span>) starting from waveform 1
+					(<span class="keyword">MeasurementId</span>) are assembled into an array (<span class="keyword">burstData</span>)
+				for burst upload. It also illustrates how to work with the index of the array to access the
+				small waveforms for further computation of the
+				results.</p><pre class="prettyprint linenums copyable">void run ()
+{
+   ...
+   double measuredPower;
+   int    NumberOfWaveforms = 3;
+   int    MeasurementId = 1;
+   vector&lt;ARRAY_COMPLEX&gt; burstData;
+   int site = CURRENT_SITE_NUMBER();
+
+   ARRAY_D measParams = MEAS_DEF("myMeas").getParameters();
+
+   // upload 3 consecutive waveforms into one array
+   MEAS_DEF("myMeas").getComplexWaveform(MeasurementId, &amp;burstData, NumberOfWaveforms);
+
+   // work with the small waveforms
+   for (int i = 0; i &lt; NumberOfWaveforms; ++i)
+   {
+      ARRAY_COMPLEX &amp;waveform = burstData[i];
+      DSP_RF_CW_POWER(waveform, measParams, site, &amp;measuredPower);
+      TEST("dgtz_pin", "Power", measuredPower);
+   }
+   ...
+}
+</pre><p>The following example shows how to implement burst upload with the two LF cores of one
+			MEAS unit of an analog instrument.</p><pre class="prettyprint linenums copyable">void run ()
+{
+   ...
+   int    NumberOfWaveforms = 2;
+   int    MeasurementId = 1;
+   vector&lt;ARRAY_D&gt; burstData;
+
+   // upload 2 consecutive waveforms into one array
+   Analog.DGT("myDigPin").getWaveform(MeasurementId , &amp;burstData, NumberOfWaveforms);
+
+   // work with the small waveforms
+   ARRAY_D &amp;waveform_core1 = burstData[0];
+   ARRAY_D &amp;waveform_core2 = burstData[1];
+
+      // do processing and judgment
+   ...
+}</pre><div class="note"><span class="title">Note</span> If a
+				sequencer program uses different LF cores (refer to the sequencer_program_12 example of the
+				above mentioned section), separating the burst has to be done manually. Above example can be
+				adapted accordingly.</div><p>The following example bursts the captured data of <span class="keyword">DGTPin</span> (from
+				<span class="keyword">1</span> to <span class="keyword">NumberOfWaveforms</span>), which is stored in the
+				<span class="keyword">handle</span> area of the HW memory into the <span class="keyword">burstWaveforms</span> vector.</p><pre class="prettyprint linenums copyable">void SMC_backgroundProcessing(string DGTPin, string handle, INT NumberOfWaveforms)
+{
+   // hidden upload of one vector (burst upload) containing multiple waveforms
+   vector&lt;ARRAY_D&gt; burstWaveforms= SMC_GET_WAVEFORM(DGTPin, handle, 1, NumberOfWaveforms);
+
+   // extract the single waveforms form the burst and do some processing in the background
+   for(INT currentWaveform=0; currentWaveform &lt; NumberOfWaveforms;++currentWaveform)
+   {
+      ARRAY_D &amp;singleWaveform = burstWaveforms[currentWaveform];
+      // Processing...
+   }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="20847.htm" title="The ARRAY_x data type includes:">How to handle ARRAY_x data type</a></div><div><a href="28986.htm" title="This API extracts the specified part of an array and copies it to another array.">DSP_EXTRACT</a></div><div><a href="121944.htm" title="Retrieves the captured waveform data from the hardware memory.">SMC_GET_WAVEFORM()</a></div><div><a href="120101.htm" title="Retrieves the captured waveform data from the hardware memory.">SMC_GET_COMPLEX_WAVEFORM()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.1.3: Limitations of waveform length, incompatibility to hidden analog upload, filters
+					and discards have been removed. New code for accessing small waveforms within
+					array.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121848</span><script type="text/javascript">var ti='121848';var tt='Burst upload'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

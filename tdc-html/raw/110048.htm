@@ -1,0 +1,180 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Revolutionary Dynamic DC Measurement Using DC Scale on the Verigy V93000 Test System</title><meta name="keywords" content="93k V93000 V93k 93k 93000, V, 93000"></head><body id="_110048"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 110048</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Revolutionary Dynamic DC Measurement Using DC Scale on the Verigy V93000 Test System</h1>
+	
+	<div>
+		<p>Aether Lee, Verigy</p>
+		<p>Takashi Shibata, Verigy</p>
+		<p>Paper ID 110048</p>
+		<section class="section"><h2>Abstract</h2><p>DC Scale addresses the need for pattern synchronized, highly
+				efficient, and massive parallel resources optimized for DC measurement. By deploying <strong>Dynamic
+					Measurement</strong>, the newest feature introduced with SmarTest 6.3, a user can force or measure
+				DC parameters in parallel across different pins at a specific position of time anchored in a
+				pattern. </p><p>In this paper, two different test setups feature this new functionality: a
+				stepped VFIM test across different measurement ranges, and a DAC linearity test. Test time
+				overhead, accuracy, parallel efficiency, and test repeatability are to be analyzed. Furthermore,
+				pattern composing skill for better collaboration with DC Scale will be demonstrated. Also, an
+				advanced example using dynamic pattern editing together with dynamic DC measurement is presented
+				to show an often-requested test of a register-configured device parameter.</p></section>
+		<section class="section"><h2>Key Words</h2><p>DC Measurement, DC Scale, Dynamic DC</p></section>
+		<section class="section"><h2>Introduction</h2><p>Dynamic DC Measurement addresses the need for synchronizing
+				voltage or current measurement and/or voltage forcing with pattern execution. The built-in test
+				processor-per-pin on Verigy's V93000 test system makes this revolutionary breakthrough possible.
+				The test processor is of the same technology as that of the Pin Scale 400 card. The
+				implementation of Dynamic DC Measurement is based on a per-pin sequencer program for each
+				channel in DC Scale card.</p></section>
+		<section class="section"><h2>Dynamic DC Measurement</h2><p>The idea of Dynamic DC Measurement is to define a
+				change in forcing value and/or an occurring measurement as an event and to anchor that event in
+				a pattern. To define an event, a firmware command <code>DFTD</code> has to be composed in
+				the primary level file. To anchor an event, it is <code>TPSE</code> in the corresponding
+				vector label file. Both firmware commands adapt XML syntax. Hence, the composition can be done
+				in any text editor.</p><p><code>DFTD</code> defines the type of the event as well as the
+				related setup value. Three kinds of events can be defined. <code>SetMeasureRange</code> sets
+				the voltage or the current measurement range for the following measurements.
+					<code>SetForceValue</code> sets the value of a voltage force event. The current forcing
+				event is not supported yet. <em>Measure</em> is to set the type of measurement: voltage or
+				current, samples to take, and the pass limit as well. A name has to be assigned to each event
+				defined in <code>DFTD</code>. The name will be referred to by <code>TPSE</code> later on
+				in the vector label file.</p><p><code>TPSE</code> anchors events at vector numbers instead
+				of cycle numbers. Those events are referred to by names in the same specific namespace addressed
+				by <code>DFTD</code>. Since it is the name being referred to, events can be reused. Along
+				with anchoring by vector numbers, <code>TPSE</code> syntax provides the optimal flexibility
+				to compose the pattern in a compact way.</p><p>The execution of Dynamic DC Measurement is simply
+				a functional test. When the passing limit has been declared in the event definition, the
+				measurement will be judged right away at each anchor. The result of each judgment will also
+				affect the overall functional test result. That is to say, if any of the DC measurements fail,
+				the result of functional test will fail as well. Furthermore, since pass/fail judgment is done
+				in the DC Scale channels and involves no data uploading there will be no extra overhead
+				introduced.</p><p>The value of each measurement can be uploaded by calling a specific API. The
+				API uploads all the data of all pins in one shot, and then another can retrieve the measured
+				values for each pin of interest. The scheme reduces the uploading overhead.</p></section>
+		<section class="section"><h2>Test Case 1: Stepped VFIM</h2><p>In this section, an example of Dynamic VFIM
+				(voltage force current measure) will be shown here.</p><p>The voltage forcing curve deployed is
+				V-shaped. The voltage droops down first and then raises up to restore the initial value. In the
+				center of each step, a current measurement is taken to monitor the current flow. Each
+				measurement can take more than four samples to ensure accuracy.</p><p>The test challenge is that
+				the current measure goes across different current measurement ranges. However, setting the range
+				can be done with a corresponding test event in Dynamic DC. In a single pattern run, current
+				measurement in one range can be performed first and then it changes to another range to perform
+				the following measurement in sequence.</p><div class="p"><figure class="fignone">
+					<img src="110062.png" alt="Dynamic_DC Figure 1. Setup for Test Case 1">
+				</figure></div><p><strong>Figure 1. Setup for Test Case 1</strong></p><p>In this example, a DPS32 channel is
+				used to force voltages according to a defined list against a resistor to ground, and to measure
+				current for each voltage.</p><p>104 current measurements are performed in one shot, and the
+				total test time is 72.107 ms which means 0.693 ms per measurement. Parallel efficiency has been
+				examined. Dynamic DC can outperform 97% as efficiently.</p><table class="frame-topbot"><caption><span>Table 1. Test Time and Parallel Efficiency of Test Case 1</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_110048__entry__1"><p>Number of Channels</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110048__entry__2"><p>Test Time [ms]</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110048__entry__3"><p>Parallel Efficiency</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__1"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__2"><p>72.107</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__3"><p>-</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__1"><p>2</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__2"><p>73.967</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__3"><p>&gt;97%</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__1"><p>3</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__2"><p>75.681</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__3"><p>&gt;97%</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__1"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__2"><p>77.718</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110048__entry__3"><p>&gt;97%</p>
+							</td>
+						</tr>
+					</tbody></table><p>This example can be extended to V-Bump test, Voltage Build-up Sequence Monitoring, or
+				IDDQ test.</p></section>
+		<section class="section"><h2>Test Case 2: Static DAC Test</h2><p>Linearity test is the test item in focus. A
+				DC Scale channel is performing the digitizing task while another one is sourcing the ramp to
+				simulate the device output of a DAC. From the setup point of view, the <em>digitizing</em> channel
+				involves only <em>measure</em> events, and the <em>sourcing</em> channel calls only <em>force</em>
+				events.</p><div class="p"><figure class="fignone">
+					<img src="110061.png" alt="Dynamic_DC Figure 2. Test Setup of Test Case 2">
+				</figure></div><p><strong>Figure 2. Test Setup of Test Case 2</strong></p><p>In the setup, six
+				digitizing-sourcing pairs and four sites have been configured to demonstrate the case that there
+				is more than one DAC in the device and multi-site testing is deployed.</p><p>The source
+				simulates the output of a 12-bit DAC so there are 4096 steps in the ramp. When the full scale is
+				3.0V, the ideal LSB is as small as 0.7326 mV which challenges the accuracy of the instrument. In
+				high accuracy mode, DC Scale VI32 specs the resolution as 50 uV with +/-200 uV accuracy. So VI32
+				can perform the test.</p><div class="p"><figure class="fignone">
+					<img src="110060.png" alt="Dynamic_DC Figure 3. Measured Ramp Waveform">
+				</figure></div><p><strong>Figure 3. Measured Ramp Waveform</strong></p><p>The digitizing channel then takes 16
+				samples at every step. DC Scale channels are capable of performing hardware averaging. 16
+				samples will be averaged and only one value is returned to workstation. DNL and INL are then
+				calculated with returned values. Measured absolute maximum DNL is 0.776 LSB and absolute maximum
+				INL is 0.723 LSB.</p><div class="p"><figure class="fignone">
+					<img src="110059.png" alt="Dynamic_DC Figure 4. Multi-site Test Setup">
+				</figure></div><p><strong>Figure 4. Multi-site Test Setup</strong></p><p>Since there are 32 channels per DC
+				Scale card, high pin count multi-site test can be implemented. As shown in Figure 3, a 4-site
+				test program is built to examine the multi-site efficiency. The test time for single site is
+				470.812 ms and for quad-site is 581.133 ms which means 92% multi-site efficiency is
+				achieved.</p><div class="p"><figure class="fignone">
+					<img src="110063.png" alt="Dynamic_DC Figure 5. Test Time of Multi-site Setup">
+				</figure></div><p><strong>Figure 5. Test Time of Multi-site Setup</strong></p><div class="p"><figure class="fignone">
+					<img src="110058.png" alt="Dynamic_DC Figure 6. Multi-site Efficiency">
+				</figure></div><p><strong>Figure 6. Multi-site Efficiency</strong></p></section>
+		<section class="section"><h2>Advanced Application</h2><p>An often-seen application request of mixed signal
+				testing is to measure the output voltage of certain pins which digitize the output signals or
+				feed the template to the device. Before the introduction of DC Scale and Dynamic DC Measurement,
+				there has not been a straightforward way to implement such an application in one shot. Now, by
+				deploying Dynamic DC Measurement, DC Scale channels can measure DC parameters while analog
+				instruments are busy performing their own tasks. It not only simplifies implementation but also
+				improves throughput.</p><div class="p"><figure class="fignone">
+					<img src="110057.png" alt="Dynamic_DC Figure 7. Concept of DSM + Dynamic DC">
+				</figure></div><p><strong>Figure 7. Concept of DSM + Dynamic DC</strong></p><p>Adapting the concept shown in
+				Figure 7, DSM (digital source memory) can be used to feed the template to a DAC, and a DC Scale
+				channel measures the voltage while a channel on the MB AV8 card is digitizing the output signal
+				of the DAC. All these actions are synchronized by pattern control.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>In this paper, two examples of Dynamic DC Measurement using
+				DC Scale are shown. The core of the first example is Dynamic VFIM while that of the second one
+				is Dynamic VFVM. The analysis of results shows both the accuracy and the throughput are
+				excellent. The test time of one single measurement in VFIM is less than 1 ms which is
+				outstanding performance. The DAC linearity test from Test Case 2 demonstrates that VI32 is
+				capable of performing high accuracy measurement with high multi-site efficiency along with
+				adequate DNL/INL result.</p><p>A primary concern about using Dynamic DC Measurement is the
+				complexity of composing the content of the FW command. However, since it is written in XML
+				syntax, which is a very well formatted language, API-based composing tools can easily reduce the
+				user effort. In fact, some development kits have been developed by Verigy Applications team, and
+				are available now. Also, the next generation of SmarTest will improve the GUI of the pattern
+				edit tool so that the anchor will be visible to users.</p></section>
+		<section class="section"><h2>Glossary of Abbreviations</h2><p>API = application program interface</p><p>DAC
+				= digital-to-analog converter</p><p>DFTD = define test data</p><p>DNL = differential
+				nonlinearity</p><p>DSM = digital source memory</p><p>FW command = firmware command</p><p>GUI =
+				graphical user interface</p><p>INL = integral nonlinearity</p><p>LSB = least significant
+				bit</p><p>TPSE = test point sequence</p><p>VFIM = voltage force current measure</p><p>VFVM =
+				voltage force voltage measure</p></section>
+		<section class="section"><h2>Biographies</h2><p><strong>Aether Lee</strong> began his career in 2000 as an application
+				engineer with Agilent Taiwan. After four years, he joined Agilent's Technical Marketing team
+				(Hachioji,Japan), where he gained knowledge and experience in Mixed- Signal Testing. After a
+				couple of years further experience in Verigy's Germany site, he returned to the Hachioji office
+				and now works in the Center of Expertise, focusing on digital consumer devices and power
+				management IC.</p><p><strong>Takashi Shibata</strong> joined this industry as a semiconductor package
+				designer in 1994. He then worked with Agilent as a semiconductor process engineer beginning in
+				2000. Since 2002, he has been a field application engineer for Verigy's V93000 test systems in
+				Japan. He has extensive experience in semiconductor devices, processes and
+			production.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 110048</span><script type="text/javascript">var ti='110048';var tt='Revolutionary Dynamic DC Measurement Using DC Scale on the Verigy V93000 Test System'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

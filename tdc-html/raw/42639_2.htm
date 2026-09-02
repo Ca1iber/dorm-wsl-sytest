@@ -1,0 +1,94 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In multisite testing, the test method program can perform the following actions for all sites in parallel:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Parallel Execution</title></head><body id="_42639"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42639</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Parallel Execution</h1>
+	
+	
+	<div><p>In multisite testing, the test method program can perform the following actions for all
+		sites in parallel:</p>
+		<ul>
+			<li>Set up hardware</li>
+			<li>Execute test</li>
+		</ul>
+		<p>For parallel execution of the above, Setup and Execution APIs must be enclosed by a pair of the
+			following APIs:</p>
+		<ul>
+			<li><strong><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN()</a></strong></li>
+			<li><strong><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END()</a></strong></li>
+		</ul>
+		<p>A block enclosed by these APIs is called the <strong>first-invocation block</strong>.</p>
+		<div class="note"><span class="title">Note</span> The above two APIs are ignored in single-site testing or serial
+			execution.</div><p>The figure below shows the behavior of program execution in parallel execution.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="47488.png" alt="Behavior of Program Execution">
+			</figure></div>
+		<p>In multisite testing, the system generates the setup conditions for additional sites based on
+			the primary setups, and they are downloaded automatically. </p>
+		<p>If you modify any condition of the setup data in the first-invocation block, the condition data
+			for all sites will be overridden as well, and then activated.</p>
+		<p>However, if you wish to use different setup data for different sites, see the section <em><a href="42642.htm" title="You can set up the conditions for each site independently in the first-invocation block. This setup will be performed serially for each site by repetition.">Controlling the Setup/Query-Focus Automatically</a></em>.</p>
+		<p>The primary setups are activated for all sites when the following APIs are executed in the
+			first-invocation block. </p>
+		<ul>
+			<li>EXECUTE_TEST()</li>
+			<li>START_TEST()</li>
+			<li>DIGITAL_CAPTURE_TEST()</li>
+			<li>FUNCTIONAL_TEST()</li>
+		</ul>
+		<p>The following APIs will become obsolete soon:</p>
+		<ul>
+			<li>SPEC_SEARCH(<em>specName</em>, <em>specType</em>).execute() <ul>
+					<li>Replace this with the API: <strong>SEARCH_FUNC_TASK</strong></li>
+				</ul></li>
+			<li>DPS_VFIM(<em>pin</em>).execute()<ul>
+					<li>This is not supported for DC Scale cards, use <strong>DPS_TASK</strong> instead</li>
+				</ul></li>
+		</ul>
+		<p>Note that any modification of the setup condition <em>outside </em>the first-invocation block is
+			also valid for all sites. </p>
+		<p>However, the modification is executed sequentially each time the program is executed for all
+			sites. That is, all it does is slow down the execution of the testmethod-based testsuite.</p>
+		<p>Note that you can set up different setup data for each site. For more information, see <a href="42641.htm" title="Different setup data can be created for each site independently. The following setup parameters are valid for site-specific setup:">Site-Specific Setup</a>.</p>
+		<div class="note"><span class="title">Note</span> In DC measurements using the PMU, only the global pass/fail measurement using
+			the Pin PMU can be done in parallel. Other measurements (per-pin pass/fail or value measurements,
+			and measurements using the system PMU) cannot be performed in parallel. However, even if you
+			describe APIs for these DC measurements in the first-invocation block, the system achieves DC
+			test serially for all active sites automatically. Hence, you Do not have to consider which mode
+			and which PMU resource are used for DC measurements. To make the behavior of the test method
+			program in the multisite test easier to understand, this chapter assumes that all DC measurements
+			are performed for all active sites in parallel.</div><p>The following is an example of a typical program for parallel execution.</p>
+		<div class="p"><figure class="fignone">
+				<img src="47489.png" alt="Parallel execution">
+			</figure></div>
+		<p>In the above example, the first execution of the program achieves setup and test (measurement)
+			for all sites in parallel, then gets the measurement result for the first tested site, calculates
+			the total harmonic distortion (THD) value from the measurement result, and judges the THD value
+			as pass/fail. Subsequent executions start from when the measurement result is retrieved for the
+			current site.</p>
+		<p>You can also define multiple first-invocation blocks in a test method program. For example, if
+			you need two DC tests in a testmethod-based testsuite, define two first-invocation blocks for two
+			measurements such as below. The figure below shows the execution behavior of this example
+			program.</p>
+		<div class="p"><figure class="fignone">
+				<img src="47490.png" alt="Execution Behavior of &#34;Two DC Tests&#34; Program">
+			</figure></div>
+		
+		<div class="p"><figure class="fignone">
+				
+				<img src="47491.png" alt="Execution Behavior of &#34;Two DC Tests&#34; Program">
+			</figure></div>
+		<p>The first-invocation block will be executed once only at the first execution of the program.
+			You can use this feature wisely. </p>
+		<p>If you need to execute a certain part of your program once for all sites, enter the part into
+			the first-invocation block. </p>
+		<p>For example, if you control a GPIB instrument once before multisite testing, enter GPIB APIs
+			in the first-invocation block such as below. Hence, control of the instrument will be executed
+			once only at the first execution of the program. Note that the GPIB APIs do not depend on the
+			site information.</p>
+		<div class="p"><figure class="fignone">
+				<img src="47492.png" alt="Parallel execution (4)">
+			</figure></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42638.htm" title="As in a normal setup, test methods can also be used for executing test suites in a multisite setup.">MS Test Method Programming Overview</a></div><div><a href="42595.htm" title="The following rules apply to multisite testing:">Processing test flow blocks in a multisite setup</a></div><div><a href="42597.htm" title="There are two flags you can set to determine whether testsuites are run in parallel or sequentially, namely,">Setting Flags for Parallel Execution</a></div><div><a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">Self-contained Testsuites</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="118888.htm" title="This API declares the beginning of a block in which the test method code will be only executed for the last site in multisite testing. In the block, all the active sites are setup focus and the last site is query focus.">ON_LAST_INVOCATION_BEGIN</a></div><div><a href="118889.htm" title="This API declares the end of the &#34;last invocation&#34; block that is started by ON_LAST_INVOCATION_BEGIN.">ON_LAST_INVOCATION_END</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42639</span><script type="text/javascript">var ti='42639';var tt='Parallel Execution'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

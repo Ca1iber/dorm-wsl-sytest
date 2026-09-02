@@ -1,0 +1,515 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This test method calculates the jitter on the device output and separates the random jitter and deterministic jitter. As a result, the random jitter, deterministic jitter and total jitter will be reported or logged."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>JitterSeparation</title><meta name="keywords" content="Jitter, Separation"></head><body id="_118691"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118691</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">JitterSeparation</h1>
+	
+	
+	<div><p>This test method calculates the jitter on the device output and separates the random
+		jitter and deterministic jitter. As a result, the random jitter, deterministic jitter and total
+		jitter will be reported or logged.</p>
+		<section class="section"><p>This test method supports multisite measurements and
+				multiport measurements. Only PinScale test systems are supported by the test
+				method.</p><p>Generally, this test method performs jitter test via shifting the value of a spec
+				variable. When the spec value is shifted, a functional test will be executed and the error count
+				data is retrieved. Jitter histogram is calculated through analyzing the error count data.
+				</p><p>Four major steps are involved in this JitterSeparation test method. The execution flow is
+				shown in the figure below.</p><div class="p"><figure class="fignone">
+					
+					<img src="118770.png" alt="Execution flow of JitterSeparation">
+				</figure></div><p>Pattern synchronization tries to find the compare edge position where the pattern
+				passes. Transition search finds the bit transition position (the pass-to-fail or fail-to-pass
+				position) needed in data acquisition. Data acquisition captures the error count data in the bit
+				transition area. Post process calculates the random jitter, deterministic jitter and total
+				jitter according to the input of error count and output the result.</p><p>The first two steps
+				are optional and can be skipped by setting the corresponding parameters. The last two steps are
+				mandatory for jitter separation measurement.</p></section>
+		<section class="section"><h2>Pattern synchronization (AutoSync)</h2><p>Pattern synchronization can be
+				enabled by setting <span class="keyword">autoSync</span> to <kbd class="userinput">ON</kbd>. A linear search is
+				executed in the range defined by <span class="keyword">start</span> and <span class="keyword">stop</span>. The
+				search resolution is defined by the parameter <span class="keyword">autoSync.stepWidth</span>. A timing
+				spec variable <code>pinName_specName_postfix</code> is used in the spec search. </p><p>To
+				avoid a marginal pass pattern, the second linear search will be done to the pass pattern. The
+				synchronization position is the mean value of the passing area.</p><p>The figure below shows the
+				execution sequence of the <code>AutoSync</code>.</p><div class="p"><figure class="fignone">
+					
+					<img src="118760.png" alt="autoSync execution sequence">
+				</figure></div><p>The selection of the parameter <span class="keyword">autoSync.stepWidth</span> is important
+				and should be carefully done to achieve short test time and a reliable synchronization result.
+				Its value should neither exceed the minimum eye opening of the data pattern, nor fall
+				significantly below the minimum eye opening value. It is recommended to have one passing strobe
+				position within the minimum expected eye opening.</p><p>If the <span class="keyword"></span> parameter
+					<span class="keyword">autoSync</span> is set to <kbd class="userinput">ON</kbd>, the timing specification
+				variable will be reset to its original value at the end of the measurement. If the pattern is
+				already synchronized (passing functional test), do not execute the AutoSync routine and set the
+				parameter <span class="keyword">autoSync</span> to <kbd class="userinput">OFF</kbd>.</p><p>The AutoSync routine
+				will also find a synchronization position for a failing pattern if the
+					<span class="keyword">passOnMaxErrorCount</span> parameter is set to a positive number. If the error
+				count of a strobe position is less than <span class="keyword">passOnMaxErrorCount</span><code>,
+				</code>the position will be considered as pass<code>.</code> This is useful for
+				measurements where the pattern is not finally debugged and just a few "fails" are
+				remaining.</p><p>If the AutoSync routine is executed and no pass position is found, the
+				execution of jitterSeparation test method will be stopped.</p></section>
+		<section class="section"><h2>Transition search</h2><p>For accurate jitter measurements, the data acquisition
+				should use a fine resolution which might lead to longer test time. The trade-off between
+				accuracy and test time raises the need for an optimization of the exact acquisition area. Areas
+				with a stable error count (for example, the eye opening) does not contribute to the measurement
+				accuracy and should be avoided. </p><p>Therefore the first data acquisition should start at the
+				first position where the error count starts to increase/decrease.</p><p>Transition search can be
+				enabled by setting the parameter <span class="keyword">transitionSearch</span> to
+					<kbd class="userinput">ON</kbd>. The transition search algorithm requires a passing (the error count
+				&lt; <span class="keyword">passOnMaxErrorCount</span>) pattern. The start point of the transition search
+				is the passing synchronization position that was either achieved by previous tests or by the
+				AutoSync routine. From this start point, a binary search with the range defined by
+					<span class="keyword">UI_width</span> and the resolution defined by <span class="keyword">dataAcquStepWidth</span> on both left side and right side will be performed.</p><p>The figure below shows the
+				transition search process.</p><div class="p"><figure class="fignone">
+					
+					<img src="118771.png" alt="Transition search">
+				</figure></div></section>
+		<section class="section"><h2>Data acquisition</h2><p>During data acquisition, the compare strobe will
+				linearly be moved through a defined area of the data eye and the error count will be captured on
+				all measurement pins in parallel. The step size is defined by the parameter
+					<span class="keyword">dataAcqu.stepWidth</span><code>.</code> This parameter determines the accuracy
+				of the measurement and the execution time. </p><p>In the following figure, the data acquisition
+				procedure is illustrated. The acquisition is always from the bottom of lowest error count area
+				to left side or to right side.</p><div class="p"><figure class="fignone">
+					
+					<img src="118761.png" alt="Data acquisition via the error count">
+				</figure></div><p>The test method checks for a steady error count as stop criteria (optimized data
+				acquisition stop). </p><p>There are eight cases for the range of data acquisition. The table
+				below shows the details.</p><table class="frame-none"><caption></caption><colgroup><col><col><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_118691__entry__1" rowspan="2"><p>Case No.</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__2" colspan="2"><p>AutoSync</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__3">
+								<p>Transition Search</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__4"><p>Data Acquisition</p></th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__5" rowspan="2">
+								<p>start time</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__6" rowspan="2">
+								<p>stop time</p>
+							</th>
+						</tr>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_118691__entry__7"><p>Mode</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__8"><p>Result</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__9"><p>Mode</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_118691__entry__10"><p>Result</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>OFF</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"></td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"><p>Pass</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>pass/fail transition of Transition Search</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>Optimized data acquisition stop</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>3</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>OFF</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"></td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"><p>Fail</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>-</p>
+								<p>Measurement stops</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>-</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>4</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"><p>Pass</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>OFF</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"></td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>AutoSync position</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>Optimized data acquisition stop</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>5</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"><p>Fail</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>OFF</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"></td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>-</p>
+								<p>Measurement stops</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>-</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>6</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"><p>Pass</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"><p>Fail</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>-</p>
+								<p>Measurement stops</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>-</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>7</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"><p>Pass</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"><p>Pass</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>pass/fail transition of Transition Search</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>Optimized Data Acquisition stop</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__1"><p>8</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__7"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__2 _118691__entry__8"><p>Fail</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__3 _118691__entry__9"><p>ON</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__4 _118691__entry__10"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__5"><p>-</p>
+								<p>Measurement stops</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_118691__entry__6"><p>-</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Post process</h2><p>The jitter separation is done via the Q-factor method. The
+				starting point for the jitter separation with the Q-factor is the bathtub curve of the error
+				count data. After the data is captured, the Bit Error Rate (BER) of each sampling point will be
+				calculated by dividing the recorded error count by the total number of bit in the vector
+				stream.</p><p>Then the bathtub curve is transferred to the Q-space for the selected BER range
+					(<span class="keyword">fittingRangeMax</span>, <span class="keyword">fittingRangeMin</span>) as in the figure
+				below. The appropriate selection of the fitting range is crucial for meaningful jitter
+				separation results. Make sure that at least two sample points exist in the selected fitting
+				range. The quality of the fitting can be reflected by the <code>r2</code> factor that will
+				be reported in the report window. A perfect fitting is achieved with r2 = 1.</p><div class="p"><figure class="fignone">
+					
+					<img src="118692.png" alt="Transfer bathtub curve to Q-space">
+				</figure></div><p>A fitting on the two slopes of the Q-space curve will be done. The fitting on the
+				selected range of the Q-space curve will give two straight lines with a certain slope and a
+				certain distance point. The respective slope is determined by the Random Jitter, while the
+				distance of the two slopes is determined by the Deterministic Jitter. Therefore, the random
+				Jitter can be calculated for each side of the data eye. In theory they should be the same for
+				both transition, but in practice this is not always the case. The total random jitter is the
+				average of the left side and the right side. The deterministic jitter gets calculated by the
+				distance of the means of the two slopes. the Total jitter consists of deterministic jitter and
+				random jitter. The absolute random jitter (peak-peak) depends on the target BER number. So the
+				total jitter is also related to the target BER number.</p><p>In the report window the
+				deterministic jitter, random jitter and total jitter will be printed. Additionally, the mean
+				values and the r2 fitting factors will be reported.</p><p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p><div class="note"><span class="title">Note</span> In the jitter separation algorithm a transition density of 0.5 is used. For further
+				reading, see "<em>An Engineer's Guide to Automated Testing of High-Speed Interfaces</em>" by Jose
+				Moreira and Hubert Werkmann, Artech House 2010, ISBN 978-1-60783-983-5.</div><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_118691__entry__60"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_118691__entry__61"><p>Type</p>
+							</th>
+							<th class="colsep-1" id="_118691__entry__62"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>pinList</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>PinString</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The list of the pin or pin groups that the spec is shifted for. The member of pin
+									list needs to be O or IO digital pins or pin groups, which are delimited by commas. For
+									differential pins, you only need to input the positive pins.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>portName</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>(optional) Port name the pinList belongs to. Default value is @. Only pins
+									belonging to one port can be measured together.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>specName_postfix</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The postfix used to define the spec variables. A spec variable corresponding to
+									each test pin must be defined to be used for jitter measurement.</p>
+								<p>For example, if Tx0 is the pin to be measured, the spec variable to use is Tx0_offset.
+									Then this parameter needs to be set as "offset".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>UI_width</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The time interval of a bit in the test pattern. </p>
+								<p>It is in the format of <kbd class="userinput">value[unit]</kbd>. Default value is
+										<kbd class="userinput">0[ns]</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>start</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>If <span class="keyword">autoSync</span> is <kbd class="userinput">ON </kbd>or
+										<kbd class="userinput">ON_KEEP_VALUE</kbd>, this is the linear search start point in pattern
+									synchronization.</p>
+								<p>If both <kbd class="userinput">autoSync</kbd> and <kbd class="userinput">transitionSearch</kbd> are
+									OFF, this parameter is the data acquisition start point.</p>
+								<p>If <kbd class="userinput">autoSync </kbd>is OFF and <kbd class="userinput">transitionSearch </kbd>is
+									ON, this parameter is the transition search start point.</p>
+								<p>It is in the format of <kbd class="userinput">value[unit]</kbd>. Default value is
+										<kbd class="userinput">0[ns]</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>stop</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>If <span class="keyword">autoSync</span> is <kbd class="userinput">ON</kbd> or
+										<kbd class="userinput">ON_KEEP_VALUE</kbd>, this is the linear search stop point in pattern
+									synchronization.</p>
+								<p>If both <span class="keyword">autoSync</span> and <span class="keyword">transitionSearch</span> are
+										<kbd class="userinput">OFF</kbd>, this parameter is the data acquisition stop point.</p>
+								<p>If <span class="keyword">autoSync</span> is <kbd class="userinput">OFF </kbd>and
+										<span class="keyword">transitionSearch</span> is ON, this parameter is the transition search stop
+									point.</p>
+								<p>It is in the format of <kbd class="userinput">value[unit]</kbd>. Default value is
+										<kbd class="userinput">0[ns].</kbd></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>dataAcquStepWidth</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>Step width of data acquisition.</p>
+								<p>it is in the format of <kbd class="userinput">value[unit]</kbd>. Default value is
+										<kbd class="userinput">0[ns]</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>passOnMaxErrorCount</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>int</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The maximum edge error count specified as the pass/fail threshold. Default value is
+									0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>autoSync</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>This is used to enable/disable the AutoSync step. There are three options:</p>
+								<p><kbd class="userinput">OFF</kbd>: The pattern synchronization is disabled.</p>
+								<p><kbd class="userinput">ON</kbd>: The pattern synchronization is enabled. The spec variable is
+									reset to the original value after finishing the test.</p>
+								<p><kbd class="userinput">ON_KEEP_VALUE</kbd>: The pattern synchronization is enabled and a
+									specification variable value will be kept for the next test suite. This value is calculated
+									as:</p>
+								<p><code>Mean value of jitter histogram +
+										0.5*</code><kbd class="userinput">UI_width_ns</kbd><code></code>(for left side
+									search)</p>
+								<p>or <kbd class="userinput">Mean value of jitter histogram - 0.5*UI_width_ns </kbd>(for right
+									side search).</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>autoSync.stepWidth</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>Step width of linear search pattern synchronization.</p>
+								<p>It is in the format of <kbd class="userinput">value[unit]</kbd>. Default value is
+										<kbd class="userinput">0[ns]</kbd>..</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>transitionSearch</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>Enables or disables the transition search. The optional values are ON and OFF.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>bitNumbers</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>int</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The total bit numbers of the pattern. You must specify the correct total bit
+									numbers of the pattern.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>fittingRangeMax</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>double</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The maximum BER number for fitting.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>fittingRangeMin</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>double</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The minimum BER number for fitting.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>BERFactor</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>int</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The target BER for total jitter calculation.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>output.mode</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>This parameter is in effect only if <kbd class="userinput">output</kbd> is set to
+										<kbd class="userinput">ReportUI</kbd>. There are three options:</p>
+								<p><kbd class="userinput">SUMMARY</kbd>: a result table will be printed in the report window.</p>
+								<p><kbd class="userinput">DETAIL</kbd>: an ASCII plot of the Error Count and the jitter stardust
+									will be printed in report window additionally.</p>
+								<p><kbd class="userinput">ANALYSIS</kbd>: the jitter stardust data will be transfer to signal
+									analyzer tool for display and debugging.</p>
+								<p>Default value is <kbd class="userinput">SUMMARY</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>output</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>Print message or not. </p>
+								<p><kbd class="userinput">ReportUI</kbd> - for debug mode</p>
+								<p><kbd class="userinput">None</kbd> - for production mode</p>
+								<p>Default is <kbd class="userinput">ReportUI</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_118691__entry__60"><p>testName</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__61"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_118691__entry__62"><p>The test names to be used as limits. Default is
+										<kbd class="userinput">(random_jitter_ps,deterministic_jitter_ps,total_jitter_ps)</kbd>. </p>
+								<p>If you want to use the test names defined in the test table or testflow limits, type in
+			the test names manually. Make sure the test names are in the <span class="uicontrol">Test name
+			</span>column of the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in the <span class="uicontrol">Test
+				Name</span> column of Tests page of Flow Data Editor.</p>
+							</td>
+						</tr>
+					</tbody></table><table><caption><span>Limits</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p><span class="keyword">random_jitter_ps</span></p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the random jitter</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p><span class="keyword">deterministic_jitter_ps</span></p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the deterministic jitter</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p><span class="keyword">total_jitter_ps</span></p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the total jitter</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Implementation pseudo
+				code</h2><pre class="prettyprint linenums copyable">IF not already connected THEN
+  connect DUT
+ENDIF
+clear sequencer status
+IF synchronization on THEN
+  do a linear search to find synchronization position of pattern
+  IF no pass position found THEN
+    stop the measurement
+  ENDIF
+ELSEIF synchronization on keep value THEN
+  do a linear search to find synchronization position of pattern
+  IF no pass position found THEN
+    stop the measurement
+  ENDIF
+ENDIF
+IF transition search on THEN
+  find fine transition position on left side
+  find fine transition position on right side
+ENDIF
+IF transition area already found THEN
+  capture error count data in transition area
+ELSE
+  capture error count data in specified area
+ENDIF
+calculate jitter separation from error count data
+IF synchronization on keep value THEN
+  apply spec value of synchronization position for next test suite
+ENDIF
+datalog test results</pre><p>For
+				further reading: "<em>An Engineer's Guide to Automated Testing of High-Speed Interfaces</em>" by
+				Jose Moreira and Hubert Werkmann, Artech House 2010, ISBN 978-1-60783-983-5.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="28746.htm" title="The CONNECT API connects the tester resources to the DUT and sets the tester to the &#34;connect&#34; state unless they are already connected. If the test resources are already connected, this API performs no action. This API works the same as Connect item of the main menu, and performs the following sequences:">CONNECT</a></div><div><a href="70858.htm" title="When creating a device test, all pins to be tested are defined using the Pin Configuration tool. Some of the pins in this pin list are often defined in pin groups. When a test is created using Test Methods, the test is specified for that pin list, and the measurement results are retrieved on a per-pin basis. The measurement results are associated with the pin names, so you must know the pin names of all the pins in the pin list, including the names of the pins in the pin groups, to retrieve the measurement results for all of the pins in the pin list.">PIN_UTILITY</a></div><div><a href="71349.htm" title="The SEARCH_FUNC_TASK API holds search conditions for one or more pins and sites, and executes these searches in parallel. The API can also be used to retrieve the search results.">SEARCH_FUNC_TASK</a></div><div><a href="96863.htm" title="The class serves as an interface to set up, execute and retrieve spec search result.">ERROR_COUNT_ACQUIRE</a></div><div><a href="118688.htm" title="This API calculates the jitter separation based on the input of error count and timing data. It separates jitter to random and deterministic components via fitting algorithms.">DSP_JITTER_SEPARATION</a></div><div><a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.0.3:  New parameter testName.</li><li>SmarTest 7.0.3:  Test table is supported.</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is supported in
+					TML 2.1.1.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118691</span><script type="text/javascript">var ti='118691';var tt='JitterSeparation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

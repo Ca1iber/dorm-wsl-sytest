@@ -1,0 +1,69 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If a test applications written in C or C++ shall make use of GIO library functions, it will have to be linked to the GIO library."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using the GIO library API from a C/C++ test application</title></head><body id="_254244"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 254244</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using the GIO library API from a C/C++ test application</h1>
+	
+	
+	<div><p>If a test applications written in C or C++ shall make use of GIO library functions, it
+		will have to be linked to the GIO library.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>After <a href="255992.htm" title="The GIO library API can be installed on the system controller from the command line using the rpm command.">Installing the GIO library API from the command line</a>, the functionality of the GIO library can be used by a
+				test application. This application can be a SmarTest program, but as well another test program
+				outside SmarTest.</p><p>The header file of the GIO library API is compatible to C. The GIO
+				library API functions are written in C++.</p><p>The GIO shared library is located
+					at</p><p><span class="filepath">/opt/hp93000rt/el7/x86_64/gio/lib/libhw_cor_gio.so</span></p><p>and the
+				related header file is located
+					at</p><p><span class="filepath">/opt/hp93000rt/el7/x86_64/gio/include/xoc/hw/cor/gio/gio.h</span>.</p><p>This
+				topic considers test applications written in C or
+				C++.</p><p>If your test application is already existing and based on SICL, you will have to port
+			it the GIO library API. Consider <a href="255993.htm" title="If there are test applications invoking functions of SICL, these must be rewritten to use GIO library API functions instead.">Porting SICL-based applications to GIO</a> for details.</p><p>The procedure will be explained along an example of the fictitious
+				external instrument "Fuchsia" with following settings:</p><ul>
+				<li><code>johndoe</code> as the user</li>
+				<li><span class="filepath">fuchsiaDriver.c</span> as the test application using the GIO library API
+					functions</li>
+				<li><span class="filepath">fuchsiaTest</span> as the runnable test application linked to the shared
+					library</li>
+				<li>The user is working in the directory <span class="filepath">/home/johndoe/fuchsia</span></li>
+			</ul><p>This topic describes the <kbd class="userinput">rpath</kbd> way of linking the shared library to the
+				test application. There is as well the alternative option to use the environment variable
+					<code>LD_LIBRARY_PATH</code> which is not described here. Reference to the public gcc
+				documentation is made for details, and the pros and cons of the different approaches.</p><p>The
+				steps below refer to a manual production of a runnable. It is possible as well to define a
+				makefile and to let <kbd class="userinput">make</kbd> do the job to produce an executable test
+				application.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Install the <span class="filepath">.rpm</span> package of the GIO library API on the V93000 system controller
+			according to <a href="255992.htm" title="The GIO library API can be installed on the system controller from the command line using the rpm command.">Installing the GIO library API</a>.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Add the header file <span class="filepath">gio.h</span> to the <span class="filepath">fuchsiaDriver.c</span>
+					program.</span>
+				<div><p><code>#include &lt;stdio.h&gt;</code></p>
+					<p><code>#include &lt;xoc/hw/cor/gio/gio.h&gt;</code></p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Compile the instrument driver and link it with the shared library.</span>
+				<div><p><kbd class="userinput">gcc -L/opt/hp93000rt/el7/x86_64/gio/lib -Wall -I/opt/hp93000rt/el7/x86_64/gio/include
+							-o fuchsiaTest fuchsiaDriver.c -lhw_cor_gio</kbd></p>
+					<p>The result is the runnable <span class="filepath">fuchsiaTest</span>.</p>
+					<p>The compiler options have got the following meanings:</p>
+					<ul>
+						<li><kbd class="userinput">-L/opt/hp93000rt/el7/x86_64/gio/lib</kbd> instructs the linker where to
+							find the shared library
+							<span class="filepath">.so</span>
+						</li>
+						<li><kbd class="userinput">-Wall</kbd> is the standard option to enable all warnings</li>
+						<li><kbd class="userinput">-I/opt/hp93000rt/el7/x86_64/gio/include</kbd> to add this directory to
+							the list of directories being searched for header files</li>
+						<li><kbd class="userinput">-o fuchsiaTest</kbd> to produce the runnable as output file</li>
+						<li><kbd class="userinput">fuchsiaDriver.c</kbd> as the source file to be compiled</li>
+						<li><kbd class="userinput">-lhw_cor_gio</kbd> to search the library
+								<span class="filepath">libhw_cor_gio</span> when linking</li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Run the test application.</span>
+				<div><p>Enter <kbd class="userinput">./fuchsiaTest</kbd></p>
+				</div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The user application implements connectivity to external instruments using the GIO
+			library API.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="255980.htm" title="The GIO library API allows for the connection of external instruments in SmarTest to the system controller. The GIO library API offers the major part of the functionality that has been provided by SICL up to SmarTest 7.4.">Introduction to the GIO library API</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 254244</span><script type="text/javascript">var ti='254244';var tt='Using the GIO library API from a C/C++ test application'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

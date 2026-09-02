@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="There are three instructions that jump to a subroutine or return from a subroutine conditionally."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Calculating the buffer cycles for JMPE and RETC (and match loops)</title><meta name="keywords" content="matchloop"></head><body id="_91185"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91185</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Calculating the buffer cycles for JMPE and RETC (and match loops)</h1>
+	
+	
+	<div><p>There are three instructions that jump to a subroutine or return from a subroutine
+			<em>conditionally</em>.</p>
+		<section class="section"><h2>JMPE (JuMP on Error) and COGO (COnditional GO to)</h2><p>The purpose of
+				the <span class="keyword">JMPE</span> (and the <span class="keyword">COGO</span>) instruction is to
+				perform a jump to a subroutine if at least one error has occurred in a preceding
+				sequence of cycles. The cycles on whose global result the jump is to depend, and the
+				vectors from which they are generated will be called the "relevant" cycles or
+				vectors. <span class="keyword">JMPE</span> is informed about the global outcome of the
+				relevant cycles by an error flag which is set after every failing cycle.</p><p>Now
+				the <span class="keyword">JMPE</span> instruction cannot be placed immediately after the last
+				relevant vector of interest for two reasons:</p><ul>
+				<li><span class="keyword">JMPE</span> evaluates the error flag only after all preceding
+					vectors have been flattened to cycle level and written to the data queue (see
+							<em><a href="93908.htm" title="The sequencers of the pins (channels) that belong to one port transfer the waveform DC/DC power units from the vector areas to the data queues of these pins simultaneously. In doing so, they flatten the label, that is, they resolve repeat instructions and subroutine calls into one continuous stream of vector instances. All padding vectors that may be present in the vector area because of the block structure of the memory are ignored.">Data transfer from the vector area to the data queue</a></em>). However, it does <em>not</em> wait until
+					all these vector instances have actually been applied to the DUT. Therefore, if
+					it would be called immediately after the last relevant vector, the first failing
+					relevant cycle may still be in the data queue. In this case the error flag would
+					still be unset and <span class="keyword">JMPE</span> would erroneously infer that all
+					relevant cycles have passed. Consequently, the jump would not be performed
+					although it should. </li>
+				<li>If a relevant cycle fails, a certain amount of time is required in order to set
+					the flag. Now suppose that the first failing cycle has been applied to the DUT
+					immediately before the <span class="keyword">JMPE</span> call. In this case too,
+						<span class="keyword">JMPE</span> would come to the erroneous conclusion that all
+					relevant cycles have passed because the error flag has not yet been
+					actualized.
+					</li>
+			</ul><div class="p">Therefore, the evaluation of the error flag must be delayed<ol>
+					<li>until all the remaining relevant cycles have been shifted out of the data
+						queue to the DUT, and</li>
+					<li>the outcome of the last of these is reflected by the error flag.</li>
+				</ol>This can be achieved by inserting a sufficient number of buffer cycles between
+				the last vector of interest and the <span class="keyword">JMPE</span> instruction. The buffer
+				cycles can be break cycles or user cycles. In the latter case, however, they must
+				not contain any compare actions. The required number of buffer cycles can be
+				determined with the <span class="keyword">EPRC?</span> query.
+			</div></section>
+		<section class="section"><h2>RETC (RETurn Conditionally)</h2><p><span class="keyword">RETC</span> serves to
+				return from a <a href="10571.htm" title="SVEC labels cannot be called directly. However, you can call a SVEC label not only from a MAIN label, but also from another SVEC label. These calls can be nested seven levels deep.">SVEC</a> label to its calling label in
+				dependence on the error flag that also controls <span class="keyword">JMPE</span>. In contrast
+				to <span class="keyword">JMPE</span>, you can select whether the return is performed when the
+				error flag is set or when it is not set. The propagation delay must be taken account
+				of in the same way as with <span class="keyword">JMPE</span>.</p><div class="note"><span class="title">Note</span> If you use the LMAP error map mode, <a href="98605.htm" title="If the last test was executed with the overview Error Map in LMAP mode, which implies that the start label was a (single-port or multi-port) burst, then the FLBL? query returns information about the failing labels of the burst within a certain cycle range for a specified port. This information can include the number of the first failing cycle. If this is requested, separate cycle information is returned for every failing pin of the port.">FLBL</a>
+			ignores the <span class="keyword">RETC</span> clearing flag for failures.</div></section>
+		<section class="section"><h2>Using EPRC? to determine the number of buffer cycles</h2><p>In order to
+				determine the number of buffer cycles you must call the firmware query
+					<span class="keyword">EPRC?</span>. <span class="keyword">EPRC?</span> calculates this number based
+				on the current primary sets. It returns the number of repetitions for a user defined
+				block of vectors. <span class="keyword">EPRC?</span> can be called in offline mode.</p><p>The
+				coding effort that is required to actualize the sequencer program according to the
+				reply of <span class="keyword">EPRC?</span> is kept to a minimum if you </p><ol>
+				<li>insert an <code>RPTV &lt;</code><span class="keyword">n</span><code>&gt;,1</code>
+					instruction into your sequencer program immediately before the
+						<span class="keyword">JMPE</span> (or <span class="keyword">RETC</span>) call, where
+						&lt;<span class="keyword">n</span>&gt; is as required, and define appropriate vectors
+					for it,</li>
+				<li>create a test method that <ol type="a">
+						<li>calls <span class="keyword">EPRC?</span> and stores its reply in a variable (with
+							the <a href="29362.htm" title="This API allows direct access from the test method to the system hardware at firmware level.">FW_TASK</a> API),</li>
+						<li>extracts the number of repetitions from this variable,</li>
+						<li>passes a command string <p><code>SQPG
+									&lt;</code><span class="keyword">command_nr</span><code>&gt;,RPTV,&lt;</code><span class="keyword">n</span><code>&gt;,&lt;</code><span class="keyword">nr_of_repetitions</span><code>&gt;,,(&lt;</code><span class="keyword">port_name</span><code>&gt;)</code></p>
+							<p>(where
+									<code>&lt;</code><span class="keyword">command_nr</span><code>&gt;</code>
+								is the command number of the line immediately before the
+									<span class="keyword">JMPE</span> call) to <span class="keyword">FW_TASK</span> in
+								order to overwrite command line
+									<code>&lt;</code><span class="keyword">command_nr</span><code>&gt;.</code></p>
+							
+							<div class="note"><span class="title">Note</span> <span class="keyword">EPRC?</span> can also be used if you want
+								the number of dummy vectors in a new style counted match loop
+									(<span class="keyword">MACT</span> and <span class="keyword">MRPT</span> sequencer
+								instructions) to be fixed and known. Run <span class="keyword">EPRC?</span>
+								with a block size of 1. Then the number of repetitions returned is
+								the number of dummy vectors that you must define for the match loop.
+								For more details on counted match loops see <em><a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a></em>.</div>
+						</li>
+					</ol></li>
+			</ol></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91185</span><script type="text/javascript">var ti='91185';var tt='Calculating the buffer cycles for JMPE and RETC (and match loops)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

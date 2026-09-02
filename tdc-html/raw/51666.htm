@@ -1,0 +1,95 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Wavetables</title><meta name="keywords" content="wave table"></head><body id="_51666"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 51666</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Wavetables</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="107915.htm" title="In SmarTest wavetables can have two different functions:">Function of the base wavetable</a></li></ol></div></nav>
+	
+	
+	<div><p>A wavetable consists of a series of pins or pin groups; for each of these, a set of
+		physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin
+		or group; in the example below they are listed under <code>PhyIndex</code>).</p>
+		<section class="section"><p>For each index, an action or combination of actions is defined; the actions defined
+				for one index value are referred to collectively as a device cycle.</p><p>A name is defined for each device cycle. This name is simply an alias for the physical waveform
+				index and the actions it defines. The device cycle name is not actually stored in vector memory,
+				but it is read from the waveform table and displayed when vectors are shown in Pattern View;
+				this makes the vectors easier to interpret, provided that the names have obvious meanings. The
+				x-mode mapping is implied by the device cycle name, so the number of characters in the name must
+				always match the desired x-mode<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a>.</p>
+			<p>In this excerpt from a physical waveform table, two values for the drive edge "d1" are
+				provided (in this case the device cycle names happen to be identical to the physical waveform
+				DC/DC power units). </p><pre class="prettyprint linenums copyable">PINS input_pins 
+#       PhyIndex        Action          DevCyc
+        0               "d1:0"          0
+        1               "d1:1"          1</pre><p>The
+				first waveform drives a DUT input pin low ("d1:0"), and the second drives it high ("d1:1").
+				</p><p>For the I/O pins as shown below, five different DC/DC power units are defined, and the device cycle
+				names mostly differ from the waveform DC/DC power units. (Refer to <a href="16902.htm" title="One of N, F0N, FN0, FNZ, F00, F0Z, F10, F1Z, . (period), !Z, Z, 0 or 1.">Physical drive edge action (physical_drive_edge_action)</a> for the
+				available drive edge actions in the wavetable.)</p><p>PINS io_pins</p><pre class="prettyprint linenums copyable">#       PhyIndex        Action          DevCyc
+        0               "d1:F00 r1:X"   0
+        1               "d1:F10 r1:X"   1
+        2               "d1:F0Z r1:L"   L
+        3               "d1:F0Z r1:H"   H
+        4               "d1:F0Z r1:X"   X</pre><ul>
+				<li>The first waveform drives an input low ("d1:F00"), while ignoring the output ("r1:X"). </li>
+				<li>The second drives an input high ("d1:F10"), while ignoring the output ("r1:X"). </li>
+				<li>The third drives an input low and sets tri-state on ("d1:F0Z"), and expects a low output
+					("r1:L").</li>
+				<li>The fourth drives an input low and sets tri-state on ("d1:F0Z"), and expects a high output
+					("r1:H").</li>
+				<li>The fifth drives an input low and sets tri-state on ("d1:F0Z"), and ignores the output
+					("r1:X").</li>
+			</ul><p>Because the actions are defined in a way which specifies data values, a vector which
+				refers to this wavetable need not include data parameters; the data is already implicit in each
+				reference to a waveform index.</p></section>
+		<section class="sectiontitlefake"><h2>Wavetables and vectors</h2><p>A vector does not
+				actually contain definitions of the waveforms it generates. Instead, a vector contains pointers
+				to definitions in a wavetable. Because there are different types of wavetables, the content of a
+				vector is partly determined by the type of wavetable it points to.</p></section>
+		<section class="section"><h3>Types</h3><p>The definitions in a wavetable are identified by index numbers.
+				The content of a vector, as saved in vector memory, consists of examples of these index numbers,
+				each of which functions as a pointer to an entry in a waveform table. (Some vectors contain
+				other information as well, in the form of data parameters.)</p><p>A wavetable has two basic
+				purposes: to define the actions that will occur during execution, and to define the device cycle
+				names that will be displayed in the pattern tool. Both kinds of definition are associated with a
+				particular index number. For example, a wavetable could include the following entry for a given
+				input pin:</p><p> <kbd class="userinput">0 "d1:0" zero</kbd></p><p>In this table entry, the index
+				number "0" is associated with the action definition "d1:0" and the device cycle name "zero".
+				Therefore, during test execution, whenever a vector uses the index number "0" (at least for this
+				pin in this table), the action definition drives a DUT input pin low, and the pattern tool
+				displays the device cycle name "zero". (This is only an example; waveform tables can be
+				configured and used in other ways.)</p><p>Because the actions occurring during test execution
+				are defined in the waveform table (not in the vector), the test system cannot execute a vector
+				without referring to an appropriate waveform table. Also, because the device cycle names
+				displayed in the pattern tool are actually defined in the waveform table (not in the vector),
+				the test system cannot correctly display a vector in the pattern tool without referring to an
+				appropriate waveform table. </p><p>Normally, the same waveform table is used for both test
+				execution and pattern viewing, but during debugging it is sometimes helpful to set up a separate
+				waveform table for pattern viewing.</p></section>
+		<section class="section"><h3>Waveform Tables for Debugging</h3><p>When the Pattern View is unable to display
+				a device cycle name (because the physical waveform index given by the vector is not defined in
+				the waveform table), a question mark is displayed instead. If the displayed pattern contains a
+				large number of question marks, it may be difficult to determine what the problem is. A question
+				mark does not indicate which index value is being used; it only indicates that the value,
+				whatever it may be, is wrong.</p><p>In such a situation, it can be helpful for debugging
+				purposes to use a special-purpose wavetable for pattern viewing only (while continuing to use
+				the normal waveform table for test execution). This debug-view table consists of a list of all
+				possible physical waveform DC/DC power units (from 0 to 1f), each of which is paired with a null
+				definition for the action (" ") and a device cycle name which simply echoes the value of the
+				index. For
+				example:</p><pre class="prettyprint linenums copyable">PINS io_pins
+#       PhyIndex     Action     DevCyc
+        0            " "        0
+        1            " "        1
+        2            " "        2
+        ...          ...        [etc.]
+        1f           " "        1f </pre><p>When
+				this table is used for pattern viewing, an index value, rather than a device cycle name or
+				question mark, is displayed for all possible DC/DC power units. This makes it possible to tell from the
+				displayed pattern which index values are actually being called by each vector. </p><p>This type of wavetable should be used with care, and only for the limited purpose described
+				above. It should not be used for test execution, because its actions are all defined as null; in
+				other words, the vectors will not do anything. Also, this type of waveform should not be used
+				during examination of a timing diagram, because in that case the diagram display will show
+				nothing but empty graphs.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="16902.htm" title="One of N, F0N, FN0, FNZ, F00, F0Z, F10, F1Z, . (period), !Z, Z, 0 or 1.">Physical drive edge action (physical_drive_edge_action)</a></div><div><a href="99707.htm" title="To display the x-modes in the Pattern Debug Tool, the wavetable contains the STATEMAP section. In this section the xN and x1/N modes are defined.">STATEMAP section of the wavetable</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  It is recommended however to use the <a href="99707.htm" title="To display the x-modes in the Pattern Debug Tool, the wavetable contains the STATEMAP section. In this section the xN and x1/N modes are defined.">STATEMAP section of the wavetable</a>
+					for better performance.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 51666</span><script type="text/javascript">var ti='51666';var tt='Wavetables'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

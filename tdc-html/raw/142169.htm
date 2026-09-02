@@ -1,0 +1,116 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining a new Protocol: MDIO</title></head><body id="_142169"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 142169</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining a new Protocol: MDIO</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This task is about creating a MDIO protocol definition from scratch. The following
+				picture illustrates the starting point and the target of the procedure.</p><div class="p"><figure class="fignone">
+					
+					<img src="142170.png" alt="Timing of MDIO">
+				</figure></div><p>When done, your MDIO protocol in in smartest will be represented as follow:</p><div class="p"><figure class="fignone">
+					
+					<img src="142171.png" alt="Timing of MDIO PA">
+				</figure></div></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Ensure you have the available license. The pins used in a protocol need to be defined
+				in a dedicated port. Each port can just get one protocol assigned, but the same protocol can be
+				used for several ports. Protocol Aware requires the use of STATEMAP in the wavetable. The state
+				map section in the wavetable allows to uniquely map a transaction to a sequence of physical
+				waveforms respectively interpreting a waveform sequence as transaction words.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Launch the Protocol Editor from the Test Program Explorer, enter the protocol name, define
+					the Pin Roles for the Protocol, define the Properties for the Pin Roles. See also <a href="126136.htm" title="The pin role details are shown if you select a pin role in the protocol editor's overview area.">Pin role details</a>. For the MDIO protocol, the pin roles are MDC and MDIO. They will be mapped
+					to the pins of the device. The definition and properties of the MDIO protocol are illustrated
+					in the next picture. The picture shows the protocol name (MDIO), the pin roles (MDC and MDIO)
+					and the properties like idleSequence.</span>
+				<div><div class="p"><figure class="fignone">
+							
+							<img src="142172.png" alt="MDIO Definition and Properties">
+						</figure></div>
+				</div>
+			</li><li class="stepexpand">
+				<span>The lower part of the protocol definition contains tabs for Level, Timing and Wavetable.
+					You will use those tabs to enter the timing for the protocol pins according to the protocol
+					specification. Enter Timing, Wavetable and Level data for protocol pins (pin roles within the
+					protocol). See also <a href="126126.htm">Editing protocol specific levels</a>.</span>
+				<div><p>Level (mdio
+						level)</p><pre class="prettyprint linenums copyable">PINS MDC
+vil - 0.0
+voh = 3.0
+PINS MDIO
+vil =0.0
+vih = 3.0
+vol= 1.2
+voh = 1.9
+vt= 2.0</pre><p>Timing
+						(mdio timing). See also <a href="126127.htm">Editing protocol specific wavetable and state map</a>.</p><pre class="prettyprint linenums copyable">PINS MDC
+d1 = 50
+d2 = 250
+PINS MDIO
+d1 = 30
+d2= 350</pre><p>The
+						corresponding wavetable definition is shown in the next picture</p>
+					<div class="p"><figure class="fignone">
+							
+							<img src="142173.png" alt="PA MDIO Wavetable">
+						</figure></div>
+					<div class="note"><span class="title">Note</span> You may want to define different timing or level for the PA pin roles to take
+						in account different device stages like nominal, stress, relaxed etc.</div>
+				</div>
+			</li><li class="stepexpand">
+				<span>You need to link the timing and level definition of the device with the timing and level of
+					the protocol. The timing definitions of the protocol will be integrated to the equation system
+					using the statement:</span>
+				<div><pre class="prettyprint copyable singleline">USE_PROTOCOL "&lt;protocolName&gt;:&lt;timingSegmentName&gt;" [&lt;portList&gt;]</pre><p>For
+						this example:</p><pre class="prettyprint copyable singleline">USE_PROTOCOL "MDIO:mdio_timing" poMD </pre><p>The level
+						definitions of the protocol will be integrated to the equation system using the
+						statement:</p><pre class="prettyprint copyable singleline">USE_PROTOCOL "&lt;protocolName&gt;:&lt;levelSegmentName&gt;" [&lt;portList&gt;]</pre><p>For
+						this example:</p><pre class="prettyprint copyable singleline">USE_PROTOCOL "MDIO:mdio_level" poMD </pre></div>
+			</li><li class="stepexpand">
+				<span>Setup the transactions needed for the MDIO protocol and define the frame structure. The
+					MDIO protocol contains two transactions : Read and Write. For those transactions we will use
+					the following variables phyaddr, regaddr, data. To create the transactions, select the protocol
+					name in the <span class="uicontrol">Overview</span> pane and the <span class="uicontrol">New Transaction</span>
+					shortcut menu as shown in the next picture. Several parameters are involved in the transactions
+					definitions: In parameters, Out parameters capture received data by the ATE, Length: defines
+					the size (number of bits) of the parameter. See also <a href="126317.htm">Editing field details</a>.</span>
+				<div><div class="p"><figure class="fignone">
+							
+							<img src="142174.png" alt="MDIO Transactions">
+						</figure></div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Proceed until you define all the transactions and fields needed in the protocol. </span>
+			</li><li class="stepexpand">
+				<span>Validated the protocol definition according to <a href="130389.htm" title="Once a protocol has been defined from scratch or an existing one has been modified its definition should be checked for formal errors.">Validating a protocol definition</a>. Once validated,
+					your protocol should reflect the protocol specification as shown in the next picture.You may
+					have to go back and forth until you get the this picture right.</span>
+				<div><div class="p"><figure class="fignone">
+							
+							<img src="142175.png" alt="Validate the MDIO Protocol">
+						</figure></div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Once validated, you protocol is basically in place. Now you may want to go back to certain
+					fields and add or change parameters or add encode functions until you finally match the
+					protocol specification. This is illustrated in the next picture. Depending on the data flow
+					direction the fields can be IN or OUT. </span>
+				<div><div class="p"><figure class="fignone">
+							
+							<img src="142176.png" alt="Encode function of a Protocol">
+						</figure></div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Create your protocol wrapper according to <a href="126283.htm">Generating protocol wrappers</a>.</span>
+			</li><li class="stepexpand">
+				<span>Copy the generated .cpp and .hpp files to you UTM project directory.</span>
+			</li><li class="stepexpand">
+				<span>Add an include statement to your test method class #include &lt;wrapperClass&gt;.hpp</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The result of the MDIO protocol is shown from the Test Program Explorer after selecting
+					<span class="uicontrol">View In Protocol</span>.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Use the Protocol in you testflow.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="126100.htm" title="This section lists use cases of the protocol editor typically used to set up and edit protocols.">Using the protocol editor</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 142169</span><script type="text/javascript">var ti='142169';var tt='Defining a new Protocol: MDIO'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

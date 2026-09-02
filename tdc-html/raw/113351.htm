@@ -1,0 +1,45 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Special test suite bin_disconnect</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system testsuite"></head><body id="_113351"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113351</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Special test suite bin_disconnect</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="113365.htm">Implementing bin_disconnect to overcome the pass or fail site dependency issue</a></li></ol></div></nav>
+	
+	
+	<div><p>This section explains how to use the special test suite
+			<span class="keyword">bin_disconnect</span> to do a flexible disconnect after binning. </p>
+		<p>Using <span class="keyword">bin_disconnect</span> is a solution for avoiding <a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">the pass or fail site dependency</a> and to deal with the different disconnects
+			of the utility lines within a test flow.</p>
+		<p>The new recommended solution is the <a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a>.</p>
+		<section class="section"><h2>Use model</h2><p>The test suite <span class="keyword">bin_disconnect</span>
+				(contained in <a href="20281.htm" title="Special test suites are executed at a particular point in time, which can be either dependent or independent of the testflow. For example, downloading an initial set of values to the test system, or defining what will be executed if you abort the testflow.">Special test suites</a>) is executed when a device falls into a pass or
+				fail bin.</p><p>This special test suite can only be used in combination with a test
+				method that defines a <a href="113295.htm" title="This section explains how to use the test method together with the user-defined disconnect sequence in order to implement a conditional final disconnect.">conditional disconnect sequence</a>.
+				In a multi-site testing setup, the sites which are binned out will be activated
+				before calling the test method assigned to the <span class="keyword">bin_disconnect</span>
+				test suite.</p><p>This means:</p><ul>
+				<li>After one device enters into the pass or fail bin, the standard or user-defined
+					disconnect sequence is omitted, and the enabled site number is reduced by 1,
+					then the <span class="keyword">bin_disconnect</span> test suite is executed. For the last
+					site to be binned, the total enabled site number is 0 before doing the final
+					disconnect.</li>
+				<li>If the <span class="keyword">bin_disconnect</span> is not used, while binning SmarTest
+					initially executes the standard or user-defined disconnect sequence, and then
+					reduces the enabled site number. For the last site to be binned, the total
+					enabled site number is 1 before doing a disconnect.</li>
+			</ul><p>Hence, for carrying out a conditional disconnect with the
+					<span class="keyword">bin_disconnect</span>, you need the following assessment in your
+				test method:</p><ul>
+				<li>If the current number of enabled sites is larger than 0, it means some sites are
+					still connected. Their pins including potential shared (digital) pins should not
+					be disconnected after binning.</li>
+				<li>If the current number of enabled sites is equal to 0, then after the binning
+					action, all the left connected pins should be disconnected including shared
+					(digital) pins.</li>
+				<li>An alternate solution is provided by the test method API <a href="353891.htm" title="This API returns the disconnection context, which enables you to determine whether a disconnect test suite is executed as normal test suite or in a special context.">GET_DISCONNECT_CONTEXT()</a> which
+					returns the run context of the <span class="keyword">bin_disconnect</span> test
+					suite.</li>
+			</ul><p>The <span class="keyword">bin_disconnect</span> feature allows you to accomplish the task
+				of conditional final disconnect in an easier way than was available till now (no
+				need to insert a test suite before every stop bin as explained in <a href="113295.htm" title="This section explains how to use the test method together with the user-defined disconnect sequence in order to implement a conditional final disconnect.">Implementing a conditional final disconnect with disconnect.user_def</a>).</p><div class="note"><span class="title">Note</span> If you use SmartCalc, refer to <a href="118933.htm" title="If hidden calculation is used, it may happen that one of the tests is failing, while SMC threads are still running. In this case SMC may not be terminated correctly and may cause errors during the next test program execution.">Terminate SmartCalc threads after binning</a>.</div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">Description and analysis of the pass or fail site dependency</a></div><div><a href="113365.htm">Implementing bin_disconnect to overcome the pass or fail site dependency issue</a></div><div><a href="116387.htm" title="SmarTest uses the disconnect sequence to separate the test system resource from the DUT. This also sets the test system to the &#34;disconnect&#34; state independent of the previous test system state.">Comparing the disconnect methods</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113351</span><script type="text/javascript">var ti='113351';var tt='Special test suite bin_disconnect'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

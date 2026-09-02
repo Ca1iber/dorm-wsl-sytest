@@ -1,0 +1,219 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The CDCP? query is called with a cycle range of the currently activated test. It returns, for each of these cycles, the device cycle name and the data parameters of the waveform that was executed in this cycle."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CDCP? - (Cycle Device Cycle Parameter)</title><meta name="keywords" content="devicecycle, CDCP_"></head><body id="_98499"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98499</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CDCP? - (Cycle Device Cycle Parameter)</h1>
+	
+	
+	<div><p>The <span class="keyword">CDCP?</span> query is called with a cycle range of the currently
+		activated test. It returns, for each of these cycles, the device cycle name and the data
+		parameters of the waveform that was executed in this cycle. </p>
+		<section class="section"><h2>Predependencies</h2><p>Make sure you activate the test you are interested in
+				with the command <a href="98751.htm" title="The SQSL (SeQuencer Start Label) command activates an existing label for execution with the FTST? query. A label exists if it has been defined by the SQLB command. If no start label is defined, FTST? issues an error message. The SQSL? query returns the existing start label settings.">SQSL, SQSL? - (SeQuencer Start Label)</a> prior to using this query. Otherwise the system returns
+				nothing. This also happens if no device cycle is found in the requested range. </p><p>Ensure
+				also that you have defined the primary sets with <a href="98742.htm" title="The SPRM (Set PRiMary sets) command is used to define and change the primary sets in a test suite or a test that is defined in a user procedure. If, for example, your test involves repeating a functional test with varying parameters, you can use the SPRM command to define the primary sets for each test run. Unless otherwise specified, the functional test uses the parameters defined in the actual primary sets.">SPRM, SPRM? - (Set PRiMary sets)</a> prior to running your
+				test, otherwise device cycle reconstruction is not possible. No test is selected in such a
+				case.</p></section>
+		<section class="section"><h2>Mode of operation</h2><p><span class="keyword">CDCP?</span><strong> </strong>uses the primary
+				waveform set or wavetable to perform the required translations. A separate answer is generated
+				for each cycle in the requested cycle range. If cycles contain inconsistent data and cannot be
+				reconstructed, no data is returned for the affected cycles. A gap may exist in the returned data
+				stream or the <span class="keyword">UC</span> status is reported.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">CDCP?</span> {<span class="keyword">start_cycle</span>}, {<span class="keyword">no_of_cycles</span>}, {<span class="keyword">strt_disp</span>}, {<span class="keyword">disp_length</span>}, {(<span class="keyword">pinlist</span>)}</pre><p>returns:
+			</p><pre class="prettyprint copyable singleline"><span class="keyword">CDCP</span> {<span class="keyword">cycle</span>}, {<span class="keyword">dev_cyc_name</span>}, {<span class="keyword">dev_cyc_len</span>}, {<span class="keyword">DD1</span>}, {<span class="keyword">DD2</span>}, {<span class="keyword">ED1</span>}, {<span class="keyword">ED2</span>}, {(<span class="keyword">pinlist</span>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">start_cycle</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This is an integer that defines the first
+									cycle to be analyzed. The range of values for this parameter depends on the analysis
+									mode:</p>
+								<ul>
+									<li>In the <em>Start Analysis</em> mode enter a positive value between 0 and 2<sup>48</sup>.
+										The system responds by counting cycles forwards from the first cycle of the test and
+										returns a positive number. The <em>Start Analysis</em> mode is the default setting.</li>
+									<li>In the <em>Stop Analysis</em> enter a negative number between -2<sup>48</sup> and -1. The
+										system responds by counting cycles backwards relative to the end of the test at -1 cycle
+										and returns a negative number. This mode is used by the system for Stop-on-Error
+										tests.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">cycle</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>In the query, the consecutive number of the
+									displayed cycle.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">no_of_cycles</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This is an integer that defines the number
+									of cycles to be analyzed. The range for this parameter is 0 to 1000.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">strt_disp</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This parameter defines the offset of your
+									range of interest from <span class="keyword">start_cycle</span>. The actual display starts with the
+										<em>last</em> device cycle that does not begin before <span class="keyword">start_cycle</span> and
+									does not end before <span class="keyword">start_cycle + strt_disp</span>.</p>
+								<p>The purpose of this construction is to enable a correct device cycle reconstruction even
+									if the first cycle you are interested in does not lie at a device cycle boundary (a device
+									cycle can generate up to 16 cycles). </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">disp_length</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies the display length in cycles.
+									This parameter determines the end of your range of interest. The actual display stops with
+									the last device cycle that starts before<strong> </strong><span class="keyword">start_cycle</span> +
+										<span class="keyword">strt_disp</span> + <span class="keyword">disp_length</span>.</p>
+								<p>If this parameter is larger than <span class="keyword">no_of_cycles</span>, it is ignored.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The pin name or names for which a device
+									cycle data transfer is to be made. If more than one pin is required, the names must be
+									separated with a comma. The <span class="keyword">@</span> character can be used to download data for
+									all configured pins. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">dev_cyc_name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>A reply parameter, giving the name of the
+									reconstructed device cycle. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">dev_cyc_len</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>A reply parameter, giving the length of the reconstructed device cycle.<span>  For SmarTest 7.10 this is always 1.</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="7"><p><span class="keyword">DD1</span> and <span class="keyword">DD2</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Drive Data parameters. They contain values
+									for both drive data and tri-state. The values the system returns are: </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">F00</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>drive 0, tri-state off </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">F10</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>drive 1, tri-state off </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">F0Z</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>drive 0, tri-state on </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">F1Z</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>drive 1, tri-state on </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">N</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Not used. Returned if no drive data parameter is set to a drive and
+									tri-state value. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">UC</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Unclear. The system may return this value to indicate that the
+									interpretation of the device cycle for that parameter is unclear, that is, the physical
+									waveforms are inconsistent for the device cycle. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="8"><p><span class="keyword">ED1</span> and <span class="keyword">ED2</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Expected Data Parameters. The values the
+									system returns are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">F0</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>compare to 0 </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">F1</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>compare to 1 </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">FI</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>compare to intermediate </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">FX</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>compare to mask </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">FU</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>compare to unstable </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">N</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Not used. Returned if no expected data parameter is set to a compare
+									value. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">UC</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Unclear. The system may return this value to indicate that the
+									interpretation of the device cycle for that parameter is unclear, that is, the physical
+									waveforms are inconsistent for the device cycle. </p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Test Results, see <a href="12323.htm">Test Result Commands</a>.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if:</p><ul>
+				<li>You issue the query while the sequencer is running. There is then no result data
+					available.</li>
+				<li>You enter an invalid cycle range.</li>
+			</ul></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&gt; CDCP? 0,8,0,8,(S0_1)
+&lt; CDCP 0,"DNRZ",1,F10,N,N,N,(S0_1)
+&lt; CDCP 1,"DNRZ",1,F10,N,N,N,(S0_1)
+&lt; CDCP 2,"DNRZ",1,F10,N,N,N,(S0_1)
+&lt; CDCP 3,"MYDC",2,F00,N,N,N,(S0_1)
+&lt; CDCP 5,"MYDC",2,F10,N,N,N,(S0_1)
+&lt; CDCP 7,"DNRZ",1,F10,N,N,N,(S0_1)
+&gt; CDCP? 2,6,4,2,(S0_1)
+&lt; CDCP 5,"MYDC",2,F10,N,N,N,(S0_1)
+&lt; CDCP 7,"DNRZ",1,F10,N,N,N,(S0_1)</pre><p>In
+				the second call of <span class="keyword">CDCP?</span> (the first call just serves to display the
+				underlying situation) the range of interest starts at vector 6. Note that the reply starts with
+				vector 5, and that the first occurrence of <span class="keyword">MYDC</span>, which lies between vector 2
+				and vector 6, is not displayed.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98848.htm" title="The VDCP (Vector Device Cycle Parameter) command performs a high level transfer of vector data. It accepts a device cycle name and values for the data parameters, translates these data into physical waveform DC/DC power units, using the base waveform set / wavetable, and stores the DC/DC power units at a position that is specified by a logical vector number. Note that the values for the data parameters are specified for the device cycle as a whole; identical parameters in the different member waveforms of the device cycle are assigned the same value.">VDCP, VDCP? (Vector Device Cycle Parameter)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98499</span><script type="text/javascript">var ti='98499';var tt='CDCP? - (Cycle Device Cycle Parameter)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

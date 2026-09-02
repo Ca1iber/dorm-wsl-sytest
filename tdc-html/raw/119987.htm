@@ -1,0 +1,52 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A column of the index array points to the waveforms that the sequencer program is to apply successively to a certain pin of the DUT. This (vertical) index sequence is stored in a vector area of the respective pin. Just as the sequencer areas, the vector areas are port specific. Every pin (more precisely, the channel which is associated with the pin in the pin configuration) has a separate vector area for every port to which it belongs. In fact, a pin can have two vector areas for each of its ports, one for each of two memory types (see Selecting the memory type). In contrast to the sequencer areas, the data of the vector areas will usually be different for different pins of the label port."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Sequencer areas and vector areas</title></head><body id="_119987"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119987</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Sequencer areas and vector areas</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="114507.htm" title="In previous releases of SmarTest, every pin has one vector area which contains the physical waveform DC/DC power units for the patterns (labels) of all ports to which the pin belongs. Starting from release 7.0, every port has its own port specific vector area on every pin that belongs to it. Accordingly, the addresses of the STVA instructions, which specify the start of the vectors for the respective pattern, refer to the specific area of the respective pattern port. One advantage of these port specific vector areas is that the memory can be used much more efficiently when different ports have a pin in common.">From global to port specific vector areas: Migration and compatibility</a></li><li><a href="121786.htm" title="When the sequencer program of a pattern (label) contains vector generating instructions (GENV, RPTV), these instructions are carried out on all pins of the label port. The DC/DC power units of the waveforms that are to be applied successively to one of these pins are stored in a segment of its vector area. The waveform DC/DC power units are downloaded from the vector setup file with the VECD or VECC firmware commands.">Missing vector data and migration from 6.5 to 7.x</a></li></ol></div></nav>
+	
+	
+	<div><p>A column of the index array points to the waveforms that the sequencer program is to
+		apply successively to a certain pin of the DUT. This (vertical) index sequence is stored in a
+			<em>vector area</em> of the respective pin. Just as the sequencer areas, the vector areas are port
+		specific. Every pin (more precisely, the channel which is associated with the pin in the pin
+		configuration) has a separate vector area for every port to which it belongs. In fact, a pin can
+		have two vector areas for each of its ports, one for each of two memory types (see <em><a href="114691.htm" title="Every label is associated with one of three memory types, SM, SHMEM, or HSER. SM is the standard type; the purpose of SHMEM is to allow different sites of the same pin to share their vector areas physically under certain conditions. For HSER see Defining a compliance pattern for pattern‑based SmartLoop testing.">Selecting the memory type</a></em>). In contrast to the sequencer areas, the data of the vector areas will
+		usually be different for different pins of the label port.</p>
+		<p>If only one memory type is used, the respective vector area contains, in linear order, all
+			parallel vector DC/DC power units that are defined for this pin in any label of the respective port. The
+			columns of the figure in <em><a href="97950.htm" title="The basic purpose of a label is to define which vectors are applied to the pins of the label port in which order. This information is encoded in an array of physical waveform DC/DC power units. Every column of this array corresponds to one pin of the port to which the label belongs, and each of its rows corresponds to one vector. The index rows are also called &#34;vectors&#34;. The sequencer program of the label points to this array with its STVA instruction (see Sequencer areas and parallel vector areas).">The vectors</a></em> are segments of the vector areas for the
+			default port on pins <code>IN1</code> and <code>OUT1</code>. </p>
+		<p>Every vector generating sequencer program is associated with a vector area segment on all pins
+			of the label port. These segments contain the physical waveform DC/DC power units for this program. The
+				<span class="keyword">STVA</span> instruction, which must be the first instruction of such a sequencer
+			program, specifies the <em>absolute start address</em> of the segments. The absolute address refers
+			to the vector area of the label port as a whole; address 0 is at the start of the area. The
+			address specified in the <span class="keyword">STVA</span> instruction of a label is the same for all pins
+			of the label port.</p>
+		<div class="note"><span class="title">Note</span> For reasons of downward compatibility, the <span class="keyword">STVA</span> address is
+			stored and displayed in <span class="keyword">param1</span> of the <span class="keyword">SQPG</span> command if the
+			vector setup contains no patterns for different ports or if it is organized by a pattern master
+			file. <span class="keyword">param2</span> is used if the vector setup is stored in one single file and
+			contains patterns for different ports. </div><p>Every vector generating instruction (<span class="keyword">GENV</span>, <span class="keyword">RPTV</span>) of the
+			sequencer program is associated with a sub-segment of each of these label specific vector area
+			segments. The sub-segment address for the first such instruction is identical with the start
+			address for the entire program. The size of the sub-segments is determined by the length of the
+			instructions. The start addresses for the sub-segments of the following vector generating
+			instructions are calculated from the start address of the program and the lengths of the
+			preceding vector generating instructions. The details of this calculation will be explained in
+					<em><a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector areas</a></em>.</p>
+		<h2>Example</h2><div class="example"><p>The following figure illustrates the case where one pin belongs to more than one
+				port:</p><div class="p"><figure class="fignone">
+					
+					<img src="114615.png" alt="Vector areas for pin belonging to two ports">
+				</figure></div><p>Observe the following points in this figure:</p><ul>
+				<li><strong>port1</strong> comprises the pins <strong>Pin1</strong> and <strong>Pin2</strong>, while <strong>port2</strong> only
+					contains <strong>Pin2</strong>. </li>
+				<li>The arrows indicate which vector area segments belong to which labels. <strong>Pin2</strong> has two
+					vector areas, one for the labels of <strong>port1</strong> and one for the labels of <strong>port2</strong>. </li>
+				<li>The numbers above the arrow heads are the start addresses of the vector area segments for
+					the respective label (as defined by <span class="keyword">STVA</span>). </li>
+				<li>The association of the vector generating instructions to vector area sub-segments is
+					exemplified by <strong>Pin1</strong> and <strong>Test 1</strong>.</li>
+			</ul></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119987</span><script type="text/javascript">var ti='119987';var tt='Sequencer areas and vector areas'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

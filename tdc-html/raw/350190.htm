@@ -1,0 +1,41 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI supports multi-port programming. With a multiport setup, you can take advantage of the tester's per-pin architecture."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multiport programming with SmartRDI</title><meta name="keywords" content="multi-port smart rdi srdi"></head><body id="_350190"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 350190</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multiport programming with SmartRDI</h1>
+	
+	
+	<div><p>SmartRDI supports multi-port programming. With a multiport setup, you can take
+		advantage of the tester's per-pin architecture.</p>
+		<section class="section"><p>To use SmartRDI for multiport tests, program the code like
+					below.</p><pre class="prettyprint copyable singleline">rdi.port("portA").class().pin().para().execute();</pre><p><a href="143875.htm" title="Specifies a port to set up.">port()</a> specifies the port to set up, <code>class()</code>
+				specifies the test type, <code>pin()</code> specifies the pin(s) or pin group to
+				set up, and <code>para()</code> represents the functions to set up the test
+				parameters.</p><p>You can combine multiple tests onto different ports. The following
+				code and figure illustrate how to do it without <a href="142606.htm" title="Creates a dummy pattern to synchronize the pattern of different ports in a multiport test.">portSync</a>:</p><pre class="prettyprint linenums copyable">RDI_BEGIN( );
+
+    rdi.port("A").protocol().pname("i2c").write(0x1,0x2).execute();
+    rdi.port("A").protocol().pname("i2c").write(0x3,0x5).execute(); 
+    rdi.port("B").dc().pin("IN").vForce(3).execute();
+    rdi.port("B").dc().pin("OT").vMeas().execute();
+
+RDI_END( );</pre><div class="p">
+				<figure class="fignone">
+					<img src="146719.png" alt="multiport burst">
+				</figure>
+			</div><p>To synchronize the execution on different ports, you can use the function <a href="142606.htm" title="Creates a dummy pattern to synchronize the pattern of different ports in a multiport test.">portSync()</a>.</p><pre class="prettyprint linenums copyable">RDI_BEGIN( );
+
+    rdi.port("A").protocol().pname(i2c).write(0x1,0x2).execute();
+    rdi.port("A").protocol().pname(i2c).write(0x3,0x5).execute(); 
+    rdi.portSync();
+    rdi.port("B").dc().pin("IN").vForce(3).execute();
+    rdi.port("B").dc().pin("OT").vMeas().execute();
+
+RDI_END( );</pre><p>The
+				following figure shows how to organize the multiport burst pattern with <a href="142606.htm" title="Creates a dummy pattern to synchronize the pattern of different ports in a multiport test.">portSync()</a>.</p><img src="146720.png" alt="multiport burst sync">
+			<p>In multiport bursts, a synchronization group (sequencing group) always forces related
+				ports to start at the same point in time. To achieve a proper synchronization, ports
+				which are supposed to start their vectors synchronously must be put in one
+				synchronization group.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="342442.htm" title="SmartRDI supports multiport programming.">Multiport handling</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 350190</span><script type="text/javascript">var ti='350190';var tt='Multiport programming with SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

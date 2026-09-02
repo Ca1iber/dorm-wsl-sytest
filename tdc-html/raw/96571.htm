@@ -1,0 +1,53 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Sequencer programs are coded in a simple language that provides"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The sequencer program</title></head><body id="_96571"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 96571</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The sequencer program</h1>
+	
+	
+	<div><p>Sequencer programs are coded in a simple language that provides</p>
+		<ul>
+			<li>instructions for sending waveforms to the DUT</li>
+			<li>instructions for changing the timing or level setup during the test</li>
+			<li>control structures that allow to repeat a sequence of instructions and to call a
+				subroutine.</li>
+		</ul>
+		<p>In order to explain the basic structure of a sequencer program and its connection to the
+			waveform DC/DC power units, the following little program, which belongs to label <code>test_1</code> of
+			the standard example, will be used:</p>
+		<div></div><pre class="prettyprint linenums copyable">SQPG 4,STVA,408,,,(@)
+SQPG 5,STSA,,,,(@)
+SQPG 6,RPTV,7,5,,(@)
+SQPG 7,GENV,9,,,(@)
+SQPG 8,STOP,,,,(@)</pre><div></div>
+		<p>Every line of the program contains an <em>instruction</em> for the sequencers. The instructions
+			are created with the <span class="keyword">SQPG</span> command. </p>
+		<section class="section"><h2>Parameters of SQPG</h2><p>The first parameter of <span class="keyword">SQPG</span>
+				specifies the <em>command number</em> of the instruction. The command numbers count the
+				instructions of one port (the default port in the example) across all sequencer programs (see
+						<em><a href="96570.htm" title="The sequencer program is contained in a sequencer area. Sequencer areas are port specific. Every such area contains the programs of all labels that are associated with the respective port. If a pin belongs to more than one port, its memory (more precisely, the memory of the tester channel that is associated with this pin in the pin configuration) contains several sequencer areas.">Label definition, sequencer program, and sequencer area</a></em>). The first line of the sample program has command number 4
+				because this is not the first program of the port. Note that the first and last command number
+				are those specified in the <span class="keyword">SQLB</span> definition of the label (see <em><a href="10525.htm" title="A label is defined with the SQLB command. This command specifies the following items:">The label definition</a></em>).</p><p>The next three parameters define the instruction and its input
+				information. </p><p>The fifth parameter is not used.</p><p>The last parameter specifies the port
+				to which the label belongs. The sample program belongs to the default port <span class="keyword">@</span>,
+				which contains all configured pins.</p></section>
+		<section class="section"><h2>Sequencer instructions</h2><p>The first line of the sample program contains the
+					<span class="keyword">STVA</span> instruction that points to the location of the physical waveform
+				DC/DC power units for the label <code>test_1</code>. This instruction will be explained in more detail
+				in <em><a href="119987.htm" title="A column of the index array points to the waveforms that the sequencer program is to apply successively to a certain pin of the DUT. This (vertical) index sequence is stored in a vector area of the respective pin. Just as the sequencer areas, the vector areas are port specific. Every pin (more precisely, the channel which is associated with the pin in the pin configuration) has a separate vector area for every port to which it belongs. In fact, a pin can have two vector areas for each of its ports, one for each of two memory types (see Selecting the memory type). In contrast to the sequencer areas, the data of the vector areas will usually be different for different pins of the label port.">Sequencer program and vector areas</a></em>. The sequencer program
+				of every label that generates parallel vectors must start with an <span class="keyword">STVA</span>
+				instruction.</p><p>The <span class="keyword">STSA</span> instruction in line 5 is only present for
+				historical reasons.</p><p>The next two instructions generate parallel vectors. The
+					<span class="keyword">RPTV</span> instruction with command number 6 generates 7 vectors and repeats this
+				action 5 times. The following <span class="keyword">GENV</span> instruction generates 9 vectors. The
+				number of index rows from which these vectors are generated is called the <em>length</em> of the
+				instruction. Thus, the <span class="keyword">RPTV</span> instruction has length 7, and the
+					<span class="keyword">GENV</span> instruction has length 9.</p><p>The <span class="keyword">RPTV</span> instruction
+				of the example sends the same vectors more than once to the DUT. Therefore, a distinction must
+				be made between vectors and <em>cycles</em>. A vector is a sequence of waveforms whose DC/DC power units are
+				stored as a row in the index array. A cycle is one of possibly many applications of the same
+				vector to the DUT. Thus the first vector of the example label will be applied 5 times to the DUT
+				with the cycle numbers 0, 7, 14, 21, 28 (cycles are counted per label starting from
+				0).</p><p>Finally,
+				the <span class="keyword">STOP</span> instruction in line 8 marks the end of the program. </p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 96571</span><script type="text/javascript">var ti='96571';var tt='The sequencer program'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

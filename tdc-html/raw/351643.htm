@@ -1,0 +1,287 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Register structure is based on a CMSIS-SVD XML hierarchy. A CMSIS-SVD XML file normally contains the structure description of a single device. The file must be converted to a C++ structure before the register structure can be used in test methods."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Register structure</title></head><body id="_351643"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351643</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Register structure</h1>
+	
+	
+	<div><p>Register structure is based on a CMSIS-SVD XML hierarchy. A CMSIS-SVD XML file normally
+		contains the structure description of a single device. The file must be converted to a C++
+		structure before the register structure can be used in test methods.</p>
+		<section class="section">
+			<div class="p">Here is a typical CMSIS-SVD XML Hierarchy:<figure class="fignone">
+					
+					<img src="351644.png" alt="CMSIS-SVD XML Hierarchy">
+				</figure></div>
+			<p>According to <a href="https://www.keil.com/pack/doc/CMSIS/SVD/html/index.html" target="_blank" rel="external noopener" class="ex">CMSIS-SVD</a> , an SVD file usually describes the structure
+				of a device. A device is formed of a processor and at least one peripheral. Each peripheral has
+				at least one register. A register can have one or more fields. The range of values for a field
+				can be further described with enumerated values.</p>
+			<div class="p">Peripheral level, register level, and field level are the main levels handled in <a href="351491.htm" title="Register operations can be performed in test methods through the RA library. The register operation commands must be put in an RDI_BEGIN/RDI_END block.">register operations</a>. They are described by <a href="https://www.keil.com/pack/doc/CMSIS/SVD/html/index.html" target="_blank" rel="external noopener" class="ex">CMSIS-SVD</a> as follows.<dl>
+					
+						<dt class="dlterm">Peripheral level</dt>
+						<dd>A peripheral is a named collection of registers. A peripheral is mapped to a defined base
+							address within the device's address space. A peripheral allocates one or more exclusive
+							address blocks relative to its base address, such that all described registers fit into the
+							allocated address blocks. Allocated addresses without an associated register description are
+							automatically considered reserved. The peripheral can be assigned to a group of peripherals
+							and may be associated with one or more interrupts.</dd>
+					
+				</dl></div>
+			<dl>
+				
+					<dt class="dlterm">Register level</dt>
+					<dd>A register is a named, programmable resource that belongs to a peripheral. Registers are
+						mapped to a defined address in the address space of the device. An address is specified
+						relative to the peripheral base address. The description of a register documents the purpose
+						and function of the resource. A debugger requires information about the permitted access to a
+						resource as well as side effects triggered by read and write accesses respectively.</dd>
+				
+			</dl>
+			<dl>
+				
+					<dt class="dlterm">Field level</dt>
+					<dd>Registers may be partitioned into chunks of bits of distinct functionality. A chunk is
+						referred to as field. The field names within a single register must be unique. Only
+						architecturally defined fields shall be described. Any bits not being explicitly described are
+						treated as reserved. They are not displayed in the System Viewer and are padded in the bit
+						fields of the device header file. The case-insensitive field named "reserved" is treated as a
+						keyword and each field with this name is ignored.</dd>
+				
+			</dl>
+			<p>For more detailed information about the CMSIS-SVD XML Hierarchy, refer to <a href="https://www.keil.com/pack/doc/CMSIS/SVD/html/svd_Format_pg.html" target="_blank" rel="external noopener" class="ex">SVD Description (*.svd) Format</a> on the <a href="https://www.keil.com/pack/doc/CMSIS/SVD/html/index.html" target="_blank" rel="external noopener" class="ex">CMSIS-SVD</a> website.</p>
+		</section>
+		<h2>Example</h2><div class="example" id="_351643__SVD_file_example"><h3>An SVD file example</h3>
+			
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+&lt;device xmlns:xs="http://www.w3.org/2001/XMLSchema-instance" schemaVersion="1.1" xs:noNamespaceSchemaLocation="CMSIS-SVD.xsd"&gt;
+  &lt;name&gt;RegisterAccessExample&lt;/name&gt;           &lt;!-- name of part--&gt;
+  &lt;addressUnitBits&gt;8&lt;/addressUnitBits&gt;         &lt;!-- byte addressable memory --&gt;
+  &lt;width&gt;16&lt;/width&gt;&lt;access&gt;read-write&lt;/access&gt; &lt;!-- bus width is 16 bits --&gt;
+  &lt;size&gt;16&lt;/size&gt;                              &lt;!-- the default size (number of bits) of all peripherals and register that do not define "size" themselves --&gt;
+  
+  &lt;resetValue&gt;0x00000000&lt;/resetValue&gt;          &lt;!-- by default all bits of the registers are initialized to 0 on reset --&gt;
+  &lt;resetMask&gt;0xFFFFFFFF&lt;/resetMask&gt;            &lt;!-- by default all 32 bits of the registers are used --&gt;
+  &lt;peripherals&gt;
+    &lt;peripheral&gt;
+      &lt;name&gt;RegisterGroup1&lt;/name&gt;
+      &lt;baseAddress&gt;0x0000&lt;/baseAddress&gt;
+      &lt;size&gt;16&lt;/size&gt;
+      &lt;access&gt;read-write&lt;/access&gt;
+      &lt;registers&gt;
+        &lt;register&gt;
+          &lt;name&gt;Register1&lt;/name&gt;
+          &lt;addressOffset&gt;0x0&lt;/addressOffset&gt;
+          &lt;size&gt;16&lt;/size&gt;
+          &lt;resetValue&gt;0x4800&lt;/resetValue&gt;
+          &lt;fields&gt;
+            &lt;field&gt;
+              &lt;name&gt;field1&lt;/name&gt;
+              &lt;description&gt;Description of field1&lt;/description&gt;
+              &lt;bitRange&gt;[15:13]&lt;/bitRange&gt;
+              &lt;access&gt;read-only&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field2&lt;/name&gt;
+              &lt;description&gt;Description of field2&lt;/description&gt;
+              &lt;bitRange&gt;[12:10]&lt;/bitRange&gt;
+              &lt;access&gt;read-only&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field3&lt;/name&gt;
+              &lt;description&gt;Description of field3&lt;/description&gt;
+              &lt;bitRange&gt;[9:5]&lt;/bitRange&gt;
+              &lt;access&gt;read-only&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field4&lt;/name&gt;
+              &lt;description&gt;Description of field4&lt;/description&gt;
+              &lt;bitRange&gt;[4:0]&lt;/bitRange&gt;
+              &lt;access&gt;read-only&lt;/access&gt;
+            &lt;/field&gt;
+          &lt;/fields&gt;
+        &lt;/register&gt;
+
+        &lt;register&gt;
+          &lt;name&gt;Register2&lt;/name&gt;
+          &lt;addressOffset&gt;0x2&lt;/addressOffset&gt;
+          &lt;size&gt;16&lt;/size&gt;
+          &lt;resetValue&gt;0x0CC0&lt;/resetValue&gt;
+          &lt;fields&gt;
+            &lt;field&gt;
+              &lt;name&gt;field1&lt;/name&gt;
+              &lt;description&gt;Description of field1&lt;/description&gt;
+              &lt;bitRange&gt;[13:13]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field2&lt;/name&gt;
+              &lt;description&gt;Description of field2&lt;/description&gt;
+              &lt;bitRange&gt;[12:10]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field3&lt;/name&gt;
+              &lt;description&gt;Description of field3&lt;/description&gt;
+              &lt;bitRange&gt;[9:9]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field4&lt;/name&gt;
+              &lt;description&gt;Description of field4&lt;/description&gt;
+              &lt;bitRange&gt;[8:8]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field5&lt;/name&gt;
+              &lt;description&gt;Description of field5&lt;/description&gt;
+              &lt;bitRange&gt;[7:6]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field6&lt;/name&gt;
+              &lt;description&gt;Description of field6&lt;/description&gt;
+              &lt;bitRange&gt;[5:4]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field7&lt;/name&gt;
+              &lt;description&gt;Description of field7&lt;/description&gt;
+              &lt;bitRange&gt;[1:1]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field8&lt;/name&gt;
+              &lt;description&gt;Description of field8&lt;/description&gt;
+              &lt;bitRange&gt;[0:0]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+          &lt;/fields&gt;
+        &lt;/register&gt;
+      &lt;/registers&gt;
+    &lt;/peripheral&gt;
+    &lt;peripheral&gt;
+
+      &lt;name&gt;RegisterGroup2&lt;/name&gt;
+      &lt;baseAddress&gt;0x0080&lt;/baseAddress&gt;
+      &lt;size&gt;16&lt;/size&gt;
+      &lt;access&gt;read-write&lt;/access&gt;
+      &lt;registers&gt;
+        &lt;register&gt;
+          &lt;name&gt;Register1&lt;/name&gt;
+          &lt;addressOffset&gt;0x0&lt;/addressOffset&gt;
+          &lt;size&gt;16&lt;/size&gt;
+          &lt;resetValue&gt;0x0000&lt;/resetValue&gt;
+          &lt;fields&gt;
+            &lt;field&gt;
+              &lt;name&gt;field1&lt;/name&gt;
+              &lt;description&gt;Description of field1&lt;/description&gt;
+              &lt;bitRange&gt;[15:13]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field2&lt;/name&gt;
+              &lt;description&gt;Description of field2&lt;/description&gt;
+              &lt;bitRange&gt;[12:12]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field3&lt;/name&gt;
+              &lt;description&gt;Description of field3&lt;/description&gt;
+              &lt;bitRange&gt;[11:11]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field4&lt;/name&gt;
+              &lt;description&gt;Description of field4&lt;/description&gt;
+              &lt;bitRange&gt;[9:9]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field5&lt;/name&gt;
+              &lt;description&gt;Description of field5&lt;/description&gt;
+              &lt;bitRange&gt;[8:8]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field6&lt;/name&gt;
+              &lt;description&gt;Description of field6&lt;/description&gt;
+              &lt;bitRange&gt;[7:7]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field7&lt;/name&gt;
+              &lt;description&gt;Description of field7&lt;/description&gt;
+              &lt;bitRange&gt;[4:2]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+          &lt;/fields&gt;
+        &lt;/register&gt;
+
+        &lt;register&gt;
+          &lt;name&gt;Register2&lt;/name&gt;
+          &lt;addressOffset&gt;0x2&lt;/addressOffset&gt;
+          &lt;size&gt;16&lt;/size&gt;
+          &lt;resetValue&gt;0x0000&lt;/resetValue&gt;
+          &lt;fields&gt;
+            &lt;field&gt;
+              &lt;name&gt;field1&lt;/name&gt;
+              &lt;description&gt;Description of field1&lt;/description&gt;
+              &lt;bitRange&gt;[15:15]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field2&lt;/name&gt;
+              &lt;description&gt;Description of field2&lt;/description&gt;
+              &lt;bitRange&gt;[14:14]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field3&lt;/name&gt;
+              &lt;description&gt;Description of field3&lt;/description&gt;
+              &lt;bitRange&gt;[13:10]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field4&lt;/name&gt;
+              &lt;description&gt;Description of field4&lt;/description&gt;
+              &lt;bitRange&gt;[9:9]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+
+            &lt;field&gt;
+              &lt;name&gt;field5&lt;/name&gt;
+              &lt;description&gt;Description of field5&lt;/description&gt;
+              &lt;bitRange&gt;[7:4]&lt;/bitRange&gt;
+              &lt;access&gt;read-write&lt;/access&gt;
+            &lt;/field&gt;
+          &lt;/fields&gt;
+        &lt;/register&gt;
+      &lt;/registers&gt;
+    &lt;/peripheral&gt;
+  &lt;/peripherals&gt;
+&lt;/device&gt;</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="351430.htm" title="Before using the RA library, if you intend to use a register structure, the SVD file for your device must be converted first. Then the converted register structure must be imported to a test method program.">Importing a C++ register structure</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351643</span><script type="text/javascript">var ti='351643';var tt='Register structure'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

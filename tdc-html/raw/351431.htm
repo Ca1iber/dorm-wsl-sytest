@@ -1,0 +1,124 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Register Access (RA) library is bundled together with SmartRDI. It can be used to perform protocol operations, including register access operations."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Register Access library</title></head><body id="_351431"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351431</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Register Access library</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="351445.htm" title="The Register Access library needs to be set up before it can be used to execute register operations in a test method project.">Setting up the Register Access library</a></li><li><a href="351446.htm" title="A protocol used for the RA library is a set of rules for how to do data transactions between devices and a tester. A protocol only defines a unique class.">Protocol management</a></li><li><a href="351491.htm" title="Register operations can be performed in test methods through the RA library. The register operation commands must be put in an RDI_BEGIN/RDI_END block.">Usage of register operations in test method</a></li></ol></div></nav>
+	
+	
+	<div><p>The Register Access (RA) library is bundled together with SmartRDI. It can be used to
+		perform protocol operations, including register access operations. </p>
+		<p>The Register Access library uses its own member functions and SmartRDI API to perform register
+			operations. See the <a href="351431.htm#_351431__example">Example</a>.</p>
+		<section class="section"><h2>Register operations</h2>
+			
+			<div class="p">With the Register Access library, the following register operations can be performed:
+					<span class="keyword">read</span>, <span class="keyword">write</span>, <span class="keyword">compare</span>,
+					<span class="keyword">writeDynamic</span>, and Read-Modify-Write (RMW) of bit field operations.<table class="frame-topbot"><caption><span>Overview of register operations</span></caption><colgroup><col style="width:159.75pt"><col style="width:327pt"></colgroup><thead>
+							<tr>
+								<th class="rowsep-1" id="_351431__entry__1">Operation</th>
+								<th class="rowsep-1" id="_351431__entry__2">Description</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="rowsep-1" headers="_351431__entry__1"><span class="keyword">write</span></td>
+								<td class="rowsep-1" headers="_351431__entry__2">Write a complete register or registers list into DUT.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351431__entry__1"><span class="keyword">read</span></td>
+								<td class="rowsep-1" headers="_351431__entry__2">Read a complete register or multiple registers from DUT.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351431__entry__1"><span class="keyword">compare</span></td>
+								<td class="rowsep-1" headers="_351431__entry__2">Read a complete register from DUT and compare to expected values with masks.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351431__entry__1"><span class="keyword">writeDynamic</span></td>
+								<td class="rowsep-1" headers="_351431__entry__2">Write a per-site value into DUT in runtime.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351431__entry__1">Read-Modify-Write (RMW)</td>
+								<td class="rowsep-1" headers="_351431__entry__2">Write some bit fields of a register and leave the rest of bit fields unchanged at the
+									same time.</td>
+							</tr>
+						</tbody></table></div>
+			<p>For more information about how to do register operations, see <a href="351491.htm" title="Register operations can be performed in test methods through the RA library. The register operation commands must be put in an RDI_BEGIN/RDI_END block.">Usage of register operations in test method</a>.</p>
+		</section>
+		<section class="section"><h2>Register Access setups</h2>
+			
+			<p>To do register operations in test methods with SmartRDI, a protocol class must be available
+				and a register structure is optional.</p>
+			<div class="p">
+				<ul>
+					<li>Protocol class, which is held in a <span class="filepath">.cpp</span> file.<p>The RA library already
+							provides transaction definitions of the following protocols: </p><div class="p">
+							<ul>
+								<li>I2C</li>
+								<li>JTAG</li>
+								<li>SPI</li>
+							</ul>
+						</div><p>For their protocol class templates, see <a href="351446.htm" title="A protocol used for the RA library is a set of rules for how to do data transactions between devices and a tester. A protocol only defines a unique class.">Protocol management</a>.</p></li>
+					<li>Register structure (optional), in which the register information of a device is defined.
+							<p>See <a href="351430.htm" title="Before using the RA library, if you intend to use a register structure, the SVD file for your device must be converted first. Then the converted register structure must be imported to a test method program.">Importing a C++ register structure</a>.</p></li>
+				</ul>
+			</div>
+			<p>Register structures are usually defined in a CMSIS-SVD format based on XML. If you are not to
+				use a register structure, you do not need a SVD file. See <a href="351643.htm" title="Register structure is based on a CMSIS-SVD XML hierarchy. A CMSIS-SVD XML file normally contains the structure description of a single device. The file must be converted to a C++ structure before the register structure can be used in test methods.">Register structure</a> for more
+				information about a CMSIS-SVD XML hierarchy.</p>
+			<p>The overview of register access setups:</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="354266.png" alt="RA_setup_overview">
+				</figure>
+			</div>
+		</section>
+		<h2>Examples</h2><div class="example" id="_351431__example"><h3>Example 1</h3>
+			
+			<div class="p">RA operations without register structure
+				definitions<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+
+  // Write register
+  RA_WRITE(0x1234, 0x55);
+  // Read a register under ID : READ_ID_1
+  RA_READ("READ_ID_1", 0x1234);
+  // Read a register and compare against expected value without mask
+  RA_COMPARE(0x1234, 0x55);
+  // Read a register and compare against expected value with mask
+  RA_COMPARE(0x1234, 0x55, 0xFE);
+  // Write run time per site data
+  RA_WRITE_DYNAMIC("DYN_ID_1", 0x1234);
+  // Read a register again
+  RA_READ("READ_ID_2", ADDR1);
+  // Compare by reading register 
+  RA_COMPARE("COMP_ID_1", ADDR1, DATA1);
+
+  rdi.wait(10 ms);
+
+RDI_END();</pre></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<p>RA operations with register structure definitions</p>
+			<div></div><pre class="prettyprint linenums copyable">MultiSite&lt;ULONG64&gt; dynData;
+dynData[0] = 0x7E;  dynData[1] = 0x01;
+RA_SET_DYNAMIC_DATA("DynID1", dynData);
+
+RDI_BEGIN(); 
+  rdi.dc().pin("VDD").vForce(3.3).execute();
+  reg.PERIPHERAL0().REGISTER0().setValue(0x5E).write();               // Write Register
+  reg.PERIPHERAL0().REGISTER1().setField_FIELDA(1).write();           // Write Field (RMW)
+  reg.PERIPHERAL0().REGISTER1().read("readID1");                      // Read Register
+  reg.PERIPHERAL0().REGISTER0().setValue(0x5E).compare("CompareID1"); // Read and Compare
+  reg.PERIPHERAL0().REGISTER2().writeDynamic("DynID1");               // Write a per site runtime register value
+  
+  // Other RDI operations
+  rdi.wait(2 ms);
+  rdi.dc("rdiID1").pin("D1").iForce(0).vMeas().execute();
+  ...
+RDI_END();
+
+ULONG64 regValue = RA_GET_READ_RESULT("readID1");
+bool comparePF = RA_GET_COMPARE_RESULT("CompareID1").getPassFail()</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="351491.htm" title="Register operations can be performed in test methods through the RA library. The register operation commands must be put in an RDI_BEGIN/RDI_END block.">Usage of register operations in test method</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351431</span><script type="text/javascript">var ti='351431';var tt='Register Access library'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

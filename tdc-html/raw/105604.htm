@@ -1,0 +1,153 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section describes the GPIB communication between the driver and the handler. The actions and messages are listed in the sequential order in the table below."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GPIB communication flow for Rasco handlers</title></head><body id="_105604"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105604</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GPIB communication flow for Rasco handlers</h1>
+	
+	
+	<div><p>This section describes the GPIB communication between the driver and the handler. The
+		actions and messages are listed in the sequential order in the table below.</p>
+		<section class="section"><p>See <em><a href="69288.htm" title="The conventions in the table below are used in this chapter to describe GPIB/LAN communication:">Conventions for GPIB communication</a></em> for
+				descriptions of the syntax.</p><p><strong>GPIB communication flow for Rasco handlers</strong></p><table class="frame-top"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_105604__entry__1"><p>Message from driver</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_105604__entry__2"><p>Message from handler</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_105604__entry__3"><p>Comment</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p><strong>init: &lt;id request&gt; &lt;configuration&gt;</strong></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>ID request:</p>
+								<p><code>ID?</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Driver asks for handler ID. </p>
+								<p>Handler returns ID.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>configuration: &lt;temperature setup&gt;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Send at startup and after each driver reconfiguration at runtime.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>temperature setup:</p>
+								<p><code>:TEMP:SETPOINT OFF</code></p>
+								<p><code>:TEMP:SETPOINT &lt;value&gt;</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>One of the following communication flows applies according to the setting of the
+									configuration parameter <span class="keyword">temp_control</span>:</p>
+								<p><code>"manual"</code>: no commands are send to the handler.</p>
+								<p><code>"ambient"</code>: disable temperature controls.</p>
+								<p><code>"active"</code>: the command is sent to the handler to set the setpoint in
+									specified zone to the given value in Celsius.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p><strong>wait for devices: [&lt;SRQ&gt;] [&lt;poll&gt;]</strong></p>
+								<p>&nbsp;</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Based on the configuration parameter <code>waiting_for_parts_method</code>, the
+									driver will either wait for an SRQ or poll for the current site. If an SRQ is received,
+									polling is still done afterwards in cases where:</p>
+								<p>not all active sites that are active based on the configuration parameter
+										<code>handler_site_mask</code> seem to be populated;</p>
+								<p>or there are no SRQs received during the time frame defined by parameter
+										<code>flag_check_interval</code>.</p>
+								<p>Waiting for devices repeats, until there is a device to test. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p><code>SRQ</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p><code>SRQ(0x43)</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Handler sends the test start SRQ.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>poll:</p>
+								<p><code>SQB?</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p><code>n</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Driver asks for current site number.</p>
+								<p>Handler returns bit coded site number.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p><strong>Bin devices:</strong></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p><code>s BIN bin</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>For all sites: driver sends bin</p>
+								<p>information.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p><strong>Query status: </strong></p>
+								<p><strong>&lt;get sitemapping&gt;</strong></p>
+								<p><strong>&lt; get setpoint temp&gt;</strong></p>
+								<p><strong>&lt;get soaktime temp&gt;</strong></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Query the handler status by PH call: <code>ph_get_status</code>. The
+									corresponding input parameters used are: </p>
+								<p><code>site_mapping</code></p>
+								<p><code>temperature_setpoint</code></p>
+								<p><code>temperature_soaktime</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>get sitemapping:</p>
+								<p><code>:SITES:MAPPING?</code></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>"string"</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Query the handler site mapping.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>get setpoint temp:</p>
+								<p><code>:TEMP:SETPOINT?</code>
+								</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>"string"</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Query the handler setpoint temp.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__1"><p>get soaktime temp"</p>
+								<p><code>:TEMP:SOAKTIME?</code>
+								</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__2"><p>"string"</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_105604__entry__3"><p>Query the handler soaktime temp.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="104408.htm" title="This function retrieves various kinds of production information from probers or handlers. Different parameters are supported for different probers or handlers.">Function: ph_get_status</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105604</span><script type="text/javascript">var ti='105604';var tt='GPIB communication flow for Rasco handlers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

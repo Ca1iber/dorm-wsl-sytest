@@ -1,0 +1,140 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If no timing set change is executed within a label (pattern), the tester cycle length remains the same throughout the label. But even then it is possible to accelerate or slow down the test execution from the standpoint of the DUT. Acceleration is realized with tester waveforms that comprise the actions of several DUT waveforms (x-mode), a slowdown with tester waveforms that contain only a part of the actions belonging to one DUT waveform and which must be combined in a certain order to produce one slow DUT waveform (fractional x-mode). Both acceleration and slowdown can be realized within the same label. It is also possible to use different (integer or fractional) x-modes for different pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Representing a pattern in device orientation</title><meta name="keywords" content="vector label"></head><body id="_106829"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 106829</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Representing a pattern in device orientation</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="101346_2.htm" title="The STATEMAP section describes how tester waveforms are to be mapped to DUT waveforms in the DUT view of the Pattern Debug tool. It must be defined separately for every PINS block in the base wavetable of the respective pattern.">Syntax of the STATEMAP section</a></li></ol></div></nav>
+	
+	
+	<div><p>If no timing set change is executed within a label (pattern), the tester cycle length
+		remains the same throughout the label. But even then it is possible to accelerate or slow down the
+		test execution from the standpoint of the DUT. Acceleration is realized with tester waveforms that
+		comprise the actions of several DUT waveforms (x-mode), a slowdown with tester waveforms that
+		contain only a part of the actions belonging to one DUT waveform and which must be combined in a
+		certain order to produce one slow DUT waveform (fractional x-mode). Both acceleration and slowdown
+		can be realized within the same label. It is also possible to use different (integer or
+		fractional) x-modes for different pins. </p>
+		<p>The following wavetable defines waveforms for x-modes 1, 2 and 1/2:</p>
+		<div></div><pre class="prettyprint linenums copyable">WAVETBL MyTbl
+PINS Input1 Input2 Out
+0  "d1:F00" drv0_1
+1  "d1:F10" drv1_1
+2  "d3:F00" drv0_2
+3  "d3:F10" drv1_2
+4  "d1:F00 d2:F00" dc00
+5  "d1:F10 d2:F00" dc01
+6  "d1:F00 d2:F10" dc10
+7  "d1:F10 d2:F10" dc11
+8  "r1:E0"  rcvL_1
+9  "r1:E1"  rcvH_1
+a  "r3:E0"  rcvL_2
+b  "r3:E1"  rcvH_2
+c  "r1:E0 r2:E0"   rcLL
+d  "r1:E0 r2:E1"   rcLH
+e  "r1:E1 r2:E0"   rcHL
+f  "r1:E1 r2:E1"   rcHH</pre><div></div>
+		<p>The waveforms for the fractional x-mode 1/2 are realized by combining two of the waveforms 0
+			through 3, or two of the waveforms 9 through b.</p>
+		<p>Since a slow DUT waveform is realized by <span class="keyword">x</span> tester waveforms, and a fast one
+			by putting <span class="keyword">x</span> DUT waveforms into one tester waveform, the DUT waveforms,
+			vectors, and cycles are called <em>X-waveforms</em>, <em>X-vectors</em>, and <em>X-cycles</em>,
+			respectively. </p>
+		<section class="section"><h2>Displaying vectors in device oriented view</h2><p>The Pattern Debug tool can
+				present the pattern in several views. In the device cycle view (which is the default), it shows
+				the pattern mainly from the tester standpoint. Every row of the vector table represents one
+				tester vector. Accelerated execution as described above can be indicated by the device cycle
+				names, but it is not possible to show how one slow X-vector is built up from several tester
+				vectors.</p><p>However,
+				the Pattern Debug tool can display and let you edit patterns for standard pins in a DUT oriented
+				view. In this view, the tester oriented table is overlaid by the X-vector structure. If a tester
+				vector for a certain pin contains several X-vectors (accelerated execution), these X-vectors are
+				represented by separate sub-rows within the respective tester vector row. If conversely one
+				X-vector for a certain pin comprises several tester vectors (reduced speed), then these tester
+				vectors are combined into a single super-row. The required information is defined in a
+					<span class="keyword">STATEMAP</span> section within the base wavetable.</p><div class="note"><span class="title">Note</span> If a pin
+				for which no <span class="keyword">STATEMAP</span> section exists is to be displayed in DUT oriented view,
+				the Pattern Debug tool tries to derive the X-vectors from the device cycle
+				names.</div><p>Waveforms for PS3600 fast pins can also be presented in the DUT oriented view.
+				But it is not necessary to define a <span class="keyword">STATEMAP</span> section for them. Since the
+				x-mode for fast pin waveforms can be inferred from the number of actions in the waveform
+				definition, the Pattern Debug tool needs no further information to display them as X-vectors.
+			</p></section>
+		<section class="section"><h2>The STATEMAP section</h2><p>Every X-vector is associated in the
+					<span class="keyword">STATEMAP</span> section with one single state character. Accordingly, several state
+				characters are associated with one tester vector when the DUT runs faster than the tester (one
+				state character for every sub-row), and one state character is associated with several tester
+				vectors if the DUT runs slower than the tester (only one state character for one super-row).
+				This allows you to represent X-waveforms which perform the same logical action, but at different
+				speed, by the same state character.</p><p>It is also possible to assign the same state character
+				to different tester waveforms (waveform sequences) with the same x-mode. In this case the two
+				waveforms (waveform sequences) are uniquely identified by a so-called <em>selector</em>. This can
+				be used, for example, to distinguish waveforms that perform the same logical action with the
+				same DUT period, but with different edge delays. </p><p>The <span class="keyword">STATEMAP</span> section
+				for the wavetable displayed above could look as
+				follows:</p><pre class="prettyprint linenums copyable">STATEMAP
+#idx   state_char x_mode selector
+0        0         x1     t1
+1        1         x1     t1
+2        0         x1     t2
+3        1         x1     t2
+4        00        x2     t1
+5        01        x2     t1
+6        10        x2     t1
+7        11        x2     t1
+8        L         x1     t1
+9        H         x1     t1
+a        L         x1     t2
+b        H         x1     t2
+c        LL        x2     t1
+d        LH        x2     t1
+e        HL        x2     t1
+f        HH        x2     t1
+0,0      0         x1/2   t1
+1,1      1         x1/2   t1
+8,8      L         x1/2   t1
+9,9      H         x1/2   t1
+2,2      0         x1/2   t2
+3,3      1         x1/2   t2
+a,a      L         x1/2   t2
+b,b      H         x1/2   t2</pre><p>For
+				the x1 and x1/2 modes, there are two different edge placements, which are distinguished by the
+					<kbd class="userinput">selector</kbd> column of the <span class="keyword">STATEMAP</span> table. The waveforms
+				that use edge <span class="keyword">d1</span> or <span class="keyword">r1</span> are associated with the selector
+					<kbd class="userinput">t1</kbd>, those using <span class="keyword">d3</span> or <span class="keyword">r3</span> with the
+				selector <kbd class="userinput">t2</kbd>. This is used, for example, to assign the same state
+				character <code>L</code> to the two DC/DC power units <span class="keyword">8</span> and <span class="keyword">a</span> in
+				x1-mode, since the triple of state character, x-mode, and selector is still unique by the
+				different selector. For more details on the <span class="keyword">STATEMAP</span> table see <em><a href="101346.htm" title="The STATEMAP section describes how tester waveforms are to be mapped to DUT waveforms in the DUT view of the Pattern Debug tool. It must be defined separately for every PINS block in the base wavetable of the respective pattern.">Syntax of the STATEMAP section</a></em>. </p><p>Another advantage of the DUT view is that if a tester cycle
+				containing several X-cycles fails, you can identify the X-cycles that failed within the
+				respective tester cycle. This is something which is not possible in the standard view. However,
+				it requires that you tell the system how the edges of the tester waveform are associated with
+				the X-waveforms. This is done by enclosing edges belonging to the same X-waveform with braces.
+				Accordingly, the definitions of waveforms <span class="keyword">c</span> through <span class="keyword">f</span>, for
+				example, must be
+				written</p><pre class="prettyprint linenums copyable">c  "{r1:E0}{r2:E0}"   rcLL
+d  "{r1:E0}{r2:E1}"   rcLH
+e  "{r1:E1}{r2:E0}"   rcHL
+f  "{r1:E1}{r2:E1}"   rcHH</pre><p>Note
+				that the identification of failing X-cycles is only possible on Pin Scale systems. Furthermore,
+				the recording mode of the detailed Error Map must be set to edge granularity (see <a href="58775.htm" title="The result granularity parameter defines how many results are to be recorded per cycle. The possible values depend on the hardware type and on the resolution of the error code.">Result granularity</a>). </p></section>
+		<section class="section"><h2>Displaying X-vectors in the Pattern Debug tool</h2><p>The following vector
+				table shows how this information can be used in the Pattern Debug tool.</p><div class="p"><figure class="fignone">
+					
+					<img src="100360.png" alt="Vector table in DUT view">
+				</figure></div><p>The first 3 columns show the DUT oriented view, the last 3 columns present the same
+				data in the tester oriented device cycle view. Vectors 0 through 7 are in x1-mode with two
+				different selectors, vectors 8 through 15 in x1/2-mode.</p></section>
+		<section class="section"><h2>The VCAT firmware command</h2><p>On the firmware level, the DUT view for a
+				pattern is defined with the <span class="keyword">VCAT</span> command. The definition for the above
+				example looks as
+					follows:</p><pre class="prettyprint linenums copyable">&gt; VCAT? "EditLbl",(@),"AreaPatternAttachment"
+&lt; VCAT  "EditLbl",  (@),  "AreaPatternAttachment",  #284
+  0,(Input1,Input2,Out),1,t1;
+  4,(Input1,Input2,Out),1,t2;
+  8,(Input1,Input2,Out),-2,t1;</pre><p><span class="keyword">VCAT</span>
+				defines the x-mode areas of the pattern. An x-mode area defines a selector and an x-mode for a
+				range of tester vectors. The selector is needed if the same state character is to be assigned to
+				different tester waveforms. The definition associates a pair of x-mode and selector with the
+				first tester vector to which the pair is to be applied. The length of the area is determined by
+				the next tester vector that is associated with a different x-mode/selector pair. </p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99709.htm" title="The pattern debug tool offers you large flexibility regarding DUT oriented periods:">DUT oriented view - xN and x1/N mode</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 106829</span><script type="text/javascript">var ti='106829';var tt='Representing a pattern in device orientation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

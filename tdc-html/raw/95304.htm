@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API can translate an existing device cycle name (physical or logical) defined in a wavetable to a physical waveform index. This is useful when physical waveform DC/DC power units are needed, for example in the VEC_LABEL_EDIT API."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GET_PHY_WVF_IDX</title></head><body id="_95304"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 95304</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GET_PHY_WVF_IDX</h1>
+	
+	
+	<div><p>This API can translate an existing device cycle name (physical or logical) defined in a
+		wavetable to a physical waveform index. This is useful when physical waveform DC/DC power units are needed,
+		for example in the <a href="95305.htm" title="This API enables modifying label vectors at runtime on the specified digital pins of a certain site, while remaining pins continue executing the original vectors. The editing operation will overwrite the drive/receive actions in the specified label with a user defined action. The vector data will be overwritten directly in the corresponding memory.">VEC_LABEL_EDIT</a> API.</p>
+		<section class="section"><p>Depending on the definition of a device cycle, the device cycle name might not be
+				enough to obtain the corresponding physical waveform index. </p><ul>
+				<li>If a device cycle uses data parameter (DD1, DD2, ED1 and ED2), this device cycle name will
+					translate to several physical waveforms. So you need to specify the values of all data
+					parameters that are used in the device cycle to get the unique physical waveform index.</li>
+				<li>If a physical device cycle is used, it can be translated to the physical waveform index
+					directly with no more parameters needed.</li>
+			</ul><p>The device cycle name you want to translate should have been defined in the wavetable
+				associated with the primary timing specification. If the name does not exist in the primary
+				wavetable or primary specification is not equation-based or invalid, an error will be
+				thrown.</p><div class="note"><span class="title">Note</span> See the related API <em><a href="95305.htm" title="This API enables modifying label vectors at runtime on the specified digital pins of a certain site, while remaining pins continue executing the original vectors. The editing operation will overwrite the drive/receive actions in the specified label with a user defined action. The vector data will be overwritten directly in the corresponding memory.">VEC_LABEL_EDIT</a></em><kbd class="userinput">.</kbd></div><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/VecLabelEdit.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">INT GET_PHY_WVF_IDX(const STRING&amp; pinName,
+                    const STRING&amp; devCycName,
+                    const STRING&amp; dataParameters = "");</pre><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">pinName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The pin for which you want to get the physical waveform index.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">devCycName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The device cycle name for which you want to get the physical waveform index.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">dataParameters</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The values of drive (DD1 and DD2) and receive (ED1 and ED2) data parameters used in
+									the device cycle. It should follow the syntax: DD1, DD2, ED1, ED2. If the device cycle does
+									not use data parameters, this parameter can be left empty (" ") or use ",,,".</p>
+								<p>For DD1 and DD2, the values you can define are: </p>
+								<p>F0N drive 0</p>
+								<p>F1N drive 1</p>
+								<p>FN0 tri-state off</p>
+								<p>FNZ tri-state on</p>
+								<p>F00 drive 0, tri-state off</p>
+								<p>F0Z drive 0, tri-state on</p>
+								<p>F10 drive 1, tri-state off</p>
+								<p>F1Z drive 1, tri-state on</p>
+								<p>For ED1 and ED2, the values you can define are:</p>
+								<p>F0 compare to low</p>
+								<p>F1 compare to high</p>
+								<p>FI compare to intermediate</p>
+								<p>FX compare to mask</p>
+								<p>FU compare to unstable</p>
+								<p>C capture digital data</p>
+								<p>D do not capture digital data</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">VEC_LABEL_EDIT myLabel("myLabelName", "myPin");
+VECTOR_DATA myVectorData[3] = {{10,0}, {12, 0}, {15, 0}};
+
+myVectorData[0].phyWvfIndex = GET_PHY_WVF_IDX("myPin","devCycl1","F00,F10,,");
+myVectorData[1].phyWvfIndex = GET_PHY_WVF_IDX("myPin","devCycl1","F10,F00,,");
+myVectorData[2].phyWvfIndex = GET_PHY_WVF_IDX("myPin","devCycl2",",,FX,F1");
+
+myLabel.downloadUserVectors(myVectorData,3);</pre><p>The
+				first two lines define the label and pin to edit and the vectors that will be changed and their
+				corresponding new values. The next three lines get the physical waveform index that will be used
+				as the new values and fill in <kbd class="userinput">myVectorData</kbd>. Then the last line downloads
+				the values in <kbd class="userinput">myVectorData</kbd> to vector 10, 12, 15 of the
+			label.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 95304</span><script type="text/javascript">var ti='95304';var tt='GET_PHY_WVF_IDX'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

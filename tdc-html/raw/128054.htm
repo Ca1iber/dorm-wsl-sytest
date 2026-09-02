@@ -1,0 +1,145 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Precharging Makes DC-Scale Current Forcing More Active</title></head><body id="_128054"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 128054</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Precharging Makes DC-Scale Current Forcing More Active</h1>
+	
+	<div>
+		<p>Sophia Zhang, Verigy</p>
+		<p>Paper-ID: 128054 Juli 2011</p>
+		<section class="section"><h2>Abstract</h2><p>When doing IFVM (current forcing voltage measure) mode, most tester instruments, including
+				DC-Scale, need to define v-clamp to determine the current direction. But for some PMIC tests
+				with special design (for example LDO and BUCK with Overcurrent-Protection), the clamp voltage
+				used for current direction normally will shut-down or even "kill" the device. Setting an
+				appropriate v-clamp value when forcing current becomes a real headache and a difficult thing
+				since a little higher or lower value will make the device into an unexpected status.</p><p>Here we will introduce a method using precharging before current
+				forcing to solve this challenge. The device will be precharged before the tester
+				instrument relay closes, and then you can use your instrument to easily force
+				current and clamp voltage to become a "true current direction sign".</p></section>
+		<section class="section"><h2>Overview of DC-Scale in IFVM mode</h2><p>In "IFVM" measurement mode,
+				specifying the clamp voltage is used to avoid an overvoltage condition. If the
+				clamp voltage is higher than the voltage of the DUT pin, the programmed force
+				current will flow into the DUT. If the clamp voltage is lower than the voltage of
+				the DUT pin, the programmed force current will flow out of the DUT.</p><div class="p"><figure class="fignone">
+					
+					<img src="128057.png" alt="DC-scale IFVM">
+				</figure></div><p><em>Figure 1. DC-scale IFVM</em></p><ul>
+				<li>Vclamp &gt; VDUT: current flows into DUT</li>
+				<li>Vclamp &lt; VDUT:current flows out of DUT</li>
+			</ul></section>
+		<section class="section"><h2>Shut-down Issue in PMIC LDO/BUCK tests</h2><p>LDO and BUCK are the main
+				modules for PMIC devices and most LDO/BUCK tests use IFVM.</p><p>At present, DC
+				Scale is the key VV93000 instrument for PMIC tests. As described in the previous
+				chapter, it needs to set the clamp voltage when using DC-scale to do IFVM
+				test.</p><p>Because voltage clamp is used for current direction, nearly all of the
+				tests need negative current; that is, current should flow from the device to DC
+				Scale. Since the real device output is unknown, normally we will set the clamp
+				voltage to 0.5V or 1V lower than the expected values.</p><p>But then many engineers
+				will encounter one big issue. Most devices will shut down , then it needs to
+				re-power-up (including register setup as well as status pins setting). It really
+				test time consuming and a headache for test engineers.</p></section>
+		<section class="section"><h2>Current Over-shooting is the killer The "Down-point" existing in LDO/BUCK
+				devices</h2><p>Below is a typical output I-V curve of a BUCK/LDO.</p><div class="p"><figure class="fignone">
+					
+					<img src="128058.png" alt="LDO/BUCK I-V Curve">
+				</figure></div><p><em>Figure 2. LDO/BUCK I-V Curve</em></p><p>Figure-2 shows us that when
+				the current loading is bigger than the limitation , the device output will
+				immediately drop down and the module will shut-down (here we named this point as
+				"Down-point", and the voltage is "Voff").</p><p>This is an important device feature
+				named OCP(overcurrent protection) which is used to quickly protect devices when
+				outside loading reaches a high current.</p><p>This OCP process is usually
+				irreversible and the device output will never back down again even you decrease the
+				current loading. You have to re-power-up the device by writing registers and setup
+				some pins.</p><p>Normally the voltage drop between no loading to limit current is
+				only several hundreds or tens of millivolts.</p></section>
+		<section class="section"><h2>Over-shoot during hot-switching killed the device</h2><p>When we do the
+				IFVM test, the DCSCALE actions are as below:</p><ol>
+				<li>Close relays (AC_FORCE, H_IMP and AC_SENSE)</li>
+				<li>Measure voltage</li>
+				<li>Open relays (AC_FORCE, and AC_SENSE)</li>
+			</ol><div class="p"><figure class="fignone">
+					
+					<img src="128059.png" alt="Current Over-shooting when relay switch on">
+				</figure></div><p><em>Figure 3. Current Over-shooting when relay switch on</em></p><p>The
+				voltage at the DC Scale channels before the relay closes is just the clamp voltage
+				and is set by the program. If the voltages drop between the device and DC-scale
+				channels, there will be a current over-shoot at the moment of the relay closing. And
+				this over-shoot will damage the device when the clamp voltage is less than the
+				shut-down voltage (Voff).</p><p>As described, the clamp voltage must less than the
+				DUT output to make the load current flow out of the device. To keep the device alive
+				when the relay closes, the clamp voltage should more than the Voff
+				(down-point).</p><p>To satisfy the upper 2 requirements, the clamp voltage
+				adjustment range is small and varies greatly from device to device. Many engineers
+				find it difficult to define the IFVM clamp voltage when testing LDO/BUCK devices.
+				Some even get wrong conclusion that DC Scale instruments can only passively, not
+				actively force current, and VV93000 is not suitable for PMIC LDO/BUCK device
+				testing.</p><p>However, DC-scale can do current forcing and the VV93000 is the superior
+				tester for PMIC testing.</p><p>The wrong conclusion is caused by the device current
+				over-shoot, however, by correctly using the tester the current-over shoot can be
+				avoided.</p></section>
+		<section class="section"><h2>Precharging can used to prevent over-shooting</h2><p>Below we will
+				compare the whole IFVM sequence with and without precharging.</p></section>
+		<section class="section"><h2>Comparing with and without precharging</h2><ul>
+				<li>IFVM sequence without precharge: <p>setup DC-Scale -&gt; relay gets closed -&gt;
+						wait internally + user specified wait time</p>
+					<p>The voltage difference between the instrument and DUT is big, so that for a
+						short time, a big current flows which probably will shut down the device.
+						Keep in mind, there are capacities inside the instrument and the clamp has
+						some delay until it reacts.</p></li>
+				<li>IFVM sequence with precharging:<ul>
+						<li>precharge -&gt; wait until precharge is settled -&gt; close relay -&gt;
+							setup DC-Scale to force current</li>
+						<li>-&gt; precharge -&gt; wait until precharge is settled -&gt; close relay
+							which does not kill the device state, because the preCharge voltage is
+							set close to DUT voltage</li>
+						<li> -&gt; setup DC Scale:The power AMP Voltage of DC Scale gets
+							reprogrammed, since the power AMP reacts 'relatively slow', the voltage
+							change happens slowly and the current clamp has enough time to limit the
+							current.</li>
+					</ul></li>
+			</ul></section>
+		<section class="section"><h2>DC Scale example code of IFVM with precharging</h2><p>Below is a sample
+				code extract from a PMIC BUCK test which requires sinking 100mA to 500mA current
+				with 1mA steps to find the device current limitation point.</p>
+			<ol>
+				<li>Precharching:<p>Check that the device is alive. If not:</p><ol type="a">
+						<li>Choose <span class="uicontrol">Options</span></li>
+						<li>Modify the precharge voltage/ clamp voltage</li>
+					</ol><pre class="prettyprint linenums copyable">SPMU_TASK spmuTask, spmuTask1; //no precharge ,
+spmuTask.pin(vout)
+    .preCharge(1.1 V)
+    .vClamp(0 V)
+    .iForce(101 mA)
+    .min(1 V)
+    .max (2 mV)
+    .relay(NT);
+spmuTask.preAction("NPRM").execMode(FORCE_ON).execute();</pre></li>
+				<li>Set high current<p>Now you can force the expected high
+						current</p><pre class="prettyprint linenums copyable">SPMU_TASK spmuTask1; //no precharge ,
+spmuTask1.iForce(101 mA).vClamp(0 V).min(1 V).max (2V).relay(NO);
+spmuTask1.preAction("NPRM").execMode(TM::PVAL);
+spmuTask1.setup();
+
+FOR(INT I= 101; I &lt;=500; I++)
+{
+    spmuTask1.pin(vout).iForce(I mA);
+    spmuTask1.execute();
+
+    FOR_EACH_SITE_BEGIN();
+        spmuTask.getValue(device);
+    FOR_EACH_SITE_END();
+}</pre><p>Note:
+						For the second step you must use a different <span class="keyword">PMU_TASK</span>
+						object than in step 1.</p></li>
+			</ol>
+		</section>
+		<section class="section"><h2>Conclusions</h2><p>Precharging has the purpose to make the connection of
+				an instrument to a DUT pin smoother.</p><p>Precharging can make IFVM testing more
+				effective without the need to consider the clamping voltage again, and make IFVM
+				really "active".</p><p>Typically, the tester instrument has an excellent step
+				response to keep the voltage stable in case the supply current of a device changes.
+				This contradicts the way to limit current fast. But for some highly sensitive
+				devices (especial in PMIC applications), precharging can be applied on the tester
+				side to raise it to the same level (or close to that) of the DUT so that when the
+				relay turns on, there is no significant current over-shoot.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 128054</span><script type="text/javascript">var ti='128054';var tt='Precharging Makes DC-Scale Current Forcing More Active'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

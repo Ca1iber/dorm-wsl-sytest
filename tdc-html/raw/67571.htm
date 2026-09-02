@@ -1,0 +1,90 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Device access file</title></head><body id="_67571"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 67571</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Device access file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="102365.htm" title="The syntax of the device access file follows the conventions of the MTL compiler syntax.">Device access file syntax</a></li><li><a href="124658.htm" title="MTL includes some predefined functions and macros that you can use in the :data: and :operation: columns in device access files.">Macros and functions in device accesses</a></li><li><a href="116771.htm" title="Device access can include control statements in the :instruction: columns of :apgAccess: objects.">Control instructions in device accesses</a></li></ol></div></nav>
+	
+	
+	<div><p>The device access file describes which bitstreams need to be sent to device pins to
+		execute specific operations on the device, translating logical calls to concrete waveforms. The
+		device access defined in the device access file are called from the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>.</p>
+		<div class="p"><figure class="fignone">
+				<img src="102312.png" alt="Miniature scheme of file dependencies with .dac file highlighted">
+			</figure></div>
+		<p>The device access file has the <span class="filepath" id="_67571__d7033e28">.dvac</span> file name
+			extension. It is referenced from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> with the
+				<span class="keyword">:deviceAccess:</span> keyword.</p>
+		
+		<p>In addition, device access files also declare parameters from the device
+			architecture files that are to be used in device access specifications and define constants, also
+			to be used in device access specifications.</p>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">:deviceAccess:
+{
+  :version: 1.0
+  :deviceParam:
+  {  xBits  yBits  dBits  }
+  :groups:
+  {
+    :format:
+    {  :name:     :size:  }
+    {  x_address  10      }
+    {  y_address  8       }
+    {  data       16      }
+  }
+
+  :apgAccess:
+  {
+    :name: write_access
+    :interface:
+    {  xAddr  yAddr  dataw  }
+    :table:
+    {
+      :format:
+      {  :pin:      :states:  :data:                     }
+      {  CS_        {0 1}     0                          }
+      {  OE_        {0 1}     1                          }
+      {  WE_        {0 1}     0                          }
+      {  BHE_       {0 1}     0                          }
+      {  BLE_       {0 1}     0                          }
+      {  x_address  (0 1}     xaddr(xAddr,yAddr)         }
+      {  y_address  {0 1}     yaddr(xAddr,yAddr)         }
+      {  data       {L H}     data(dataw,xAddr,yAddr)    }
+    }
+  }
+
+  :apgAccess:
+  {
+    :name:  read_access
+    :interface:
+    {  xAddr    yAddr    dataw  }
+    :table:
+    {
+      :format:
+      {  :pin:      :states:  :data:                     }
+      {  CS_        {0 1}     0                          }
+      {  OE_        {0 1}     0                          }
+      {  WE_        {0 1}     1                          }
+      {  BHE_       {0 1}     0                          }
+      {  BLE_       {0 1}     0                          }
+      {  x_address  {0 1}     xaddr(xAddr,yAddr)         }
+      {  y_address  {0 1}     yaddr(xAddr,yAddr)         }
+      {  data       {L H}     data(dataw,xAddr,yAddr)    }    
+    }
+  }
+
+  :apgAccess: 
+  {
+    :name: "NMT_Rx6"
+    :interface: { <span class="keyword">...</span> }
+    :table:
+    {
+      :format:
+      { :pin:    :states:  :data:   :operation:            } 
+      { Rx6.000  {0 1}      0       ~                      }
+      { ~        {0 1}      0       crc(NMT_Rx6_crc,6)[0]  }
+      { ~        {0 1}      0       crc(NMT_Rx6_crc,5)[0]  }
+    }
+  }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="101915.htm">MTL Configuration Files</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 67571</span><script type="text/javascript">var ti='67571';var tt='Device access file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

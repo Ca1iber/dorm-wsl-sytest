@@ -1,0 +1,58 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The standard application of the FOR_EACH_SITE block is to create a different setup for different sites within an ON_FIRST_INVOCATION block. The actual measurements are performed in parallel after closing the FOR_EACH_SITE block."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Sharing Channels Between Several Sites</title></head><body id="_78972"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 78972</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Sharing Channels Between Several Sites</h1>
+	
+	
+	<div><p>The standard application of the <kbd class="userinput">FOR_EACH_SITE</kbd> block is to create
+		a different setup for different sites within an <kbd class="userinput">ON_FIRST_INVOCATION</kbd> block.
+		The actual measurements are performed in parallel after closing the
+			<kbd class="userinput">FOR_EACH_SITE</kbd> block. </p>
+		<p>This is not possible if you associate a pin with the same channel on more than one site. For in
+			this case the setup data for the different sites are stored at the same location in the same
+			measurement sets, so that the settings for the subsequent site will overwrite those of the
+			previous one. Therefore the measurements must be executed immediately after downloading the setup
+			data. Accordingly, if the setups of the sites that share a channel are different, and if you
+			still want to execute the measurement inside an <kbd class="userinput">ON_FIRST_INVOCATION</kbd> block,
+			then not only the download of the settings, but also the measurements based on these settings
+			must be executed within the <kbd class="userinput">FOR_EACH_SITE</kbd> block. </p>
+		<h2>Example</h2><div class="example"><p>The following code fragment gives an
+				example:</p><pre class="prettyprint linenums copyable">PPMU_MEASURE m1;
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    PPMU_SETTING s1;
+    PPMU_RELAY r1;
+    TASK_LIST t1;
+
+    s1.pin("IN1").iRange("100uA");
+    s1.pin("IN1").iForce(100 uA).min(50 mV).max(100 mV);
+
+    r1.pin("IN1").status("PPMU_ON");
+
+    m1.pin("IN1").execMode("GPF");
+
+    t1.add(s1).add(r1).add(m1);
+    t1.setup();
+
+    FOR_EACH_SITE_BEGIN();
+    {
+        DOUBLE var = rand() % 6; 
+
+        s1.pin("IN1").min(var/1000 V).max((var+1)/1000 V);
+        
+        t1.execute(); // Execute measurements within the FOR_EACH_SITE block
+    }
+    FOR_EACH_SITE_END();
+}
+ON_FIRST_INVOCATION_END();
+
+Boolean pf = m1.getPassFail();</pre><p>In
+				this example, pin IN1 is supposed to be associated with the same channel on all sites. The
+				example uses the <kbd class="userinput">rand()</kbd> function to assign different values to the
+				variable <kbd class="userinput">var</kbd> in offline mode for every repetition of the
+					<kbd class="userinput">FOR_EACH_SITE</kbd> loop. In practice, the value of the variable will usually
+				be determined by a previous measurement.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a></div><div><a href="135794.htm" title="Declares the beginning of the semi-parallel testing block that enables you to set up and execute test for the sites in semi-parallel. In the semi-parallel testing block, semi-parallel configuration and semi-parallel group will be defined. The semi-parallel groups in a semi-parallel configuration will be executed serially. While the sites in one semi-parallel group will be tested in parallel.">FOR_SEMI_PARALLEL_TEST_BEGIN</a></div><div><a href="135795.htm" title="Declares the end of the semi-parallel test block which is started by FOR_SEMI_PARALLEL_TEST_BEGIN.">FOR_SEMI_PARALLEL_TEST_END</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 78972</span><script type="text/javascript">var ti='78972';var tt='Sharing Channels Between Several Sites'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

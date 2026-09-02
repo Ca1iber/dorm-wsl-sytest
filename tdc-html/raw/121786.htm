@@ -1,0 +1,53 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When the sequencer program of a pattern (label) contains vector generating instructions (GENV, RPTV), these instructions are carried out on all pins of the label port. The DC/DC power units of the waveforms that are to be applied successively to one of these pins are stored in a segment of its vector area. The waveform DC/DC power units are downloaded from the vector setup file with the VECD or VECC firmware commands."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Missing vector data and migration from 6.5 to 7.x</title></head><body id="_121786"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121786</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Missing vector data and migration from 6.5 to 7.x</h1>
+	
+	
+	<div><p>When the sequencer program of a pattern (label) contains vector generating instructions
+			(<span class="keyword">GENV</span>, <span class="keyword">RPTV</span>), these instructions are carried out on
+			<em>all</em> pins of the label port. The DC/DC power units of the waveforms that are to be applied
+		successively to one of these pins are stored in a segment of its vector area. The waveform DC/DC power units
+		are downloaded from the vector setup file with the <span class="keyword">VECD</span> or
+			<span class="keyword">VECC</span> firmware commands. </p>
+		<p>SmarTest issues an error message if no complete vector data is present for a pattern on
+				<em>any</em> pin of the pattern port. It also always issues a warning if the specified vector data
+			is incomplete on some pin (even if complete vector data exists on all the remaining pins).</p>
+		<div class="note"><span class="title">Note</span> SmarTest also issues a warning in the converse case, that is, if vector data
+			exists for a pin that is not included in the pattern port. This can happen, for example, with the
+			pattern files of a vector setup that is based on a pattern master file, because each of these
+			pattern files contains only one pattern. </div><p>But if complete vector data is defined for a pattern on one or more pins of the pattern port,
+			and <em>no vector data at all</em> for the remaining pins, SmarTest assumes that this omission is
+			deliberate and accepts the setup. However, to make use of this behavior is not recommended for
+			the following reasons:</p>
+		<p>If no vector data exists for a pattern on some pin, then the actual content of its label
+			specific vector area segment will depend on the history of the current SmarTest session, that is,
+			it will be basically undetermined. But the vector generating instructions will still assume that
+			this segment contains the DC/DC power units of the waveforms that they are to generate, and act on this
+			information. Therefore, the waveform sequence for this pin will also be undetermined. </p>
+		<p>In particular, the fact that you did not download vector data for a pin does not ensure that
+			nothing will be done on it. The content of the vector area can be such that when interpreted as a
+			sequence of waveform DC/DC power units, it actually points to waveforms that are defined in the primary
+			wavetable. If this is the case, the test can easily be adulterated.</p>
+		<p>This problem is aggravated when you load a 6.5 setup with incomplete vector data into a
+				7.<em>x</em> release. As long as you use the 6.5 software to load such a setup, and the session
+			history before the actual loading is always the same, the complication described above may be
+			avoided, if only accidentally. But with release 7.0, the vector area layout has fundamentally
+			changed (see <em><a href="114507.htm" title="In previous releases of SmarTest, every pin has one vector area which contains the physical waveform DC/DC power units for the patterns (labels) of all ports to which the pin belongs. Starting from release 7.0, every port has its own port specific vector area on every pin that belongs to it. Accordingly, the addresses of the STVA instructions, which specify the start of the vectors for the respective pattern, refer to the specific area of the respective pattern port. One advantage of these port specific vector areas is that the memory can be used much more efficiently when different ports have a pin in common.">From global to port specific vector areas: Migration and compatibility</a></em>). Therefore the locations of the vector areas in the
+			memory may be different in these two releases. But then the vector area content of a pin for
+			which no vector data is downloaded may also differ on release 7.<em>x</em> as compared with release
+			6.5. </p>
+		
+		<p>The appropriate way to exclude certain pins from the vector setup is to utilize SmarTest's
+			multi-port feature as follows:</p>
+		<ul>
+			<li>Put the idle pins, for which no vector data is to be downloaded, into a separate port. </li>
+			<li>Create a multiport timing specification that includes a timing setup for this port.</li>
+			<li>Create a multiport burst that does not include this port. </li>
+		</ul>
+		<p>When a test is executed with this timing specification and multiport burst, the sequencers of
+			the idle pins will be started, but then will immediately pass into the <span class="keyword">BREAK</span>
+			state and feed the pins with break vectors until the end of the test. For more information see
+					<em><a href="119902.htm" title="Usually, both the timing and the vector ports of a multi-port setup will include all configured pins. But it is also possible to work with incomplete setups, where either the timing ports or the vector ports or both do not cover all pins. Note, however, that some combinations must be used with care.">Incomplete multi-port setups</a></em>.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121786</span><script type="text/javascript">var ti='121786';var tt='Missing vector data and migration from 6.5 to 7.x'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

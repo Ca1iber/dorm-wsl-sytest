@@ -1,0 +1,156 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Combines multiple smart vector commands into one burst label. The commands are surrounded by burstLabel().begin()/burstLabel().end()."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>burstLabel()</title><meta name="keywords" content="pattern vector label, burst, Label"></head><body id="_149059"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149059</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">burstLabel()</h1>
+	
+	
+	<div><p>Combines multiple smart vector commands into one burst label. The commands are
+		surrounded by <span class="keyword">burstLabel().begin()/burstLabel().end()</span>.</p>
+		<section class="section">
+			<p>The usage of <span class="keyword">burstlabel()</span> converts several single labels to one common
+				label. Thus the granularity of pass/fail results is limited to the common burstlabel.</p>
+			<p>Accordingly the commands <span class="keyword">expectBit()</span>, <span class="keyword">expectData()</span>, and
+					<span class="keyword">enPassFail()</span> cannot be used with an <span class="keyword">id (smartVec(id))</span>
+				inside <span class="keyword">burstlabel()</span>.</p>
+			<p>To insert compare vectors, use <span class="keyword">writeVec()</span>, <span class="keyword">fillVec()</span>,
+				and <span class="keyword">writePat()</span>.</p><p>This command can also work together with <code>enPassFail()</code> to specify that
+				the burst label requires pass/fail results. See Example 3.</p>
+			<div class="p"><span class="keyword">burstLabel</span> creates a label only with its specified name. Do not use <a href="149143.htm" title="Specifies the name of the generated label. By default, SmartRDI will assign a label name based on the content.">labelName()</a> inside the
+					<span class="keyword">burstLabel().begin()/burstLabel().end()</span> block. Using a <a href="149143.htm" title="Specifies the name of the generated label. By default, SmartRDI will assign a label name based on the content.">labelName()</a> command inside the block can have some side effects, for example, pass/fail
+				retrieval does not work.<div class="note"><span class="title">Note</span> Do not put
+						<span class="keyword">rdi.smartVec().burstUpload().begin()</span>/<span class="keyword">rdi.smartVec().burstUpload().end()</span>
+					inside an <span class="keyword">rdi.burstLabel().begin()</span>/<span class="keyword">rdi.burstLabel().end()</span>
+					block because <span class="keyword">burstLabel()</span> already uploads all the results in the <a href="149060.htm" title="If you have multiple smartVec read commands for the same pins, burstUpload will help to reduce the result uploading time. The results of multiple smartVec read commands within one burstUpload().begin()/burstUpload().end() block will be combined and uploaded together.">burstUpload</a> mode.</div></div></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">burstLabel(const string &amp;labelName);
+burstLabel(const string &amp;labelName,TA::MD5_OPTION);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149059__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149059__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149059__entry__1"><p><span class="keyword">labelName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149059__entry__2"><p>The specified name of the big label.</p>
+								<p>The label name can be as long as 128 characters at maximum. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149059__entry__1"><p><span class="keyword">TA::MD5_OPTION</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149059__entry__2"><p>The option which defines to use an MD5 postfix string or not in the label name.</p>
+							</td>
+						</tr>
+					</tbody></table><table><caption><span>List of available options of parameter: <span class="keyword">&lt;TA::MD5_OPTION&gt;</span></span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_149059__entry__7"><p>Option</p>
+							</th>
+							<th class="colsep-1" id="_149059__entry__8"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_149059__entry__7"><p><span class="keyword">TA::MD5_ON</span></p>
+							</td>
+							<td class="colsep-1" headers="_149059__entry__8"><p>With an MD5 postfix string in the label name. This is the default value. </p>
+								<p>With MD5_ON, the maximum length of a valid "targetLabelName" in the generated pattern
+									name is 74.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_149059__entry__7"><p><span class="keyword">TA::MD5_OFF</span></p>
+							</td>
+							<td class="colsep-1" headers="_149059__entry__8"><p>Withou an MD5 postfix string in the label name.</p>
+								<p>With <span class="keyword">MD5_OFF</span>, the maximum length of a valid "targetLabelName" in the
+									generated pattern name is 111.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">...
+RDI_BEGIN();
+  rdi.smartVec().burstLabel("burstlabel").begin();
+    rdi.smartVec().pin("DATA1").writeVec("01",2).execute(); 
+    rdi.smartVec().pin("DATA3").fillBit(1,8,4).execute();
+    rdi.smartVec().pin("DATA7").writeData(0x54,8,4).execute();
+  rdi.smartVec().burstLabel().end();
+RDI_END();
+
+// Allow repeat() and wait() in burstLabel() in SmartRDI 2.3.1 
+RDI_BEGIN();
+  rdi.smartVec().burstLabel("burstlabel").begin();
+    rdi.smartVec().pin("DATA1").writeVec("01",2).repeat(2).execute();
+    rdi.wait(1 ms);
+    rdi.smartVec().pin("DATA3").fillBit(1,8,4).repeat(3).execute();
+    rdi.wait(1 ms);
+    rdi.smartVec().pin("DATA7").writeData(0x54,8,4).repeat(4).execute();
+  rdi.smartVec().burstLabel().end();
+RDI_END();
+
+// Allow to get the Pass-Fail result with burstLabel() in SmartRDI 2.3.1
+RDI_BEGIN();
+  rdi.smartVec("pf_result").burstLabel("burstlabel").enPassFail().begin();
+    rdi.wait(1 ms);
+    rdi.smartVec().pin("DATA3"). writeData(0x54,8,4)
+                  .pin("DATA4"). expectData(0x54,8,4)
+                  .repeat(3).execute();
+    rdi.wait(1 ms);
+rdi.smartVec().pin("DATA5"). writeData(0x55,8,24)
+                  .pin("DATA6"). expectData(0x55,8,24)
+                  .repeat(3).execute();
+    rdi.smartVec().burstLabel().end();
+RDI_END();
+...
+int passfail_result=rdi.id("pf_result").getPassFail();</pre><div class="note"><span class="title">Note</span> The resulting "big pattern" is automatically reusable. If the content is changed,
+				the postfix of the pattern name will be changed and a new pattern will be created. If the
+				content is not changed, SmartRDI will reuse the existing pattern. An <span class="keyword">md5</span>
+				postfix string will be added to the created label. </div></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">burstLabel("abc")              // The default is with an MD5 postfix
+burstLabel("abc",TA::MD5_ON)   // With an MD5 postfix
+burstLabel("abc",TA::MD5_OFF)  // Without an MD5 postfix</pre><div class="note"><span class="title">Note</span> In case that the MD5 postfix option is OFF, make sure that if the content is
+				different, the label name must be different.</div></div>
+		<div class="example"><h3>Example
+			3</h3><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  ...
+  rdi.smartVec("pf").burstLabel("abc").enPassFail().begin();
+    rdi.smartVec()...
+    ...
+  rdi.smartVec().burstLabel().end();
+  ...
+RDI_END();
+
+Rdi.id("pf").getPassFail();</pre></div>
+		<div class="example"><h3>Example 4</h3><p>Since SmartRDI 2.4.4, the combination of run-time accesses for
+				the VTT mode within a <code>burstLabel().begin()</code>/<code>burstLabel().end()</code>
+				block is
+				supported.</p><pre class="prettyprint linenums copyable">rdi.smartVec().vecEditMode(TA::VTT); 
+rdi.runTimeVal("rtData",rtData);
+
+RDI_BEGIN();
+  rdi.smartVec().burstLabel("abc").begin();
+  for(int k=0;k&lt;64;k++)  // 64 vector segments to edit in run time
+  {
+    rdi.smartVec().pin("DATA1").writeData("rtData",16,0).vecLength(160).execute();
+  }
+  rdi.smartVec().burstLabel().end();
+RDI_END();</pre><p>There
+				should be no instructions like <span class="keyword">MACT</span>, <span class="keyword">RPTV</span>,
+					<span class="keyword">JSUB</span> inside the burst label.</p></div>
+		<div class="example"><h3>Example 5</h3><p>Before SmartRDI 2.4.5, the
+					<code>rdi.smartVec().burstLabel().begin()/rdi.smartVec().burstLabel().end()</code> block
+				can only be used for a single port.</p><p>SmartRDI 2.4.5 supports the combination of multiple
+				parallel <code>execute()</code> commands for specified ports by
+					<code>rdi.port().smartVec().burstLabel()</code>. It also supports the combined usage with
+					<code>portSync()</code>. See example below.</p><div class="p"><figure class="fignone">
+					<img src="153089.png" alt="burstLabel()_for_ports_with_portSync()">
+				</figure></div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149036.htm" title="The SmartRDI Vector class supports the generation of vector and patterns with simple commands. It provides an easy way to read digital outputs of a device.">SmartRDI: Vector and protocol programming</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li><li>SmartRDI 2.3.2: repeat() and wait() inside the
+						burstLabel().begin()/burstLabel().end() block.</li><li>SmartRDI 2.4.0: A label name with or without an MD5 postfix option.</li><li>SmartRDI 2.4.2: enPassFail() in the command line with
+						burstLable().</li><li>SmartRDI 2.4.4: Supports the combination of run-time accesses for the VTT mode within a
+					burstLabel().begin()/burstLabel().end() block.</li><li>SmartRDI 2.4.5: burstLabel() supports multiple ports, and can be used in combination with
+					portSync(). </li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149059</span><script type="text/javascript">var ti='149059';var tt='burstLabel()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

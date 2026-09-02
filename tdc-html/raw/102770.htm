@@ -1,0 +1,76 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="MTL supports the if statement and the conditional operator (: ?) for conditional execution of code."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Conditional execution</title></head><body id="_102770"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102770</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Conditional execution</h1>
+	
+	
+	<div><p>MTL supports the <span class="keyword">if</span> statement and <a href="101459.htm" title="The MTL compiler supports most of the operators available in C. There are, however, some restrictions as to their usage.">the
+			conditional operator (: ?)</a> for conditional execution of code.</p>
+		<section class="section"><p>The <span class="keyword">if</span> statement used in MTL is similar to the standard C,
+				supporting the <span class="keyword">else</span> and <span class="keyword">else if</span> options, but it also has
+				some limitations:</p><ul>
+				<li>The condition part in an <span class="keyword">if</span> statement cannot be changed during executing
+					MTL programs. That is:<ul>
+						<li>When the <span class="keyword">if</span> statement is used outside any loop, there is no
+							limitation.</li>
+						<li>When the <span class="keyword">if</span> statement is used in a loop, the condition part cannot
+							contain any loop variable or any variable that will be changed in the loop (including its
+							outer and inner loops).</li>
+					</ul></li>
+				<li>Only the MTL supported operators can be used with the <span class="keyword">if</span> statement.<p>For
+						those operators, see <a href="101459.htm" title="The MTL compiler supports most of the operators available in C. There are, however, some restrictions as to their usage.">Operators</a>.</p></li>
+			</ul><p>To learn the conditional operator (<span class="keyword">: ?</span>), see <a href="101459.htm" title="The MTL compiler supports most of the operators available in C. There are, however, some restrictions as to their usage.">Operators</a>.
+				The significant difference between this operator and the <span class="keyword">if</span> statement is that
+				this operator supports the usage of loop variables in it. See the example in the following
+				section.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>This example demonstrates permitted and non-permitted uses of
+				the <span class="keyword">if</span> statement. See the program comments for
+			details.</p><pre class="prettyprint linenums copyable">v1 = 1;
+v2 = 2;
+v3 = 3;
+for (x=0; x&lt;100; x += 1)
+{
+  if (x &lt; 3) {NOP();}      # Incorrect: x is the loop variable
+  v1 += 2;
+  if (v1 &gt; 100) {NOP();}   # Incorrect: v1 changes within the loop
+  if (v3 &lt; 5) {NOP();}     # Incorrect: v3 changes within the inner loop (below)
+  if (v2 == 1) {NOP();}    # OK
+  for (y = 0; y &lt; 32; y += 2)
+  {
+    v3 += 3;
+    if (x &lt; 4) {NOP();}    # Incorrect: x is the loop variable of the outer loop
+    if (v1 &gt; 100) {NOP();} # Incorrect: v1 changes in the outer loop
+    if (v2 == 1) {NOP();}  # OK
+  }
+}
+if (v1 &lt; 50) {NOP();}      # OK: v1 is used outside of any loop</pre></div>
+		<div class="example"><h3>Example 2</h3><p>When 'if' statements in subroutines, the <span class="keyword">if</span>
+				statement still have the same the limitations. For
+			example:</p><pre class="prettyprint linenums copyable">sub(var)
+{
+  if (var &gt; 0) {NOP();}
+}
+
+main()
+{
+  v1 = 1;
+  for (x=0; x&lt;100; x +=1)
+  {
+    sub(x);  # Incorrect: x is the loop variable and is
+             # used in an if statement in the subroutine
+    sub(v1); # Correct: v1 does not change in the loop
+  }
+}</pre></div>
+		<div class="example"><h3>Example 3</h3><p>This example shows using the conditional operator (<span class="keyword">:
+					?</span>) with loop variables to develop a diagonal-like
+			pattern.</p><pre class="prettyprint linenums copyable">for(y=yStart;y&lt;yStop;y++)
+{
+  for(x=xStart; x &lt; xStop; x++)
+    {
+      data = (x==y) ? 0:1;
+      write(data);
+    }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 2.4.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102770</span><script type="text/javascript">var ti='102770';var tt='Conditional execution'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

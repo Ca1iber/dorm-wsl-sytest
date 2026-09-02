@@ -1,0 +1,61 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Continuous Clock Applications</title></head><body id="_105697"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105697</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Continuous Clock Applications</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="79315.htm" title="The multi-port setup allows you to de-couple ports (pins), so that you can, for example, reload primary sets (CTOF sequence) to selectively change the timing of data, of control pins belonging to a particular port (or ports), while allowing the continuous execution of clocking signals in a different port and sequencing group.">Continuous Clock Setup</a></li><li><a href="110012.htm" title="The value of the multi-port setup is the added capability of the continuous execution of multiple clocks with different time periods, and almost any relationship to each other, between data sequencer executions.">Multiple Continuous Clocks</a></li><li><a href="55393.htm" title="When the timing or the levels have to be re-programmed, the driver is set to a static level for the time needed for reprogramming. During this time it does not send any user or break vectors to the device.">CTOF Sequences</a></li><li><a href="109878.htm">Use of the FTCG (Functional Test ConfiGure) Command</a></li><li><a href="55396.htm">Phase Synchronization</a></li><li><a href="55382.htm" title="In a continuous clock setup, the clock port and the data port are in different sequencing groups. So you can have a match loop in the data port pattern and no match loop on the clock pin, where match loops do not make sense.">Match Loops in the Data Port</a></li></ol></div></nav>
+	
+	<div>
+		<p>For some tests, it is necessary to be able to keep a continuous clock signal applied to the DUT
+			for the duration of several tests or testsuites.</p>
+		<p>The reason for this, is to keep the PLL or DLL in the DUT locked, so that the timing
+			relationship between the DUT and the tester does not change between tests. If this is not
+			possible non-deterministic results may occur.</p>
+		<p>A continuous clock setup could take one of the following two scenarios.</p>
+		<section class="section"><h2>You do not need to change the data timing during a test</h2><p>Here, you
+				require a continuous clock signal for the whole testflow, for example, and you do not need to
+				change the timing of the data port during execution of the testflow.</p><p>You can set this up
+				conveniently using the ASCII Interface by using the KEEP_PLL_ALIVE feature in the ASCII Device
+				Cycle Timing Source (dvc) file to configure a certain type of multi-port specification for the
+				clock port and the data ports automatically (see the section, dvc File Support of the Continuous
+				Clock (page 137).</p><p>In this case, the clock and vector pins will automatically be put into
+					<strong>different timing ports</strong> but they will continue to share the <strong>same vector
+				port</strong>.</p><p>Note: Because the vector port is shared, it is not possible to change the timing
+				of the data pins within an individual test without interrupting the clock. It is, however,
+				possible to change the data timing from one testsuite to another within a testflow and still
+				retain the continuous clock.</p></section>
+		<section class="section"><h2>You do need to change the data timing during a test</h2><p>In this case, you
+				need a <strong>multi-port setup</strong> because you cannot use the KEEP_PLL_ALIVE option in the ASCII
+				Device Cycle Timing Source (dvc) file as you need <strong>separate timing and vector ports </strong>for
+				the clock and data pins.</p><p>Normally, when a change of the timing and level primary sets is
+				reloaded, a CTOF (Change Timing On the Fly) sequence is applied. During a CTOF sequence the
+				driver is set to "hold" for a certain period of time. This interrupts the clock and data
+				signals.</p><p>Multi-port settings, however, allow the continuous operation of multiple PLLs at
+				their associated frequencies through the definition of separate ports for the clock and data
+				signals. </p><p>A simple multi-port setup allows you to change the primary set in the data pins
+				only, while not interrupting the clock signal by using different ports for data and
+				clock.</p><p>This is illustrated in the following figure</p><div class="p"><figure class="fignone">
+					
+					<img src="110010.gif" alt="Using a Multi-port Setup for Continuous Clock">
+				</figure></div><p>This way you can keep the clock running when stepping from test suite to test
+				suite. This also reduces test time related to reset and re-synch operation, often required in
+				multiple clock domain devices.</p><div class="p"><figure class="fignone">
+					
+					<img src="55575.png" alt="Continuous Clock Setup">
+				</figure></div><p>Furthermore, phase and sequencer synchronization capabilities across multiple clock
+				domains allow uninterrupted clock operation and alignment to data buses when required (see
+						<em><a href="55396.htm">Phase Synchronization</a></em>).</p><p>For synchronisation of user vectors of ports that belong
+				to different sequencing groups, SmarTest features two firmware commands, SQRP and SQBV.</p><ul>
+				<li>SQRP specifies the so-called reference port for SQBV. This is the port on which primary
+					activation takes place.</li>
+				<li>SQBV issues a specific number of break vectors on a port at the beginning of each label. The
+					actual offset to be compensated for depends on the type of primary activation taking place and
+					other boundary conditions such as the periods of the ports and the number of ports.</li>
+			</ul><p>Primary activation is automatically optimized on all ports, which means that primaries
+				are only activated if the requested primaries are not active yet on the particular ports.
+				</p><p>For
+				more information on this see <em><a href="98745.htm" title="The SQBV command serves to synchronize the user vectors of ports that belong to different sequencing groups. It can insert break vectors at runtime at two places into all patterns of a specified port, namely:">SQBV, SQBV? - (SeQuencer Break Vector insertion)</a> and the application note "RX-TX Port
+					Alignment on SmarTest 5.3".</em></p><div class="note"><span class="title">Note</span> To set up a continuous clock, you need to
+				execute the firmware command <strong>FTCG SKPR, ON, (port)</strong> to ensure that the clock will run
+				across functional tests. For more detail on using the FTCG command, see the <em><a href="98606.htm" title="The FTCG command serves to change the system behavior with respect to the activation of primary sets.">FTCG, FTCG? - (Functional Test ConfiGure)</a></em>.</div><p>The next section (<em><a href="79315.htm" title="The multi-port setup allows you to de-couple ports (pins), so that you can, for example, reload primary sets (CTOF sequence) to selectively change the timing of data, of control pins belonging to a particular port (or ports), while allowing the continuous execution of clocking signals in a different port and sequencing group.">Continuous Clock Setup</a></em><em>)</em>
+				explains setting this up in more detail.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105697</span><script type="text/javascript">var ti='105697';var tt='Continuous Clock Applications'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

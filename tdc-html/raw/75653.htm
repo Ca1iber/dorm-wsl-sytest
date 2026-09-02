@@ -1,0 +1,96 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If a testflow containing several DC tests is to be executed in a loop, and the measurement parameters are to be downloaded only once, these parameters must be stored at different locations in order that the parameters of all tests are available for the second and all subsequent testflow repetitions. Most DC test API's achieve this by creating a new DC set for every additional test. But some PPMU API's use the DC sets more economically, as will now be explained."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using DC Sets Economically: DC Sets and Measurement Sets</title></head><body id="_75653"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 75653</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using DC Sets Economically: DC Sets and Measurement Sets</h1>
+	
+	
+	<div><p>If a testflow containing several DC tests is to be executed in a loop, and the
+		measurement parameters are to be downloaded only once, these parameters must be stored at
+		different locations in order that the parameters of all tests are available for the second and all
+		subsequent testflow repetitions. Most DC test API's achieve this by creating a new DC set for
+		every additional test. But some PPMU API's use the DC sets more economically, as will now be
+		explained. </p>
+		<p>The totality of the PPMU test settings can be divided into four groups whose definition can be
+			assigned to different tasks. These subsets are </p>
+		<ul>
+			<li>Setting up the measurement parameters (for example, measurement type, limits for
+				judgment),</li>
+			<li>Controlling the relays,</li>
+			<li>Defining the result type (for example, global PASS/FAIL or value)</li>
+			<li>Controlling the voltage clamp circuit of the PPMU (only required for Pin Scale systems)</li>
+		</ul>
+		<p>The DC task API's </p>
+		<ul>
+			<li><kbd class="userinput">PPMU_SETTING</kbd></li>
+			<li><kbd class="userinput">PPMU_RELAY</kbd></li>
+			<li><kbd class="userinput">PPMU_MEASURE</kbd></li>
+			<li><kbd class="userinput">PPMU_CLAMP</kbd></li>
+		</ul>
+		<p>implement each of these tasks (in this order) as a <em>measurement set</em> within a DC set. One
+			DC set can contain up to 10 measurement sets. </p>
+		<p>The DC task API's minimize the number of required DC sets in three ways:</p>
+		<ul>
+			<li>They create a new DC set only if the set created last is full, that is, already contains 10
+				tasks. Otherwise, they put their measurement set into this already existing DC. </li>
+			<li>They take care that no duplicates are created. If the measurement set that would result from
+				their input parameters already exists in some DC set, this existing set will be used when the
+				test is executed. This holds for all PPMU tests within the testflow (not only within one test
+				method) that are defined with the specified API's.</li>
+			<li>It is possible to modify a measurement set temporarily by changing the values of an already
+				defined parameter. After execution of the modified measurement set, its original values will be
+				restored.</li>
+		</ul>
+		<p>The first two features are automatically effective. For the third, the test method must be
+			programmed appropriately. This will be explained in more detail in <em><a href="75890.htm" title="DC measurement parameters can be defined by using variables. If a testflow containing such a variable dependent DC test is repeated in a loop, then the values of the variables may be different for each testflow repetition. In this case a new DC set, or a new measurement set, would be created with each new testflow execution, and the testflow would eventually fall back on using only one DC set, as described in DC set management.">Managing DC Tests with Variable Parameters</a></em>.</p>
+		<p>In order to download and execute the measurement sets, you must define a class object of the
+				<kbd class="userinput">TASK_LIST</kbd> API, add the class objects of the DC task API's to it, and then
+			call the <kbd class="userinput">TASK_LIST</kbd> member function <kbd class="userinput">execute()</kbd>. </p>
+		<p>The following figure shows how the two DC tests of the scenario discussed in <a href="75771.htm" title="Every DC test stores its measurement parameters in a DC set, which is identified by a number. All those DC tests that (can) define a PPMU test use a common pool of DC sets, which are stored in the Sequencer Memory: if the firmware commands they issue specify the same DC set number, they refer to the same object.">DC set management</a> can share one DC set if they are defined with the DC task API's.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="75862.png" alt="Using DC Tasks to Minimize Number of DC Sets">
+			</figure></div>
+		<p>The following are two example test methods for this scenario. The method for the first test
+			could be:</p>
+		<div></div><pre class="prettyprint linenums copyable">PPMU_SETTING setting1;
+setting1.pin("p2").iRange("100 uA");
+setting1.pin("p2").vForce(1 mV).min(8 uA).max(80 uA);
+PPMU_RELAY relay1;
+relay1.pin("p2").status("PPMU_ON");
+relay1.wait(1.3 ms);
+PPMU_MEASURE measure1;
+measure1.pin("p2").execMode(TM::GPF);
+PPMU_RELAY relay2;
+relay2.pin("p2").status("PPMU_OFF");
+relay2.wait(0.3 ms);
+TASK_LIST task1;
+task1.add(setting1).add(relay1).add(measure1).add(relay2);
+task1.execute( );
+Boolean pass_fail = measure1.getPassFail();
+</pre><div></div>
+		<p>The method for the second test could look as follows:</p>
+		<div></div><pre class="prettyprint linenums copyable">PPMU_SETTING settingA;
+settingA.pin("p2").iRange("100 uA");
+settingA.pin("p2").iForce(10 uA).min(50 mV).max(100 mV);
+PPMU_CLAMP clampA;
+clampA.pin("p2").status("CLAMP_ON").
+low(30 mV).high(120 mV);
+PPMU_RELAY relayA;
+relayA.pin("p2").status("PPMU_ON");
+relayA.wait(1.3 ms);
+PPMU_CLAMP clampB;
+clampB.pin("p2").status("CLAMP_OFF");
+PPMU_MEASURE measureA;
+measureA.pin("p2").execMode(TM::GPF);
+PPMU_RELAY relayB;
+relayB.pin("p2").status("PPMU_OFF");
+relayB.wait(0.3 ms);
+TASK_LIST taskA;
+taskA.add(settingA).add(clampA).add(relayA).add(clampB).add(measureA).add(relayB);
+taskA.execute( );
+Boolean pass_fail = measureA.getPassFail();</pre><div></div>
+		<p>If these two methods are executed within one testflow, then only one measurement set will be
+			created for the task objects <kbd class="userinput">relay1</kbd> and <kbd class="userinput">relayA</kbd>, and
+			also for <kbd class="userinput">relay2</kbd> and <kbd class="userinput">relayB</kbd>.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 75653</span><script type="text/javascript">var ti='75653';var tt='Using DC Sets Economically: DC Sets and Measurement Sets'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

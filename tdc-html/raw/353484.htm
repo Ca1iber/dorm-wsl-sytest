@@ -1,0 +1,232 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Virtual pins are used to log test results against pins that are not directly connected by a pogo."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Virtual pins</title></head><body id="_353484"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 353484</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Virtual pins</h1>
+	
+	
+	<div><p>Virtual pins are used to log test results against pins that are not directly connected
+		by a pogo.</p>
+		<section class="section"><h2>What are virtual pins</h2>
+			
+			<p>A virtual pin is an arbitrary pin name without an associated pogo number. It represents a pin
+				that exists within the device itself rather than being a hard connection to the device through a
+				pogo. A virtual pin is represented as an alphabetical string up to 64 characters in length. When
+				virtual pins are defined in the system they are logged, together with all other defined pin
+				types, in the configuration change event of the data log. The configuration change event is
+				written at the beginning of the data log file when a pin configuration is loaded to the system.
+				As with other pin types, the virtual pins in the configuration change event are each given a
+				unique index, which is then referenced from test results that are generated during a subsequent
+				device test. </p>
+			<p id="_353484__APIs">Using the virtual pin feature you can log test results from the <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a>, <a href="127827.htm" title="Performs a pass/fail judgment of a parametric test and logs the results.">TESTSET().judgeAndLog_ParametricTest()</a> and <a href="127873.htm" title="This member function of TESTSET performs a pass/fail judgment of the scan test results specified by a SCAN_TEST_RESULT object and logs the results.">TESTSET().judgeAndLog_ScanTest()</a> APIs using the virtual pin names you have
+				defined.</p>
+			<p>On loading a pin configuration file, the following information is listed:</p>
+			<ul>
+				<li>All pins</li>
+				<li>All groups</li>
+				<li>All virtual pins under the <span class="uicontrol">Virtual Pin</span> section<p><img src="353519.png" alt="Pins in the Test Program Explorer"></p></li>
+			</ul>
+			
+		</section>
+		<section class="section"><h2>How to setup virtual pins</h2><p>Virtual pins are defined in the pin
+				configuration and can be added to the pin configuration file (firmware) directly or by using the
+				Pin Configuration view: </p><p><code>VPIN (&lt;Virtual Pin Names&gt;)</code></p>To return
+			virtual pin names, apply the following query: <p><code>VPIN? ([&lt;Virtual Pin Names&gt; | "@"
+					])</code></p><p>In the VPIN query, specify a virtual pin name or the <span class="keyword">@</span>
+				mark, that includes all pins. </p><p>You can also simultaneously define multiple virtual pins.
+				The query returns a comma separated list of virtual
+				pins:</p><pre class="prettyprint linenums copyable">Task&gt; VPIN (V1) 
+Task&gt; VPIN (V2,V3) 
+Task&gt; VPIN? (@) 
+VPIN (V1,V2,V3) </pre><p>For
+				example, for pins:</p><div class="p">
+				<div></div><pre class="prettyprint linenums copyable">VPIN (MO_LO_TXOP_BGA) 
+VPIN (MO_L1_TXOP)</pre><div></div>
+			</div><p><kbd class="userinput">VPIN? (@)</kbd> returns:</p><div class="p">
+				<div></div><pre class="prettyprint copyable singleline">VPIN (MO_LO_TXOP_BGA,MO_L1_TXOP)</pre><div></div>
+			</div><p>If the pin name is specified but it does not exist, no data is returned and no message or
+				error is reported.</p><p>Virtual pins can be added to the pin configuration file and edited
+				using the Pin Configuration view. </p><p><img src="353520.png" alt="Virtual pins view"></p><div class="p">
+				<div class="note"><span class="title">Note</span> Editing a pin, virtual or real, invalidates the setup.</div>
+			</div><p>You can export and import virtual pins to and from CSV files. </p><div class="p">
+				<div class="note"><span class="title">Note</span> Virtual pins are not included in pin groups. </div>
+			</div></section>
+		<h2>Examples</h2><div class="example"><h3>Using virtual pins in test methods with judgeAndLog_ParametricTest.</h3>
+			
+			<p>The following example illustrates how virtual pins are used in a test method using
+					<span class="keyword">judgeAndLog_ParametricTest()</span>.</p>
+			<p><code>VP0001</code> and <code>VP2000</code> are virtual pins.</p>
+			<div></div><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "mapi.hpp"
+
+/**
+ * Test method class.
+ *
+ * For each testsuite using this test method, one object of this
+ * class is created.
+ */
+class ExampleVirtualPinsParametricTest: public testmethod::TestMethod {
+
+protected:
+
+  /**
+   *Initialize the parameter interface to the testflow.
+   *This method is called just once after a testsuite is created.
+   */
+  virtual void initialize()
+  {
+  }
+
+  /**
+   * This method is invoked per site.
+   */
+  virtual void run()
+  {
+     string tSuiteName,ttestName;
+     GET_TESTSUITE_NAME( tSuiteName );
+     cout &lt;&lt; "\n\n------------  TestVirtualPins.cpp (" &lt;&lt; tSuiteName &lt;&lt; ")  ---------\n\n";
+
+     ARRAY_D values(2);
+     LIMIT limits;
+
+     /* Define example limits */
+     limits.low(TM::GE,11); limits.high(TM::LE,22);
+
+     /* Define example measurement values */
+     values[0]=11;
+     values[1]=22;
+
+     /* Log results against the virtual pins VP0001 and VP2000 */
+     TESTSET().judgeAndLog_ParametricTest("VP0001, VP2000", "VPIN_TEST1", limits, values);
+
+     return;
+  }
+
+  /**
+   *This function will be invoked once the specified parameter's value is changed.
+   *@param parameterIdentifier
+   */
+  virtual void postParameterChange(const string&amp; parameterIdentifier)
+  {
+    return;
+  }
+
+  /**
+   *This function will be invoked once the Select Test Method Dialog is opened.
+   */
+  virtual const string getComment() const
+  {
+    string comment = " please add your comment for this method.";
+    return comment;
+  }
+};
+REGISTER_TESTMETHOD("ExampleVirtualPinsParametricTest", ExampleVirtualPinsParametricTest);
+</pre><div></div>
+		</div>
+		<div class="example"><h3>Using virtual pins in test methods with judgeAndLog_ScanTest()</h3>
+			
+			<p>The following example illustrates how virtual pins are used in a test method using
+				<span class="keyword">judgeAndLog_ScanTest()</span>.</p>
+			<p><code>VP0001</code> and <code>VP2000</code> are virtual pins.</p>
+			<div></div><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+
+//for test method API interfaces
+#include "mapi.hpp"
+using namespace std;
+
+/**
+ * Test method class.
+ *
+ * For each testsuite using this test method, one object of this
+ * class is created.
+ */
+class TestVirtualPinsScan: public testmethod::TestMethod {
+
+protected:
+     int mSetToFail;
+     string mAlarmMsg;
+  /**
+   *Initialize the parameter interface to the testflow.
+   *This method is called just once after a testsuite is created.
+   */
+  virtual void initialize()
+  {
+    //Add your initialization code here
+    //Note: Test Method API should not be used in this method!
+  }
+
+  /**
+   *This test is invoked per site.
+   */
+  virtual void run()
+     
+  {     
+     SCAN_TEST_RESULT scanResult(TM::CYCLE_BASED_LOGGING);
+
+     scanResult.totalFailures(4);
+     scanResult.totalCyclesExecuted(64);
+
+     /*
+      * Virtual Pins, the setup provides VP0001..VP2000.
+      * The first and last of 2000 Virtual Pins are also tested.
+      */
+
+     STRING_VECTOR pins = {"VP0001","VP2000"};
+     ARRAY_CHAR expected(4);
+
+     expected[0] = 'L';
+     expected[1] = 'L';
+     expected[2] = 'H';
+     expected[3] = 'H';
+     scanResult.pin(pins[0]).expectedData(expected);
+
+     expected[0] = 'H';
+     expected[1] = 'L';
+     expected[2] = 'L';
+     expected[3] = 'H';
+     scanResult.pin(pins[1]).expectedData(expected);
+
+     ARRAY_LL cycles(4);
+
+     cycles[0] = 0;
+     cycles[1] = 0;
+     cycles[2] = 1;
+     cycles[3] = 1;
+
+     scanResult.pin(pins[0]).failingCycles(cycles); /* Exp: LLHH, Rcv: 0011 */
+     scanResult.pin(pins[1]).failingCycles(cycles); /* Exp: HLLH, Rcv: 0011 */
+
+     /**
+      * Push failures to datalog, the virtual pin names should be logged
+      * instead of "no_pin_name_given"
+      */
+     TESTSET().cont(true).judgeAndLog_ScanTest(scanResult);
+
+     return;
+  }
+
+  /**
+   *This function will be invoked once the specified parameter's value is changed.
+   *@param parameterIdentifier
+   */
+  virtual void postParameterChange(const string&amp; parameterIdentifier)
+  {
+    //Add your code
+    //Note: Test Method API should not be used in this method!
+    return;
+  }
+
+  /**
+   *This function will be invoked once the Select Test Method Dialog is opened.
+   */
+  virtual const string getComment() const
+  {
+    string comment = " please add your comment for this method.";
+    return comment;
+  }
+};
+REGISTER_TESTMETHOD("TestVirtualPinsScan", TestVirtualPinsScan);
+</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="354575.htm" title="Virtual pin names are specified using the Virtual Pins editor.">Virtual Pins editor</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 353484</span><script type="text/javascript">var ti='353484';var tt='Virtual pins'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Test methods can be used for executing test suites in a multisite setup. The multisite test suites can be executed the following ways depending on how you set the test suite / test flow flags:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multisite Programming Techniques</title><meta name="keywords" content="multi-site"></head><body id="_122749"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122749</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multisite Programming Techniques </h1>
+	
+	
+	<div><p>Test methods can be used for executing test suites in a multisite setup. The multisite
+		test suites can be executed the following ways depending on how you set the test suite / test flow
+		flags:</p>
+		<section class="section"><ul>
+				<li>Parallel</li>
+				<li>Semi-parallel</li>
+				<li>Serially</li>
+			</ul><p>This is illustrated in the figure below.</p><div class="p"><figure class="fignone">
+					
+					<img src="47481.png" alt="Serial Execution and Parallel Execution">
+				</figure></div><p>This is explained in the sections <a href="42595.htm" title="The following rules apply to multisite testing:">Processing of Test Flow
+					Blocks in a Multi-Site Setup</a> and <a href="42597.htm" title="There are two flags you can set to determine whether testsuites are run in parallel or sequentially, namely,">Setting Flags for Parallel Execution</a>.</p><p>For fastest throughput,
+				use parallel test suites where possible.</p><p>The following diagram shows the program flow of
+				the test method program optimized for parallel execution.</p><div class="p"><figure class="fignone">
+					
+					<img src="47482.png" alt="Test Method Programs for Parallel Execution">
+				</figure></div><p>When the test method program is executed for the first time, the first invocation
+				block of the test method API runs. This block performs the following:</p><ul>
+				<li>Sets up the hardware for all sites</li>
+				<li>Performs the tests in parallel for all sites together</li>
+				<li>Stores the measurement data of all sites in a cache</li>
+			</ul><p>In addition, the first run of the test method API continues beyond the end of the first
+				invocation block and retrieves the data from the cache for the <strong>first </strong>site.</p><p>The next
+				time the API is run (second invocation), it jumps over the section between
+					<code>ON_FIRST_INVOCATION_BEGIN();</code> and <code>ON_FIRST_INVOCATION_END;()</code>
+				and only retrieves the stored measurement data from the cache for site 2 (without needing to set
+				up its hardware or test it).</p><p>The program then uses this value to calculate, and judges the
+				final result for this site as pass/fail.</p><p>With each further invocation, the measurement
+				information from each of the other active sites is successively retrieved from the cache and
+				evaluated.</p><p>For details of the Result API's behavior in multi-site testing, see also <a href="42640.htm" title="In multisite testing with the first-invocation block, the Result APIs perform a unique operation for handling the measurement data of all sites.">Measurement Data Management</a>.</p><p>To implement a strategy like this you must access site information from
+				within the test method program, for example:</p><ul>
+				<li>How many sites are there?</li>
+				<li>Is this the first execution of the test method program in this test flow?</li>
+				<li>What is the site for which results have to be returned?</li>
+			</ul><p>This can be achieved using the APIs for multi-site testing.</p><p>For parallel execution
+				of setup and test (measurement) for all sites at the first execution of the program, you must
+				organize your code to be enclosed between the following two APIs:</p><ul>
+				<li><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></li>
+				<li><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></li>
+			</ul><p>These APIs enable parallel execution of all sites simultaneously. Therefore, you cannot
+				access individual site information here. This is most important for multi-site programming of
+				the test method.</p><p>To set up different data for each site see <a href="42642.htm" title="You can set up the conditions for each site independently in the first-invocation block. This setup will be performed serially for each site by repetition.">Controlling the Setup/Query-Focus Automatically</a>.
+				</p><p>Note that you can define multiple first-invocation blocks in a test method program. For
+				example, if you need two DC tests in a test method-based test suite. This is explained at the
+				end of the section <a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">Parallel Execution</a>.</p><p>The section <a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">Parallel Execution</a> also gives
+				examples of how to set up appropriate test method codes.</p><p>Other APIs for the multi-site
+				testing enable the following:</p><ul>
+				<li>Site-Specific Setup (Setup for each site independently)<ul>
+						<li>Controlling setup/query-focus states of each site <em>automatically</em></li>
+						<li>Controlling Setup-focus state of each site <em>manually</em><p>For details on site-specific
+								setup, see <a href="42641.htm" title="Different setup data can be created for each site independently. The following setup parameters are valid for site-specific setup:">Site-Specific Setup</a>.</p></li>
+					</ul></li>
+				<li>Getting the Site Numbers<ul>
+						<li>Currently-tested site number</li>
+						<li>Configured site numbers<p>For details on getting the site numbers, see <a href="42644.htm" title="Get the site number information by using the following APIs during execution of your test method program:">Getting the Site Numbers</a>.</p></li>
+					</ul></li>
+				<li>Accessing Site-Specific Flags and User Variables<p>For details on accessing site-specific
+						flags and user variables, see <a href="42645.htm" title="SmarTest supports site-specific flags (data logging, testflow, and Test suite flags) and user variables (user flag, double, and string) for multisite testing. Hence, you can access the flags and user variables for each site in your program.">Accessing Site-Specific Flags and User Variables</a>.</p></li>
+			</ul><p>For more information on writing and setting up test method APIs see the manual, <a href="105426.htm">Test Method Reference</a>.</p><p>The figure below shows the behavior of program execution in parallel
+				execution.</p><div class="p"><figure class="fignone">
+					
+					<img src="47488.png" alt="Behavior of Program Execution">
+				</figure></div><p>In multi-site testing, the system generates the setup conditions for additional
+				sites based on the primary setups, and they are downloaded automatically. </p><p>If you modify
+				any condition of the setup data in the first-invocation block, the condition data for all sites
+				will be overridden as well, and then activated.</p><p>However, if you wish to use different
+				setup data for different sites, see <a href="42642.htm" title="You can set up the conditions for each site independently in the first-invocation block. This setup will be performed serially for each site by repetition.">Controlling the Setup/Query-Focus Automatically</a>.</p><p>The primary setups are
+				activated for all sites when the following APIs are executed in the first-invocation block. </p><ul>
+				<li><a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST()</a></li>
+				<li><a href="29780.htm" title="Starts the digital sequencer at the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution goes to the next statement.">START_TEST()</a></li>
+				<li><a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST()</a></li>
+				<li><a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNCTIONAL_TEST()</a></li>
+			</ul><p>The following APIs will become obsolete soon:</p><ul>
+				<li><a href="29753.htm" title="The SPEC_SEARCH API executes a spec search test, and accesses the data container holding the conditions of the spec search test. Before the test, this API activates the digital primaries specified in the Testsuite dialog. To activate the digital primaries that are changed with the PRIMARY_STATUS API, put the FLUSH API prior to the SPEC_SEARCH API.">SPEC_SEARCH</a>(<em>specName</em>, <em>specType</em>).execute() <ul>
+						<li>Replace this with the API: <a href="71349.htm" title="The SEARCH_FUNC_TASK API holds search conditions for one or more pins and sites, and executes these searches in parallel. The API can also be used to retrieve the search results.">SEARCH_FUNC_TASK</a></li>
+					</ul></li>
+				<li><a href="28775.htm" title="The DPS_VFIM API accesses a data container for creating, executing a DC set for current measurement with DPS, and retrieving the test results. DC set is a set of measurement conditions for DC measurement.">DPS_VFIM</a>(pi<em>n</em>).execute()<ul>
+						<li>This is not supported for DC Scale cards, use <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> instead</li>
+					</ul></li>
+			</ul><p>Note that any modification of the setup condition <em>outside </em>the first-invocation
+				block is also valid for all sites. </p><p>However, the modification is executed sequentially
+				each time the program is executed for all sites. That is, all it does is slow down the execution
+				of the testmethod-based testsuite.</p></section>
+		<h2>Example</h2><div class="example"><p>The following is an example of a parallel multisite test method using only the first
+				invocation block.</p><div class="p"><figure class="fignone">
+					
+					<img src="123181.png" alt="Example of a Parallel Multisite Test Method">
+				</figure></div><p>In multi-site testing, the test method program can perform the following actions
+				for all sites in parallel:</p><ul>
+				<li>Set up hardware</li>
+				<li>Execute test</li>
+			</ul></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42638.htm" title="As in a normal setup, test methods can also be used for executing test suites in a multisite setup.">MS Test Method Programming Overview</a></div><div><a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">Parallel Execution</a></div><div><a href="119982.htm" title="The following figure shows a combination of an RF/MX-Signal Test and a digital test in a semi-parallel setup.">Semi-parallel execution</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122749</span><script type="text/javascript">var ti='122749';var tt='Multisite Programming Techniques'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

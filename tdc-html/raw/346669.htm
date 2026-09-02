@@ -1,0 +1,130 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In the test block level, FOR_SEMI_PARALLEL_TEST_BEGIN(SEMI_PARALLEL_CONFIG) provides the flow logic."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Test block level</title></head><body id="_346669"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 346669</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Test block level</h1>
+	
+	
+	<div><p>In the test block level, FOR_SEMI_PARALLEL_TEST_BEGIN(SEMI_PARALLEL_CONFIG) provides the
+		flow logic. </p>
+		<section class="section">
+			<p>Before using <span class="keyword">FOR_SEMI_PARALLEL_TEST_BEGIN(SEMI_PARALLEL_CONFIG)</span> in your
+				code, you must have selected the <span class="uicontrol">Allow Parallel</span> check-box and set
+					<span class="uicontrol">Site Control</span> to <span class="keyword">PARALLEL</span> in the <span class="uicontrol">Site
+					Control</span> of the test suite property.</p>
+		</section>
+		<section class="section"><h2>Workflow</h2>
+			
+			<p>The following code structure is an example with numbers to indicate the execution steps.</p>
+			<div></div><pre class="prettyprint linenums copyable">SEMI_PARALLEL_CONFIG semipara; 
+semipara.group(1).add(1).add(3);
+semipara.group(2).add(2).add(4);
+
+ON_FIRST_INVOCATION_BEGIN();
+  ...(1)
+
+  FOR_SEMI_PARALLEL_TEST_BEGIN(semipara);
+    if(GET_CURRENT_SEMI_PARALLEL_GROUP_NUMBER() == 1)
+       ...(2.1)
+    else
+       ...(2.2) 
+
+       ...(3) 
+  FOR_SEMI_PARALLEL_TEST_END();
+
+  ...(4)
+ON_FIRST_INVOCATION_END(); </pre><div></div>
+			<div class="note"><span class="title">Note</span> The <code>SEMI_PARALLEL_CONFIG</code> setup for specific test actions
+				cannot be changed dynamically between multiple executions.</div>
+			<p>The following figure shows the execution sequence of the code structure for the test block
+				level. </p>
+			<div class="p">
+				<figure class="fignone">
+					<img src="151592.png" alt="block_level_semi_para_test_execution_sequence">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>SmartRDI code structure</h2>
+			
+			<p>The following code indicates the structure of SmartRDI code for semi-parallel tests in the
+				test block level.</p>
+			<div></div><pre class="prettyprint linenums copyable">SEMI_PARALLEL_CONFIG semiparallel;
+semiparallel.group(1).add(1).add(3);
+semiparallel.group(2).add(2).add(4);
+
+ON_FIRST_INVOCATION_BEGIN();
+  CONNECT();
+  rdi.dc().pin("PVI8").vForce(2).execute();
+  rdi.func().label("TestMode_Enable").execute();
+  rdi.wait(1 ms);
+
+  FOR_SEMI_PARALLEL_TEST_BEGIN(semiparallel);
+
+    RDI_BEGIN();
+    if (GET_CURRENT_SEMI_PARALLEL_GROUP_NUMBER() == 1)
+      rdi.pmux().pin("030102").selectOn().execute();
+    else
+      rdi.pmux().pin("030101").selectOn().execute();
+
+      rdi.dc("semi").pin("PVI8").vMeas().execute();
+    RDI_END();
+
+  FOR_SEMI_PARALLEL_TEST_END();
+
+  rdi.func().label("TestMode_Disable").execute();
+  rdi.dc().pin("PVI8").disconnect().execute();
+
+ON_FIRST_INVOCATION_END();
+rdi.id("semi").getValue();</pre><div></div>
+			<div class="note"><span class="title">Note</span> When a FOR_SEMI_PARALLEL_BEGIN/FOR_SEMI_PARALLEL_END block is used, the code
+				execution is impacted by enabled sites. For some enabled sites, part of the code may not be
+				executed in the first run. By design, the code inside an RDI_BEGIN/RDI_END block is only
+				executed in the first run. Therefore, for the code that should have a test-suite-wide effect, do
+				not put them in an RDI_BEGIN/RDI_END block when a FOR_SEMI_PARALLEL_BEGIN/FOR_SEMI_PARALLEL_END
+				block is used.<p>The following examples demonstrates how to use
+						<span class="keyword">setPinStatus()</span> correctly in the code.</p><div class="p">
+					<div></div><pre class="prettyprint linenums copyable">SEMI_PARALLEL_CONFIG semipara; 
+semipara.group(1).add(1).add(3);
+semipara.group(2).add(2).add(4);
+
+ON_FIRST_INVOCATION_BEGIN();
+  
+  // Wrong code
+  RDI_BEGIN();
+    rdi.setPinStatus("A",1); // Set pin status commands inside the RDI_BEGIN/RDI_END block. If the 1st run only covers the site group 1, then when the site group 2 is enabled, setPinStatus() does not take effect.
+
+  RDI_END();
+
+  FOR_SEMI_PARALLEL_TEST_BEGIN(semipara);
+    if(GET_CURRENT_SEMI_PARALLEL_GROUP_NUMBER() == 1)
+
+    else
+
+  FOR_SEMI_PARALLEL_TEST_END();
+
+
+#THEORETICAL_PATTERN_TIME=TRUE
+#DUMMY_STATE_ON_INACTIVE_SITE=TRUE
+SMV_DIGCAP_BITPERWORD_32 =TRUE
+
+id="row_ROUTING_SETUP_FILE"</pre><div></div>
+				</div><p>Correct
+				code</p><pre class="prettyprint linenums copyable">SEMI_PARALLEL_CONFIG semipara; 
+semipara.group(1).add(1).add(3);
+semipara.group(2).add(2).add(4);
+
+ON_FIRST_INVOCATION_BEGIN();
+  rdi.setPinStatus("A",1); // set pin status commands outside the RDI_BEGIN/RDI_END block. No matter which site group is enabled, it will always take effect.
+  RDI_BEGIN();
+    ...
+  RDI_END();
+
+  FOR_SEMI_PARALLEL_TEST_BEGIN(semipara);
+  if(GET_CURRENT_SEMI_PARALLEL_GROUP_NUMBER() == 1)
+  
+  else
+  ...
+  FOR_SEMI_PARALLEL_TEST_END();
+ON_FIRST_INVOCATION_END(); </pre></div>
+		</section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 346669</span><script type="text/javascript">var ti='346669';var tt='Test block level'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

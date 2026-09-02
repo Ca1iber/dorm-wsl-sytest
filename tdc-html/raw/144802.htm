@@ -1,0 +1,71 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies the number of samples to capture when the PPMU, the board ADC or the DC Scale pin is used as digitizer."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>samples()</title></head><body id="_144802"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144802</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">samples()</h1>
+	
+	
+	<div><p>Specifies the number of samples to capture when the PPMU, the board ADC or the DC Scale
+		pin is used as digitizer.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">dcBase&amp; samples(int iRepeat);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_144802__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_144802__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_144802__entry__1"><p><span class="keyword">iRepeat</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_144802__entry__2"><p>The number of samples.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<section class="section">
+			<div class="p">
+				<div class="note"><span class="title">Note</span> This function does not support two or more pin() functions in an execute()
+					action. Do not use two or more pin() functions in an execute() action when this function is
+					used in the same execution.</div>
+				<div class="note"><span class="title">Note</span> About the sampling by <span class="keyword">samples()</span> on DC Scale, PPMU, and
+					BADC: <p>The <span class="keyword">samples() … execute()</span> command can have two different execution
+						behaviors: blocking execution and non-blocking execution. </p><div class="p">For example,
+						<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+   rdi.dc().pin(A).....samples().FS().execute();// Command 1
+   rdi.func().label().....execute(); // Command 2
+RDI_END();</pre></div><p>In
+						this example, </p><div class="p">
+						<ul>
+							<li>If Command 1 runs in the non-blocking execution, <span class="keyword">pin(A)</span> will keep
+								sampling while Command 2 is running the pattern till the block end. </li>
+							<li>If Command 1 runs in the blocking execution, Command 2 will run the pattern after the
+									<span class="keyword">pin(A)</span> sampling has been done. </li>
+						</ul>
+					</div><div class="p">Points to remember: <ul>
+							<li>For DC Scale, all the sampling executions with <span class="keyword">samples()</span> are blocking
+								execution. The pattern will be run after the sampling is done.</li>
+							<li>For PPMU and BADC, the sampling mode depends on the parameter specified by
+									<span class="keyword">capMode()</span>: <ul>
+									<li>For <span class="keyword">capMode(TA::VEC)</span>, the sampling is blocking execution. </li>
+									<li>For <span class="keyword">capMode(TA:TRIG)</span>, the sampling is non-blocking execution. The
+										operations of pattern and sampling are running in parallel till the end of the code block.
+									</li>
+								</ul></li>
+						</ul></div><div class="p">Example for <span class="keyword">samples()</span> with <span class="keyword">capMode(TA::VEC)</span>:
+						<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN( ); 
+   rdi.port("pt").dc().pin("pin").samples(1024).capMode(TA::VEC)...execute(); 
+   rdi.port("pt").func().label(B).execute(); // Pattern running after sampling.
+RDI_END();</pre></div><div class="p">Example
+						for <span class="keyword">samples()</span> with
+						<span class="keyword">capMode(TA::TRIG)</span>:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN( ); 
+   rdi.port("pt").dc().pin("pin").samples(1024).capMode(TA::TRIG)...execute();
+   rdi.port("pt").label(A).execute();  // Pattern running while sampling.
+   rdi.port("pt").wait(TA::WAIT_DCDGT);
+   rdi.port("pt").func().label(B).execute(); // Pattern running after sampling.
+RDI_END();</pre></div></div>
+			</div>
+		</section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">rdi.dc().pin("DATA1").vMeas().samples(1024).capMode(TA::VEC).valueMode(TA::SA).FS(1 kHz).execute();
+rdi.port("ptPin1").dc().pin("DATA1",TA::BADC).samples(1024).capMode(TA::TRIG).FS(10 kHz).execute();
+rdi.dc().pin("DPS32_1").vForce(2 V).iMeas().samples(1024).FS(10 kHz).execute();</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144802</span><script type="text/javascript">var ti='144802';var tt='samples()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This function returns the eye mask test result plus the eye_height and the eye_width. The shift_mask_flag enables shifting the mask on the horizontal (timing) axis until a pass condition is found or the start position of the mask is reached again."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DIGITAL_WAVEFORM.checkEyeMask()</title><meta name="keywords" content="wave form waveform table"></head><body id="_130616"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 130616</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DIGITAL_WAVEFORM.checkEyeMask()</h1>
+	
+	
+	<div><p>This function returns the eye mask test result plus the <em>eye_height</em> and the
+			<em>eye_width</em>. The <em>shift_mask_flag</em> enables shifting the mask on the horizontal (timing)
+		axis until a pass condition is found or the start position of the mask is reached
+		again.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">void checkEyeMask(const STRING&amp; pin, TM::SE_DIFF_MODE mode,
+                  const ARRAY_I&amp; maskxdata, const ARRAY_I&amp; maskydata,
+                  ARRAY_I&amp; maskresult, DOUBLE&amp; eye_height, DOUBLE&amp; eye_width,
+                  BOOLEAN shift_mask_flag) const</pre><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>pin</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The pin to on which eye mask test is performed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>mode</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The signal mode. It can be:</p>
+								<ul>
+			<li id="_130616__d9038e22">TM::SINGLE_ENDED: (for single-ended signals) The eye diagram voltage is referenced
+				to the common(digital) ground.</li>
+			<li id="_130616__d9038e25">TM::DIFF_SWING: (for differential signals) The eye diagram voltage is the voltage
+				difference between the positive pin and negative pin (V<sub>pos</sub>-V<sub>neg</sub>).</li>
+			<li id="_130616__d9038e34">TM::DIFF_COMMON: (for differential signals with common ground) The eye diagram
+				voltage is (V<sub>pos</sub>+V<sub>neg</sub>)/2.</li>
+		</ul><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>maskxdata</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Mask data on x-axis</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>maskydata</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Mask data on y-axis </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>maskresult</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The eye mask test result. The elements of this array are 0 or 1, representing fail
+									or pass.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>eye_height</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The height of the eye diagram.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>eye_width</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The width of the eye diagram.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>shift_mask_flag</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The flag to enable shifting the mask on the horizontal (timing) axis until a pass
+									condition is found or the start position of mask is reached again.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">ARRAY_D pos_waveform_A;
+ARRAY_D neg_waveform_A;
+ARRAY_D dummy_A;
+ARRAY_D ACCommonMode_waveform_A;
+int stepsLowLevel;
+int stepsHighLevel;
+int bitStart;
+int bitStop;
+int maskXData[3];
+int maskYData[3];
+ARRAY_I maskResult;
+DOUBLE  eyeHeigth;
+DOUBLE  eyeWidth;
+DOUBLE  TimingResolution;
+STRING  pin(mposPins);
+pin += ",";
+pin += mnegPins;
+
+stepsLowLevel  =  (int) (mLowLevel  / mLevelResolution);
+stepsHighLevel =  (int) (mHighLevel / mLevelResolution);
+TimingResolution = 400 ps / mSamplesPerUI ;
+bitStart       = mXmode * mVectorStart;
+bitStop        = mXmode * mVectorStop;
+//configure the waveform capture for the pin
+DIGITAL_WAVEFORM waveform_pos (pin);
+waveform_pos.bitStart(bitStart);
+waveform_pos.bitStop(bitStop);
+waveform_pos.levelStart(stepsLowLevel);
+waveform_pos.levelStop(stepsHighLevel);
+waveform_pos.levelResolution(mLevelResolution);
+waveform_pos.sampleStart(0);
+waveform_pos.sampleStop(mSamplesPerUI-1);
+waveform_pos.timingResolution(400 ps / mSamplesPerUI);
+
+maskYData[0] = (int) (1.0 / mLevelResolution );
+maskYData[1] = (int) (0.5 / mLevelResolution );
+maskYData[2] = (int) (0.2 / mLevelResolution );
+
+
+maskXData[0] = (int) (   0 ps / ( TimingResolution ) + 5 ) ;
+maskXData[1] = (int) (   0 ps / ( TimingResolution ) + 5 ) ;
+maskXData[2] = (int) (   0 ps / ( TimingResolution ) + 5 ) ;
+
+cout &lt;&lt; maskXData[0] * TimingResolution &lt;&lt; " X-Data " &lt;&lt; maskYData[0] * mLevelResolution &lt;&lt; " Y-Data Point 0" &lt;&lt; endl;
+cout &lt;&lt; maskXData[1] * TimingResolution &lt;&lt; " X-Data " &lt;&lt; maskYData[1] * mLevelResolution &lt;&lt; " Y-Data Point 1" &lt;&lt; endl;
+cout &lt;&lt; maskXData[2] * TimingResolution &lt;&lt; " X-Data " &lt;&lt; maskYData[2] * mLevelResolution &lt;&lt; " Y-Data Point 2" &lt;&lt; endl;
+cout &lt;&lt; TimingResolution &lt;&lt; " Timing Resolution"  &lt;&lt; endl;
+
+waveform_pos.execute();
+waveform_pos.checkEyeMask((STRING) mposPins, TM::SINGLE_ENDED, ARRAY_I( maskXData,sizeof(maskXData) / sizeof(int)),
+                           ARRAY_I( maskYData,sizeof(maskYData) / sizeof(int)),maskResult, eyeHeigth,eyeWidth);
+cout &lt;&lt; "check eye mask test result for pin " &lt;&lt; mposPins &lt;&lt; "\n";
+cout &lt;&lt; "eye mask result = " &lt;&lt; maskResult &lt;&lt; "\n";
+cout &lt;&lt; "eye height      = " &lt;&lt; eyeHeigth &lt;&lt; "\n";
+cout &lt;&lt; "eye width       = " &lt;&lt; eyeWidth &lt;&lt; endl;</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 130616</span><script type="text/javascript">var ti='130616';var tt='DIGITAL_WAVEFORM.checkEyeMask()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API calculates the jitter separation based on the input of error count and timing data. It separates jitter to random and deterministic components via fitting algorithms."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_JITTER_SEPARATION</title></head><body id="_118688"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118688</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_JITTER_SEPARATION</h1>
+	
+	
+	<div><p>This API calculates the jitter separation based on the input of error count and timing
+		data. It separates jitter to random and deterministic components via fitting
+		algorithms.</p>
+		<section class="section"><p>To calculate the jitter separation, you firstly need to capture the error count curves
+				on the left transition and right transition of the data eye to get the bathtub curve. Then Bit
+				Error Rate (BER) per sampling point needs to be calculated by dividing the recorded error count
+				by the total number of bit in the vector stream. The BER vector of left side and right side are
+				the input data to this API.</p><p>The bathtub curve of BER data is transferred to the Q-space as
+				in the figure below.</p><div class="p"><figure class="fignone">
+					
+					<img src="118692.png" alt="Transfer bathtub curve to Q-space">
+				</figure></div><p>Then a fitting on the two slopes of the Q-space curve will be done. The fitting on
+				the selected range of the Q-space curve will give two straight lines with a certain slope and a
+				certain distance point. The respective slope is determined by the Random Jitter and the distance
+				of the two slopes is determined by the Deterministic Jitter. Therefore, the Random Jitter can be
+				calculated for each side of the data eye. In theory they should be the same for both sides of
+				transition. But in practice this is not always the case. So the Random Jitter is the average
+				slope of the left side and the right side. The Deterministic Jitter is calculated from the mean
+				distance of the slopes. Total Jitter consists of Deterministic Jitter and Random Jitter. The
+				absolute Random Jitter (peak-to-peak) depends on the BER_factor. So the Total Jitter is also
+				related to a BER_factor number.</p><p>A new data type JitterSeparationType is defined for jitter
+				separation result. It contains a set of jitter attribute data, including random jitter,
+				deterministic jitter and total jitter.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_JITTER_SEPARATION(const std::vector&lt;DOUBLE&gt;&amp; leftSideBER,
+                 const std::vector&lt;DOUBLE&gt;&amp; rightSideBER,
+                 const DOUBLE leftSideTimingStart_ns,
+                 const DOUBLE rightSideTimingStart_ns, 
+                 const DOUBLE timingStepwidth_ns,
+                 const DOUBLE UI_width_ns,
+                 const DOUBLE transitionDensity,
+                 const INT BER_factor,
+                 JitterSeparationType&amp; separationDataAttribute,
+                 DOUBLE &amp;leftCorrelationCoef,
+                 DOUBLE &amp;rightCorrelationCoef,
+                 const Boolean movingWindowAveraging = false, 
+                 INT windowSize=2);</pre><table class="frame-none"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_118688__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_118688__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_118688__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">leftSideBER</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>A vector of left side BER data</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">rightSideBER</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>A vector of right side BER data</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">leftSideTimingStart_ns</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>The timing point of the first element data of <span class="keyword">leftSideBER</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">rightSideTimingStart_ns</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>The timing point of the first element data of <span class="keyword">rightSideBER</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">timingStepwidth_ns</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>The time step width for error count acquiring</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">transitionDensity</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>Transition density of the measured pattern (1.0 for bit clock patterns and 0.5 for
+									for random data patterns. For further reading, see [1].</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">UI_width_ns</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>The time interval of a bit in the test pattern.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">BER_factor</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>Target BER for total Jitter calculation.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">separationDataAttribute</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>A set of standard result data reflecting the jitter attribute</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">leftCorrelationCoef</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>Correlation coefficient of the left side linear fitting arithmetic</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">rightCorrelationCoef</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>Correlation coefficient of the right side linear fitting arithmetic</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">linearInterpolationEnabled</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">movingWindowAveraging</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>The flag to switch on or off the moving window averaging algorithm. By default the
+									algorithm is switched off, and a transitionDensity of 0.5 and a windowSize of 2 are set.
+									For further reading see [2].</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__2"><p><span class="keyword">windowSize</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118688__entry__3"><p>Window size for the moving window averaging algorithm (2, 4, 6). </p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><p>The following example shows how to query the error counts of both transition side of
+				the bit eye and calculate the jitter separation of pin "HS_TX1" and
+				"HS_TX2".</p><pre class="prettyprint linenums copyable">//assume the bit time of test pattern: UI_width_ns = 5ns;
+//assume the total number of bit is :totalBitNumbers
+vector&lt;STRING&gt; pinVector;
+pinVector.push_back("HS_TX1");
+pinVector.push_back("HS_TX2");
+DOUBLE totalBitNumbers = BitNumber;
+//acquire error count on the left transition side of bit eye
+//assume the bit transition is within the [0.0, 0.5] area
+ERROR_COUNT_ACQUIRE leftSideErrorCountRetrieve;
+//acquire error count on the right transition side of bit eye
+//assume the bit transition is within the[1.5,2.0]
+ERROR_COUNT_ACQUIRE rightSideErrorCountRetrieve;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+  //setup search condition
+  for(int n = 0; n &lt; pinVector.size(); n++)
+  {
+    STRING pinname = pinVector[n];
+    STRING specName = pinname + "_offset";
+    //setup for two high speed pins
+    leftSideErrorCountRetrieve.pin(pinname)
+                              .port("HS_Port")
+                              .spec(specName,TM::TIM)
+                              .stepWidth(0.01)
+                              .start(0.0)
+                              .stop(0.5)
+                              .errorCountMode (TM::ERROR_PER_EDGE)
+                              .enableFastStop(0.05,9,true);
+    rightSideErrorCountRetrieve.pin(pinname)
+                               .port("HS_Port")
+                               .spec(specName,TM::TIM)
+                               .stepWidth(0.01)
+                               .start(1.5)
+                               .stop(2.0)
+                               .errorCountMode (TM::ERROR_PER_EDGE)
+                               .enableFastStop(0.05,9,true);
+  }
+  leftSideErrorCountRetrieve.execute(TM::FAST_STOP);
+  rightSideErrorCountRetrieve.execute(TM::FAST_STOP);
+ON_FIRST_INVOCATION_END();
+
+//get error count for left side transition
+ARRAY_I leftErrorCountOfHsTx1, leftErrorCountOfHsTx2;
+leftErrorCountOfHsTx1 = leftSideErrorCountRetrieve.getErrorCount("HS_TX1");
+leftErrorCountOfHsTx2 = leftSideErrorCountRetrieve.getErrorCount("HS_TX2");
+std::vector&lt;DOUBLE&gt; leftErrCountOfHsTx1Vec, leftErrCountOfTx2Vec;
+long long sizeOfArray = 0;
+for (; sizeOfArray &lt; leftErrorCountOfHsTx1.size(); sizeOfArray++)
+{
+  DOUBLE BER = leftErrorCountOfHsTx1[sizeOfArray]/totalBitNumbers ;
+  leftErrCountOfHsTx1Vec.push_back(BER);
+}
+sizeOfArray = 0;
+for(; sizeOfArray &lt; leftErrorCountOfHsTx2.size(); sizeOfArray++)
+{
+  DOUBLE BER = leftErrorCountOfHsTx2[sizeOfArray]/totalBitNumbers ;
+  leftErrCountOfTx2Vec.push_back(BER);
+}
+
+//get error count for right side
+ARRAY_I rightErrorCountOfHsTx1,rightErrorCountOfHsTx2;
+rightErrorCountOfHsTx1 = rightSideErrorCountRetrieve.getErrorCount("HS_TX1");
+rightErrorCountOfHsTx2 = rightSideErrorCountRetrieve.getErrorCount("HS_TX2");
+sizeOfArray = 0;
+std::vector&lt;DOUBLE&gt; rightErrCountOfHsTx1Vec, righttErrCountOfHsTx2Vec;
+for(; sizeOfArray &lt; rightErrorCountOfHsTx1.size(); sizeOfArray++)
+{
+  DUBLE BER = rightErrorCountOfHsTx1[sizeOfArray]/totalBitNumbers ;
+  rightErrCountOfHsTx1Vec.push_back(BER);
+}
+sizeOfArray = 0;
+for(; sizeOfArray &lt; rightErrorCountOfHsTx2.size(); sizeOfArray++)
+{
+  DOUBLE BER = rightErrorCountOfHsTx2[sizeOfArray]/totalBitNumbers ;
+  righttErrCountOfHsTx2Vec.push_back(BER);
+}
+//calculate the jitter separation
+JitterSeparationType separationRes1, separationRes2;
+DOUBLE leftCorrelationCoefTx1, rightCorrelationCoefTx1;
+DOUBLE leftCorrelationCoefTx2, rightCorrelationCoefTx2;
+DSP_JITTER_SEPARATION(leftErrCountOfHsTx1Vec,
+                      rightErrCountOfHsTx1Vec,
+                      0.0,
+                      1.5,
+                      0.01,
+                      5.0,
+                       1.0, // Bit clock pattern
+                      -12,
+                      separationRes1,
+                      leftCorrelationCoefTx1,
+                      rightCorrelationCoefTx1);
+DSP_JITTER_SEPARATION(leftErrCountOfTx2Vec,
+                      righttErrCountOfHsTx2Vec,
+                      0.0,
+                      1.5,
+                      0.01,
+                      5.0,
+                       1.0, // Bit clock pattern
+                      -12,
+                      separationRes2,
+                      leftCorrelationCoefTx2,
+                      rightCorrelationCoefTx2);
+//out put result to UIReport window
+cout &lt;&lt; "jitter separation of HS_TX1: "
+     &lt;&lt;"\nRandom Jitter= " &lt;&lt; separationRes1.randomJitter
+     &lt;&lt;"\nDeterministic Jitter= "&lt;&lt;separationRes1.deterministicJitter 
+     &lt;&lt;"\nTotal Jitter= "&lt;&lt;separationRes1.totalJitter
+     &lt;&lt;"\n left side linear fitting's rms is " &lt;&lt; leftCorrelationCoefTx1
+     &lt;&lt;"\n right side linear fitting's rms is " &lt;&lt; rightCorrelationCoefTx1&lt;&lt;endl;
+cout &lt;&lt; "jitter separaiton of HS_TX2: "
+     &lt;&lt;"\nRandom Jitter= "&lt;&lt;separationRes2.randomJitter
+     &lt;&lt;"\nDeterministic Jitter= "&lt;&lt;separationRes2.deterministicJitter
+     &lt;&lt;"\nTotal Jitter= "&lt;&lt;separationRes2.totalJitter
+     &lt;&lt;"\n left side linear fitting's rms is " &lt;&lt; leftCorrelationCoefTx2
+     &lt;&lt;"\n right side linear fitting's rms is " &lt;&lt; rightCorrelationCoefTx2&lt;&lt;endl;</pre><p>[1]
+					"<em>An Engineer's Guide to Automated Testing of High-Speed Interfaces</em>" by Jose Moreira and
+				Hubert Werkmann, Artech House 2010, ISBN 978-1-60783-983-5</p><p>[2] "<em>Numerical Recipes 3rd
+					Edition: The Art of Scientific Computing</em>" by William Press, Saul Teukolsky, William
+				Vetterling and Brian Flannery, Cambridge University Press 2007, ISBN 0-521-88068-8</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="96863.htm" title="The class serves as an interface to set up, execute and retrieve spec search result.">ERROR_COUNT_ACQUIRE</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 6.5.4: New parameters: MovingWindowAveraging, WindowSize</li><li>SmarTest 6.5.4: Changed parameter names in the SmarTest 6.5.4.1 release: transitionDensity,
+					movingWindowAveraging, windowSize</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118688</span><script type="text/javascript">var ti='118688';var tt='DSP_JITTER_SEPARATION'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

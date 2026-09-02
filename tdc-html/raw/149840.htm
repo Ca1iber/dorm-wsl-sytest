@@ -1,0 +1,71 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The following two examples explain how to get 2D barcodes and do auto-retest on GS! handlers."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Examples: 2D barcode and auto-retest</title><meta name="keywords" content="2, D"></head><body id="_149840"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149840</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Examples: 2D barcode and auto-retest</h1>
+	
+	
+	<div><p>The following two examples explain how to get 2D barcodes and do auto-retest on GS!
+		handlers.</p>
+		<h2>Examples</h2><div class="example"><h3>Example 1: 2D barcode</h3><p>This example explains how to get 2D barcodes. </p><ul>
+				<li>Use <code>PROB_HND_CALL</code>
+					<code>(ph_get_status DEVICEID)</code> in your application model file to get 2D barcodes for
+					all sites.</li>
+				<li>Use <code>PROB_HND_CALL</code>
+					<code>(ph_get_status DEVICEID n)</code> in your application model file to get a 2D barcode
+					for a specific site. <code>n</code> is the index of a specific site.</li>
+			</ul><p>For example, there are 16 sites. In your application model file, you set:
+				</p><pre class="prettyprint linenums copyable">* DEVICEID = PROB_HND_CALL (ph_get_status DEVICEID);
+* DEVICEID_1 = PROB_HND_CALL (ph_get_status DEVICEID 1);</pre><p>The
+				first command line does not specify any <span class="keyword">DEVICEID</span>, so the handler returns all
+				2D barcodes in strings and <span class="keyword">DATANG</span> at the same time for all 16
+				sites.</p><table class="ly"><caption></caption><colgroup><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable">1,1234567800000000;2,2345678900000000;3,1345678900000000;4,1245678900000000;
+5,DATANG;6,DATANG;7,DATANG;8,DATANG;9,1234567800000000;10,2345678900000000;
+11,1345678900000000;12,1245678900000000;13,DATANG;14,DATANG;15,DATANG;16,DATANG;</pre></td>
+						</tr>
+					</tbody></table><p><span class="keyword">DATANG</span> means that the handler cannot read the barcode.</p><p>The
+				second command line specifies <code>DEVICEID</code> as 1. The handler returns the 2D barcode
+				in a string for site 1 as <code>1234567800000000</code>.</p></div>
+		<div class="example" id="_149840__auto_retest"><h3>Example 2: Auto-retest</h3><p>This example demonstrates how to use the
+				auto-retest feature in your application model
+			file.</p><pre class="prettyprint linenums copyable">START_DIALOG
+
+{ superlot:
+
+    ACTIONS
+    PROB_HND_CALL (ph_driver_start);
+
+    { lot:
+
+        SCREEN_DIALOG
+          Lot_id = DIALOG_INPUT / REGEXP(string);
+          Operator_id = DIALOG_INPUT / REGEXP(string);
+
+        ACTIONS
+          Iteration = AUTOINCREMENT;
+          PROB_HND_CALL (ph_lot_start);
+          RTST_COD = CONST_INPUT ({Iteration});
+          STDF_FILE = CONST_INPUT (/tmp/Iteration_{Iteration}.stdf);
+
+          { DEVICE [(package test),({package_id})] device:
+              ACTIONS
+                package_id = AUTOINCREMENT;
+                SET_PACKAGE_ID({package_id});
+                PROB_HND_CALL (ph_device_start);
+                {
+                  DEVICE_TEST
+                }
+                REPROBE_ACTION = PROB_HND_CALL(ph_reprobe);
+              ACTIONS
+              PROB_HND_CALL (ph_device_done);
+          }
+          ACTIONS
+            PROB_HND_CALL (ph_lot_done);
+     }
+     ACTIONS
+       PROB_HND_CALL (ph_driver_done);
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42261.htm" title="These functions start, initialize, and terminate the driver, and send application model level specific commands to the equipment.">Functions for Driver Start &amp; Stop and for Level Management</a></div><div><a href="104408.htm" title="This function retrieves various kinds of production information from probers or handlers. Different parameters are supported for different probers or handlers.">Function: ph_get_status</a></div><div><a href="149227.htm" title="You can use this API to execute the function provided by the driver.">PROB_HND_CALL()</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149840</span><script type="text/javascript">var ti='149840';var tt='Examples: 2D barcode and auto-retest'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="These are some example uses of the data logging profile API."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Data logging profile API examples</title><meta name="keywords" content="datalog profiler"></head><body id="_98360"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98360</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Data logging profile API examples</h1>
+	
+	
+	<div><p>These are some example uses of the data logging profile API.</p>
+		<h2>Examples</h2><div class="example"><h3>Profile
+			creation</h3><pre class="prettyprint linenums copyable">// ProfileCreation.cpp
+#include "tml_base.h"
+extern CComModule _Module;
+#include "tml_tcom.h"
+#include "ProfileCreation.h"
+#include "ProfileMgr.hpp"
+#include "tpi_c.h" // TPI lib for GetCurrentDevice()
+#include &lt;stdio.h&gt;
+#if __GNUC__ &gt;= 3
+using namespace std;
+#endif
+
+#define PROFILE_FILENAME "ProfileTest.prf"
+
+// This method creates and saves a sample profile programmatically.
+// The profile is saved to the "profiles" subdir of the current device.
+
+HRESULT CProfileCreation::createProfile(double _results[4])
+{
+    ProfileMgr* mgr = ProfileMgr::getInstance();
+  
+    // Create a profile and add sample rules to it:
+    Profile* profile = mgr-&gt;createProfile(WildcardProfileType);
+  
+    // Test suite selector: AC test suites will log P/F results per pin:
+    profile-&gt;createRule("ts:AC* . * . * . datalog_level = 3");
+    profile-&gt;createRule("ts:AC* . * . * . datalog_detail = 1");
+
+    // Test method selector for a custom property: logHistogram
+    profile-&gt;createRule("* . evaluate* . * . logHistogram = 1"); 
+
+    // Test name selector: The "shortsTest" will log per pin values:
+    profile-&gt;createRule("* . * . name:shortsTest . datalog_level = 3");
+    profile-&gt;createRule("* . * . name:shortsTest . datalog_detail = 2");
+        
+    // Test num selector: Log as much info as possible for test #'s 70-80:
+    profile-&gt;createRule("* . * . tn:70-80 . datalog_level = 3");
+    profile-&gt;createRule("* . * . tn:70-80 . datalog_detail = 5");
+
+    // For all other tests (*.*.*) that Do not match one of the
+    // above, use the following rules:
+    profile-&gt;createRule("* . * . * . datalog_level = 3");
+    profile-&gt;createRule("* . * . * . datalog_detail = 0");
+
+      
+    // Build the filename to save:
+    char deviceStr[DM_MAX_DEVICE];    
+    GetDevPath(deviceStr);
+    char filename[DM_MAX_DEVICE + 10 + DM_MAX_FILE + 1];
+    sprintf(filename, "%s/profiles/%s", deviceStr, PROFILE_FILENAME);
+    
+    // Save the profile:
+    profile-&gt;save(filename);
+
+    return S_OK;
+}</pre></div>
+		<div class="example"><h3>Adaptive
+			sampling</h3><pre class="prettyprint linenums copyable">// SetProfile.cpp
+#include "tml_base.h"
+extern CComModule _Module;
+#include "tml_tcom.h"
+#include "SetProfile.h"
+#include "ProfileMgr.hpp"
+#include "tpi_c.h" // TPI lib for GetCurrentDevice()
+#if __GNUC__ &gt;= 3
+using namespace std;
+#endif
+#define SAMPLING_ON_FILENAME        "datalog_ON.prf"
+#define SAMPLING_OFF_FILENAME      "datalog_OFF.prf"
+#define SAMPLE_SIZE                              100
+static int          executionCount = 0;
+static bool         initialized = false;
+static ProfileMgr*  mgr = 0;
+static Profile*     samplingOnProfile = 0;
+static Profile*     samplingOffProfile = 0;
+
+// This method shows an example of how to implement
+// adaptive sampling based on an execution count
+// approach. Data is only logged for every Nth device.
+// Ideally, this method is called from a test suite at
+// the start of a testflow. 
+
+HRESULT CSetProfile::setProfile(double _results[4])
+{
+    // Initialize the profiles:
+    if (!initialized)
+    {
+      double results[4];
+      init(results);
+    }
+                
+    // Only log detailed results for the Nth device:
+    if ((executionCount % SAMPLE_SIZE) == 0)
+    {
+        mgr-&gt;activateProfile(samplingOnProfile);
+    }
+    else
+    {
+        mgr-&gt;activateProfile(samplingOffProfile);
+    }  
+    
+    // Increment the testflow execution count:
+    executionCount++;
+    
+    return S_OK;
+}
+
+// Initialization routine that is called only once
+
+HRESULT CSetProfile::init(double _results[4])
+{
+    mgr = ProfileMgr::getInstance();
+    
+    // Build the filename to save:
+    char deviceStr[DM_MAX_DEVICE];
+    GetDevPath(deviceStr);
+    char filename[DM_MAX_DEVICE + 10 + DM_MAX_FILE + 1];
+    
+    sprintf(filename, "%s/profiles/%s", deviceStr, SAMPLING_ON_FILENAME);
+    samplingOnProfile = mgr-&gt;createProfile(filename);
+    
+    sprintf(filename, "%s/profiles/%s", deviceStr, SAMPLING_OFF_FILENAME);
+    samplingOffProfile = mgr-&gt;createProfile(filename);  
+    
+    initialized = true;
+    
+    return S_OK;
+}</pre></div>
+		<div class="example"><h3>Logging by test
+			number</h3><pre class="prettyprint linenums copyable">// EdlFfcDatalog.cpp
+#include "tml_base.h"
+extern CComModule _Module;
+#include "tml_tcom.h"
+#include "EdlFfcDatalog.h"
+#include "ProfileMgr.hpp"
+#include "tpi_c.h" // TPI lib for GetCurrentDevice()
+#if __GNUC__ &gt;= 3
+using namespace std;
+#endif
+#define PROFILE_FILENAME "EdlFfcDatalog.prf"
+
+// Here is an example on how to give a test number to your
+// test using the TESTSET API, which will be used by the
+// profile rule engine to determine if test number specific
+// logging is desired or not.
+
+HRESULT CEdlFfcDatalog::execute(double _results[4])
+{    
+    if (profile)
+    {
+      TESTSET set;
+      set.testname("EdlFfcDatalog");
+      set.testnumber(900);
+          
+      FUNCTIONAL_TEST();
+
+      // Note: Here we are calling judgeAndLog on the object 'set',
+      // which is associated with the test name "EdlFfcDatalog" and
+      // the test number 900.  This information is applied by 
+      // judgeAndLog to the active profile to determine if logging
+      // should be performed.
+      set.judgeAndLog_FunctionalTest();
+    }
+    return S_OK;
+}</pre></div>
+		<div class="example"><h3>Evaluating a custom
+			property</h3><pre class="prettyprint linenums copyable">// PropEvalBin.cpp
+#include "tml_base.h"
+extern CComModule _Module;
+#include "tml_tcom.h"
+#include "PropEvalBin.h"
+#include "Property.hpp"
+#if __GNUC__ &gt;= 3
+using namespace std;
+#endif
+
+// Here is a simple example of how to evaluate the value of
+// a custom property based on the current execution context.
+// If the profile defines the "logHistogram" property in this 
+// execution context, the specified rule value is returned.  
+// Otherwise, 0.
+
+HRESULT CPropEvalBin::logHistogram(double _results[4])
+{
+    Property logHistogram("logHistogram");
+
+    // Note that the following "if" call causes the profile rule engine
+    // to calculate the propery's value based on the current execution
+    // context:
+
+    if (logHistogram)
+    {
+        drawHistogram();
+    } 
+    return S_OK;
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98046.htm">Data Logging Profiles</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.4.5: Removed stdf_generation flag</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98360</span><script type="text/javascript">var ti='98360';var tt='Data logging profile API examples'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The example below illustrates the syntax usage in an application model file."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Syntax Listing</title></head><body id="_30889"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 30889</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Syntax Listing</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="30890.htm">Explanation of the Syntax</a></li></ol></div></nav>
+	
+	
+	<div><p>The example below illustrates the syntax usage in an application model file.</p>
+		<p>See <a href="30890.htm">Explanation of the Syntax</a> for further syntax explanations. The line numbers are used in <a href="30890.htm">Explanation of the Syntax</a>.</p>
+		<div></div><pre class="prettyprint linenums copyable">1  hp93000,applicmodel,0.1
+
+2  START_DIALOG
+
+3  { init:
+
+4    SCREEN_DIALOG
+5       .....
+6       Temperature = APPLIC_DATA_EDITOR_INPUT /CONST_FORMAT(AMB|75|40|10);
+7       Operator_id   = DIALOG_INPUT             /REGEXP(string);
+8       Cassette_size = DIALOG_INPUT             /CONST_FORMAT(25|50);
+
+9    ACTIONS
+10     .....
+11      Start_time    = GET_TEST_INFO (date_time);
+
+12     { lot:
+
+13       SCREEN_DIALOG
+
+14          Lot_id        = DIALOG_INPUT             / REGEXP(nnnn);
+15           DISABLE_SKIP_BUTTON;
+
+16       ACTIONS
+
+17          Handler_equipment    = CONST_INPUT(1);
+18       -- Handler_equipment    = CONST_INPUT(0);
+19          PROB_HND_CALL (ph_init {Handler_equipment} {Temperature});
+20          GET_WAFERLIST ({Cassette_size}, ,{Lot_id},/tmp/waf_list1, {Lot_id},/tmp/waf_list2,
+                           {Lot_id},/tmp/waf_list3,{Lot_id},/tmp/waf_list4);
+21          SUBLEVEL_COUNT count = CONST_INPUT(4);
+
+
+22        { cassette :
+
+23          ACTIONS
+
+24            cass_no    = AUTOINCREMENT;
+25            wafer_list = FILE_INPUT (/tmp/waf_list{cass_no});
+
+26          LOG_SPECIFICATION
+
+27            RESULT_LOG      = ON;
+
+28         {  WAFER [({Lot_id}),({wafer_id})] wafer:
+
+29            ACTIONS
+
+30               wafer_id = ELEMENT_OF_PARAM_LIST({wafer_list})/REGEXP(int);
+31                 PROB_HND_CALL (ph_get_wafer);
+
+32              LOG_SPECIFICATION
+
+33                RESULT_LOG      = ON;
+
+34                {  DEVICE die:
+
+35                   ACTIONS
+
+36                       PROB_HND_CALL (ph_get_die_location);
+
+37                   LOG_SPECIFICATION
+
+38                       RESULT_LOG   = ON;
+
+39                       {
+40                          DEVICE_TEST
+41                       }
+42                   REPROBE_ACTION = PROB_HND_CALL(ph_reprobe);
+
+43                   ACTIONS
+
+44                       PROB_HND_CALL (ph_bin_die);
+
+45                }
+
+46                 -- wafer post-action
+
+47            PROB_HND_CALL (ph_check_reference_wafer);
+
+48      }
+
+49       -- cassette post-action
+
+50         ACTIONS
+
+51           PROB_HND_CALL (ph_check_output_cassette );
+
+52     }
+
+53      -- lot post-action
+
+54     ACTIONS
+
+55         PROB_HND_CALL (ph_exit);
+
+56   }
+
+57  }
+
+58   {ON_PAUSE pause:
+
+59       ACTIONS
+
+60          PROB_HND_CALL (ph_red_alert);
+
+61       SCREEN_DIALOG
+
+62          BUTTON clean_pr         = PROB_HND_CALL(ph_clean_probes);
+63          DISABLE_SKIP_BUTTON;
+64          DISABLE_D_RETEST_BUTTON;
+65          DISABLE_W_RETEST_BUTTON;
+
+66  }</pre><div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="30887.htm" title="The scenario begins with the operator selecting a workorder. The software then downloads the corresponding data sets and vectors to the tester. In the meantime, the operator prepares the prober and loads all cassettes on the prober. All specific setups for the test devices, like z-heights for chuck and clean disc, auto alignment pattern, and first die settings, must be available on the wafer prober. If not, then the operator has to set up the product on the wafer prober manually.">Application Scenario</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.0:  GDF logging in application model is obsolete.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 30889</span><script type="text/javascript">var ti='30889';var tt='Syntax Listing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

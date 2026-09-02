@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The standard fixture delay measurement that is used to compensate driver and receiver skew of connections to and from the DUT needs to be complemented by additional measurements for a driver sharing environment. In order to measuring skew you need to provide a sharing configuration file for your particular driver sharing environment. This sharing configuration file will be used for the continuity test method as well. The resulting FXDL file will be used during device testing."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Delay measurement concepts for driver sharing</title></head><body id="_93414"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 93414</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Delay measurement concepts for driver sharing</h1>
+	
+	
+	<div><p>The standard fixture delay measurement that is used to compensate driver and receiver
+		skew of connections to and from the DUT needs to be complemented by additional measurements for a
+		driver sharing environment. In order to measuring skew you need to provide a sharing configuration
+		file for your particular driver sharing environment. This sharing configuration file will be used
+		for the continuity test method as well. The resulting FXDL file will be used during device
+		testing.</p>
+		<div class="note"><span class="title">Note</span> Devices which share driver pins are configured as separate sites in a V93000 pin
+			configuration.</div><p>Testing memory devices requires a test fixture to accommodate the device sockets for the site
+			or sites. This test fixture contains cable connections between the pogo pin plane of the test
+			head to the individual device socket pads. For manufacturing applications a test fixture
+			accommodates several device sockets. To compensate for cable length variations a standard fixture
+			delay measurement tool is provided by SmarTest.</p>
+		<p>A detailed description of the Fixture Delay Tool is given in the chapter <a href="55906.htm" title="This section describes how to use the Fixture Delay Tool to measure the signal delay contributed by the DUT board wiring.">Fixture Delay Tool</a>.</p>
+		<section class="section"><h2>Shared and non-shared drivers</h2><p>In a shared driver environment the
+				standard fixture delay measurement results must be adapted. Below, the concept of fixture delay
+				measuring for a shared driver environment is explained using sharing between four DUTs as an
+				example. This concept may be expanded to sharing more sites.</p><p>When multiple test sites are
+				sharing drivers you have to bear in mind that there are always shared and unshared pins
+				connected to the DUTs. DUT output lines (to test system receivers) are never shared, but there
+				may be DUT input lines without sharing drivers.</p><div class="p"><figure class="fignone">
+					
+					<img src="94060.png" alt="Fixture delay for driver sharing">
+				</figure></div></section>
+		<section class="section"><h2>Timing delay considerations</h2><p>For shared pins, drive signals arrive at DUT
+				A first, and then DUT B, DUT C, and DUT D. Compensating the fixture delay for DUT A first means
+				that DUT A can be used as a reference point for the timing of the devices that follow on the
+				chain. All delay values of the other sites can be aligned to this reference
+				point.</p><p>Although, shared driver edges will arrive by a time T<sub>Diff</sub> later at DUT B
+				than at DUT A, the non-shared pins of DUT B still receive drive signals at the same time as DUT
+				A. To synchronize shared and non-shared pins of DUT B, the drive/compare edges get postponed by
+					T<sub>Diff</sub> for non-shared pins of DUT B. This can be done by modifying the original
+				fixture delays for non-shared pins of DUT
+			B.</p></section>
+		<section class="section"><h2>TDR measurement</h2><p>Measuring a fixture delay is based on Time Domain
+				Reflection (TDR) measurement. In order to measure the round trip time of an edge from the pogo
+				plane to the device pad and back a in a fly-by connection, the DUT pad has to be shorted to
+				ground. </p><p>The measurement needs to be repeated as many times as there are sharing sites in
+				a chain. The pad grounding is moved for each measurement to the next site in the chain. For
+				example, in a 4-site sharing environment, four fixture delay (fxdl) files are generated. When
+				there are more than one sharing group, the groups get measured in parallel with all measured
+				delays contained in the four fxdl files. After fixture build, these measurements are made by the
+				manufacturer. The fixture delay files generated are delivered with the fixture. They form the
+				base for the delay measurements on the customer floor. </p><p>To increase accuracy, another
+				measurement needs to be taken, this time on the customers floor. The delay between the sites on
+				a shared line was measured at manufacturing without a load on the input pads in the sites that
+				were not shorted. In reality, during device test, there are devices in each socket, which
+				represent a capacitive load. This load adds to the propagation delay caused by the line length
+				alone. To measure this additional delay, two additional fxdl measurement have to be applied.
+				This time only with the last socket in a chain being shorted and the other sockets being loaded
+				with golden devices.</p><p>For high volume manufacturing a HiFix may have up to 64 or even 256
+				sites. That means, in case of a by 4 sharing, up to 32 groups of sites are sharing groups . It
+				has been shown, that all sharing groups show the same delay when measured with loaded golden
+				devices. Therefore, measuring one sharing socket board with loading devices suffices for all
+				other groups.</p></section>
+		<section class="section"><h2>Modify measurements</h2><p>For each test system channel used to drive or
+				receive a signal, the fixture delay file has to be modified using the measurement results made
+				with loaded sockets. This modification has to be made to the non-shared pins as well.</p><p>For
+				non-shared input pins of DUT
+				<sub>n+1</sub>:</p><pre class="prettyprint copyable singleline">new fixture delay = original fixture delay - (T<sub>dlunloadedn</sub> + T<sub>dlloadedn</sub>)</pre><p>For
+				output pins of DUT
+					<sub>n+1</sub>:</p><pre class="prettyprint copyable singleline">new fixture delay = original fixture delay + (T<sub>dlunloadedn</sub> + T<sub>dlloadedn</sub>)</pre><p>DUT<sub>1</sub>
+				is the first DUT in a row on a socket board and is nearest to the driver pin.</p><div class="p"><figure class="fignone">
+					
+					<img src="94164.png" alt="Driver sharing fixture delay concept">
+				</figure></div><p>To facilitate the merging of all measured fixture delays into one fixture delay
+				file for use during test, the fd_merge tool is provided with the MTP software. This tool merges
+				the input delay file automatically.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 93414</span><script type="text/javascript">var ti='93414';var tt='Delay measurement concepts for driver sharing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

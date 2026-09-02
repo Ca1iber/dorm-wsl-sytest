@@ -1,0 +1,91 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FOR_EACH_SITE_BEGIN_WITH_QUERY</title></head><body id="_116559"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116559</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FOR_EACH_SITE_BEGIN_WITH_QUERY</h1>
+	
+	
+	<div><p>This API allows you to sequentially setup and query setup and result information for all
+		active sites. It sets the current site as the query focus site in each iteration. It must be used
+		together with <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a><code></code> as a pair, called "each site with query loop
+		block". The query focus will be reset by <span class="keyword">FOR_EACH_SITE_END()</span>. If you want to
+		execute only setup information for all sites, use <a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a>.</p>
+		<section class="section"><h2>Application note</h2><ul>
+				<li>This API is used to change query focus site and enable querying the setup and result
+					information from firmware for each site.</li>
+				<li>This API is meaningful for multi-site testing. For single-site testing, this API is
+					ignored.</li>
+				<li>The "each site with query loop block" must be placed<ul>
+						<li>in the first-invocation block declared by <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a> and <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a> or</li>
+						<li>in the last-invocation block declared by <a href="118888.htm" title="This API declares the beginning of a block in which the test method code will be only executed for the last site in multisite testing. In the block, all the active sites are setup focus and the last site is query focus.">ON_LAST_INVOCATION_BEGIN</a> and <a href="118889.htm" title="This API declares the end of the &#34;last invocation&#34; block that is started by ON_LAST_INVOCATION_BEGIN.">ON_LAST_INVOCATION_END</a>.</li>
+					</ul></li>
+				<li>All statements in the "each site with query loop block" are executed serially for all active
+					sites when the program is run for the first tested site.</li>
+			</ul><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/MapiUtil.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">FOR_EACH_SITE_BEGIN_WITH_QUERY();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Minimum code</h3><p>The following example shows the minimum code for
+				a "each site with query loop block". The ellipses ("...") are to be replaced with your
+			code.</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+    ...
+    ...
+    FOR_EACH_SITE_BEGIN_WITH_QUERY();
+        ...
+        ...
+    FOR_EACH_SITE_END();
+    ...
+    ...
+ON_FIRST_INVOCATION_END();</pre></div>
+		<div class="example"><h3>Example 2: Optional curly brackets</h3><p>The example utilizes optional pairs
+				of curly brackets "{" and "}". These optional curly brackets are used for simplifying the
+				correct indentation with assistance of the related Eclipse
+			tool.</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+{
+    ...
+    ...
+    FOR_EACH_SITE_BEGIN_WITH_QUERY();
+    {
+        ...
+        ...
+    }
+    FOR_EACH_SITE_END();
+    ...
+    ...
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+		<div class="example"><h3>Example
+			3</h3><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN ();
+
+    //
+    // Do site-specific query for each site serially in the
+    // for each site with query loop.
+    //
+    // The FW query focus is set to the current site in
+    // iteration by for each site with query loop.
+    //
+    // At this point the query focus is site 1.
+    //
+
+    FOR_EACH_SITE_BEGIN_WITH_QUERY ();
+
+        //
+        // The query focus is set to current site in iteration.
+        //
+        // The following FW query will return the result of the
+        // current site in iteration.
+        //
+        string sAnswer;
+
+        FW_TASK ("SVLR? TIM, PRM; \"SpecName\"", sAnswer); 
+
+    FOR_EACH_SITE_END ();
+
+    //
+    // At this point the query focus is reset to site 1.
+    //
+
+ON_FIRST_INVOCATION_END ();
+...
+...</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="28751.htm" title="This API returns the site number of the current site under test.">CURRENT_SITE_NUMBER()</a></div><div><a href="135794.htm" title="Declares the beginning of the semi-parallel testing block that enables you to set up and execute test for the sites in semi-parallel. In the semi-parallel testing block, semi-parallel configuration and semi-parallel group will be defined. The semi-parallel groups in a semi-parallel configuration will be executed serially. While the sites in one semi-parallel group will be tested in parallel.">FOR_SEMI_PARALLEL_TEST_BEGIN</a></div><div><a href="135795.htm" title="Declares the end of the semi-parallel test block which is started by FOR_SEMI_PARALLEL_TEST_BEGIN.">FOR_SEMI_PARALLEL_TEST_END</a></div><div><a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a></div><div><a href="42646.htm" title="SmarTest controls which sites are addressed by Setup, Execution, and Result APIs, for achieving multisite testing with maximum performance.">Site States and Test Method Programs</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116559</span><script type="text/javascript">var ti='116559';var tt='FOR_EACH_SITE_BEGIN_WITH_QUERY'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

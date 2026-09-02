@@ -1,0 +1,78 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmarTest provides you with the flexibility to modify the behavior of the standard connect/disconnect sequence."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining connect/disconnect sequences</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_52816"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 52816</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining connect/disconnect sequences</h1>
+	
+	
+	<div><p>SmarTest provides you with the flexibility to modify the behavior of the standard
+		connect/disconnect sequence.</p>
+		<div class="caution"><span class="title">CAUTION</span> If you plan to make use of this feature, you must have expert knowledge
+			of the test system. Otherwise it is possible that you may write command files that cause
+			damage to your test device or the test system, or both.</div>
+		<div class="note"><span class="title">Note</span> On startup SmarTest always performs a standard disconnect.</div>
+		<section class="section"><h2>Standard connect/disconnect sequence</h2>
+			
+			<p>The standard connect/disconnect sequence, which can be used as model for your own sequences,
+				is as follows:</p>
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>Connect:</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable"><a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> CNCT,OFF,(@)
+<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST</a> ON
+<a href="99085.htm" title="Depending on the card type, the CNCT (CoNneCT/disCoNneCT) command connects or disconnects all output pins of the specified module.">CNCT</a> ON,(@)
+<a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST</a> BRK</pre></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>Disconnect:</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable"><a href="98564.htm" title="The DLSO command activates level set 0 for the channels of those sites that have the setup focus (for level set 0, see Controlling the high-Z behavior of digital pins with level set 0). By default, this means that they are switched to high-impedance.">DLSO</a> (@)
+<a href="98503.htm" title="The CHRS command serves to control the behavior of SmarTest with respect to inconsistent routing requests. The CHRS? query returns the current setting.">CHRS</a> OFF
+<a href="99061.htm" title="The following commands for utility lines do not immediately set the hardware. Instead they are buffered in the MCD (Message Concentrator and Distributor).">FLSH</a> MUX
+<a href="99082.htm" title="The WSDN (Wait Setup DoNe) command waits until downloading the settings in the readiness analog set and routing settings triggered by the FLSH command are completed.">WSDN</a>
+<a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST</a> OFF
+<a href="99085.htm" title="Depending on the card type, the CNCT (CoNneCT/disCoNneCT) command connects or disconnects all output pins of the specified module.">CNCT</a> OFF,(@)
+<a href="10738.htm" title="A binding instance is a controlling object which represents a set of wireless resources and the ordered relationship between them. Runtime changes are usually made to the bindings that represent resources, and not to the resources themselves.">BCMD</a> "",ACTION,"Update",
+<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST</a> OFF
+<a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> IDLE,OFF,(@)</pre></td>
+						</tr>
+					</tbody></table>
+		</section>
+		<section class="section"><h2>User-defined disconnect sequence</h2>
+			
+			<p>To write your own command files that define a connect/disconnect sequence for DPSs,
+				use the enhanced PSST command to define a series of specific pinlists (see <a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST, PSST? - (Power Supply STatus)</a>), for example:</p>
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>Connect:</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable">RLYC CNCT,OFF,(@)
+PSST ON,(pinlist for DPS1)
+PSST ON,(pinlist for DPS2)
+CNCT ON,(@)
+SQST BRK</pre></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>Disconnect:</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable">SQST OFF
+CNCT OFF,(@)
+CHRS OFF
+FLSH MUX
+WSDN
+PSST OFF,(pinlist for DPS2)
+PSST OFF,(pinlist for DPS1)
+RLYC IDLE,OFF,(@)</pre></td>
+						</tr>
+					</tbody></table>
+			<p>Using this feature has the following restrictions:</p>
+			<ul>
+				<li>To keep the throughput, the files are read only during a software start or a
+					device change. Editing a file while the software is running may not have any
+					effect.</li>
+				<li>Shared multisite is not supported with this feature.</li>
+			</ul>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">User-defined disconnect sequence</a></div><div><a href="113289.htm" title="Replacing the standard disconnect sequence with a user-defined disconnect sequence needs systematic knowledge to avoid damage to your device or to the test system.">Effects of user-defined disconnect sequence</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.3: SmarTest startup behavior changed</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 52816</span><script type="text/javascript">var ti='52816';var tt='Defining connect/disconnect sequences'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

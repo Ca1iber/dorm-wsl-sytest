@@ -1,0 +1,417 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API enables modifying label vectors at runtime on the specified digital pins of a certain site, while remaining pins continue executing the original vectors. The editing operation will overwrite the drive/receive actions in the specified label with a user defined action. The vector data will be overwritten directly in the corresponding memory."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>VEC_LABEL_EDIT</title><meta name="keywords" content="pattern vector label"></head><body id="_95305"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 95305</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">VEC_LABEL_EDIT</h1>
+	
+	
+	<div><p>This API enables modifying label vectors at runtime on the specified digital pins of
+		a certain site, while remaining pins continue executing the original vectors. The editing
+		operation will overwrite the drive/receive actions in the specified label with a user
+		defined action. The vector data will be overwritten directly in the corresponding
+		memory.</p>
+		<section class="section"><p>The <span class="keyword">VEC_LABEL_EDIT()</span> API supports the following features:</p><ul>
+				<li>Edit arbitrary vectors in a label. Any label of type "Main" or "SVEC" is
+					supported except the labels containing subroutines.<p>For multi-port setups, the
+						multi-port labels can be edited but the multi-port burst label cannot be
+						edited.</p></li>
+				<li>Set the specified pins of a certain site to a static mode. Once a pin is set to
+					a constant action, it will only be able to generate that action independently of
+					what the vector label contains. Once the pin is released from constant action,
+					it will resume its normal operation.</li>
+				<li>Store some vector data of the label to be edited. If needed, the stored vectors
+					will be restored. After the restore operation, the original vector data of the
+					label will be used for later test.</li>
+				<li>Hidden download: To save test time you can download data, while the sequencer is
+						running.</li>
+			</ul><p>This API can be used when different test sites must undergo different
+				programming due to prior pattern pass/fail conditions. It can also be used to do
+				vector update of a specific site.</p><p>Which site this API will apply on depends on
+				the scope of the call.</p><ul>
+				<li>Any call outside the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block:<p>If
+						an upload (store) operation is called it will only store data for the site
+						in focus.</p><p>If a download operation is called, the data will be
+						downloaded only to the current site being executed.</p></li>
+				<li>Any call inside the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a>
+						block:<p>This will address all sites. The upload and download operation will
+						be done on all sites. If a store operation is called, the vector data will
+						be read for each site and stored.</p></li>
+				<li>Any call inside <a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE</a> loop:<p>The operation
+						will only be executed on the current site in the loop. Store operation will
+						store the data of the current site in the loop.</p><div class="note"><span class="title">Note</span> See the
+						related API <a href="95304.htm" title="This API can translate an existing device cycle name (physical or logical) defined in a wavetable to a physical waveform index. This is useful when physical waveform DC/DC power units are needed, for example in the VEC_LABEL_EDIT API.">GET_PHY_WVF_IDX</a>.</div></li>
+			</ul></section>
+		<div class="syntax"><h2>Class definition</h2>
+			<dl>
+				
+					<dt class="dlterm">Constructor</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT(const STRING&amp; <var class="varname">labelName</var>, const STRING&amp; <var class="varname">pinList</var>);</code></pre></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_VECTOR_DATA">Data type VECTOR_DATA and array of VECTOR_DATA</dt>
+					<dd>The data type <span class="keyword">VECTOR_DATA</span> holds a pair of vector number and a physical
+						waveform
+							index:<div></div><pre class="no-prettify"><code>typedef struct
+{
+    int vectorNum;
+    int phyWvfIndex;
+
+} VECTOR_DATA;</code></pre><p>Vector
+							data for the <span class="keyword">VEC_LABEL_EDIT()</span> API are to be defined
+							defined as array of <span class="keyword">VECTOR_DATA</span>. The end of an array
+							of <span class="keyword">VECTOR_DATA</span> must be marked by appending the
+							predefined element <span class="keyword">VEC_LABEL_EDIT::VEC_END</span> or by
+							setting the last element to <kbd class="userinput">{-1,-1}</kbd>.</p></dd>
+				
+				
+					<dt class="dlterm">Member functions:</dt>
+					<dd>
+						<ul>
+							<li><a href="95305.htm#_95305__dle_downloadUserVectors">downloadUserVectors()</a></li>
+							<li><a href="95305.htm#_95305__dle_downloadUserVectorRange">downloadUserVectorRange()</a></li>
+							<li><a href="95305.htm#_95305__dle_storeVectorData">storeVectorData()</a></li>
+							<li><a href="95305.htm#_95305__dle_restoreVectorData">restoreVectorData()</a></li>
+							<li><a href="95305.htm#_95305__dle_setPinToConstantAction">setPinToConstantAction()</a></li>
+							<li><a href="95305.htm#_95305__dle_releasePinFromConstantAction">releasePinFromConstantAction()</a></li>
+							<li><a href="95305.htm#_95305__dle_isPinInConstantAction">isPinInConstantAction()</a></li>
+						</ul>
+					</dd>
+				
+			</dl><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/VecLabelEdit.h</span>.</p>
+		</div>
+		<div id="_95305__rs_Constructor">
+		<div class="syntax"><h2>Constructor</h2>
+			
+			<div></div><pre class="no-prettify"><code>VEC_LABEL_EDIT(const STRING&amp; <var class="varname">labelName</var>, const STRING&amp; <var class="varname">pinList</var>);</code></pre><div></div>
+				<p>This constructor creates a class object of this API. It initializes the class
+					object and fills it with all the required data related to the given label. It
+					also creates a cache container for each site. The cache is empty at this point
+					and can be used to store vector data.</p><p>This class can also be used to set a
+					pin to only generate one specific waveform. If you only need this functionality,
+					the first parameter <var class="varname">labelName</var> can be left empty(recommended
+					for performance). This way you cannot use any label editing functions of the
+					API.</p>
+				<dl>
+					
+						<dt class="dlterm">Parameters</dt>
+						<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+										<tr>
+											<td class="colsep-0 rowsep-0"><var class="varname">labelName</var></td>
+											<td class="colsep-0 rowsep-0">The label to be modified. If only the constant
+												mode functionality is used, it's highly recommended
+												to leave this parameter empty.</td>
+										</tr>
+										<tr>
+											<td class="colsep-0 rowsep-0"><var class="varname">pinList</var></td>
+											<td class="colsep-0 rowsep-0">The pins for which the vector data will be
+												modified. Only a single pin name or pin list is
+												valid. Group names and port names are not allowed.
+											</td>
+										</tr>
+									</tbody></table></dd>
+					
+					
+						<dt class="dlterm">Constructor example</dt>
+						<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT <var class="varname">myVectorLabelEdit</var>("<var class="varname">myLabelName</var>", "<var class="varname">myPin</var>");
+
+<var class="varname">myVectorLabelEdit</var>.<var class="varname">&lt;member_func&gt;</var>;</code></pre><p>or</p><pre class="no-prettify"><code>VEC_LABEL_EDIT("<var class="varname">myLabelName</var>", "myPin").<var class="varname">member_function</var>;</code></pre><p>In
+								which:</p>
+							<table class="ly"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+										<tr>
+											<td class="colsep-0 rowsep-0"></td>
+											<td class="colsep-0 rowsep-0"><var class="varname">member_function</var>:</td>
+											<td class="colsep-0 rowsep-0">Member functions of the
+												<code>VEC_LABEL_EDIT</code> API.</td>
+										</tr>
+										<tr>
+											<td class="colsep-0 rowsep-0"></td>
+											<td class="colsep-0 rowsep-0"><var class="varname">myLabelName</var>:</td>
+											<td class="colsep-0 rowsep-0">The label of which the vector to be
+												edited.</td>
+										</tr>
+										<tr>
+											<td class="colsep-0 rowsep-0"></td>
+											<td class="colsep-0 rowsep-0"><var class="varname">myPin</var>:</td>
+											<td class="colsep-0 rowsep-0">The pin on which the vector to be edited.</td>
+										</tr>
+									</tbody></table></dd>
+					
+				</dl></div></div>
+		<div class="syntax"><h2>Member functions</h2>
+			<dl>
+				
+					<dt class="dlterm" id="_95305__dle_downloadUserVectors">downloadUserVectors()</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; downloadUserVectors(VECTOR_DATA <var class="varname">vectorDATA[]</var>, INT <var class="varname">numOfVectors</var>);</code></pre><p>This member function overwrites one or more of the vector data in the specified label of the
+							specified pins or pin lists. The function will operate only on the first
+							pin that has been defined by the <a href="95305.htm#_95305__rs_Constructor">constructor</a>.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">vectorDATA</var></td>
+										<td class="colsep-0 rowsep-0">An array of <a href="95305.htm#_95305__dle_VECTOR_DATA">VECTOR_DATA</a> that defines the new vector
+											data.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">numOfVectors</var></td>
+										<td class="colsep-0 rowsep-0">The number of vector entries stored in the array
+												<var class="varname">vectorDATA</var>.</td>
+									</tr>
+								</tbody></table><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; downloadUserVectors(const char* <var class="varname">pinListCstr</var>, ...);</code></pre><p>This
+							member function overwrites one or more of the vector data in the
+							specified label. The function operates on the pin list defined by
+								<var class="varname">pinListCstr</var>. The function uses a variable list of
+							arguments to handle different vector data on the defined pins.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pins or pin lists to overwrite.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">...</var></td>
+										<td class="colsep-0 rowsep-0">The input vector data as variable list of arguments.
+											The expected arguments are arrays of type <a href="95305.htm#_95305__dle_VECTOR_DATA">VECTOR_DATA</a>.
+											The order of the arguments must be same with the order
+											of the input pin list
+												<var class="varname">pinListCstr</var>.<p>If the number of
+												input arguments is less than the pin number, use the
+												variable <span class="keyword">VEC_LABEL_EDIT::PARA_END</span>
+												to mark the end of the vector data list. The
+												following pins will use the last argument as input
+												data.</p><p>If the number of VECTOR_DATA is more
+												than the pin number, the redundant VECTOR_DATA will
+												be ignored.</p></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_downloadUserVectorRange">downloadUserVectorRange()</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; downloadUserVectorRange(INT <var class="varname">startVector</var>, INT <var class="varname">numOfVectors</var>, INT <var class="varname">physWfIndex</var>);
+VEC_LABEL_EDIT&amp; downloadUserVectorRange(INT <var class="varname">startVector</var>, INT <var class="varname">numOfVectors</var>, INT <var class="varname">physWfIndex</var>, const char* <var class="varname">pinListCstr</var>);</code></pre><p>This
+							member function downloads the specified physical waveform to the
+							specified range of vectors of the specified pins. If no pins are
+							specified, the physical waveform will be downloaded to all the pins. All
+							vectors in the range will be programmed to the same waveform.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">startVector</var></td>
+										<td class="colsep-0 rowsep-0">The first vector in the vector range to be
+											overwritten. This is the logical vector number.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">numOfVectors</var></td>
+										<td class="colsep-0 rowsep-0">The number of vectors to be overwritten starting from
+												<var class="varname">startVector</var>.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">physWfIndex</var></td>
+										<td class="colsep-0 rowsep-0">The index of the physical waveform to be written to
+											the specified vector range.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pin or pin list to change.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_storeVectorData">storeVectorData()</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; storeVectorData();
+VEC_LABEL_EDIT&amp; storeVectorData(const char* <var class="varname">pinListCstr</var>);
+
+VEC_LABEL_EDIT&amp; storeVectorData(INT <var class="varname">startVector</var>, INT <var class="varname">numOfVectors</var>);
+VEC_LABEL_EDIT&amp; storeVectorData(INT <var class="varname">startVector</var>, INT <var class="varname">numOfVectors</var>, const char* <var class="varname">pinListCstr</var>);</code></pre><div class="p">This
+							member function reads vector data from the label and stores it
+							internally in the class object:<ul>
+								<li>If no parameter is specified, the whole label data for all pins
+									will be stored. This is not recommended as it might be time
+									consuming for large labels.</li>
+								<li>If the parameter <var class="varname">pinListCstr</var> is specified,
+									the vector data for the specified pins will be stores.</li>
+								<li>If <var class="varname">startVector</var> and
+										<var class="varname">numOfVectors</var> are specified, the vector
+									data from <var class="varname">startVector</var> to
+										<var class="varname">startVector</var> +
+										<var class="varname">numOfVectors</var> -1 will be stored.</li>
+							</ul></div>
+						<p>The stored data will be the source for any later <a href="95305.htm#_95305__dle_restoreVectorData">restore</a> operation. If
+							the vector data has already been stored and is still up-to-date, the
+							operation will be skipped.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pin or pin list for which the vectors will be
+											stored.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">startVector</var></td>
+										<td class="colsep-0 rowsep-0">The logical number of the first vector in the label
+											that will be stored. Initialized to 0 if not
+											used.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">numOfVectors</var></td>
+										<td class="colsep-0 rowsep-0">The number of vectors to be stored (starting from
+												<var class="varname">startVector</var>). Initialized to the
+											size of the label if not used.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_restoreVectorData">restoreVectorData()</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; restoreVectorData();
+VEC_LABEL_EDIT&amp; restoreVectorData(const char* <var class="varname">pinListCstr</var>);</code></pre><p>This
+							member function restores the vector data in the vector label to the
+							state stored internally in the <span class="keyword">VEC_LABEL_EDIT</span> object.
+							Only the vectors stored by <a href="95305.htm#_95305__dle_storeVectorData">storeVectorData()</a> will be restored.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pin or pin list for which the vectors will be
+											restored.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_setPinToConstantAction">setPinToConstantAction()</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; setPinToConstantAction(INT <var class="varname">phyWvfIndex</var>);
+VEC_LABEL_EDIT&amp; setPinToConstantAction(INT <var class="varname">phyWvfIndex</var>, const char* <var class="varname">pinListCstr</var>);
+
+VEC_LABEL_EDIT&amp; setPinToConstantAction(const STRING&amp; <var class="varname">wvfString</var>);
+VEC_LABEL_EDIT&amp; setPinToConstantAction(const STRING&amp; <var class="varname">wvfString</var>, const char* <var class="varname">pinListCstr</var>);</code></pre><p>This
+							member function sets the specified pins of the site in focus to a
+							constant action (waveform) mode. The pin in this mode can only generate
+							the given waveform or the break waveform. The given waveform can be a
+							defined waveform (<var class="varname">phyWvfIndex</var>) or a completely new
+							one (<var class="varname">wvfString</var>). This function will automatically
+							detect the primary timing specset and it will alter the wavetable that
+							is used in that specset.</p><p>Since a wavetable can be shared between
+							several specsets, all the specsets using the same wavetable will be
+							affected. So it is important to release a pin from constant mode
+							whenever it is no longer used.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pin or pin list to set.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">phyWvfIndex</var></td>
+										<td class="colsep-0 rowsep-0">The physical waveform that will be applied to the pin
+											while it is in constant mode.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">wvfString</var>
+										</td>
+										<td class="colsep-0 rowsep-0">A new waveform that will be applied to the pin while
+											it is in constant action mode. It should be defined in
+											the standard waveform string index "d1:F10 d2:F00" or
+											"d1:1 d2:0".</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_releasePinFromConstantAction">releasePinFromConstantAction()</dt>
+					<dd><pre class="no-prettify"><code>VEC_LABEL_EDIT&amp; releasePinFromConstantAction();
+VEC_LABEL_EDIT&amp; releasePinFromConstantAction(const char* <var class="varname">pinListCstr</var>);</code></pre><p>This
+							member function releases the specified pins from constant action mode.
+							The pins will resume its normal behavior (using vectors from the vector
+							label). If the pins were not set to constant action mode using
+								<span class="keyword">setPinToConstantAction()</span>, nothing will
+							happen.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pin or pin list to release.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_95305__dle_isPinInConstantAction">isPinInConstantAction()</dt>
+					<dd><pre class="no-prettify"><code>Boolean isPinInConstantAction()
+Boolean isPinInConstantAction(const char* <var class="varname">pinListCstr</var>);</code></pre><p>This
+							function returns whether the specified pins are in constant action mode
+							or not.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinListCstr</var></td>
+										<td class="colsep-0 rowsep-0">The pin or pin list to query.</td>
+									</tr>
+								</tbody></table></dd>
+				
+			</dl></div>
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">VEC_LABEL_EDIT myLabel("myLabelName", "myPin");
+
+VECTOR_DATA myVectorData[3] = {{10, 0}, {12, 5}, {15, 3}};
+
+myLabel.storeVectorData(10, 6);
+
+myLabel.downloadUserVectors(myVectorData, 3);
+...
+...
+myLabel.restoreVectorData();</pre><p>The
+				first line creates a class object of <span class="keyword">VEC_LABEL_EDIT</span> and defines
+				the label and pin to be edited.</p>
+			<div class="p">The second line defines the vectors that will be changed and their corresponding new
+				values: Switch<ul>
+					<li>vector 10 to action 0,</li>
+					<li>vector 12 to action 5 and</li>
+					<li>vector 15 to action 3.</li>
+				</ul>In the third line, the vector data from vector 10 to 15 is stored.</div>
+			<p>The data defined in <var class="varname">myVectorData</var> is downloaded to "myLabel" in the
+				fourth line.</p>
+			<p>After testing with the modified vectors, the last line restores the vector data to
+				the original one.</p></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">VEC_LABEL_EDIT("","myPin").setPinToConstantAction(1);
+...
+...
+VEC_LABEL_EDIT("","myPin").releasePinFromConstantAction();</pre><p>This
+				example sets "myPin" to the constant action 1. Then in the following test "myPin"
+				will only generate waveform 1 or break waveform. The last line releases "myPin" from
+				constant mode. This pin will generate the waveforms defined in the vector
+			label.</p></div>
+		<div class="example"><h3>Example
+				3</h3><pre class="prettyprint linenums copyable">VEC_LABEL_EDIT myLabel("myLabelName", "myPin1, myPin2, myPin3");
+
+VECTOR_DATA myVectorData1[] = { {10, 0}, {12, 5}, {15, 3}, VEC_LABEL_EDIT::VEC_END};
+VECTOR_DATA myVectorData2[] = {  {2, 1},  {5, 3},  {8, 5}, {10, 1}, {-1, -1}};
+
+myLabel.storeVectorData(10,6, "myPin1, myPin2");
+
+myLabel.downloadUserVectors("myPin1, myPin2", myVectorData1, myVectorData2);
+...
+...
+myLabel.downloadUserVectors(VEC_LABEL_EDIT::ALL_PINS, myVectorData1,
+                                                     VEC_LABEL_EDIT::PARA_END);
+...
+...
+myLabel.restoreVectorData("myPin1, myPin2");</pre><p>This
+				example firstly create an instance of <span class="keyword">VEC_LABEL_EDIT</span> and defines
+				the vector data to use. Then it stores the vector data from 10 to 15 for pins
+				"myPin1" and "myPin2". Next it downloads <var class="varname">myVectorData1</var> to
+				"myPin1" and <var class="varname">myVectorData2</var> to "myPin2".</p>
+			<p>After some other action, it downloads <var class="varname">myVectorData1</var> to all three
+				pins: The variable list of arguments is closed by
+					<span class="keyword">VEC_LABEL_EDIT::PARA_END</span> after the first array has been
+				defined.</p>
+			<p>At last, the stored vector data for "myPin1" and "myPin2" is restored.</p></div>
+		<div class="example"><h3>Example
+				4</h3><pre class="prettyprint linenums copyable">VEC_LABEL_EDIT myLabel("myLabelName", "myPin");
+
+START_TEST();
+
+for (int startVector = 0; startVector &lt; 500; startVector++)
+{
+    myLabel.downloadUserVectorRange(startVector, 1, 0);
+}
+
+WAIT_TEST_DONE();
+
+TEST();</pre><p>This
+				example downloads vector data while the sequencer is running.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: New constructor VEC_LABEL_EDIT(const STRING&amp; labelName, const
+					STRING&amp; pinList)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; downloadUserVectors(const
+					char* pinListCstr, ...)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; downloadUserVectorRange(INT
+					startVector, INT numOfVectors, INT physWfIndex, const char*
+					pinListCstr)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; storeVectorData(const char*
+					pinListCstr)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; storeVectorData(INT
+					startVector, INT numOfVector, const char* pinListCstr)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; restoreVectorData(const
+					char* pinListCstr)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; setPinToConstantAction(INT
+					phyWvfIndex, const char* pinListCstr)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp; setPinToConstantAction(const
+					STRING&amp; wvfString, const char* pinListCstr)</li><li>SmarTest 6.5.2: New member function VEC_LABEL_EDIT&amp;
+					releasePinFromConstantAction(const char* pinListCstr)</li><li>SmarTest 6.5.2: New member function Boolean isPinInConstantAction(const char*
+					pinListCstr)</li><li>SmarTest 7.1.0:  Enhanced member functions with 7.1.1: VEC_LABEL_EDIT&amp;
+					downloadUserVectors(); VEC_LABEL_EDIT&amp;
+					downloadUserVectorRange</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 95305</span><script type="text/javascript">var ti='95305';var tt='VEC_LABEL_EDIT'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The member functions of the UTIL_I class makes a new utility setting data for the target utility line specified by the util member function of the ROUTING_STATUS API because the UTIL_I class is always called as the subsidiary data container of the ROUTING_STATUS API. Therefore, the UTIL_I class does not have a constructor. For related topics, see ROUTING_STATUS - (Routing)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>UTIL_I</title></head><body id="_29689"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29689</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">UTIL_I</h1>
+	
+	
+	<div><p>The member functions of the <kbd class="userinput">UTIL_I</kbd> class makes a new utility
+		setting data for the target utility line specified by the <kbd class="userinput">util</kbd> member
+		function of the <kbd class="userinput">ROUTING_STATUS</kbd> API because the
+			<kbd class="userinput">UTIL_I</kbd> class is always called as the subsidiary data container of the
+			<kbd class="userinput">ROUTING_STATUS</kbd> API. Therefore, the <kbd class="userinput">UTIL_I</kbd> class
+		does not have a constructor. For related topics, see <a href="29669.htm" title="The ROUTING_STATUS API accesses the data container holding the routing set.">ROUTING_STATUS - (Routing)</a>.</p>
+		<p>If you described multiple Routing.util statements, the settings of the Routing.util statements
+			are sequentially stored in the Message Concentrator and Distributor (MCD) once temporarily, then
+			all the settings are download to the hardware in parallel when the next Execution API or FLUSH
+			API is executed. At this time, the Execution API or FLUSH API waits the longest settling time of
+			all the utility lines specified in the pin configuration after controlling the utility lines. For
+			the MCD, see the manual <a href="103977.htm">Command Reference</a>.</p>
+		<p>This class is defined in the header file
+				<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/UtilI.h</span>.</p>
+		<section class="section"><h2>Class definition</h2><p>Member
+			Functions:</p><pre class="prettyprint linenums copyable"> void on();
+ void off();</pre></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>on()</h3><pre class="prettyprint copyable singleline">void on();</pre><p>This member function turns the
+				specified utility line on.</p></section>
+		<section class="section"><h3>off()</h3><pre class="prettyprint copyable singleline">void off();</pre><p>This member function turns the
+				specified utility line off.</p></section>
+		<section class="section"><h3>Important Points</h3><ul>
+				<li>If you described the <kbd class="userinput">Routing.util</kbd> statements in conjunction with the
+						<kbd class="userinput">Routing.uti_purpose</kbd> statements before the <kbd class="userinput">FLUSH</kbd>
+					API or Execution API,<p>(1) the settings of the <kbd class="userinput">Routing.uti_purpose</kbd>
+						statements are sequentially stored in the MCD, then </p>
+					<p>(2) the settings of the <kbd class="userinput">Routing.util</kbd> statements are sequentially
+						stored. In the MCD, if any statements in them control the same utility line, the setting of
+						the utility line is overwritten by the later setting. </p>
+					<p>Then all settings are downloaded to the hardware in parallel when the next
+							<kbd class="userinput">FLUSH</kbd> API or Execution API is executed.</p>
+					<p>The following example assumes the "UTI101" is controlled by both the lines "B" and "C".</p>
+					<p> <kbd class="userinput">A: Routing.uti_purpose("group1").set();</kbd></p>
+					<p> <kbd class="userinput">//UTI103:OFF, UTI104:OFF</kbd></p>
+					<p> <kbd class="userinput">B: Routing.util("relay1").off(); //UTI101:OFF</kbd></p>
+					<p> <kbd class="userinput">C: Routing.uti_purpose("group2").set();</kbd></p>
+					<p> <kbd class="userinput">//UTI101:ON, UTI102:ON</kbd></p>
+					<p> <kbd class="userinput">D: Routing.util("relay2").on(); //UTI105:ON</kbd></p>
+					<p> <kbd class="userinput">E: FLUSH();</kbd></p>
+					<p>The settings of the statements in the above example are stored in the MCD in the following
+						order: </p>
+					<p> <kbd class="userinput">1. "A" Routing.uti_purpose("group1").set();</kbd></p>
+					<p> <kbd class="userinput">//UTI103:OFF, UTI104:OFF</kbd></p>
+					<p> <kbd class="userinput">2. "C" Routing.uti_purpose("group2").set();</kbd></p>
+					<p> <kbd class="userinput">//UTI101:ON, UTI102:ON</kbd></p>
+					<p> <kbd class="userinput">3. "B" Routing.util("relay1").off();</kbd></p>
+					<p> <kbd class="userinput">//UTI101:OFF</kbd></p>
+					<p> <kbd class="userinput">4. "D" Routing.util("relay2").on();</kbd></p>
+					<p> <kbd class="userinput">//UTI105:ON</kbd></p>
+					<p>In this case, the setting data of the line "C" for "UTI101" is overwritten by the setting
+						data of the line "B". Therefore, the <kbd class="userinput">FLUSH</kbd> API downloads the following
+						settings to hardware finally.</p>
+					<p> <kbd class="userinput">UTI101 UTI102 UTI103 UTI104 UTI105</kbd></p>
+					<p> <kbd class="userinput">----------------------------------</kbd></p>
+					<p> <kbd class="userinput">OFF ON OFF OFF ON</kbd></p></li>
+			</ul></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint copyable singleline">Routing.util("util_a").on();</pre><p>The member function closes the
+				relay connected to the utility line named as "util_a".</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29689</span><script type="text/javascript">var ti='29689';var tt='UTIL_I'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

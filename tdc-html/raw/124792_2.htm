@@ -1,0 +1,109 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A second option to avoid rounding problems is to put pure Smart Scale ports into different clock groups. Clock groups can only be used in a setup that contains pure Smart Scale ports."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Avoiding rounding problems with different clock groups</title></head><body id="_124792"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 124792</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Avoiding rounding problems with different clock groups</h1>
+	
+	
+	<div><p>A second option to avoid rounding problems is to put pure Smart Scale ports into
+		different <em>clock groups</em>. Clock groups can only be used in a setup that contains pure Smart
+		Scale ports.</p>
+		<p>Only pure Smart Scale ports can be included in a user defined clock group. All ports that are
+			not included in any user defined clock group, in particular all non-pure ports, belong to a
+			predefined default clock group.</p>
+		<div class="note"><span class="title">Note</span> Where an explicit clock group is not needed, use the default clock group.
+				Assigning all ports to your own "default" group adds about 800μs to the test time.</div>
+		<p>Clock groups in pure Smart Scale setups are treated differently from clock groups in mixed
+			setups, that is, setups that contain at least one non-pure port.</p>
+		<section class="section"><h2>Clock groups in pure Smart Scale setups</h2><p>If user defined clock groups are present, the operation of channels whose ports belong to the
+				same clock group is no longer controlled by the system clock (SCLK), but by a clock group
+				specific <em>event clock</em> (abbreviated "EVCK"). The period of this event clock must be an
+				integer multiple of the clock resolutions of all ports that belong to the respective clock
+				group, but is not required to be directly divisible by the master clock period or the clock resolutions of any port that
+				belongs to a different clock group. Also, the SCLK period is no longer required to be directly
+				divisible by the clock resolution of any port.</p><p>If user defined clock groups are present, the SCLK period and the EVCK periods of
+				all clock groups (including the default clock group) are calculated as follows:</p><ol>
+				
+					<li>The SCLK period of the specification is calculated first. It must be
+					directly divisible by the master clock period (but not by any ECLK).</li>
+				<li>The system checks for every clock group if the SCLK period calculated in step 1 is also
+					directly divisible by the clock resolutions of all ports within the clock group. If this is the
+					case, it will set the event clock period of this group to the SCLK period. Otherwise, the EVCK
+					period will be calculated exclusively from the clock resolutions of the clock group ports.
+						<p>The point of this step is to keep the event clock period as short as possible. If the EVCK
+						period does not equal the SCLK period, it must be at least 4 times as long as the SCLK
+						period.</p></li>
+			</ol><p>Note that all this holds only if at least one user defined clock group is present. If
+				this is not the case, that is, if only the default clock group exists, then the SCLK period must
+				be directly divisible by the clock resolutions of all ports (even if all of them are pure Smart
+				Scale ports), and the EVCK period of the default clock group will equal the SCLK period.
+			</p></section>
+		
+		<section class="section"><h2>Clock groups run asynchronous</h2><p>If two ports belong to different clock
+				groups, they cannot be synchronized in any way. It follows from this that a sequencing group can
+				only be effective in such a setup when all its ports belong to the same clock group. If a
+				sequencing group overlaps with two clock groups, it will be split by the system. Only the part
+				that belongs to the same clock group can still be synchronized.</p></section>
+		<section class="section"><h2>Clock groups and the fract() function</h2><p>Defining the user periods as 
+			fractions of some global value may <span>lead</span> to an EVCK overflow within one
+				clock group, because the event clock period of a clock group must be an integer multiple of the
+				ECLKs of all ports within the group. In this case again, the <span class="keyword">fract()</span> function
+				can be used to calculate the least common multiple of all the ECLKs from the original fractions
+				in the period definition (see <a href="124790.htm" title="One method to avoid rounding problems is to define the period with the fract() function. This option is applicable to both Pin Scale and Smart Scale setups.">Avoiding rounding problems with the fract() function</a>), and thus to prevent a clock
+				overflow.</p><p>But note that
+					<span class="keyword">fract()</span> is also exploited by the check in step 2 described above. By
+				defining the period with <span class="keyword">fract()</span> you enable the system to set the event clock
+				period of a clock group to the SCLK period in cases where the clock resolution derived from the
+					<span class="keyword">fract()</span> statement divides the SCLK period directly, but the quotient of the
+				division does not. If therefore <span class="keyword">fract()</span> is used at least once, it should be
+				used in all period definitions that use the respective global variable, even across clock
+				groups.</p></section>
+		
+		
+		<h2>Example</h2><div class="example"><h3>Example 1</h3><p>We first show the results for a pure Smart Scale setup. In
+				this case the clock resolutions (third parameter of <span class="keyword">CLKR</span>) are as
+				follows:</p><pre class="prettyprint linenums copyable">&gt;  CLKR? EXACT,"mu_burst",(@@)
+&lt;  CLKR "mu_burst",12,1.5,(PortA)
+&lt;  CLKR "mu_burst",17,1.7,(PortB)
+&lt;  CLKR "mu_burst",20,1.25,(PortD)
+&lt;  CLKR "mu_burst",7.8,1.56,(PortE)</pre><p>If
+				no user defined clock groups exist, the result for the SCLK and EVCK periods
+					is:</p><pre class="prettyprint linenums copyable">&gt;  sclk? "mu_burst"
+&lt;  SCLK "mu_burst",13260
+&gt;  evck? "mu_burst",(@@)
+&lt;  EVCK "mu_burst",13260,(PortA)
+&lt;  EVCK "mu_burst",13260,(PortB)
+&lt;  EVCK "mu_burst",13260,(PortD)
+&lt;  EVCK "mu_burst",13260,(PortE)</pre><p><span class="keyword">SCLK?</span>
+				returns the SCLK period, <span class="keyword">EVCK?</span> returns the EVCK periods. The SCLK period is
+				rather large because it must be directly divisible by the clock resolutions of all 4
+				ports.</p><p>If <code>PortA</code> is in clock group "g1", and the other ports in the
+				default clock group, one
+				gets:</p><pre class="prettyprint linenums copyable">&gt;  sclk? "mu_burst"
+&lt;  SCLK "mu_burst",480
+&gt;  evck? "mu_burst",(@@)
+&lt;  EVCK "mu_burst",480,(PortA)
+&lt;  EVCK "mu_burst",13260,(PortB)
+&lt;  EVCK "mu_burst",13260,(PortD)
+&lt;  EVCK "mu_burst",13260,(PortE)</pre><p>The
+				SCLK period is now at its minimal value (for the big testhead) because the SCLK period is no
+				longer required to be directly divisible by any of the clock resolutions. Furthermore, this case
+				shows, by the example of "g1", that if the SCLK period is directly divisible by the clock
+				resolutions of all ports within a clock group, the SCLK period is taken as its EVCK
+				period.</p><p>If both <code>PortA</code> and <code>PortB</code> are in clock group "g1",
+				and <code>PortD</code> and <code>PortE</code> in the default clock group, one
+				gets:</p><pre class="prettyprint linenums copyable">&gt;  sclk? "mu_burst"
+&lt;  SCLK "mu_burst",480
+&gt;  evck? "mu_burst",(@@)
+&lt;  EVCK "mu_burst",2448,(PortA)
+&lt;  EVCK "mu_burst",2448,(PortB)
+&lt;  EVCK "mu_burst",3120,(PortD)
+&lt;  EVCK "mu_burst",3120,(PortE)</pre><p>This
+				example demonstrates how an appropriate grouping of the ports within the clock groups can make
+				the test faster. By putting both <code>PortA</code> and <code>PortB</code> into the user
+				defined clock group "g1" the maximal event clock period is 4 times smaller than in the previous
+				setup. The disadvantage is that <code>PortB</code> is no longer synchronized with
+					<code>PortD</code> and <code>PortE.</code></p></div>
+		
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98412.htm" title="From the period resolution, SmarTest derives two other time spans which it needs internally. These are the clock resolution and the master clock period. Both of them are usually of interest only for debugging purposes.">Period resolution, clock resolution, and master clock period</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 124792</span><script type="text/javascript">var ti='124792';var tt='Avoiding rounding problems with different clock groups'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The CSAS? query reads and clears the internal status flags of the DPS128/64 or XPS256 pins. The flags are not cleared by a connect or disconnect sequence."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CSAS? - (Channel Slot Accumulated Status)</title><meta name="keywords" content="CSAS_"></head><body id="_144688"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144688</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CSAS? - (Channel Slot Accumulated Status)</h1>
+	
+	
+	<div><p>The <span class="keyword">CSAS?</span> query reads and clears the internal status flags of the <span>DPS128/64 or XPS256
+		</span>pins. The flags are not cleared by a connect or disconnect sequence.</p>
+		<section class="section"><p> The query returns either a hex value or a pass/fail (P|F) result. The hex value must
+				be translated into binary form to interpret the status. The result will show any
+				bits that have been set on tests performed since the previous execution of the
+				query. It is not reset by a connect or disconnect sequence.</p><div class="note"><span class="title">Note</span> The <span class="keyword">CSAS?</span> (Channel
+				Slot Accumulated Status) query is supported by DPS128/64 and XPS256 DC Scale
+				channels in DPS operating mode, in PMU operating mode, or (if supported by the card)
+				in Digital I/O operating mode.</div><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p><div class="note"><span class="title">Note</span> <p>Pass/fail results that are retrieved by command <a href="98689.htm" title="The PRLT? query returns the global pass/fail results of the last executed test for the specified sites in parallel. You can use this command to find out the global results of all sites (not only the one that has the query focus) in one step.">PRLT</a> are invalidated
+				by commands <a href="144688.htm" title="The CSAS? query reads and clears the internal status flags of the DPS128/64 or XPS256 pins. The flags are not cleared by a connect or disconnect sequence.">CSAS</a> and <a href="98691.htm" title="The PSAS? (Power Supply Accumulated Status) query reads and clears the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at connect and disconnect if the trigger condition is no longer true.">PSAS</a>.</p>
+			<p>We recommend therefore using the command PRLT directly after the related functional test and
+				before command CSAS or PSAS are performed.</p><p>This behavior applies not only to the commands but also
+				to the related APIs: Function <a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a> must be performed before any of
+				the <a href="141284.htm" title="The DPS_AUX_PIN_TASK class is a subsidiary data container of the DPS_AUX_TASK API.">DPS_AUX_PIN_TASK.check...()</a> functions is called or
+				the results of GET_FUNCTIONAL_RESULT() are invalid.</p></div>Any read status bits are cleared after the
+				<span class="keyword">CSAS?</span> query. If the <a href="144688.htm" title="The CSAS? query reads and clears the internal status flags of the DPS128/64 or XPS256 pins. The flags are not cleared by a connect or disconnect sequence.">mask</a> parameter
+			is specified, only the flags selected by the <span class="keyword">mask</span> parameter are
+			cleared. The status is then accumulated again, until the next <span class="keyword">CSAS?</span>
+			query. The flags are not cleared by a connect or disconnect sequence.</section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">CSAS? [msMode,] {<var class="varname">mask</var>}, {(<var class="varname">pinlist</var>)}</pre><div></div>
+			<p>returns:</p>
+			<div></div><pre class="prettyprint copyable singleline">CSAS {<var class="varname">status</var>}, {(<var class="varname">pinlist</var>)}</pre><div></div>
+		</div><div class="syntax">
+			<h2>Parameters</h2>
+			<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">msMode</var></td>
+							<td class="colsep-0 rowsep-1">The extra parameter controls how the return value is created.<p>The value of the
+									parameter can be <span class="keyword">PQFC</span>:</p><ul>
+									<li><span class="keyword">PQFC</span> specified: The current query focus is respected and allows
+										status query per site without affecting status bits of other sites.</li>
+									<li><span class="keyword">PQFC</span> not specified: The command reads (and clears) status bits of
+										all enabled and active sites at a glance, ignoring the actual query focus.</li>
+								</ul>The parameter applies only to use of parameter <var class="varname">mask</var> as integer
+								value.</td>
+						</tr>
+						<tr id="_144688__r_mask">
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">mask</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">Integer bit mask or <span class="keyword">ALL</span>.<ul>
+									<li>
+										<p>Integer bit mask: Integer value is used to mask out individual status bits. Each bit of mask is logically
+											AND-ed with the corresponding bit of the DPS status. If one of the resulting bits is set, then
+												<span class="keyword">F</span> (Fail) is returned, otherwise <span class="keyword">P</span> (Pass).</p>
+										<p>It is used to check for an error condition. All bit positions of the status flags that should be checked,
+											must be set to 1 in mask. If one of the selected status bits is set, then <span class="keyword">CSAS?</span> returns
+												<span class="keyword">F</span>.</p>
+									</li>
+									<li><span class="keyword">ALL</span>: Hex value (hexadecimal representation of all status bits) is returned.</li>
+								</ul>For setting the integer bit mask or interpreting a returned hex value, refer to the <a href="144688.htm#_144688__r_status">status</a> parameter below. </td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">pinlist</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								
+								<p>Comma separated list of DPS128/64 or XPS256 pins. The @ character can be
+									used to read the status for all DPS pins.</p>
+							</td>
+						</tr>
+						<tr id="_144688__r_status">
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">status</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">If <var class="varname">mask</var> is <span class="keyword">ALL</span>, you need to translate the hex
+								value (hexadecimal representation of the status bits) to its binary form as
+									follows:<div class="p">
+									<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;0:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_0_High_surge_tracker">High voltage or current
+															of surge tracker exceeded</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;1:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_1_Low_surge_tracker">Low voltage or current
+															of surge tracker exceeded</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;2:</td>
+													<td class="rowsep-1">0</td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;3:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_3_Meas_range_change">Measurement range change
+															failed</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;4:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_4_Clamp_current_correction">Clamp current
+															correction failed</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;5:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_5_Battery_full">Battery full</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;6:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_6_Power_budget_1">Power budget 1</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;7:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_7_Power_budget_2">Power budget 2</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;8:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_8_Power_budget_3">Power budget
+															3</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;9:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_9_HV_surge_tracker">High voltage
+												of surge tracker reached</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;10:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_10_LV_surge_tracker">Low voltage
+												of surge tracker reached</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-1">Bit&nbsp;11:</td>
+													<td class="rowsep-1"><span id="_144688__ph_CSAS_bit_11_HC_surge_tracker">High current of surge tracker
+														reached</span></td>
+												</tr>
+												<tr>
+													<td class="rowsep-0">Bit&nbsp;12:</td>
+													<td class="rowsep-0"><span id="_144688__ph_CSAS_bit_12_LC_surge_tracker">Low current of surge tracker reached</span></td>
+												</tr>
+											</tbody></table>
+								</div><p>If <var class="varname">mask</var> is specified as an integer bit-mask:</p><ul>
+									<li>Pass: <span class="keyword">P</span></li>
+									<li>Fail: <span class="keyword">F</span></li>
+								</ul></td>
+						</tr>
+					</tbody></table>
+			
+		</div>
+		
+		<section class="section"><h2>DPS flag implementation</h2>
+			
+			<p>The implementation of the flags differs for the various DPS cards, that is, various
+				cards do not support every flag.</p>
+			<table class="frame-topbot"><caption></caption><colgroup><col><col><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_144688__entry__35">Bit</th>
+							<th class="colsep-0 rowsep-1" id="_144688__entry__36">Flag</th>
+							<th class="colsep-0 rowsep-1" id="_144688__entry__37"></th>
+							<th class="colsep-1 rowsep-1" id="_144688__entry__38">DPS128/64</th>
+							<th class="colsep-0 rowsep-1" id="_144688__entry__39">XPS256</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">0</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>High voltage or current
+															of surge tracker exceeded</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">+</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">1</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Low voltage or current
+															of surge tracker exceeded</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">+</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">3</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Measurement range change
+															failed</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">+</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">4</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Clamp current
+															correction failed</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">+</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">-</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">5</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Battery full</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">-</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">6</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Power budget 1</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">-</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">7</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Power budget 2</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">-</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">8</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Power budget
+															3</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">-</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">9</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>High voltage
+												of surge tracker reached</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">10</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Low voltage
+												of surge tracker reached</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">11</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>High current of surge tracker
+														reached</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__35">12</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__36"><span>Low current of surge tracker reached</span></td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__37"></td>
+							<td class="colsep-1 rowsep-1" headers="_144688__entry__38">-</td>
+							<td class="colsep-0 rowsep-1" headers="_144688__entry__39">+</td>
+						</tr>
+					</tbody></table>
+		</section>
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1: </h3>
+			
+			<div></div><pre class="prettyprint copyable singleline">CSAS? 3,(VCC)</pre><div></div>
+			<p>returns either</p>
+			<div></div><pre class="prettyprint copyable singleline">CSAS P,(VCC)</pre><div></div>
+			<p>or</p>
+			<div></div><pre class="prettyprint copyable singleline">CSAS F,(VCC)</pre><div></div>
+			<p>The example uses the integer bitmask and checks whether a spike on the <code>VCC</code>
+				pin exceeded the low or high limit.</p>
+			<ul>
+				<li><span class="keyword">P</span> = Pass<p>No spike occurred since the last <span class="keyword">CSAS?</span>
+						query.</p></li>
+				<li><span class="keyword">F</span> = Fail<p>Either the low or high limit or both were exceeded.</p></li>
+			</ul>
+		</div>
+		<div class="example"><h3>Example 2: </h3>
+			
+			<div></div><pre class="prettyprint copyable singleline">CSAS? ALL,(Vaux)</pre><div></div>
+			<p>returns</p>
+			<div></div><pre class="prettyprint copyable singleline">CSAS #H10,(Vaux)</pre><div></div>
+			<p>The example uses the <span class="keyword">ALL</span> specifier and checks for an error condition on the
+					<code>Vaux</code> pin.</p>
+			<ul>
+				<li>Bit 3 = 0<p>No "<span>Measurement range change
+															failed</span>" error. All set
+						current measurement range requests were successful.</p></li>
+				<li>Bit 4 = 1<p>The "<span>Clamp current
+															correction failed</span>". A
+						high-accuracy clamp current correction for a <span class="keyword">DCVH</span> setup with execution mode
+							<span class="keyword">SER_HAC</span> or <span class="keyword">PAR_HAC</span> was not successful.</p></li>
+			</ul>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98691.htm" title="The PSAS? (Power Supply Accumulated Status) query reads and clears the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at connect and disconnect if the trigger condition is no longer true.">PSAS? - (Power Supply Accumulated Status)</a></div><div><a href="98550.htm" title="The DFPN command allocates a pin name to a digital or DC Scale channel. The DC Scale channel will be in PMU mode by this allocation. The pin name is the name by which the software identifies the pin. The DFPN? query returns a list of channels and their assigned pin names.">DFPN, DFPN? - (DeFine Pin Name)</a></div><div><a href="98551.htm" title="The DFPS (DeFine Power Supply) command tells the software which DPS channel is connected to the specified device pin, and the polarity of the channel. The DFPS? query returns the existing channel, polarity and assigned pin number.">DFPS, DFPS? - (DeFine Power Supply)</a></div><div><a href="150054.htm" title="The DPS_AUX_TASK class features several member functions for reading the accumulated power supply status flags.">DPS status flags - get...() functions</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.2</li><li>SmarTest 7.3.1: DC Scale PVI8 card added. Bit 2 set to 0.</li><li>SmarTest 7.3.3: New extra parameter "msMode".</li><li>SmarTest 7.4.0: DC Scale AVI64 card and support for the Digital I/O operating mode
+					of DPS added.</li><li>SmarTest 7.4.0: New flags Battery full and PowerBudget 1 ... 3 warning (Bit 5 ...
+					8).</li><li>SmarTest 7.5.0: DC Scale FVI16 card added.</li><li>SmarTest 7.10.1: DC Scale XPS256 card added </li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144688</span><script type="text/javascript">var ti='144688';var tt='CSAS? - (Channel Slot Accumulated Status)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

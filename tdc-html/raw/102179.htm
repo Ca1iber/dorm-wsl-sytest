@@ -1,0 +1,97 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This function returns the calibration correction for the current site in focus. The measParams array has cal data all sites in its contents. This method simply extracts the cal correction for the site and returns it as a double correction watts/watts. It can be used directly in functions which accept calCorrection, such as DSP_RF_SPECTRUM."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_RF_GET_SCALAR_CAL()</title></head><body id="_102179"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102179</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_RF_GET_SCALAR_CAL()</h1>
+	
+	
+	<div><p>This function returns the calibration correction for the current site in focus. The
+		measParams array has cal data all sites in its contents. This method simply extracts the cal
+		correction for the site and returns it as a double correction watts/watts. It can be used directly
+		in functions which accept calCorrection, such as DSP_RF_SPECTRUM.</p>
+		<section class="section"><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">DSP_RF_GET_SCALAR_CAL( const ARRAY_D &amp; measParams, const INT site, DOUBLE * calFactor);</pre><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_102179__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1" id="_102179__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_102179__entry__3"><p>Notes</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_102179__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_102179__entry__2"><p><kbd class="userinput">measParams</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_102179__entry__3"><p>cal data for all sites</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_102179__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_102179__entry__2"><p><kbd class="userinput">Site</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_102179__entry__3"><p>site Id</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_102179__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1" headers="_102179__entry__2"><p><kbd class="userinput">calFactor</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_102179__entry__3"><p>calibration correction factor</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><pre class="prettyprint linenums copyable">Array_D measParams = MEAS_DEF("name").getParameters(1,0);
+DOUBLE CalCorr = 0;
+DSP_RF_GET_SCALAR_CAL(measParams,1, &amp;CalCorr);
+ARRAY_COMPLEX cData =MEAS_DEF("name").getComplexWaveform(1);
+ARRAY_D real = cData.getReal();
+ARRAY_D img = cData.getImag();
+for (i=0; i&lt;real.size().size(); i++)
+{
+real[i]= real[i] * sqrt(calCorr);
+imag[i] = imag[i] * sqrt(calCorr);
+}
+</pre><p>Since
+				DSP_RF_SPECTRUM does not accept a parameters array (MEAS_DEF().getParameters()), the results
+				returned are uncalibrated. To obtain calibrated results, DSP_RF_SPECTRUM must be used in
+				conjunction with DSP_RF_GET_SCALAR_CAL() as shown
+			below.</p><pre class="prettyprint linenums copyable">ARRAY_D measParams = MEAS_DEF("myModPwrMeas").getParameters(1,0);// Same as any other RF measurement 
+DOUBLE CalCorr = 0; 
+DSP_RF_GET_SCALAR_CAL(measParams,1, &amp;CalCorr); // 1 = Site number
+ARRAY_COMPLEX cData = MEAS_DEF("myModPwrMeas").getComplexWaveform(1);
+ARRAY_D fftData(cData.size());
+DSP_RF_SPECTRUM(cData, fftData, WATT, HANNING, 0, CalCorr);</pre></div>
+		<div class="example"><h3>Calibrated Demodulation Results</h3>
+			
+			<p>EVM measurements do not require calibrated time domain data to be sent to the demodulation
+				algorithm, but some demodulation results return power measurements over different regions of the
+				payload, for example. To send calibrated time domain data to the demodulation algorithm, use the
+				following example:</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">TimeData = SMC_GET_COMPLEX_WAVEFORM(mDgtPinName, tsuite_name, 1);
+DOUBLE CalCorr = 0.0;
+DSP_RF_GET_SCALAR_CAL(measParams, 1, &amp;CalCorr);
+cout &lt;&lt; "Scalar Cal Factor: " &lt;&lt; CalCorr &lt;&lt; endl;
+ARRAY_D rData = TimeData.getReal();
+ARRAY_D iData = TimeData.getImag();
+ARRAY_COMPLEX TimeDataCal;
+TimeDataCal.resize(rData.size());
+int i;
+for (i=0; i&lt;rData.size(); i++)
+{
+rData[i] = rData[i] * sqrt(CalCorr);
+iData[I] = iData[I] * sqrt(CalCorr);
+TimeDataCal[i].real() = rData[i];
+TimeDataCal[i].imag() = iData[i];
+}
+DEMODULATION demod("BLUETOOTH");
+demod.execute(TimeDataCal, d_sampleFrequency);</pre><div></div>
+			</div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102179</span><script type="text/javascript">var ti='102179';var tt='DSP_RF_GET_SCALAR_CAL()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

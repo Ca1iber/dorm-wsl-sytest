@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="You can measure the current using DPS triggered by an external source. The trigger is connected to a digital channel which is controlled by test pattern.This means that the measurement can be included as part of a functional test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DPS measurement with external trigger</title></head><body id="_117784"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117784</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DPS measurement with external trigger</h1>
+	
+	
+	<div><p>You can measure the current using DPS triggered by an external source. The trigger is
+		connected to a digital channel which is controlled by test pattern.This means that the measurement
+		can be included as part of a functional test.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>DPS measurement with external trigger does not exist for DC Scale cards.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><ul>
+				<li>The DPS TR+ and TRVB- pins are wired to the required test system channel.</li>
+				<li>A dummy digital pin has been defined in the pin configuration tool. (For details, see <a href="17564.htm" title="If you plan to perform DPS current measurements using the external trigger, you have to tell the test system software about the connection for the trigger.">Defining External Trigger for DPS Measurements</a>)</li>
+				<li>The trigger signal waveform has been defined. (For the signal limitation, see <a href="55768.htm" title="You must first make the connection from the pogo pin to the channel driver output during design of the load board.">Setting Up the External Trigger</a> )</li>
+			</ul></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Define the multiple limits used in the measurement.</span>
+				<div><ul>
+						<li>You can use <a href="55668.htm" title="The MULTI_LIMITS class is the container holding multiple objects of the LIMIT class.">MULTI_LIMITS</a> API to add the same limit for different measurement as
+								below:<div></div><pre class="prettyprint linenums copyable">MULTI_LIMITS mLimits;
+mLimits.add(limit, 8);</pre><p>where
+									<code>limit</code> is already defined.</p></li>
+						<li>You can also use <a href="55668.htm" title="The MULTI_LIMITS class is the container holding multiple objects of the LIMIT class.">MULTI_LIMITS</a> API to define different limit values for different
+							measurement as
+								below:<div></div><pre class="prettyprint linenums copyable">MULTI_LIMITS mLimits;
+mLimits.add("limit1").add("limit2").add("limit3");</pre><p>where
+									<code>limit1</code>, <code>limit2</code> and <code>limit3</code> are some
+								defined limits.</p></li>
+					</ul>
+				</div>
+			</li><li class="stepexpand">
+				<span>Define the DPS measurement conditions with the member functions of <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a>
+					and <a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a>.</span>
+				<div><pre class="prettyprint linenums copyable">DPS_TASK obj;
+obj.pin("pinName").func1.func2...funcN;</pre><p>where
+							<code>pin("pinName")</code> is a member function of <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> API and
+							<code>func1-N</code> are the member functions of <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> and <a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Execute the DPS measurement with the <code>execute()</code> member function.</span>
+				<div><pre class="prettyprint copyable singleline">obj.execute();</pre></div>
+			</li><li class="stepexpand">
+				<span>Retrieve the measurement results with <code>getWaveform()</code> of DPS_TASK as
+					below:</span>
+				<div><pre class="prettyprint linenums copyable">ARRAY_D valueArrayD;
+valueArrayD = obj.getWaveform("Vcc");</pre></div>
+			</li><li class="stepexpand">
+				<span>Judge and log the test results.</span>
+				<div><pre class="prettyprint linenums copyable">for( i = 0 ; i &lt; valueArrayD.size(); i++ )
+{
+  TESTSET().judgeAndLog_ParametricTest("Vcc", mLimits.get(i), valueArrayD[i]);
+}</pre></div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>In the following example, eight triggers are issued in the digital pattern. And a
+				limit is defined and used eight times in the DPS measurement with external trigger.
+			</p><pre class="prettyprint linenums copyable">DPS_TASK dpsTask;
+ARRAY_D valueArrayD;
+INT i;
+static LIMIT limit;
+
+ON_FIRST_INVOCATION_BEGIN();
+  CONNECT();
+  limit.unit("A");
+  limit.low(TM::GE, -4 uA);
+  limit.high(TM::LE, 175 uA);
+  MULTI_LIMITS templ; // Waveform contains 8 points
+  templ.add(limit,8); // Make sure that your pattern issues 8 triggers,
+                      // otherwise you will get an error message
+  dpsTask.pin("Vcc").limits(templ);
+  dpsTask.trigMode(TM::EXTERNAL).execMode(TM::PVAL);
+  dpsTask.execute();
+ON_FIRST_INVOCATION_END();
+valueArrayD = dpsTask.getWaveform("Vcc");
+for ( i = 0 ; i &lt; valueArrayD.size(); i++ )
+{
+  TESTSET().judgeAndLog_ParametricTest("Vcc","DPS_ext", limit, valueArrayD[i]);
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="10479.htm">DPS Measurements Using External Trigger</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117784</span><script type="text/javascript">var ti='117784';var tt='DPS measurement with external trigger'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

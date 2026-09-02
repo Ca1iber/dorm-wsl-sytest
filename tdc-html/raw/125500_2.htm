@@ -1,0 +1,297 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The TSRS? query is used to compute and upload either the mean of the periods of the time stamps or the individual periods and their descriptive statistics. It can query one site or all sites."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>TSRS? - (TMU Set ReSults)</title><meta name="keywords" content="TSRS_, Re, Sults"></head><body id="_125500"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125500</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">TSRS? - (TMU Set ReSults)</h1>
+	
+	
+	<div><p>The <span class="keyword">TSRS?</span> query is used to compute and upload either the mean of
+		the periods of the time stamps or the individual periods and their descriptive statistics.
+		It can query one site or all sites.</p>
+		<section class="section"><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<section class="section"><h2>Operation</h2><p>The <span class="keyword">TSRS?</span> query computes and uploads
+				the periods of the time stamps from the specified result area and the statistics of
+				those periods (see <a href="126268.htm" title="By default, only the results of the last TMU measurement execution are stored. You can, however, store the results of more than one measurement by defining a dedicated storage area for a measurement. This is done by defining (or activating) a handle for the respective measurement with the TSRH? query. Different handles point to different storage locations.">Storing the results of more than one
+					measurement</a>). By default, it performs these steps to do so:</p><ol>
+				<li>It checks whether all required samples have been taken. If not, it issues a
+					warning and continues with the next step.</li>
+				<li>It assigns an ID to each sample. An ID contains information about the site, the
+					pin, the shot, and the measurement block to which the sample belongs. IDs are
+					used by the system to identify the measurement blocks from which the periods are
+					processed.</li>
+				<li>It computes the periods and their statistics from the time stamps on the test
+					head card and stores them in the card's memory.</li>
+				<li>It retrieves the periods and their statistics to the system controller.<ul>
+						<li>If the <span class="keyword">measurement_id</span> parameter is omitted, and the
+							optional parameters <span class="keyword">first_sample</span> and
+								<span class="keyword">no_of_samples</span> are omitted, the
+								<span class="keyword">TSRS?</span> returns the descriptive statistics for all
+							measurement blocks. This has the advantage that you can upload only the
+							statistical values for all measurement blocks of all sites very
+							fast.</li>
+						<li>If <span class="keyword">measurement_id</span> parameter is specified, and the
+							optional parameters <span class="keyword">first_sample</span> and
+								<span class="keyword">no_of_samples</span> are omitted, the
+								<span class="keyword">TSRS?</span> returns the descriptive statistics for the
+							specified measurement block only.</li>
+						<li>If the <span class="keyword">first_sample</span> and <span class="keyword">no_samples</span>
+							are specified, the <span class="keyword">TSRS?</span> returns both the individual
+							periods of the specified samples and the descriptive statistics of the
+							measurement block. Depending on the value of
+								<span class="keyword">measurement_id</span>, this is done just for the
+							specified block or for all blocks. This operation is slower since the
+							upload of the individual periods to the system controller takes more
+							time.</li>
+					</ul></li>
+			</ol><p>You can use the <span class="keyword">execution_control</span> parameter to start the
+				execution from the second, third, or fourth step. This can save time if any of these
+				steps has already been performed by <span class="keyword">TSRW?</span> or
+					<span class="keyword">TSRC?</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">TSRS? [(sitesToBeDone),] [<span class="keyword">measurement_id</span>], {<span class="keyword">result_type</span>}, [<span class="keyword">first_sample</span>], [no_of_samples], [(execution_control),] [(site_selector),] [(resultAreaName),] [(mode),] {(pinlist)}</pre><p>returns:</p><pre class="prettyprint copyable singleline">TSRS [measurement_id], [(sitenumber),] {result_type}, [sample_id|aggregation_type|first_sample], {result|no_of_samples}, {(pin)} [,#spec(binary_results)]</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr id="_125500__r_sitesToBeDone">
+							<td class="colsep-0 rowsep-1"><var class="varname">sitesToBeDone</var></td>
+							<td class="colsep-0 rowsep-1">
+								<p>An extra string parameter, defining the sites to be uploaded.
+									i.e. "01110011".</p>
+								<p>This option needs parameter <a href="125500.htm#_125500__r_site_selector">site_selector</a> to be set to
+									<span class="keyword">ALL</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">measurement_id</var></td>
+							<td class="colsep-0 rowsep-1"><p>The optional number of the measurement block (identified by
+									the ARM keyword within a waveform that is executed in the
+									pattern) for which periods or statistics to be returned. If no
+									measurement block is specified, the periods or statistics of all
+									measurement blocks are returned.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">result_type</var></td>
+							<td class="colsep-0 rowsep-1"><p>The mandatory result type. Currently, the only supported
+									result type is <span class="keyword">PERIOD</span>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">first_sample</var></td>
+							<td class="colsep-0 rowsep-1"><p>The optional parameter specifies the first sample in the query
+										(<span class="keyword">TSRS?</span>) for which the period is to be
+									returned. In the return (<span class="keyword">TSRS</span>) of the query
+									it specifies the first sample that is returned if the mode is
+									set to ON. Samples are counted from 0.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">no_of_samples</var></td>
+							<td class="colsep-0 rowsep-1"><p>The optional parameter defines in the query
+										(<span class="keyword">TSRS?</span>) the number of samples for which
+									the periods are to be returned. In the return
+										(<span class="keyword">TSRS</span>) of the query it specifies the
+									number of samples that are returned if the mode is set to
+									ON.</p>
+								<p>Depending on the value of parameter
+										<var class="varname">first_sample</var>, fewer samples than
+									specified may be returned. For example, if there are 9 samples
+									in total, <var class="varname">first_sample</var> is 7 and
+										<var class="varname">no_of_samples</var> is 4, only two samples are
+									returned (the last two), not four.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">execution_control</var></td>
+							<td class="colsep-0 rowsep-1"><p>With this extra parameter, you can modify the default action
+									sequence of TSRS?. Possible values are:</p>
+								<div class="p">
+									<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">NOT_FINISHED</span></td>
+												<td class="colsep-0 rowsep-0">
+												<p>All four steps described above will be
+												executed. If not all required samples have been
+												actually taken, the query will not stop, it will
+												continue to analyze,compute and upload the
+												available samples.</p>
+												<p>This is the default value.</p>
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">FINISHED</span></td>
+												<td class="colsep-0 rowsep-0">Completeness check will be skipped. TSRS?
+												assumes that all required samples have been taken.
+												It will analyze, compute, and upload the available
+												samples. It starts from step 2.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">ANALYZED</span></td>
+												<td class="colsep-0 rowsep-0">Samples will not be analyzed. TSRS? assumes
+												that all required samples were taken and analyzed
+												in a previous step. It computes the available
+												samples. It starts from step 3.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">COMPUTED</span></td>
+												<td class="colsep-0 rowsep-0">Samples will not be computed. TSRS? assumes
+												that all required samples were taken, analyzed,
+												and computed in a previous step. It retrieves the
+												periods and their statistics to the system
+												controller. It starts from step 4.</td>
+												</tr>
+											</tbody></table>
+								</div></td>
+						</tr>
+						<tr id="_125500__r_site_selector">
+							<td class="colsep-0 rowsep-1"><var class="varname">site_selector</var></td>
+							<td class="colsep-0 rowsep-1"><p>This extra query parameter allows you to request the results
+									for all sites or a specific site. Possible values:</p>
+								<div class="p">
+									<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">ONE</span></td>
+												<td class="colsep-0 rowsep-0">
+												<p>Only the values of the site which has the query
+												focus are processed (the default).</p>
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">ALL</span></td>
+												<td class="colsep-0 rowsep-0">
+												<p>The values of all sites or the sites defined by
+												parameter <a href="125500.htm#_125500__r_sitesToBeDone">sitesToBeDone</a> are processed.</p>
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0">&lt;<span class="keyword">N</span>&gt;</td>
+												<td class="colsep-0 rowsep-0">
+												<p>The results of the site with this number are
+												processed.</p>
+												</td>
+												</tr>
+											</tbody></table>
+								</div></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">resultAreaName</var></td>
+							<td class="colsep-0 rowsep-1"><p>The extra parameter defines the name of the result area from
+									which the samples should be retrieved. If this parameter is
+									omitted, the default result area is used.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">mode</var></td>
+							<td class="colsep-0 rowsep-1"><div class="p">This extra parameter controls the format of the reply when a
+									range is specified with parameters
+										<var class="varname">first_sample</var> and
+										<var class="varname">no_of_samples</var>:<ul>
+										<li>If <var class="varname">mode</var> is set to
+												<span class="keyword">OFF</span>, a separate line is returned
+											for every period value within the range.</li>
+										<li>If <var class="varname">mode</var> is set to
+												<span class="keyword">ON</span>, the values are returned in a
+											binary format in one line.</li>
+									</ul><span class="keyword">OFF</span> is the default value.</div></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">pinlist</var></td>
+							<td class="colsep-0 rowsep-1">The mandatory list of pins for which the time stamps are to be
+								returned.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">sitenumber</var></td>
+							<td class="colsep-0 rowsep-1"><p>Extra reply parameter. The site the samples belong to if the
+										<var class="varname">site_selector</var> parameter has been set to
+										<span class="keyword">ALL</span>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">sample_id</var></td>
+							<td class="colsep-0 rowsep-1"><p>This reply parameter identifies the sample. It is only
+									returned if a range was specified in the query and mode was set
+									to <span class="keyword">OFF</span>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">aggregation_type</var></td>
+							<td class="colsep-0 rowsep-1"><p>This reply parameter specifies an aggregation type. If a range
+									was specified in the query, <span class="keyword">TSRS?</span> returns not
+									only the individual period values but also a number of
+									statistics. These are:</p>
+								<ul>
+									<li>
+										<p>STDDEV (standard deviation)</p>
+									</li>
+									<li>
+										<p>MEAN</p>
+									</li>
+									<li>
+										<p>MAX</p>
+									</li>
+									<li>
+										<p>MIN</p>
+									</li>
+									<li>
+										<p>MEDIAN</p>
+									</li>
+									<li>
+										<p>PP (peak to peak), the PP is same as MINMAX in the TMU
+											ORE firmware.</p>
+									</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">result</var></td>
+							<td class="colsep-0 rowsep-1"><p>The reply parameter specifies the period related to sample n
+									or a value of the descriptive statistics. The unit is
+									seconds.</p>
+								<p>It is not returned if a range was specified in the query and mode
+									was set to ON.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">pin</var></td>
+							<td class="colsep-0 rowsep-1"><p>The pin to which the returned results belong.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">#spec(raw_results)</var></td>
+							<td class="colsep-0 rowsep-1"><p>The binary data that are returned if a range is specified with
+									parameters <var class="varname">first_sample</var> and
+										<var class="varname">no_of_samples</var>, and parameter
+										<var class="varname">mode</var> is set to <span class="keyword">ON</span>. The
+									general format is:</p>
+								<p><code>n<sub>1</sub>n<sub>2</sub>...n<sub>N</sub>data_stream</code></p>
+								<p>Where the decimal digit <var class="varname">N</var> defines the number
+									of the decimal digits <var class="varname">n</var><sub>i</sub> (1 =
+										<var class="varname">i</var> = <var class="varname">N</var>) that specify
+									the length of <var class="varname">data_stream</var> in bytes.</p>
+								<p>The values are specified as seconds.</p></td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Per-pin TMU measurements.</p></div>
+		
+		
+		<h2>Example</h2><div class="example"><p>This example returns the descriptive statistics for the measurement blocks
+				individually.</p><pre class="prettyprint linenums copyable">&gt; TSRS? ,PERIOD, , , (pin_a)
+
+    &lt; TSRS  1,PERIOD , STDDEV ,1.36,(pin_a)
+    &lt; TSRS  1,PERIOD , MEAN 1.36,(pin_a)
+    &lt; TSRS  1,PERIOD , MAX, 1.36,(pin_a)
+    &lt; TSRS  1,PERIOD , MIN, 1.36,(pin_a)
+    &lt; TSRS  1,PERIOD , MEDIAN, 1.36,(pin_a)
+    &lt; TSRS  1,PERIOD , PP, 1.36,(pin_a)
+
+    &lt; TSRS  2,PERIOD , STDDEV ,1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MEAN 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MAX, 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MIN, 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MEDIAN, 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , PP, 1.36,(pin_a)</pre><p>This
+				example returns the individual samples 100 through 119 in measurement block 2, and
+				also the statistical
+			values.</p><pre class="prettyprint linenums copyable">&gt; TSRS? 2,PERIOD,100,20,(pin_a)
+
+    &lt; TSRS  2,PERIOD ,100,1.36,(pin_a)
+    &lt; TSRS  2,PERIOD ,101,1.37,(pin_a)
+    ...
+    &lt; TSRS  2,PERIOD ,119,1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , STDDEV ,1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MEAN 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MAX, 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MIN, 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , MEDIAN, 1.36,(pin_a)
+    &lt; TSRS  2,PERIOD , PP, 1.36,(pin_a)</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125519.htm" title="The TSRW? query uploads raw results (time stamps) from one site or all sites.">TSRW? - (TMU Set RaW results)</a></div><div><a href="141847.htm" title="The TSRC? query computes the periods and their descriptive statistics from the raw results (time stamps) for one site or all sites. This is done on the test head card.">TSRC? - (Time Stamping Results Computed)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.2.0: New parameter: resultAreaName</li><li>SmarTest 7.2.0:  New options for site_selector and execution_control
+					parameters</li><li>SmarTest 7.5.2: New extra parameter: sitesToBeDone</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125500</span><script type="text/javascript">var ti='125500';var tt='TSRS? - (TMU Set ReSults)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

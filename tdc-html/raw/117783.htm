@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To program a DC test with DPS, you can use the DPS_TASK and DPS_PIN_TASK API."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC test programming with DPS</title><meta name="keywords" content="DC measurement programming testprogram"></head><body id="_117783"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117783</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC test programming with DPS</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="105283.htm" title="Starting from SmarTest release 6.3.3 it is possible to set a custom wait/settling-time within a DPS_TASK by using wait instead of the WAIT_TIME test method API">Using the "wait" Settling Time Within a DPS_TASK</a></li><li><a href="117784.htm" title="You can measure the current using DPS triggered by an external source. The trigger is connected to a digital channel which is controlled by test pattern.This means that the measurement can be included as part of a functional test.">DPS measurement with external trigger</a></li></ol></div></nav>
+	
+	
+	<div><p>To program a DC test with DPS, you can use the <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> and <a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a> API. </p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Setting up measurement conditions</span>
+				<div><p>To set up measurement conditions, first, define a class object of the <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> API as shown below:</p><pre class="prettyprint copyable singleline">DPS_TASK obj;</pre><p>To set up
+						measurement conditions for each pin, use the member functions of the <a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a>
+						class that is called as a subsidiary data container of the <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> API as shown
+						below:</p><pre class="prettyprint copyable singleline">obj.pin("pinName").func1.func2...funcN;</pre><p>where,
+							<code>pin("pinName")</code> is a member function of the <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> API to
+						specify the target pin or pins to be set up. <code>func1-N</code> are the member functions
+						of the <a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a> or <a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a> class.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Performing a measurement</span>
+				<div><p>Use the <code>execute()</code> member function of the DPS_TASK API as
+						below:</p><pre class="prettyprint copyable singleline">obj.execute();</pre><p>You can also add the DPS_TASK object to a
+						TASK_LIST and execute it together with other DC
+					measurement.</p><pre class="prettyprint linenums copyable">TASK_LIST task_obj;
+task_obj.add(obj).execute();</pre></div>
+			</li><li class="stepexpand">
+				<span>Retrieving measurement result</span>
+				<div><p>Use the result-retrieving member functions of DPS_TASK API to get the measurement
+						result. </p><pre class="prettyprint copyable singleline">result = obj.func;</pre><p>Where func is one of the
+						result-retrieving member functions, <code>getPassFail()</code>,
+							<code>getValue()</code>, <code>getValues()</code>, <code>getWaveform()</code> or
+							<code>getFunctionalResult()</code>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Judging the result and data logging</span>
+				<div><p>You can judge the test result with the <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a> API like
+						below:</p><pre class="prettyprint copyable singleline">TESTSET().judgeAndLog_Dps(obj);</pre><p>The member function
+						performs data logging if the system flag "<span class="uicontrol">log_events_enable</span>" and either
+						test suite flag "<span class="uicontrol">output_on_pass</span>" or test suite flag
+							"<span class="uicontrol">output_on_fail</span>" is "<span class="uicontrol">on</span>".</p>
+				</div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following example performs a DPS global pass/fail measurement on pin Vcc and Vee
+				with the current primary
+			set.</p><pre class="prettyprint linenums copyable">DPS_TASK dpsTask;
+static STRING tsName;
+ON_FIRST_INVOCATION_BEGIN();
+  CONNECT();
+  GET_TESTSUITE_NAME(tsName);
+  dpsTask.pin("Vcc").min(0 A).max(0.1 A);
+  dpsTask.pin("Vee").min(0 A).max(0.2 A);
+  dpsTask.execMode(TM::GPF);
+  dpsTask.trigMode(TM::INTERNAL);
+  dpsTask.execute();
+ON_FIRST_INVOCATION_END();
+TESTSET().judgeAndLog_Dps(dpsTask);</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117783</span><script type="text/javascript">var ti='117783';var tt='DC test programming with DPS'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This topic focuses on rules and examples for programming test methods for multisite hardware."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Usage of Parallel Hardware (PPMU)</title><meta name="keywords" content="parametric measurement unit per-pin PMU"></head><body id="_122750"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122750</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Usage of Parallel Hardware (PPMU) </h1>
+	
+	
+	<div><p>This topic focuses on rules and examples for programming test methods for multisite
+		hardware.</p>
+		<section class="sectiontitlefake"><h2>Enhancing multisite performance</h2></section>
+		<section class="section"><h3>Rules</h3><ol>
+				<li>Site dependent variables:<ul>
+						<li>Define global or static arrays or variables.</li>
+						<li>Assign variable values <strong>before</strong> the <a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">ON_FIRST_INVOCATION
+								block</a>.<p>You may refer to them in the <code>ON_FIRST_INVOCATION</code> block.</p></li>
+					</ul></li>
+				<li>For parallel execution, place the setup and execute steps that involve hardware inside the
+						<code>ON_FIRST_INVOCATION</code> block.<p>For more details, see below paragraph <em>Test
+							method API <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></em>.</p>
+					<div class="caution"><span class="title">CAUTION</span> Never use the <code>TEST()</code> API inside an ON_FIRST_INVOCATION
+						block. This will lead to incorrect binning of sites in a multisite program.
+							<code>TEST()</code> API only works for the first site invocated while other sites will
+						not invocate <code>TEST</code>, thus making those sites a fake pass result!</div>
+				</li>
+				<li>Execution depending on a previous result:<p>Place the APIs <code>Get Result</code> and
+							<code>Calculate</code> inside a <a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a> or <a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a>
+						block.</p></li>
+				<li>Exclude the following APIs from parallel execution (SmarTest executes them on the system controller):<ul>
+						<li><code>Result</code></li>
+						<li><code>Calculate</code></li>
+						<li><code>Judge</code></li>
+					</ul></li>
+				<li>Enable all parallel flags, otherwise, everything will be running serially:<ul>
+						<li>On the <a href="99273.htm" title="On this page, you can set the system flags and testflow flags.">Flag tab</a> of the <a href="99362.htm" title="The Testflow Tool has two editors to develop and debug the testflow:">Flow Data
+								Editor</a> set <a href="342556.htm#_342556__row_parallel_mode">parallel_mode</a> = <span class="uicontrol">on</span></li>
+						<li>Site Control:</li>
+						<li>On the SmarTest menu click <span class="menucascade"><span class="uicontrol">93000</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Site control</span></span></li>
+						<li>On the menu of the Site Control window click <span class="menucascade"><span class="uicontrol">Edit</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Expand</span></span></li>
+						<li>For all test suite, set <span class="keyword">allow parallel</span> =
+								<span class="uicontrol">yes</span><div class="note"><span class="title">Note</span> If executed in the first invocation block, the
+								following APIs perform for the first tested site only:</div>
+						</li>
+						<li><span class="keyword">Analog.AWG(pin).get_function()</span></li>
+						<li><span class="keyword">Analog.DGT(pin).get_function()</span></li>
+						<li><span class="keyword">Analog.TIA(pin).get_function()</span></li>
+						<li><span class="keyword">Analog.PPS(pin).get_function()</span></li>
+						<li><span class="keyword">ANALOG(set).AWG(pin).get_function()</span></li>
+						<li><span class="keyword">ANALOG(set).DGT(pin).get_function()</span></li>
+						<li><span class="keyword">ANALOG(set).TIA(pin).get_function()</span></li>
+						<li><span class="keyword">Routing.get_function()</span></li>
+						<li><span class="keyword">Primary.get_function()</span></li>
+						<li><span class="keyword">Primary.XXXXX().get_function()</span></li>
+						<li><span class="keyword">DPS_VFIM(pin).get_function()</span></li>
+						<li><span class="keyword">PMU_IFVM(pin).get_function()</span></li>
+						<li><span class="keyword">PMU_VFIM(pin).get_function()</span></li>
+						<li><span class="keyword">GET_FUNCTIONAL_RESULT()</span></li>
+						<li><span class="keyword">IS_TEST_RUNNING()</span></li>
+						<li><span class="keyword">CURRENT_SITE_NUMBER()</span></li>
+						<li><span class="keyword">TEST()</span></li>
+						<li><span class="keyword">PUT_DATALOG()</span><div class="note"><span class="title">Note</span> FlexDC APIs support different settings
+								on different sites.</div>
+						</li>
+					</ul></li>
+			</ol></section>
+		<section class="section"><h3>Test method API ON_FIRST_INVOCATION</h3><p>To implement this test method API:</p><ul>
+			<li id="_122750__d758e23">Clearly separate Measurement or Test Preparation, Setup and Execution phases from
+				the result retrieval and data logging phases.</li>
+			<li id="_122750__d758e26">Do the complete Test Preparation, Setup, Execution for all sites during the first
+				call of the TM code (originally intended to handle site #1 only).</li>
+		</ul><p>Avoid:</p><ul>
+			<li id="_122750__d758e35">Querying results in the "ON_FIRST_INVOCATION" blocks, since this breaks the concept
+				and serializes the execution</li>
+			<li id="_122750__d758e38">Using multiple blocks in a test. Where possible, consolidate the blocks first.</li>
+			<li id="_122750__d758e41">Putting CONNECT/DISCONNECT outside the blocks.</li>
+		</ul><p>Important points</p><ul>
+				<li><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a> and <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a> should be used as a pair. The area
+				enclosed by this pair is called <strong>first-invocation block</strong>.</li>
+				<li>This API is meaningful for multi-site testing. For single-site testing, this API is
+				ignored.</li>
+				<li>You can describe the Setup and Execute APIs within the first-invocation block, in
+				order to achieve them for all active sites in parallel. In addition to the Setup and Execute
+				APIs, you can describe any other function. However, these functions work for the
+				currently-tested site (for example, Result APIs), or regardless of site information (for
+				example, Computation APIs).</li>
+				<li>All statements in the first-invocation block are executed once only when the program
+				is run for the first tested site.</li>
+			</ul><p>You can describe the <a href="29362.htm" title="This API allows direct access from the test method to the system hardware at firmware level.">FW_TASK</a> API enclosed by the <a href="28740.htm" title="This API declares the beginning of the block where you can access the system hardware or MCD at the firmware level.">BEGIN_EXTENSION</a>
+				API <em>with the </em><kbd class="userinput">site</kbd><em> parameter</em> and <a href="29303.htm" title="This API declares the end of the extension block that is started by BEGIN_EXTENSION. This API is used together with BEGIN_EXTENSION as a pair to declare the extension block.">END_EXTENSION</a> API
+				in the first-invocation block for multi-site testing. Note that you should not describe it
+				enclosed by the <a href="28740.htm" title="This API declares the beginning of the block where you can access the system hardware or MCD at the firmware level.">BEGIN_EXTENSION</a> API with no parameter and <a href="29303.htm" title="This API declares the end of the extension block that is started by BEGIN_EXTENSION. This API is used together with BEGIN_EXTENSION as a pair to declare the extension block.">END_EXTENSION</a>
+			API.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Parallel multisite test method</h3><pre class="prettyprint linenums copyable">INT    n_of_Vdtz, timeout_flag;
+ARRAY_D dVdtz;
+THDtype thdResult;
+
+ON_FIRST_INVOCATION_BEGIN();
+    //
+    // Parallel Setup and Execution APIs [begin]
+    //
+    Routing.pin("aout").connect(TM::SINGLE);
+    DGT("aout").enable();
+
+    EXECUTE_TEST(1.0 sec, &amp;tout_flag, &amp;mis_trig);
+
+    if (mis_trig != 0)
+    {
+        cout &lt;&lt; "Missed Trigger Occurs.\n";
+    } 
+
+    DGT("aout").abort(); //Aborts and disables trig.
+    Routing.pin("aout").disconnect(); //on next flush 
+
+    //
+    // Parallel Setup and Execution APIs [end]
+    //
+ON_FIRST_INVOCATION_END();
+
+//
+// Serial Analysis APIs [begin]
+//
+
+dVdtz=DGT("aout").getWaveform();
+n_of_Vdtz=dVdtz.size();
+
+DSP_THD(dVdtz, result, n_of_dVdtz, 1, 3, DB, 0);
+
+TEST("aout", "THD_test", thdResult.thd, TRUE);
+
+//
+// Serial Analysis APIs [end]
+//</pre></div>
+		<div class="example"><h3>Site specific
+				settings</h3><pre class="prettyprint linenums copyable">//
+// Execute measurement once in parallel for all sites:
+//
+ON_FIRST_INVOCATION_BEGIN();
+
+    setting.pin("pin1, pin2").iRange(100 uA);
+    setting.pin("pin1").iForce(10 uA).min(50 mV).max(100 mV);
+    setting.pin("pin2").vForce(1 mV).min(10 uA).max(20 uA);
+    meas.pin ( "pin1,pin2" ).execMode( TM::PVAL );
+
+    //
+     // Download setting to HW, use the <code>setup()</code> method:
+    //  -&gt; Fix MSET!
+    //  -&gt; Do this before site-specific settings
+    //
+    tasks.add( setting ).add( meas ).setup();</pre><div class="note"><span class="title">Note</span> Important: When using different force values by devices or sites, you must use the
+					<span class="keyword">SETUP</span> command. If do not use it SmarTest will run out of MSETs as if will
+				assign a new MSET for each new
+			value).</div><pre class="prettyprint linenums copyable">    FOR_EACH_SITE_BEGIN();
+
+        DOUBLE refV;
+
+        //
+        // Getting a site specific measurement result from  a former test suite:
+        //
+        GET_USER_DOUBLE("refV", &amp;refV);
+
+        //
+        // Setting the site specific measurement result as a force value:
+        //
+        setting.pin("pin2").vForce(refV + 0.5 V);
+
+    FOR_EACH_SITE_END();
+
+    tasks.execute();
+
+ON_FIRST_INVOCATION_END();
+
+//
+// Execute value return and logging site by site:
+//
+DOUBLE val1 = meas.getValue( "pin1" );
+DOUBLE val2 = meas.getValue( "pin2" );
+
+TEST( "pin1" ,  "testname", val1);
+TEST( "pin2" ,  "testname", val2);</pre></div>
+		<div class="example"><h3>Define different search conditions for different
+			sites</h3><pre class="prettyprint linenums copyable">//
+// Define SEARCH_FUNC_TASK instance:
+//
+
+SEARCH_FUNC_TASK task;
+
+//
+// Define site specific start and stop values:
+// 
+DOUBLE site_start[2] = {20,40};
+DOUBLE site_stop[2] = {80,90}; 
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    FOR_EACH_SITE_BEGIN();
+        //
+        // Get site specific values by referring to array elements
+        //with the CURRENT_SITE_NUMBER() API:
+        //
+        task.pin("p1,p2") .spec("DEL",TM::TIM)
+            .method(TM::Binary) .start(site_start[CURRENT_SITE_NUMBER()-1]) 
+            .stop(site_stop[CURRENT_SITE_NUMBER()-1]).resolution(1); 
+
+    FOR_EACH_SITE_END(); 
+
+    Task.execute(); 
+
+ON_FIRST_INVOCATION_END(); 
+
+Boolean pass_fail = task.getPassFail("p1,p2");
+
+If (pass_fail == TRUE)
+{
+    TEST("p1,p2", "", TM:Pass, TM::CONTINUE); 
+}
+else
+{
+    TEST("p1,p2", "", TM::Fail, TM::CONTINUE); 
+}</pre></div>
+		<div class="example"><h3>Binary search of DC TEST</h3><div class="p"><figure class="fignone">
+					
+					<img src="123926.png" alt="Binary search of DC test">
+				</figure></div><pre class="prettyprint linenums copyable">INT            loop_count = 0;
+static ARRAY_D vcout(4);  
+ARRAY_D        hi_lim(4),lo_lim(4);
+
+hi_lim.init(3.0);
+lo_lim.init(2.0);
+
+PPMU_SETTING ppmuSet;
+PPMU_RELAY   ppmuRelayOn,ppmuRelayOff;
+PPMU_MEASURE ppmuMeas;
+
+TASK_LIST ppmuTask;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    AWG("AWG").trigger();
+
+    WAIT_TIME(10 ms);
+
+    ppmuSet.pin("TEST").vForce(2 V).iRange(10 mA).min(-10 mA).max(10 mA);
+    ppmuSet.pin("MEAS").iForce(0 uA).iRange(100 uA).min(-1 uA).max(1 uA);
+    ppmuRelayOn.pin("TEST,MEAS").status("PPMU_ON");
+    ppmuRelayOn.wait(3 ms);
+    ppmuMeas.pin("MEAS").execMode(TM::PAVL);
+    ppmuTask.add(ppmuSet).add(ppmuRelayOn).add(ppmuMeas).setup();
+
+    STRING sites_active;
+
+    GET_ACTIVE_SITES(sites_active);
+
+    do
+    {
+        //
+        // Serial per site setup [begin]
+        //
+        loop_count++;
+
+        FOR_EACH_SITE_BEGIN();
+
+            ppmuSet.pin("TEST").vForce((hi_lim[SITE_NR]+lo_lim[SITE_NR])/2).iRange(10 mA).min(-10 mA).max(10 mA);
+
+        FOR_EACH_SITE_END();
+
+        //
+        // Serial per site setup [end]
+        // Parallel execution
+        ppmuTask.execute();
+
+        FOR_EACH_SITE_BEGIN();
+            //
+            // Get per site result and change search range serially [begin]
+            //
+            Vcout[SITE_NR]= ppmuMeas.getValue("MEAS");
+
+            If(Vcout[SITE_NR]&gt;2.1) &amp;&amp; (sites_active[SITE_NR]=='1'))
+            {
+                //
+                // Change high limit:
+                //
+                hi_lim[SITE_NR]= (hi_lim[SITE_NR]+lo_lim[SITE_NR])/2;
+            }
+            else
+            {
+                if(Vcout[SITE_NR]&lt;1.9 &amp;&amp;(sites_active[SITE_NR]=='1'))
+                {
+                    //
+                    // Change low limit
+                    //
+                    lo_lim[SITE_NR]=(hi_lim[SITE_NR]+lo_lim[SITE_NR])/2;
+                }
+                else
+                {
+                    //
+                    // We got it.
+                    //
+                    sites_active[SITE_NR]='0';
+                }
+            }
+
+            //
+            // Get per site result and change search range serially [end]
+            //
+        FOR_EACH_SITE_END();
+
+    }
+    while(loop_count&lt; 100 &amp;&amp; sites_active !="0000");
+
+    ABORT_TEST();
+
+ON_FIRST_INVOCATION_END();</pre></div>
+		<div class="example"><h3>Test method programming for multisite complex caching</h3><pre class="prettyprint linenums copyable">INT     n_of_Vdtz, timeout_flag;
+ARRAY_D wfm_1, wfm_2;
+THDtype thdResult;
+
+//
+// Block A [begin]
+//
+ON_FIRST_INOVOCATION_BEGIN();
+
+    Routing.pin("aout").connect(TM::SINGLE);
+
+    DGT("aout").enable();
+
+    EXECUTE_TEST(1.0 sec, &amp;timeout_flag);  // Sequencer run
+
+ON_FIRST_INOVOCATION_END();
+//
+// Block A [end]
+//
+
+//
+// Block B [begin]
+//
+
+wfm_1=DGT("aout").getWaveform();   //Upload
+
+//
+// Block B [end]
+//
+
+//
+// Block C [begin]
+//
+ON_FIRST_INOVOCATION_BEGIN();
+
+    Primary.label("new_setup");
+
+    EXECUTE_TEST(1.0 sec, &amp;timeout_flag);
+
+    DGT("aout").disable();
+
+    FLUSH();
+
+ON_FIRST_INOVOCATION_END();
+//
+// Block C [end]
+//
+
+//
+// Block D [begin]
+//
+
+wfm_2=DGT("aout").getWaveform();
+
+//
+// Block D [end]
+//
+
+n_of_Vdtz=dVdtz.size();
+
+DSP_THD(dVdtz, result, n_of_dVdtz, 1, 3, DB, 0);
+
+TEST("aout", "THD_test", thdResult.thd, TRUE);</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">Parallel Execution</a></div><div><a href="30218.htm" title="The following APIs can be used in the DC test programming with PPMU: PPMU_SETTING, PPMU_PIN_SETTING, PPMU_RELAY, PPMU_PIN_RELAY, PPMU_CLAMP, PPMU_PIN_CLAMP, PPMU_MEASURE, PPMU_PIN_MEASURE, TASK_LIST.">DC Test Programming with PPMU</a></div><div><a href="102831.htm" title="The test method Flex DC API allows you to do parallel tests in a multisite setup.">Flex DC</a></div><div><a href="107460.htm" title="Use Flex DC for:">FlexDC APIs</a></div><div><a href="109861.htm">Multi-Site Efficiency and Throughput</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122750</span><script type="text/javascript">var ti='122750';var tt='Usage of Parallel Hardware (PPMU)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

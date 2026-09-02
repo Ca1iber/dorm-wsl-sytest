@@ -1,0 +1,326 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Solving MIPI D-PHY Receiver Test Challenges</title></head><body id="_115882"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 115882</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Solving MIPI D-PHY Receiver Test Challenges</h1>
+	
+	<div>
+		<p>Stefan Walther</p>
+		<p>Yu Hu</p>
+		<p>Paper ID 115882</p>
+		<section class="section"><h2>Abstract</h2><p>MIPI stands for the "Mobile Industry Processor Interface",
+				which provides a flexible, low-cost, high-speed interface solution for communication links
+				between components inside a mobile device. With more than 100 companies backing this emerging
+				standard, MIPI is expected to be widely adopted for smart phones and similar application-rich
+				networked devices, as well as in personal digital assistants (PDAs), and other consumer
+				electronics. [1]</p><p>While the MIPI D-PHY specification enables significant extension
+				flexibility for various advanced applications, it also creates new test challenges for device
+				manufacturers. Besides the source-synchronous nature of the high-speed data transmission, it is
+				mainly the requirement for providing multi-level signals to the device under test (DUT), which
+				represents the biggest challenge for most automatic test equipment (ATE). This is especially
+				true, since the economic pressure in the consumer electronics marketplace rules out the use of
+				special tester hardware beyond standard digital pins. In this paper we will discuss in detail
+				how three-level signals required for MIPI D-PHY testing can be generated on all standard V93000
+				Pin Scale digital cards.</p></section>
+		<section class="section"><h2>Key words</h2><p>MIPI, D-PHY, receiver test, multi-level signals, three-level
+				signaling</p></section>
+		<section class="section"><h2>Introduction to MIPI</h2><p>The Mobile Industry Processor Interface (MIPI) is
+				an increasingly adopted high-speed source synchronous interface for communication links between
+				components inside a mobile device. Due to its flexible, low-cost and high performance nature, it
+				is widely applied for smart phones, rich networked devices, PDAs and other consumer electronics.
+				One most notable aspect of MIPI D-PHY standard is its data transmission modes: besides a
+				low-swing high-speed differential mode for data transmission, it also employs a large-swing
+				low-power single-ended mode for control purposes. Since those two modes differ dramatically in
+				their characteristics, MIPI requires a very flexible test solution to ensure comprehensive test
+				coverage. For MIPI receiver tests, for example, it requires that the equipment is able to
+				generate multi-level signals.</p><p>The D-PHY standard [2], which communicates on the order of
+				500 Mbps (the Roman numeral for 500 is "D"), is the initial foundation of MIPI for its camera,
+				display and universal interfaces. D-PHY supports as many as 4 lanes at rates of up to 1 Gbps per
+				lane, based on a source-synchronous, scalable, low-voltage signaling technology.
+			[3]</p></section>
+		<section class="section"><h2>Structure of MIPI D-PHY</h2><p>A complete MIPI physical connection consists of
+				a transmitter (TX), and/or a receiver (RX) at each side, with
+				Transmission-Line-Interconnect-Structure (TLIS) in between. With respect to physical dimensions,
+				the Transmission-Line-Interconnect-Structure will typically be the largest part.</p><p>The D-PHY
+				applies a master-slave work mode to the two sides of the links and provides an asymmetrical
+				source synchronous link between them. The master provides the high-speed double data-rate (DDR)
+				clock signal to the clock lane and is the main data source. The slave receives the clock signal
+				at the clock lane and is the main data sink. This direction of communication is denoted as the
+				"forward direction", while communication in the opposite direction is called "reverse traffic".
+				A practical PHY configuration consists of a clock signal and one or more data signals. The clock
+				signal, which is compulsory, is unidirectional; originating at the master and terminating at the
+				slave. The data signals can either be unidirectional or bi-directional depending on the selected
+				options. D-PHY uses two wires per data lane plus two wires for the clock lane. This requires
+				four wires for the minimum D-PHY configuration as shown in Figure 1.</p><div class="p"><figure class="fignone">
+					
+					<img src="116095.png" alt="Minimum D-PHY configuration [2]">
+				</figure></div><p>In the forward direction, data is transmitted in a source synchronous manner. For
+				reverse traffic, which is optional (i.e. only available with bi-directional data lanes), the
+				clock lane remains in a forward direction, but data lane(s) are turned-around, sourcing data
+				from the slave side. The reverse traffic arriving at the master side will not be phase
+				synchronous with the forward direction clock. Reverse transmission by the slave side is
+				one-fourth the forward direction speed, based on the forward direction clock transmitted via the
+				clock lane and therefore a data recovery function is required for reverse direction
+				traffic.</p><p>Though the actual maximum achievable bit-rate in high-speed mode is determined by
+				the overall performance of transmitter, receiver and inter-connect implementations, a bit-rate
+				range of 80 to 1000 Mbps per lane is typically defined, whereas the maximum data rate is 10 Mbps
+				in low-power mode.</p></section>
+		<section class="section"><h2>Key characteristics of MIPI signaling</h2><p>There are two different data
+				transmission modes available; referred to as the high-speed (HS) mode for fast data traffic and
+				the low-power (LP) mode for control purposes. Optionally, the low-power mode can be used for
+				low-speed asynchronous data communication.</p><p>The high-speed mode has the following
+				characteristics:</p><ul>
+				<li>It includes a differential transmitter (HS-TX) and a differential receiver (HS-RX).</li>
+				<li>A lane module may contain a HS-TX, a HS-RX, or both.</li>
+				<li>A HS-TX and a HS-RX within a single lane module are never enabled simultaneously during
+					normal operation.</li>
+				<li>In high-speed mode each lane is terminated on both sides and driven by a low-swing,
+					differential signal.</li>
+				<li>If no high-speed function in the lane module is enabled then the high-speed functions will
+					be put into a high impedance state.</li>
+			</ul><div class="p"><figure class="fignone">
+					
+					<img src="116096.png" alt="D-PHY universal lane module functions [2]">
+				</figure></div><p>In contrast, the low-power function, which activates the low-power mode used mainly
+				for control purpose, features the following characteristics:</p><ul>
+				<li>It includes single-ended transmitters (LP-TX), receivers (LP-RX) and Low-Power
+					Contention-Detectors (LP-CD).</li>
+				<li>The LP transmitter is a push-pull driver and the LP receiver is an un-terminated,
+					single-ended receiver (i.e. in low-power mode all wires are operated in a single-ended and
+					un-terminated manner).</li>
+				<li>The LP-CD function is only required for bi-directional operation.</li>
+				<li>Low-power functions are always present in pairs as these are single-ended functions
+					operating on each of the two interconnect wires individually forming a high-speed differential
+					pair.</li>
+				<li>Presence of high-speed and low-power functions is correlated. That is, if a lane module
+					contains a HS-TX, then it shall also contain a LP-TX. A similar constraint holds for HS-RX and
+					LP-RX.</li>
+			</ul><p>Transmitter functions define the lane state by driving certain line levels and employing
+				four discrete signal levels: HS-High and HS-Low in red and LP-High and LP-Low in blue as
+				depicted in Figure 3.</p><div class="p"><figure class="fignone">
+					
+					<img src="116097.png" alt="D-PHY signal levels [2]">
+				</figure></div><p>During normal operation, either a HS-TX or a LP-TX is driving a lane. A HS-TX
+				always drives the lane differentially while the two LP-TXs drive larger swing signals through
+				the two lines of the lane independently in a single-ended manner. This results in two possible
+				high-speed lane states as well as four possible low-power lane states. The high-speed lane
+				states are differential-0 and differential-1, while the lane states of low-power signals are
+				represented as LP-00, LP-01, LP-10 and LP-11 as shown in Table 1. Low-power signaling is used
+				for both Control mode and Escape mode. These modes will further play a role in a higher protocol
+				layer related to the state machine. The interpretation of low-power lane states depends on the
+				mode of operation. The low-power receivers will always interpret both high-speed differential
+				states as LP-00. This can be guaranteed by MIPI's implementation of setting the maximum
+				high-speed signal level below the threshold of low-power logic zero from the receiver
+				side.</p><p>Consequently, these coded states are used to drive a sophisticated state machine in
+				the higher protocol layer to determine the MIPI operation. For example, the sequence to switch
+				into high-speed mode from low-power mode is: LP-11, LP-01, LP-00, and then the data lane remains
+				in high- speed mode until another LP-11 is received.</p><div class="p"><figure class="fignone">
+					
+					<img src="116098.png" alt="D-PHY signal levels [2]">
+				</figure></div><p>The clock lane mode is controlled by the protocol via the clock lane PHY Protocol
+				Interface (PPI). The protocol makes sure that a lane is in high-speed mode only during
+				high-speed data transmission. In contrast, the low-power transmission drives all the lines in
+				low-power operating modes in order to suppress the static power consumption, which is important
+				for mobile applications. Note that within the scope of the D-PHY specification, besides
+				serialization and de-serialization, no additional coding scheme is specified.</p></section>
+		<section class="section"><h2>MIPI D-PHY test challenges and solutions</h2><p>While the D-PHY physical layer
+				specification enables significant extension flexibility and employs different modes to reduce
+				power consumption, it also leads to big test challenges for device manufacturers.</p><p>During
+				D-PHY's receiver test, the high-speed data transmission, which typically runs within the range
+				of 1000 Mbps, is what we are most concerned with. In this speed range, tests up to 800 Mbps can
+				be covered by V93000 Pin Scale 800 cards. The Pin Scale 3600 card, in standard mode, is able to
+				fulfil the speed requirements above 800 Mbps as shown in Figure 4.</p><div class="p"><figure class="fignone">
+					
+					<img src="116099.png" alt="Pin Scale solution for MIPI testing">
+				</figure></div><p>First of all, for MIPI transmitter tests, it is the source-synchronous nature of
+				the high-speed data transmission, which represents a challenge for most ATE. With data
+				transmission speeds approaching Gbits per second, the common mode phase of both the forwarded
+				clock and data potentially not only show some static timing offset (i.e. latency which might
+				change from device to device, lot to lot, etc.), but also dynamic effects such as common drift
+				and relative jitter.</p><p>The need for a source synchronous measurement is addressed with
+				Verigy's Pin Scale system by its unique "multiple fixed phase capture and compare methodology".
+				For more details on source-synchronous testing method, please refer to the VOICE 2006 conference
+				paper "A Flexible and Scalable Methodology for Testing High Speed Source Synchronous Interfaces
+				on ATE with Multiple Fixed Phase Capture and Compare".[5]</p><div class="p"><figure class="fignone">
+					
+					<img src="116100.png" alt="D-PHY forward high-speed data to clock timing [2]ParameterSymbolMinTypMaxUnits">
+				</figure></div><table class="frame-none"><caption></caption><colgroup><col><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_115882__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_115882__entry__2"><p>Symbol</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_115882__entry__3"><p>Min</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_115882__entry__4"><p>Typ</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_115882__entry__5"><p>Max</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_115882__entry__6"><p>Units</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__1"><p>Nominal long term average frequency</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__2"><p>f<sub>AV</sub></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__3"><p>40</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__5"><p>fh<sub>MAX</sub></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__6"><p>MHz</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__1"><p>UI instaneous</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__2"><p>UI<sub>INST</sub></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__3"><p>0.8</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__5"><p>1.2</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__6"><p>UI<sub>NOM</sub></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__1"><p>Data to clock skew [Tx]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__2"><p>T<sub>SKEW</sub>[Tx]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__3"><p>-0.075</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__5"><p>0.075</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__6"><p>UI<sub>NOM</sub></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__1"><p>Data to clock setup time [Rx]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__2"><p>T<sub>SETUP</sub>[Rx]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__3"><p>0.15</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__5"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__6"><p>UI<sub>NOM</sub></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__1"><p>Clock to data hold time [Rx]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__2"><p>T<sub>HOLD</sub>[Rx]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__3"><p>0.15</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__5"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_115882__entry__6"><p>UI<sub>NOM</sub></p>
+							</td>
+						</tr>
+					</tbody></table><p>For receiver testing, it is mainly the demand of providing multi-level signals to the
+				DUT, which represents an additional challenge for ATE. This is especially true, since the
+				economic pressure in the consumer electronics marketplace rules out the use of special tester
+				hardware beyond standard digital pins. In contrast to most available commodity ATE pin
+				electronic cards, all standard V93000 Pin Scale digital cards address this challenge with their
+				ability to easily generate multiple digital levels.</p><p>The V93000 Pin Scale system provides
+				16 edges per pin (i.e. eight drive and eight receive edges). All the drive edges are tri-state
+				enabled. Each pin can operate as either a single-ended or differential pin, because of the
+				pseudo-differential driver structure of the Pin Scale card. Therefore, we adopt the "1" and "0"
+				levels generated by a pair of differential channels of a Pin Scale 800, or Pin Scale 3600
+				standard mode, to provide the corresponding signal levels of the differential high-speed data.
+				As each pin is an I/O pin, a Pin Scale system also enables transmitter/receiver switching for
+				data transmission in "forward direction" or "reverse traffic" within a pattern.</p><p>In
+				addition, since the level difference between high-speed logic "0" and low-power logic "0" is
+				rather small and thus can be neglected, the same (programmed) low level is used to express the
+				logic "0" of the low-power signal. As a result, the number of distinct signaling levels to be
+				generated can be reduced to three.</p><p>In order to generate logic "1" of the low-power signal,
+				a third level is available via tri-state, referred to as V<sub>T</sub> in Figure 6. As the
+				maximum data rate is only 10 Mbps in low-power mode, there is no need to be concerned with speed
+				issues.</p><div class="p"><figure class="fignone">
+					
+					<img src="116101.png" alt="MIPI D-PHY test demo configuration">
+				</figure></div><p>As a result, the MIPI multi-level signaling can be generated as in Figure 7. The
+				low-frequency, low-power signal is achieved with a repeat instruction to spread out a certain
+				high-speed pattern. For the demonstration setup depicted in Figure 6, we use a data rate of 400
+				Mbps.</p><div class="p"><figure class="fignone">
+					
+					<img src="116102.png" alt="Multi-level signaling in timing diagram">
+				</figure></div><p>When zooming in closer, we find that the positive low-power level is not perfectly
+				aligned as shown in Figure 8. This is due to the intrinsic switching delay between the ordinary
+				level and the third level. Such delay is a typical intermitting feature of standard three-level
+				drivers determined by hardware. As a consequence, the delay of third level switching suppresses
+				the following bits as illustrated in Figure 9.</p><div class="p"><figure class="fignone">
+					
+					<img src="116103.png" alt="Intrinsic delay (2.10 ns) of third level on">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="116272.png" alt="Intrinsic delay (1.92 ns) of third level off">
+				</figure></div><p>In order to eliminate such misalignment, first of all, different drive edges should
+				be chosen for data and third level edges. Second, as observed from Figure 8 and Figure 9, the
+				intrinsic delay for entering the third level differs from the one for exiting the third level.
+				Consequently, two dedicated edges are required for third level on and off respectively. [4] For
+				example, edge d2 and d4 are chosen for data-driving actions, d5, d6 for driving third level on,
+				and d3 for third level off, and the waveform table is defined as following an example for "X2
+				mode". Furthermore, it is worthwhile noticing that d2, d3 and d5 are triggering drive edge at
+				exactly the same time.</p><div class="p"><figure class="fignone">
+					
+					<img src="116104.png" alt="PINS Drive_N Drive_P">
+				</figure></div><p>Since the amount of timing misalignment is not fixed across different pins, it
+				needs to be measured independently on a per-pin basis. For this, it is convenient to use a clean
+				transition from low-power logic one (in either high-speed or low-power mode) to logic zero as
+				shown in Figure 9. Note that the delay for both switching the third level on and off are pin
+				characteristics and thus must be measured (i.e. only once during the first execution of
+				test-flow).</p><div class="p"><figure class="fignone">
+					
+					<img src="116105.png" alt="Intrinsic delay compensation via pin attributes">
+				</figure></div><p>Finally, in order to compensate for the intrinsic delay, third level driving edges
+				are shifted earlier in time. In practice, this is done by programming the measured difference
+				value into the pin attributes to calibrate out the intrinsic delay on a per-pin and per-edge
+				basis as Figure 10 indicates. The values entered are taken into consideration by SmarTest, and
+				as a result, perfect aligned timing can be observed as shown in Figure 11 and 12.</p><div class="p"><figure class="fignone">
+					
+					<img src="116106.png" alt="Third level on after compensation">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="116107.png" alt="Third level off after compensation">
+				</figure></div><p>As characteristics of the pin electronics, the intrinsic delays have been proven to
+				be edge independent; therefore user can have full flexibility to choose edges among the eight
+				driving edges for driving the third level. In addition, the intrinsic delay is frequency
+				independent, but closely related to the voltage swing (i.e. larger swings lead to longer
+				intrinsic delays). For practical convenience, a test method, shown in Figure 13, has been
+				developed, which measures and compensates for the third level switching delay automatically.</p><div class="p"><figure class="fignone">
+					
+					<img src="116108.png" alt="Test Method for third level switching delay auto-compensation">
+				</figure></div></section>
+		<section class="section"><h2>Conclusion</h2><p>MIPI D-PHY is an increasingly popular low-power, low-cost,
+				high-speed serial interface for mobile applications processors. It is a common interface that
+				encompasses displays, cameras, memory in smart phones, PDAs and other devices. For testing
+				aspects, this paper has focused on receiver test of the D-PHY layer.</p><p>The V93000 Pin Scale
+				800, or Pin Scale 3600 standard mode, is capable of solving all the challenges introduced by
+				MIPI D-PHY testing, such as high-speed data transmission, source synchronous testing and
+				multi-level signaling. This paper mainly addresses the D-PHY receiver test and explains how to
+				generate three distinct levels by employing a third level voltage with appropriate delay
+				compensation.</p></section>
+		<section class="section"><h2>Acknowledgements</h2><p>The authors appreciate the valuable discussion with
+				Clemens Leichtle on this subject. We would like to thank Daniel Simoncelli and Ricky Lau for
+				their contributions to the content of this paper.</p></section>
+		<section class="section"><h2>References</h2><p>[1] http://www.mipi.org/</p><p>[2] "DRAFT MIPI Alliance
+				Standard for D-PHY", Draft Version 0.89.00- 20 June 2007</p><p>[3]
+				http://www.embedded.com/showArticle.jhtml?articleID=180202333</p><p>[4]
+				"DDR_mid_level_termination_SAILS06", Stefan Walther</p><p>[5] "A Flexible and Scalable
+				Methodology for Testing High Speed Source Synchronous Interfaces on ATE with Multiple Fixed
+				Phase Capture and Compare", Stefan Walther, VOICE 2006</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 115882</span><script type="text/javascript">var ti='115882';var tt='Solving MIPI D-PHY Receiver Test Challenges'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

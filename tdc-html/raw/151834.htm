@@ -1,0 +1,68 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Retrieves all the values measured on the specified pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>rdi.id().getMultiValue()</title></head><body id="_151834"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 151834</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">rdi.id().getMultiValue()</h1>
+	
+	
+	<div><p>Retrieves all the values measured on the specified pins.</p>
+		<section class="section"><p>You can use it to retrieve the values from an ID within an execute(). It can be used
+				for both <a href="148656.htm" title="Specifies a line number in a pattern where you want to apply dynamic DC measurement actions.">insertVec()</a> and <a href="150932.htm" title="This function inserts one or more subroutines with DC, PPMU or BADC actions into an existing pattern.">insertSub()</a> to retrieve the measured
+				values.</p></section>
+		<section class="section">
+			
+			<p>The <span class="keyword">getMultiValue()</span> function can be used to</p>
+			<ul><li>get all DC results of one <span class="keyword">.execute()</span> used in conjunction with
+						<span class="keyword">insertVec()</span> or <span class="keyword">insertSub()</span>.</li>
+			<li>get all DC results of one <span class="keyword">.execute()</span> used in conjunction with
+						<span class="keyword">sublabel()</span> + <span class="keyword">insertVec()</span> according to the size defined
+					by the user with <span class="keyword">resultSize()</span>. <p>In case of a match failure that prevents
+						the following measurements from executing, <span class="keyword">getMultiValue()</span> does not resize
+						the result array dependent on the non-executed measurements.</p>It cannot return the DC
+					results of a pin of a whole burst.</li></ul>
+		</section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">ARRAY_D&amp; getMultiValue(const string&amp; <span class="keyword">pin</span>);
+ARRAY_D&amp; getMultiValue();</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_151834__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_151834__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_151834__entry__1"><p><span class="keyword">pin</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_151834__entry__2"><p>The pins whose measured values to be retrieved.</p>
+								<p>If no pin is specified, all the pins will be used by default.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Return value</h2><p>Returns an array holding the measured values.</p></div>
+		
+		<h2>Example</h2><div class="example"><p>Retrieving the measured current values from
+				pinA.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  ...
+  rdi.dc("meas").label("abc").insertSub(10).pin("pinA").vForce(0).iMeas().measWait(0.1 ms)
+                             .insertSub(20).pin("pinB").vForce(1 V)
+                                           .pin("pinC").vForce(2 V)
+                             .insertSub(30).pin("pinA").vForce(0).iMeas().measWait(0.2 ms)
+                                           .execute();
+  ...
+RDI_END();
+ARRAY_D results = rdi.id("meas").getMultiValue("pinA");</pre><p>Retrieving
+				the measured voltages from pinB in a dynamic DC
+			test.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc("dynamic").label("label")
+                   .pin("pinA")
+                     .insertVec(55).vForce(5)
+                     .insertVec(90).vForce(3) // here, the line number cannot be lower than 87.
+                   .pin("pinB")
+                     .insertVec(65). vMeas()
+                     .insertVec(185).vMeas()  // here, the line number cannot be lower than 97.
+                   .execute();
+RDI_END();
+
+double value = rdi.id("dynamic").getValue("pinB");         // only the last measurement result
+ARRAY_D values = rdi.id("dynamic").getMultiValue("pinB");  // all the measurement results</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149344.htm" title="You can put any ID inside the RDI_BEGIN/RDI_END()/ block to retrieve all measurement results of a related pin in the same RDI_BEGIN/RDI_END() block.">getBurstValue()</a></div><div><a href="141793.htm" title="Retrieves the measured value.">getValue()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 151834</span><script type="text/javascript">var ti='151834';var tt='rdi.id().getMultiValue()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

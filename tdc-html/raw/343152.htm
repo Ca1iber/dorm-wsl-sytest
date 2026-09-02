@@ -1,0 +1,185 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When using the sequencer to control utility lines you need to connect the dedicated serial interface located on the wiring board to three (optionally four) digital channels. The serial interface uses utility ground (UGND) for the return path, digital channels use digital ground (DGND) for their return path. Connecting these two ground domains together may produce ground loops. As a result, level accuracy and noise level could be affected in some cases. Such problems can be avoided by galvanic separation between the serial interface and the digital channels."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Galvanic separation between utility line serial interface and digital pins</title></head><body id="_343152"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343152</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Galvanic separation between utility line serial interface and digital pins</h1>
+	
+	
+	<div><p>When using the sequencer to control utility lines you need to connect the dedicated
+		serial interface located on the wiring board to three (optionally four) digital channels.
+		The serial interface uses utility ground (UGND) for the return path, digital channels use
+		digital ground (DGND) for their return path. Connecting these two ground domains together
+		may produce ground loops. As a result, level accuracy and noise level could be affected in
+		some cases. Such problems can be avoided by galvanic separation between the serial interface
+		and the digital channels.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span>  This section applies to<ul>
+					<li>V93000 Pin Scale and Smart Scale systems running SmarTest&nbsp;7,</li>
+					<li>V93000 Smart Scale systems running SmarTest&nbsp;8,</li>
+					<li>V93000 EXA Scale systems running SmarTest&nbsp;7 and equipped with the <a href="351250.htm" title="The Utility Card provides 256 utility lines and several utility power supplies on eight 4-row pogo blocks. The cards can reside in any slot of a V93000 EXA Scale system. There are two variants available, EK051 and EK051A. The EK051 Utility card is used in SmarTest 8 only. The EK051A Utility card is used in both SmarTest 7 (SmarTest version 7.10 and higher) and SmarTest 8.">optional Utility
+							Card</a>.</li>
+				</ul><div class="p">The example circuitry cannot be used<ul>
+						<li>with SmarTest 7 if the control patterns are created by <a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a> or the <a href="343437.htm" title="The Routing Tools feature native multisite handling, user friendly table based configuration editors and a unified programming interface for controlling utility lines.">Routing
+								Tools</a> of SmartRDI.</li>
+					</ul></div><p>On V93000 EXA Scale systems running SmarTest&nbsp;8 and equipped
+					with the optional Utility Card, the pattern sequencer controls utility lines via
+					an internal data path and does not need galvanic separation.</p></div>
+			<p>The serial interface consists of three input pins <span class="keyword">SCLK</span> (Serial
+				clock), <span class="keyword">FRAMn</span> (Serial frame enable) and <span class="keyword">SINP</span>
+				(Serial data in) together with one output pin <span class="keyword">SOUT</span> (Serial data
+				out). For details of the interface refer to <a href="128450.htm" title="The serial interface for sequencer‑controlled utility lines requires up to four digital pins from a test head card installed in the test system to be connected to the pins of a utility block on the DUT board.">Serial interface for sequencer-controlled utility lines</a> and <a href="128451.htm">Specifications for the serial interface</a>.</p>
+		</section>
+		<section class="section"><h2>Example circuit</h2>
+			
+			<div class="p">The following example circuits use the <strong>inverting</strong> FODM8071 optocoupler together
+				with the SN74LVC1T45 level shifter to connect the serial interface to four digital
+					channels.<div class="note"><span class="title">Note</span> Since this example circuits influence the behavior
+					and timing of the control signals, we recommend the implementation only if
+					galvanic separation is really necessary. If this cannot be clarified beforehand,
+					appropriate jumpers for activating or bridging the circuits are
+					reasonable.</div></div>
+			<div class="p">Some rules must be observed when using these circuits:<ul>
+					<li>The FODM8071 optocoupler inverts the digital control signals
+							<span class="keyword">SCLK</span>, <span class="keyword">FRAMn</span> and
+							<span class="keyword">SINP</span> and also the output of the optional
+							<span class="keyword">SOUT</span> pin.</li>
+					<li>You must therefore invert the digital states in your control patterns.
+						Control patterns that are automatically generated by <a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a> are
+						not supported.</li>
+					<li>The FODM8071 optocoupler requires a minimum of 5&nbsp;mA input current to
+						switch the output pin to the low level.</li>
+					<li>The forward voltage of the FODM8071 optocoupler is maximum 1.8&nbsp;V at 10
+						mA.</li>
+					<li>In combination with the shown 820&nbsp;Ω series resistor an input voltage of
+						6.5&nbsp;V results in an input current of about 5.4&nbsp;mA.</li>
+					<li>For higher data rates, we recommend reducing the value of the series
+						resistor. However, the maximum forward current of 16&nbsp;mA of the
+						optocoupler input must be observed.</li>
+					<li>This arrangement adds some propagation delay to the signals of the serial
+						interface that have to be included in the timing setup for the
+							<span class="keyword">SOUT</span> line. Note that variances between the
+						propagation delays of the different lines might lead to a degradation of the
+						maximum data rates.</li>
+				</ul>
+			</div>
+			<p><img src="343163.png" alt="Utility line serial interface ground isolation inputs"></p>
+			<p><img src="343164.png" alt="Utility line serial interface ground isolation output"></p>
+		</section>
+		<section class="section"><h2>Software setup for the galvanic separation</h2>
+			
+			
+			
+			
+			
+			<div class="p">Since the circuit described above inverts the signals and requires a higher drive
+				level, the setup for the control signals of the serial interface must be adapted:<ul>
+					<li>The VIH level of the digital control signals <span class="keyword">SCLK</span>,
+							<span class="keyword">FRAMn</span> and <span class="keyword">SINP</span> must be changed
+						from the recommended value of <span>1.8&nbsp;V</span> to a level that ensures
+						that the optocoupler is working properly. The FODM8071 optocoupler requires
+						a minimum of 5&nbsp;mA input current. With a VIH level of 6.5&nbsp;V, a
+						current of about 5.4&nbsp;mA can be achieved.</li>
+					<li>The logical states of the digital control signals <span class="keyword">SCLK</span>,
+							<span class="keyword">FRAMn</span> and <span class="keyword">SINP</span> must be
+						inverted.</li>
+				</ul><div class="caution"><span class="title">CAUTION</span> 
+					<p>If you find that you do not need the circuitry and therefore bypass it, make sure that not
+						only the inversion of the signals is reversed but also that the VIH level of
+						the control signals is reduced to the recommended voltage of <span>1.8&nbsp;V</span>.</p>
+					<p>The maximum ratings as defined in the <a href="128451.htm#_128451__t_Maximum_ratings">Maximum ratings</a> table of <a href="128451.htm">Specifications for the serial interface</a> must not be
+						exceeded.</p>
+				</div></div>
+			<dl>
+				
+					<dt class="dlterm">Setup for SmarTest 8</dt>
+					<dd><p>SmarTest 8 encapsulates the complete setup for sequencer‑controlled utility
+							lines. For the standard setup, refer to step <!--a href="smartest<256859.htm#_256859__dynamically_controlling"-->Dynamically
+								(sequencer‑controlled) controlling utility lines ...<!--/a-->
+							in <!--a href="smartest<256859.htm"-->Controlling utility lines<!--/a-->.</p><p>In order to be able to use
+							the circuit described above and to be able to adapt the characteristics
+							of the generated signals, a <span class="keyword">protocol</span> block must be
+							defined for the <!--a href="smartest<244395.htm#_244395__entry_utilitycontrol"-->utilityControl<!--/a--> element in the
+								<!--a href="smartest<244395.htm"-->DUT board
+								description file<!--/a-->.</p><div class="p">Within the <!--a href="smartest<244395.htm#_244395__entry_utilitycontrol"-->utilityControl<!--/a--> element, define
+							the parameter <span class="keyword">protocol</span> as <span class="keyword">SPI</span> and
+							add the following DUT board properties:<table class="frame-none"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+										<tr>
+											<th class="colsep-1 rowsep-1" id="_343152__entry__1">DUT board property</th>
+											<th class="colsep-1 rowsep-1" id="_343152__entry__2">Supported value</th>
+											<th class="colsep-1 rowsep-1" id="_343152__entry__3">Description</th>
+											<th class="colsep-0 rowsep-1" id="_343152__entry__4">Value for the circuit described above</th>
+										</tr>
+									</thead><tbody>
+										<tr>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__1"><span class="keyword">interface</span></td>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__2"><span class="keyword">inverted</span> or
+												<span class="keyword">nonInverted</span></td>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__3">Selects non‑inverted or inverted control
+												signals.</td>
+											<td class="colsep-0 rowsep-1" headers="_343152__entry__4"><span class="keyword">inverted</span></td>
+										</tr>
+										<tr>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__1"><span class="keyword">swing</span></td>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__2">1.8&nbsp;V&nbsp;...&nbsp;6.5&nbsp;V</td>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__3">VIH level of the control signals.</td>
+											<td class="colsep-0 rowsep-1" headers="_343152__entry__4">&gt;&nbsp;6.0&nbsp;V</td>
+										</tr>
+										<tr>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__1"><span class="keyword">clock</span></td>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__2">1.0&nbsp;MHz&nbsp;...&nbsp;10.0&nbsp;MHz</td>
+											<td class="colsep-1 rowsep-1" headers="_343152__entry__3">
+												<p>The clock frequency.</p>
+												<p>Needs to be set to lower frequencies if the
+												combination of very long traces on the DUT board
+												or unequal trace lengths and the delay added by
+												the interface circuitry on the DUT board cause
+												unstable data transfer.</p>
+											</td>
+											<td class="colsep-0 rowsep-1" headers="_343152__entry__4"></td>
+										</tr>
+									</tbody></table></div>The following example code shows how to define the <!--a href="smartest<244395.htm#_244395__entry_utilitycontrol"-->utilityControl<!--/a--> element for use in
+						combination with the circuit described
+							above:<div></div><pre class="no-prettify"><code>dutboard utilityLineDemo {
+    utilityControl {
+        SPI UT1, UT2 { // You must use consecutive utility blocks UT1, UT2,...
+            sinp = 42516;
+            fram = 42503;
+            sclk = 45716;
+        }
+
+        SPI UT5, UT6 { // You must use consecutive utility blocks UT5, UT6,...
+            sinp = 42517;
+            fram = 42504;
+            sclk = 45717;
+        }
+
+        protocol SPI {             // Can be specified only once
+            interface = inverted;  // inverted | nonInverted
+            swing     = 6.5 V;     // 1.8 V ... 6.5 V
+            clock     = 1 MHz;     // 1.0 MHz ... 10.0 HMz
+        }
+    }
+}</code></pre><div class="p">Hints and rules to be observed:<ul>
+								<li>If a <span class="keyword">protocol</span> needs to be defined, only one
+										<span class="keyword">utilityControl</span> block can be used in the
+										<!--a href="smartest<244395.htm"-->DUT board description file<!--/a-->.</li>
+								<li>The <span class="keyword">protocol</span> block can be specified only once
+									within the <span class="keyword">utilityControl</span> block.</li>
+								<li>The protocol name for the definition of the pogo pin numbers and the name in the
+										<span class="keyword">protocol</span> block must be
+										<span class="keyword">SPI</span>.</li>
+								<li>If a <span class="keyword">protocol</span> is specified, all three DUT
+									board properties <span class="keyword">interface</span>,
+										<span class="keyword">swing</span>, and <span class="keyword">clock</span> are
+									mandatory.</li>
+								<li>The default value of the three properties when the
+										<span class="keyword">protocol</span> block is not defined are
+										<span class="keyword">nonInverted</span>, 1.8&nbsp;V, and
+									5&nbsp;MHz.</li>
+							</ul></div></dd>
+				
+				
+			</dl>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="128450.htm" title="The serial interface for sequencer‑controlled utility lines requires up to four digital pins from a test head card installed in the test system to be connected to the pins of a utility block on the DUT board.">Serial interface for sequencer-controlled utility lines</a></div><div><a href="128451.htm">Specifications for the serial interface</a></div><div><a href="135833.htm" title="The term &#34;ground&#34; has different meanings to different people. For example, signal ground, circuit ground, chassis ground, safety ground, earth ground, reference ground, ground layer, zero volt, ..., and return path.">Grounding</a></div><div><a href="90871.htm" title="In general, the signal return paths for DC/low speed signals are different from high-speed signal return paths.">Signal return paths</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.4.4</li><li>SmarTest 8.4.4.1: Added software setup for SmarTest 8.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343152</span><script type="text/javascript">var ti='343152';var tt='Galvanic separation between utility line serial interface and digital pins'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

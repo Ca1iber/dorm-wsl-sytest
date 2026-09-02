@@ -1,0 +1,46 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When licenses are required, a license request is sent from SmarTest to a license server. The order in which license servers receive requests is dictated by the order of the data in following stores:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>License server prioritization</title></head><body id="_86535"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 86535</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">License server prioritization</h1>
+	
+	
+	<div><p>When licenses are required, a license request is sent from SmarTest to a license server.
+		The order in which license servers receive requests is dictated by the order of the data in
+		following stores:</p>
+		<ol>
+			<li>Order of appearance in <span class="keyword">LM_LICENSE_FILE</span>.</li>
+			<li>If the <span class="keyword">SOCBU_LICENSE_FILE</span> environment variable is specified, SmarTest
+				reads the license files at the specified path instead.</li>
+			<li>By default SmarTest reads at startup all <span class="filepath">*.lic</span><kbd class="userinput"> </kbd>license files (in lexicographical order) in the
+					<span class="filepath">/opt/flexlm/license</span> directory. </li>
+		</ol>
+		<p>SmarTest can connect to more than one license server to collect the licenses requested for one
+			feature. Licenses are checked out from the first queried license server with available licenses.
+			If insufficient licenses are available on the first server contacted, all available licenses from
+			the first server are checked out and the remaining licenses are taken from following servers.</p>
+		<p>Node-locked licenses have priority over floating licenses. Licenses locked to the system
+			controller requesting licenses are checked out first, maximizing the availability of floating
+			licenses for subsequent requests. </p>
+		<p>SmarTest contacts the license servers based on the data in the license files. The license
+			server is specified in the SERVER line of the license files.</p>
+		<section class="section"><h2>Deactivating node-locked license prioritization</h2><p>For time-critical
+				environments, setting the environment variable <span class="keyword">SOCBU_IGNORE_NODELOCKED</span>
+				deactivates the prioritization of node-locked licenses. </p><div class="note"><span class="title">Note</span> This setting is
+				not recommended for typical environments with a mixture of node-locked and floating licenses
+				because there is a high risk of checking out all floating licenses, leaving only free
+				node-locked licenses free but not generally usable. </div><p>There are two situations where
+				deactivating the prioritization of node-locked licenses could be used effectively:</p><ul>
+				<li>No node-locked licenses are available for all requested features. Be aware that this may
+					change, for example, when installing demo licenses.</li>
+				<li>Only node-locked licenses are available for all requested features.</li>
+			</ul></section>
+		<section class="section"><h2>Best practices</h2><ul>
+				<li>Specify servers and files by using LM_LICENSE_FILE instead of *.lic-files.</li>
+				<li>Order sources first by utilization frequency, then by latency (ping time).</li>
+				<li>Place backup servers at the end of the list.</li>
+				<li>Avoid multiple files pointing to the same server.</li>
+			</ul></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: Changed name and location of configuration file:
+					/etc/opt/hp93000/soc_common/flexlm.cfg</li><li>SmarTest 7.3.2: New checkout algorithm with simpler operation (and better performance).
+				</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 86535</span><script type="text/javascript">var ti='86535';var tt='License server prioritization'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section describes how to create a client application with the HVM API and how to execute the application program."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to create and execute the client application with HVM API</title><meta name="keywords" content="high voltage High Volume Manufacture"></head><body id="_95795"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 95795</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to create and execute the client application with HVM API</h1>
+	
+	
+	<div><p>This section describes how to create a client application with the HVM API and how to
+		execute the application program.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The client application is a C or C++ program which interfaces with both SmarTest and
+				the user production environment. To use the HVM API, you need to include the
+					<span class="keyword">::xoc::hvmapi</span> namespace in the program. The client application can:</p><ul>
+				<li>Control the SmarTest behavior by issuing remote control commands.</li>
+				<li>Retrieve the SmarTest status and system information by executing data query commands.</li>
+				<li>Notify SmarTest of its status via a notification command.</li>
+			</ul><p>The remote control commands and operations are executed in an asynchronous way. Their
+				final execution results will be sent out via an event notification channel. SmarTest will also
+				actively notify its internal status change via the event notification channel. So the client
+				application must be able to interact with the event notification and get notified with a certain
+				event to proceed with its logic.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure that SmarTest 6.2 or above is installed.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Create the client application program with HVM API</h3><ul>
+				<li>Issue an HVM API command, operation, query or notify signature.<p>The HVM API command,
+						operation, query, and notify signatures are used to control the SmarTest behavior, retrieve
+						the SmarTest status, or notify SmarTest the production status. For details, see</p>
+					<p><a href="112042.htm" title="The signature command is used to execute the remote control commands which have no output in HVM API.">How to issue a command</a></p>
+					<p><a href="112043.htm" title="The signature operation is used to execute the remote control commands in HVM API which have output value. Currently, only StartSmartestSession uses operation.">How to issue an operation</a></p>
+					<p><a href="112044.htm" title="The signature query is used to execute the data query command of HVM API.">How to issue a query</a></p>
+					<p><a href="112045.htm" title="The signature notify is used to enable the customer production software to proactively notify its state to SmarTest.">How to issue a notify</a></p></li>
+				<li>Get notified with the event notification.<p>The signatures used together to fulfill the
+						event notification include <a href="97226.htm" title="This signature defines the prototype of call back function (event handler).">EventListenerType</a>, <a href="97227.htm" title="This signature is to register an event listener which will be executed by HVMAPI internal execution thread upon a particular event.">addEventListener</a>, <a href="97228.htm" title="This signature is to start an HVMAPI internal event loop. The main job of event loop is to execute the particular event listener when the corresponding event occurs in HVMAPI internal execution thread. Calling this function will make the client give the control to the HVMAPI internal thread. The client execution will be blocked until exiting from the event loop.">eventLoop</a>, and <a href="97229.htm" title="This signature is to exit the HVMAPI internal event loop. It is the only way to quit the HVMAPI internal event loop.">eventLoopExit</a>. For details, see <a href="112046.htm" title="This topic introduces how to handle the event from SmarTest in a HVM API client.">How to get notified with a SmarTest event</a>. </p>
+					<p>Refer to <a href="112047.htm" title="Some examples are provided below to show the usage of HVM API in test execution control.">Example codes of the most often used test control tasks</a>.</p></li>
+			</ul></section>
+		<section class="section"><h3>Compile and link the client file</h3><p>The client source code needs to be
+				compiled with the header file
+					<span class="filepath">/opt/hp93000/soc/system/include/xoc/hvmapi/hvmapi.hpp</span>, and linked with the
+				library <span class="filepath">/opt/hp93000/soc/system/lib/libhvm_cpp.so</span>. </p><p>You can build
+				your client application program like any ordinary C++ program with a Makefile. Before doing
+				this, run <kbd class="userinput">/opt/hp93000/soc/system/bin/run -S</kbd> first to prepare a build
+				environment. </p><p>The following is an example of a
+			Makefile:</p><pre class="prettyprint linenums copyable">HP83000_ROOT=/opt/hp93000/soc
+
+CPP = /usr/bin/g++ -m64
+LD = /usr/bin/g++ -m64
+  
+INCLUDES =  -I ${HP83000_ROOT}/system/include
+LIB_PATHS = -L ${HP83000_ROOT}/system/lib \
+            -Wl,-rpath,:${HP83000_ROOT}/system/lib
+
+
+CPPFLAGS = -g -DHP83000_ROOT=${HP83000_ROOT} -DOS_LINUX $(INCLUDES) 
+LDFLAGS = $(LIB_PATHS)  -lhvm_cpp
+
+
+SRCS = $(shell ls *.cpp)
+OBJS = $(SRCS:.cpp=.o)
+
+all: hvm_client
+clean: ; @rm -f $(OBJS); rm -f core*; rm -f hvm_client
+hvm_client: $(OBJS)
+    ${LD} $(OBJS) $(LDFLAGS) -o $@
+.cpp.o:
+    ${CPP} $(CPPFLAGS) -c $&lt;</pre></section>
+		<section class="section"><h3>Execute the client application program</h3><p>To execute the client application
+				program, type in the following
+					command:</p><pre class="prettyprint copyable singleline">/opt/hp93000/soc/system/bin/run -x <span class="keyword">YOUR_CLIENT_PROGRAM</span> -- program_arg1 program_arg2</pre><p><span class="keyword">YOUR_CLIENT_PROGRAM</span>
+				is the executable client application program that you have
+					created.</p><p><span class="keyword">program_arg1</span> and <span class="keyword">program_arg2</span> are the
+				arguments of the client application program.</p><p>With this command, a session manager will
+				start automatically if it has not been running. </p><div class="note"><span class="title">Note</span> </div><ul>
+				<li>If the session manager is running, you can use either <kbd class="userinput">-QX</kbd> or
+						<kbd class="userinput">-x</kbd> to execute the application program.</li>
+				<li>If the session manager has NOT started, you can only use <kbd class="userinput">-x</kbd> to
+					execute the application program. If you use <kbd class="userinput">-QX</kbd> now, it can cause an
+					error. An error message "terminate called after throwing an instance of
+					'xoc::exc::ZUnrecoverable'" will pop up.</li>
+			</ul></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>After executing the program, you can have the desired output in the screen or report
+				window.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p><a href="112048.htm" title="Two examples are provided here. One is for test execution controlling and one is for production status monitoring.">Two complete examples of using HVM API</a></p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.0:  The URE/UDK path is updated.</li><li>SmarTest 7.1.1:  More libraries are needed to build the program.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 95795</span><script type="text/javascript">var ti='95795';var tt='How to create and execute the client application with HVM API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Global framework mode</title></head><body id="_123988"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123988</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Global framework mode</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The d2s-framework can be easily controlled by a testflow variable in order to switch
+				between learning and production mode.</p><p>This task describes how to implement a testflow
+				variable to your test method, that already uses d2s, for conveniently switching between the d2s
+				modes.</p><div class="note"><span class="title">Note</span> In learning mode you have to go through all the if-branches of your
+				test program at least once to generate the static patterns and the burst label.</div></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Ensure that you have set up your protocol and that your test method is executed
+				correctly.</p><p>Add a testflow variable, for example "<span class="keyword">d2sMode</span>", of type
+					<span class="keyword">USERFLAG</span> to your testflow. Refer to <a href="99456.htm" title="You must create a variable on the Variables page before using it in the testflow.">defining testflow
+					variables</a>. Assign a value from this list:</p><ul>
+				<li>Learning mode is represented by the integer value <span class="keyword">1</span>.</li>
+				<li>Production mode is represented by the integer value <span class="keyword">2</span>.</li>
+			</ul></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Open your test method that contains the d2s code.</span>
+			</li><li class="stepexpand">
+				<span>Add the <code>GET_USER_FLAG()</code> aPI right after the
+						<code>ON_FIRST_INVOCATION_BEGIN()</code> call. Use the testflow variable's name as first
+					parameter, for example "<span class="keyword">d2sMode</span>". Enter an identifier for the retrieved
+					value behind the reference operator, for example "<code>&amp;d2sGlobalMode</code>".</span>
+				<div><pre class="prettyprint copyable singleline">GET_USER_FLAG("d2sMode", &amp;d2sGlobalMode);</pre></div>
+			</li><li class="stepexpand">
+				<span>Replace the second parameter of the d2s_LABEL_BEGINN() API by the identifier you specified
+					in step 2.</span>
+				<div><pre class="prettyprint copyable singleline">fr.d2s_LABEL_BEGIN("my_BurstLabelName", d2sGlobalMode);</pre></div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>This example code is based on the example code shown in <a href="123821.htm">Prepare the test method infrastructure</a>. It has been
+				enhanced to multisite and by the d2s-block to show where to add d2s code.</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+
+//for test method API interfaces
+#include "mapi.hpp"
+
+//for d2s specific interfaces
+#include "d2s_files/d2sJTAG.h"        // This is the users protocol template file.
+#include "d2s_files/d2sFramework.h"
+
+using namespace std;
+
+/**
+ * Test method class.
+ *
+ * For each testsuite using this test method, one object of this
+ * class is created.
+ */
+class d2sExample: public testmethod::TestMethod {
+
+protected:
+  /**
+   *Initialize the parameter interface to the testflow.
+   *This method is called just once after a testsuite is created.
+   */
+  virtual void initialize()
+  {
+    //Add your initialization code here
+    //Note: Test Method API should not be used in this method!
+  }
+
+  /**
+   *This test is invoked per site.
+   */
+  virtual void run()
+  {
+    //Add your test code here.
+    ...
+    //Add the initial d2s framework specific code to your test method.
+    //Each protocol needs to be registered with the d2s-framework.
+    d2sFramework fr;
+    d2sJTAG&amp; jtag = ds2JTAG::Instance();
+    fr.registerTransactionPort(jtag);
+
+    //Multi site handling and d2s-block
+    ON_FIRST_INVOCATION_BEGIN();
+
+       // step 2
+       <strong>GET_USER_FLAG("d2sMode", &amp;d2sGlobalMode);</strong>
+
+       // step 3
+       fr.d2s_LABEL_BEGIN("my_BurstLabelName", <strong>d2sGlobalMode</strong>);
+          //LearningMode - creating labels and the burst-label
+          //ProductionMode - using predefined burst-labels
+          jtag.write(0xdead, 0xbeaf);
+          jtag.write(0xabcd, 0xef);
+          jtag.read(0x1, "one");
+       fr.d2s_LABEL_END();
+
+       // do your measurement here
+          ...
+
+    ON_FIRST_INVOCATION_END();
+
+    return;
+  }
+
+  /**
+   *This function will be invoked once the specified parameter's value is changed.
+   *@param parameterIdentifier
+   */
+  virtual void postParameterChange(const string&amp; parameterIdentifier)
+  {
+    //Add your code
+    //Note: Test Method API should not be used in this method!
+    return;
+  }
+
+  /**
+   *This function will be invoked once the Select Test Method Dialog is opened.
+   */
+  virtual const string getComment() const 
+  {
+    string comment = " please add your comment for this method.";
+    return comment;
+  }
+};
+REGISTER_TESTMETHOD("d2sExample", d2sExample);</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="122657.htm" title="The d2s-framework is an efficient way to do register transactions, like read and write. The d2s-framework provides a learning mode for generating and bursting static patterns and a production mode for executing those burst pattern.">d2s modes</a></div><div><a href="99275.htm" title="On this page, you can add, delete, and edit variables.">Variables page</a></div><div><a href="29443.htm" title="This API retrieves the current value of the specified user flag (INT type of testflow variable), which can have been stored at a defined site. The flag and the site must have been previously declared as type INT.">GET_USER_FLAG</a></div><div><a href="29743.htm" title="This API sets the specified user-flag (INT type of testflow variable) to a particular value, which can be stored at a defined site. The flag and the site must have been previously declared as type INT.">SET_USER_FLAG</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123988</span><script type="text/javascript">var ti='123988';var tt='Global framework mode'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

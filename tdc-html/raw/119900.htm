@@ -1,0 +1,66 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to initialize a DRL routine</title></head><body id="_119900"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119900</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to initialize a DRL routine</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>To initialize the data retrieval routine, you need to set the parameters of <a href="34785.htm">DRLStart</a>, mask the events that you Do not want and set up the file to store the output
+				result.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Setup the <a href="34785.htm">DRLStart</a> parameters</span>
+				<div><ul>
+						<li>To capture the test result in real time, no file name is needed.</li>
+						<li>Set the flags to unmask all the events.</li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Mask the event you Do not want using <a href="34781.htm">DRLSetEventMask</a> like below:</span>
+				<div><pre class="prettyprint linenums copyable">DRLEventMask myMask;
+myMask.event_mask[eventType1] = 1;</pre></div>
+			</li><li class="stepexpand">
+				<span>Set up the file to store the output result</span>
+				<div><ul>
+						<li>Open the existing file and change its mode to writable</li>
+						<li>Create a new file if the specified file name does not exist</li>
+					</ul></div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">Void init()
+{
+  DRLDataStream stream;
+  String filename;
+  DRLEventType event_type;
+  DRLEventMask my_event_mask;
+  int fopened =0;
+  FILE *templog;
+
+  DRLStart(0, (DRL_SYNC_COUNTER|DRL_RESET_MASK), &amp;my_stream);
+  //mask all events and then unmask the event BinReachedEventType
+  for (event_type=0; event_type&lt;NumberOfEventTypes; event_type++) 
+  {
+    my_event_mask.event_mask[event_type] = 1;
+  }
+     
+  my_event_mask.size = NumberOfEventTypes;    
+  my_event_mask.event_mask[BinReachedEventType] = 0; 
+  DRLSetEventMask(&amp;my_event_mask, &amp;my_stream);
+  //setup for output file
+  filename.assign("/tmp/PETSummaryOut.log");
+  templog = fopen( filename.c_str(), "w");
+  if(templog == NULL)
+  {
+    cerr &lt;&lt; "[EDL] Error: Unable to open ouptut log file named: " &lt;&lt;  filename &lt;&lt;endl;
+    exit(-1);
+  }
+  else
+  {
+    string command = "chmod 666 " + filename;
+    system(command.c_str());
+    if(print_debug &gt; 0)
+    cerr &lt;&lt; "[EDL] Output log file was opened and is named " &lt;&lt;  filename &lt;&lt;endl;
+    fileopened = 1;
+  }
+}</pre><p>In
+				this example, the DRL routine is initialized. All the event types are masked except the <a href="34663.htm" title="An event of this type is logged whenever a device is binned. Note that if a device is binned multiple times due to the Overon flag, the binning is logged each time.">BinReachedEventType</a>. The file <span class="filepath">/tmp/PETSummaryOut.log</span> is set as the result
+				output file.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119900</span><script type="text/javascript">var ti='119900';var tt='How to initialize a DRL routine'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

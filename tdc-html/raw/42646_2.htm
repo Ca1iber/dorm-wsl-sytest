@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmarTest controls which sites are addressed by Setup, Execution, and Result APIs, for achieving multisite testing with maximum performance."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Site States and Test Method Programs</title><meta name="keywords" content="testmethod"></head><body id="_42646"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42646</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Site States and Test Method Programs</h1>
+	
+	
+	<div><p>SmarTest controls which sites are addressed by Setup, Execution, and Result APIs, for
+		achieving multisite testing with maximum performance.</p>
+		<p>The following describes the definition of the site states:</p>
+		<ul>
+			<li>Configured sites:<p>sites that are configured in the Pin Configuration. They may be called
+					all sites simply.</p></li>
+			<li>Enabled sites:<p>sites that are intended for multisite testing. For the enabled sites only,
+					you can connect or disconnect the devices to the test system resources such as the drivers,
+					analog modules, and so on in a test flow. Especially, the sites where the devices are connected
+					to the test system resources are called connected sites.</p>
+				<p>You can also specify which sites are enabled in the Site Control window.</p>
+				<p>Binned sites in a test flow are disabled (not enabled-sites). </p></li>
+			<li>Active sites:<p>sites that are intended for the execution of the test method program
+					currently. </p>
+				<p><strong>For parallel execution</strong>, active sites are generally the same as the enabled sites. </p>
+				<p>Outside the first-invocation block in the test method program (see <a href="42638.htm" title="As in a normal setup, test methods can also be used for executing test suites in a multisite setup.">MS Test Method Programming Overview</a> and
+						<a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">Parallel Execution</a>), only the site that calls the test method program is an active
+					site.</p>
+				<p><strong>For serial execution</strong>, only the site that calls the test method program is an active
+					site. Hence, one site in the enabled sites is activated by repetition.</p>
+				<p>In other words, assuming you have a 4-site setup and all the sites are enabled and activated. </p>
+				<p>If site 1 calls the program, then: </p>
+				<p>Sites 2, 3 and 4 are deactivated and the test is run on site 1.</p>
+				<p>If site 2 calls the program, then: </p>
+				<p>Sites 1, 3 and 4 are deactivated and the test is run on site 2.</p>
+				<p>If site 3 calls the program, then: </p>
+				<p>Sites 1, 2 and 4 are deactivated and the test is run on site 3.</p>
+				<p>And so on.</p>
+				<p>In the above example, the enabled sites are activated one by one.</p>
+				<p>Deactivated sites can be called masked sites.</p>
+				<p>Note: You can also specify which sites are activated in the Site Control window (see <a href="100096.htm" title="The Site Control window shows the states of the individual site. Sites unavailable due to defect pin configuration, cannot be enabled, activated or receive result focus. You can only set the states for available sites.">The states of the sites</a>).</p></li>
+			<li>Setup-focused sites:<p>sites that are addressed by Setup APIs.</p>
+				<p>All configured sites are setup-focused generally. In the each site loop block, one site in
+					the active sites is setup-focused by repetition. You can also setup-focus some sites by the
+					SET_TEST_FOCUS API. You can be aware of this state for the site-specific setup only.</p></li>
+			<li>Query-focused site:<p>single site that are addressed by Result APIs.</p>
+				<p>This site is switched depending on the execution position in the test method program. In the
+					each site loop block only, one site in the active sites is query-focused by repetition. On the
+					other position, it is the site that calls the program.</p>
+				<p>You can also specify which site is query-focused in the Site Control window (see <a href="100096.htm" title="The Site Control window shows the states of the individual site. Sites unavailable due to defect pin configuration, cannot be enabled, activated or receive result focus. You can only set the states for available sites.">The states of the sites</a>). This may called focused site.</p></li>
+		</ul>
+		<p>To determine which site is calling the test method program, you can use the API
+			"CURRENT_SITE_NUMBER()</p>
+		<p>Note that for "enabled" but not "active" sites, the test method is not performed, however, the
+			digital patterns for the devices in the "enabled" sites are, visible, because the relays are
+			still closed.</p>
+		<p>The following describes the summary of the behavior related to the site states in the test
+			method program in the multisite testing.</p>
+		<ul>
+			<li><strong><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></strong><strong> - <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></strong><p>In the first-invocation
+					block, </p><ul>
+					<li>Setup APIs except the CONNECT, DISCONNECT, and routing setup APIs are executed for all
+						configured sites. Note that they are valid even for binned sites (disconnected sites after
+						binned).</li>
+					<li>CONNECT, DISCONNECT, and routing setup APIs are executed for the all enabled sites.</li>
+					<li>Execution APIs are executed for the all connected sites.</li>
+					<li>Result APIs are executed for the site with lowest site number (first tested site) in the
+						active sites.<p>This is the query-focused site.</p></li>
+				</ul></li>
+			<li><strong><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></strong><strong> - <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></strong><p>In the each site loop block, </p><ul>
+					<li>Setup (except the CONNECT, DISCONNECT, and routing setup APIs) and Result APIs are executed
+						serially for each site in all active sites by repetition.<p>One site in the active sites is
+							setup-focused and query-focused by repetition.</p></li>
+					<li>CONNECT, DISCONNECT, and routing setup APIs are executed for the all enabled sites.</li>
+					<li>Execution APIs are executed for the all connected sites.</li>
+				</ul></li>
+			<li><strong>On the outside of the first-invocation block,</strong><ul>
+					<li>Setup APIs except the CONNECT, DISCONNECT, and routing setup APIs are executed for all
+						configured sites. (They are executed every time the program is called for each site.)</li>
+					<li>CONNECT, DISCONNECT, and routing setup APIs are executed for the all enabled sites. (They
+						are executed every time the program is called for each site.)</li>
+					<li>Execution APIs are executed for the all connected sites. (They are executed every time the
+						program is called for each site.)</li>
+					<li>Result APIs are executed for the site that calls the program currently. This is the
+						query-focused site.</li>
+				</ul></li>
+		</ul>
+		<p>These APIs change the state of sites automatically, as described above.</p>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="118888.htm" title="This API declares the beginning of a block in which the test method code will be only executed for the last site in multisite testing. In the block, all the active sites are setup focus and the last site is query focus.">ON_LAST_INVOCATION_BEGIN</a></div><div><a href="118889.htm" title="This API declares the end of the &#34;last invocation&#34; block that is started by ON_LAST_INVOCATION_BEGIN.">ON_LAST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42646</span><script type="text/javascript">var ti='42646';var tt='Site States and Test Method Programs'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

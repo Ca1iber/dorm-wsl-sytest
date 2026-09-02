@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This hook function is called (if activated, see Activating a Hook Function) when a problem occurs during driver execution."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>phHookProblem</title><meta name="keywords" content="ph, Hook, Problem"></head><body id="_42323"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42323</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">phHookProblem</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="42324.htm">Parameters:</a></li><li><a href="42325.htm" title="User-specific code should be added in a case section for the respective problem which caused the calling of this hook function.">User-Specific Code:</a></li></ol></div></nav>
+	
+	
+	<div><p>This hook function is called (if activated, see <em><a href="42332.htm" title="To tell the driver that a hook function should be called during the driver execution, the hook function must be activated. Deactivated hook function, although existent in the ph_hhook.c source file, will not be called (see also Special Functions in the Hook Source File).">Activating a Hook Function</a></em>) when a
+		problem occurs during driver execution.</p>
+		<p>In the current Revision 3.2, only a timeouts while waiting call this hook function.</p>
+		<div></div><pre class="prettyprint linenums copyable">phHookError_t phHookProblem(
+    phEventCause_t reason/* the reason, why this hook is */
+    /* called */,
+    phEventDataUnion_t *data/* pointer to additional data,
+        associated with the given
+        &lt;reason&gt;, or NULL, if no
+        additional data is available */,
+    phEventResult_t *result/* the result of this hook call */,
+    phTcomUserReturn_t *stReturn  /* SmarTest return value, if
+        &lt;result&gt; is set to
+        PHHOOK_RES_ABORT
+        by this hook function */
+)
+{
+    /* do checks and trace the call first */
+    CheckInitialized(&amp;hook);
+    phLogHookMessage(hook.myLogger, PHLOG_TYPE_TRACE, 
+    "phHookProblem(0x%08lx, P%p, P%p, P%p)",
+    (long) reason, data, result, stReturn);
+
+#ifdef PROBLEM_IMPLEMENTED
+
+    /* Here is a sample implementation which prints out the total
+       waiting time on timeout problems */
+
+    switch (reason)
+    {
+      case PHEVENT_CAUSE_WP_TIMEOUT:
+
+    if (data)
+        phLogHookMessage(hook.myLogger,
+        PHLOG_TYPE_MESSAGE_0, 
+        "hook layer recognized timeout after %ld seconds",
+            data-&gt;elapsedTimeSec);
+
+    /* set the result value: 
+       the framework must continue to handle the timeout
+       situation. In this case the event handler will now popup 
+       the timeout message. In case, the hook function
+       has solved the timeout problem (parts are inserted and the
+       state controller has been notified), the result should be
+       PHEVENT_RES_HANDLED */
+    *result = PHEVENT_RES_CONTINUE;
+    break;
+
+      default:
+
+    /* set the result value:
+       the hook function has done nothing */
+    *result = PHEVENT_RES_VOID;
+    break;
+    }
+
+    return PHHOOK_ERR_OK;
+
+#else
+
+    /* hook not activated */
+    return PHHOOK_ERR_NA;
+
+#endif
+}</pre><div></div>
+		<div class="note"><span class="title">Note</span> For all type definitions, see the header files corresponding to the respective
+			type. The header files are located in the directory <em>... /GenericHandler/include</em>/ and in
+				<em>... /GenericProber/include</em> For example, for the type <strong>phEvent</strong><em>Cause_t</em> see the
+			header file <strong>phEvent.h</strong>.</div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42323</span><script type="text/javascript">var ti='42323';var tt='phHookProblem'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

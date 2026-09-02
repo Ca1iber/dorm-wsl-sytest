@@ -1,0 +1,94 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="After discussing the theory and capabilities of external tool launching, some practical examples are given. These should be taken as examples to understand the concept. In daily work with SmarTest, users may have a set of individual external tools which could be integrated into the SmarTest Work Center, using this technique."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Running a script (external tool)</title></head><body id="_132830"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 132830</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Running a script (external tool)</h1>
+	
+	
+	<div><p>After discussing the theory and capabilities of external tool launching, some practical
+		examples are given. These should be taken as examples to understand the concept. In daily work
+		with SmarTest, users may have a set of individual external tools which could be integrated into
+		the SmarTest Work Center, using this technique.</p>
+		<p>The following examples all use the concept of external tool configuration as described above.
+			Instead of screen shots, the content for the <em>Location</em> and <em>Arguments</em> fields are
+			given.</p>
+		<section class="section"><h2>Direct Call</h2><p>A typical example is to launch an external shell script or
+				Perl script. This is pretty easy to achieve, just by specifying the script as the <em>Location
+				</em>of the launch, and by adding any needed options into the <em>Arguments </em>section.
+				Example:</p><p><strong>Location:</strong></p><pre class="msgblock">/home/userx/cmd/check_device.pl</pre><p><strong>Arguments:</strong></p><pre class="msgblock">${project_loc}</pre><p><span class="keyword">${project_loc}</span>
+				is replaced with the path to device directory, as selected in the <em>Navigator
+			</em>view.</p></section>
+		<section class="section"><h2>A Script as an Argument</h2><p>The next example demonstrates the use of a short
+				shell script from inside Eclipse. The external program to launch is the shell
+					<span class="filepath">/bin/ksh</span>, while the argument list takes the -c option to specify the
+				script (see <kbd class="userinput">man ksh</kbd>). In this example, the shell script's purpose is to
+				print some device and setup file specific
+					information.</p><p><strong>Location:</strong></p><pre class="msgblock">/bin/ksh</pre><p><strong>Arguments:</strong></p><pre class="msgblock">-c "
+echo 'HOME:              ' ${env_var:HOME}
+echo 'Project Location:  ' ${project_loc}
+echo 'Project Name:      ' ${project_name}
+echo 'Project Path:      ' ${project_path}
+echo 'Resource Location: ' ${resource_loc}
+echo 'Resource Name:     ' ${resource_name}
+echo 'Resource Path:     ' ${resource_path}
+echo 'Workspace:         ' ${workspace_loc}
+"</pre><p>After
+				selecting a testflow file in the <em>Navigator </em>view and launching the script, the output may
+				look as following [shortened for formatting
+				reasons]:</p><pre class="msgblock">HOME:      /home/mv
+P. Loc.:   /home/mv/devices/WPonline
+P. Name:   WPonline
+P. Path:   /WPonline
+R. Loc.:   /home/[...]/testflow/tf.wp
+R. Name:   tf.wp
+R. Path:   /WPonline/testflow/tf.wp
+Workspace: /home/mv/workspace_6.5</pre><p>All
+				following examples use the same Location (<span class="filepath">/bin/ksh</span>), so it is not repeated
+				for each example.</p></section>
+		<section class="section"><h2>tar the Device Project</h2><p>The next example is how to take a quick snapshot
+				of the current device project and to save it in an archive. It makes use of a combination of
+				user prompts and system variables.</p><p><strong>Working
+					Directory:</strong></p><pre class="msgblock">${project_loc}/..</pre><p><strong>Arguments:</strong></p><pre class="msgblock">-c "
+tarfile=${file_prompt:target tar archive}
+if [ -e $tarfile ]
+then
+	echo \"Error: won't overwrite existing file $tarfile. Please chose different name or delete file first.\"
+else
+	tar cvf $tarfile ${project_name}
+	echo
+	echo \"tar file created:\"
+	ls -l $tarfile
+fi
+"</pre><p>Please
+				note the definition of the working directory. It is set to one level higher that the current
+				project directory. The tar command finally targets on the project (device) name.</p></section>
+		<section class="section"><h2>tail MCDLog</h2><p>The last given example is how to quickly snoop at firmware
+				communication as a matter of
+				debugging.</p><p><strong>Arguments:</strong></p><pre class="msgblock">-c "
+hpt=$XOC_LEGACY_ROOT/fw/bin/hpt
+mcdlog=/var$XOC_LEGACY_ROOT/MCDLog
+if [ ! -x $hpt ]
+then
+	echo \"can not find executable hpt under $hpt\"
+	exit 1
+fi
+
+echo 'DIAG 2' | $hpt &gt;&gt; /dev/null 2&gt;&amp;1
+
+echo 'NOOP \"start logging\",,,' |\
+	$hpt  &gt;&gt; /dev/null 2&gt;&amp;1
+
+sleep 2
+( sleep 60 ; \
+	echo 'NOOP \"stop loggin\",,,' |\
+	 $hpt ; echo 'DIAG -2' | $hpt ) \
+	&gt;&gt; /dev/null  2&gt;&amp;1 &amp;
+
+tail -f $mcdlog
+"</pre><p>The
+				implementation sends <em>DIAG 2</em> to start logging. Sixty seconds later, logging is stopped
+				with <em>DIAG -2</em> (in background), while <em>tail</em> is looking at the log in parallel. The
+				execution ends by pressing the <span class="uicontrol">Terminate</span> button in the Console
+			view.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="93202.htm">Running External Tools</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 132830</span><script type="text/javascript">var ti='132830';var tt='Running a script (external tool)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

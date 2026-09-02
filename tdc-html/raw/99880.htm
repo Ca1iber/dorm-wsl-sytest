@@ -1,0 +1,495 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The vector sequencer has its own set of instructions which you use to control the execution of your test. The default instruction is GENV (GENerateVectors) for every vector, but the system does not display it and you do not have to enter it."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Sequencer instructions</title></head><body id="_99880"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99880</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Sequencer instructions</h1>
+	
+	
+	<div><p>The vector sequencer has its own set of instructions which you use to control the
+		execution of your test. The default instruction is <code>GENV</code> (GENerateVectors) for
+		every vector, but the system does not display it and you do not have to enter it.</p>
+		<section class="section">
+			
+			
+		</section>
+		<section class="section"><h2>List of sequencer Instructions</h2>
+			
+			<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_99880__entry__1">
+								<p>Instruction</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_99880__entry__2">
+								<p>Explanation</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">BRKV</span>&nbsp;<var class="varname">&lt;nbr_of_vectors&gt;</var>&nbsp;<var class="varname">&lt;wait_time&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Generates break vectors.</p>
+								<ul>
+									<li><var class="varname">&lt;nbr_of_vectors&gt;</var> specifies the
+										number of break vectors. If not divisible by 8, it will be
+										rounded up to the next multiple of 8. Range from 1 to
+										32760.</li>
+									<li><var class="varname">&lt;wait_time&gt;</var> specifies the wait time
+										in nanoseconds. SmarTest generates the appropriate number of
+										break vectors to fill the interval. The parameter determines
+										the lower bound; the actual wait time may be longer. The
+										range of the <var class="varname">&lt;wait_time&gt;</var> is from 0
+										to 5592402.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">CALL</span>&nbsp;<var class="varname">&lt;pattern_name&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Calls a main pattern. Can only be used in bursts or multiport
+									bursts.</p>
+							</td>
+						</tr>
+						<tr id="_99880__row_CLEV">
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">CLEV</span>&nbsp;<var class="varname">&lt;level_set_number&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Changes the level set.</p>
+								<p>Parameter <var class="varname">&lt;level_set_number&gt;</var> specifies
+									the new level set number. You can also use PRM, which specifies
+									the primary level set.</p>
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">COGO</span>&nbsp;(<var class="varname">&lt;pattern1&gt;</var>&nbsp;|&nbsp;<var class="varname">&lt;none&gt;</var>)&nbsp;<var class="varname">&lt;pattern2&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>The "conditional go to" instruction is similar to the
+										<span class="keyword">JMPE</span> instruction. There are two
+									differences:</p>
+								<ul>
+									<li><span class="keyword">COGO</span> can only be used in
+											<span class="keyword">SVEC</span> subroutines.</li>
+									<li>When a subroutine is called with <span class="keyword">COGO</span>,
+										the called subroutine will not return to the calling
+										subroutine, but to the lowest label in the call hierarchy
+										that did not use <span class="keyword">COGO</span> for its subroutine
+										call.</li>
+								</ul>
+								<p>If, for example, the <span class="keyword">MAIN</span> label
+										<kbd class="userinput">pat1</kbd> calls the subroutine
+										<kbd class="userinput">sub1</kbd> with <span class="keyword">JSUB</span>,
+									and <kbd class="userinput">sub1</kbd> calls
+										<kbd class="userinput">sub2</kbd> with <span class="keyword">JMPE</span>,
+									then <kbd class="userinput">sub2</kbd> will return to
+										<kbd class="userinput">sub1</kbd>. But if
+										<kbd class="userinput">sub2</kbd> is called with
+										<span class="keyword">COGO</span> from <kbd class="userinput">sub1</kbd>,
+									then <kbd class="userinput">sub2</kbd> will return to<kbd class="userinput">
+										pat1</kbd>.</p>
+								<p>The reason for this is that the return address for a
+										<span class="keyword">COGO</span> call is not pushed onto the call
+									stack. Note that this can be exploited to create an infinite
+									loop by letting <kbd class="userinput">sub1</kbd> call
+										<kbd class="userinput">sub2</kbd> with <span class="keyword">COGO</span>,
+									and letting <kbd class="userinput">sub2</kbd> in turn call
+										<kbd class="userinput">sub1</kbd> also with
+										<span class="keyword">COGO</span>. By contrast, such a mutual call
+									will lead to a stack overflow when <span class="keyword">JMPE</span> is
+									used for the calls.</p>
+								<p>The parameters are defined as follows:</p>
+								<ul>
+									<li><var class="varname">&lt;pattern1&gt;</var> will be executed if the
+										error flag is set<a href="#_99880__fn1"><sup>1)</sup></a>.</li>
+									<li><var class="varname">&lt;pattern2&gt;</var> will be executed if the
+										error flag is <strong>not</strong> set <a href="#_99880__fn1"><sup>1)</sup></a>.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr id="_99880__row_CTIM">
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">CTIM</span>&nbsp;<var class="varname">&lt;tming_set_number&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Changes the timing set.</p>
+								<p>Parameter <var class="varname">&lt;timing_set_number&gt;</var> specifies
+									the new timing set number. You can also use PRM, which specifies
+									the primary timing set.</p>
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">FLQU</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Inserts fill break vectors into the data queue.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">JMPE</span>&nbsp;<var class="varname">&lt;pattern1&gt;</var>&nbsp;<var class="varname">&lt;pattern2&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Executes a conditional jump to a vector type subroutine depending
+									on an error flag. If both parameters are specified:</p>
+								<ul>
+									<li><var class="varname">&lt;pattern1&gt;</var> will be executed if the
+										error flag is set <a href="#_99880__fn1"><sup>1)</sup></a>.</li>
+									<li><var class="varname">&lt;pattern2&gt;</var> will be executed if the
+										error flag is <strong>not</strong> set <a href="#_99880__fn1"><sup>1)</sup></a>.</li>
+								</ul>
+								<p>Both parameters are optional, but the first cannot be simply
+									omitted. You must specify the placeholder
+										<var class="varname">&lt;none&gt;</var> in this case.</p>
+								<p>The error flag will be set if at least one cycle failed. It will
+									be reset after the instruction has been executed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">JPPS</span>&nbsp;<var class="varname">&lt;pattern_name&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Jumps to a pin specific subroutine.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">JSUB</span>&nbsp;<var class="varname">&lt;pattern_name&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Jumps to a vector type subroutine or a scan subroutine.</p>
+								<p>Not allowed in scan subroutines.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">JTIN</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Starts or stops the jitter injection. Parameters are
+										<span class="keyword">START</span> or <span class="keyword">STOP</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_99880__entry__1">
+								<p><span class="keyword">LOOP</span>&nbsp;<var class="varname">&lt;repetitions&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_99880__entry__2">
+								<p>Specifies the start position of a loop (counted or endless).</p>
+								<p>The loop is endless, if <var class="varname">&lt;repetitions&gt;</var> is
+									set to 0 or omitted.</p>
+								<p>The size of the loop is determined by the current selection.</p>
+								<p>Use RPTV instead of a counted loop whenever possible. Counted
+									loops are considerably slower than <span class="keyword">RPTV</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">LOOPEND</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Specifies the end of a loop. The instruction is inserted
+									automatically.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">LPBK</span>&nbsp;<var class="varname">&lt;nbr_of_vectors&gt;</var>&nbsp;<var class="varname">&lt;factor&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Starts a loopback. Can only be executed if no user vectors are
+									executed before this instruction.</p>
+								<p>Two optional parameters are available:
+										<var class="varname">&lt;nbr_of_vectors&gt;</var> and
+										<var class="varname">&lt;factor&gt;</var>:</p>
+								<ul>
+									<li><var class="varname">&lt;nbr_of_vectors&gt;</var>defines the number
+										of generated vectors; the maximum is 2<sup>32</sup>-1.</li>
+									<li><var class="varname">&lt;factor&gt;</var> is an optional multiplier
+										for the first parameter; the maximum is
+										2<sup>12</sup>-1.</li>
+								</ul>
+								<p>If both parameters are omitted the loopback will run until
+									manually stopped.</p>
+							</td>
+						</tr>
+						<tr id="_99880__row_MACT">
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">MACT</span>&nbsp;<var class="varname">&lt;repetitions&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Specifies the start position of a counted match loop.</p>
+								<p>Parameter <var class="varname">&lt;repetitions&gt;</var> specifies the
+									maximum number of unsuccessful repetitions. If this number is
+									exceeded, the match loop is terminated, and the surrounding test
+									fails.</p>
+								<p><span class="keyword">MACT</span> has a second optional parameter:</p>
+								<ul>
+									<li>
+										<p><span class="keyword">CONTINUE</span>: This option keeps the test
+											going on even if the loop fails.</p>
+									</li>
+									<li>
+										<p><span class="keyword">TIL_FAIL_STOP</span>: The loop is to be
+											repeated until an iteration fails. When the maximum loop
+											count is reached, the test program stops.</p>
+									</li>
+									<li>
+										<p><span class="keyword">TIL_FAIL_CONT</span>: The loop is to be
+											repeated until an iteration fails. When the maximum loop
+											count is reached, the test program continues after the
+											loop has been completely executed. This behavior is a
+											combination of both <span class="keyword">TIL_FAIL_STOP</span> and
+												<span class="keyword">CONTINUE</span>.</p>
+									</li>
+								</ul>
+								<div class="p">
+									<div class="note"><span class="title">Note</span> The two values
+											<span class="keyword">TIL_FAIL_STOP</span> and
+											<span class="keyword">TIL_FAIL_CONT</span> are valid for Smart
+										Scale cards only.</div>
+								</div>
+							</td>
+						</tr>
+						<tr id="_99880__row_MEAS">
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">MEAS</span>&nbsp;<var class="varname">&lt;ppmu_set&gt;</var>&nbsp;<var class="varname">&lt;measure_set&gt;</var>&nbsp;N</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Executes a PPMU measurement set. The measurement set must have been downloaded with
+									command <a href="98657.htm" title="The MSET command defines a measurement set within a DC set of the PPMU pool. The measurement set is identified by a number. Every measurement set can be executed (with the MEAS command) independently of the other measurement sets in the same DC set. The same measurement set can contain different actions for different pins.">MSET, MSET? - (definition of Measurement SET)</a>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">MRPT</span>&nbsp;<var class="varname">&lt;nbr_of_vectors&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Marks the end of a counted match loop.</p>
+								<p>Parameter <var class="varname">&lt;nbr_of_vectors&gt;</var> specifies the
+									number of the dummy vectors that are repeated to provide the
+									necessary time for setting the error flag.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">NOP</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Performs no operation on the DUT and increases the instruction
+									density for the data queue.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">PRBS
+										</span>&nbsp;<var class="varname">&lt;nbr_of_cycles&gt;</var>&nbsp;<var class="varname">&lt;factor&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Starts a <span class="keyword">PRBS</span> test.</p>
+								<ul>
+									<li><var class="varname">&lt;nbr_of_cycles&gt;</var> defines the number
+										of cycles; maximum is 2<sup>31</sup>-1.</li>
+									<li><var class="varname">&lt;factor&gt;</var> is a multiplier of the
+										first parameter; maximum is 2<sup>12</sup>-1.</li>
+								</ul>
+								<p>A pattern that contains a <span class="keyword">PRBS</span> instruction
+									must not contain any other instruction except
+										<span class="keyword">BRKV</span>, <span class="keyword">LOOP</span>,
+										<span class="keyword">LOOPEND</span>, and <span class="keyword">TMUA</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">RETC
+										</span>&nbsp;<var class="varname">&lt;dependency&gt;</var>&nbsp;<var class="varname">&lt;reset&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Returns from a vector type subroutine to a higher level
+									subroutine or the main program, or from a scan subroutine to the
+									main program depending on an internal error flag. The error flag
+									will be set if at least one cycle failed.</p>
+								<p>See also the parameter description in <a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG,
+										SQPG?</a>.</p>
+								<ul>
+									<li><var class="varname">&lt;dependency&gt;</var> = 0: The return will
+										be executed, if no error
+												occurred.<p><var class="varname">&lt;dependency&gt;</var> =
+											1: The return will be executed, if an error
+											occurred.</p></li>
+									<li><var class="varname">&lt;reset&gt;</var> = 0: The error flag will be
+												reset.<p><var class="varname">&lt;reset&gt;</var> = 1: The
+											error flag will remain in its current state.</p></li>
+								</ul>
+								<div class="note"><span class="title">Note</span> If you use the LMAP error map mode, <a href="98605.htm" title="If the last test was executed with the overview Error Map in LMAP mode, which implies that the start label was a (single-port or multi-port) burst, then the FLBL? query returns information about the failing labels of the burst within a certain cycle range for a specified port. This information can include the number of the first failing cycle. If this is requested, separate cycle information is returned for every failing pin of the port.">FLBL</a>
+			ignores the <span class="keyword">RETC</span> clearing flag for failures.</div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">RETURN</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Returns from a vector type subroutine to a higher level
+									subroutine or the main program, or from a scan subroutine to the
+									main program.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">RPTJ</span>&nbsp;<var class="varname">&lt;repetitions&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Repeats the next <span class="keyword">JSUB</span> instruction
+										<var class="varname">&lt;repetitions&gt;</var> times. The
+										<span class="keyword">JSUB</span> instruction must follow the
+										<span class="keyword">RPTJ</span> instruction immediately.</p>
+								<p>Not allowed in scan subroutines.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_99880__entry__1">
+								<p><span class="keyword">RPTV</span>&nbsp;<var class="varname">&lt;nbr_of_vectors&gt;</var>&nbsp;<var class="varname">&lt;repetitions&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_99880__entry__2">
+								<p>Repeats a block of vectors.</p>
+								<ul>
+									<li>Parameter <var class="varname">&lt;nbr_of_vectors&gt;</var>
+										specifies the number of vectors to be repeated. The maximum
+										is 2<sup>21 </sup>&nbsp;*&nbsp;8&nbsp;-&nbsp;1 for the
+										sequencer memory [SM] or
+										2<sup>21</sup>&nbsp;*&nbsp;7&nbsp;-&nbsp;1 for the legacy
+										vector memory [VM].</li>
+									<li>Parameter <var class="varname">&lt;repetitions&gt;</var> specifies
+										the number of repetitions. The maximum value depends on
+										whether the number of vectors, which is defined by the first
+										parameter, exceeds the word length of the respective memory
+										type (8 for SM, 7 for VM):<ul>
+											<li>The maximum <var class="varname">&lt;repetitions&gt;</var>
+												is 2<sup>24 </sup>&nbsp;-&nbsp;1 if
+												<var class="varname">&lt;nbr_of_vectors&gt;</var> does not
+												exceed the word length.</li>
+											<li>The maximum <var class="varname">&lt;repetitions&gt;</var>
+												is 2<sup>18</sup> if
+												<var class="varname">&lt;nbr_of_vectors&gt;</var> exceeds
+												the word length.</li>
+										</ul></li>
+								</ul>
+								<p>Valid range of <var class="varname">&lt;repetitions&gt;</var> for memory
+									type SM:</p>
+								<div class="p"><table class="ly"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-0 rowsep-0"><var class="varname">&lt;nbr_of_vectors&gt;</var>&nbsp;=&nbsp;1&nbsp;...&nbsp;8:</td>
+												<td class="colsep-0 rowsep-0">1&nbsp;...&nbsp;16&nbsp;777&nbsp;215</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-0 rowsep-0"><var class="varname">&lt;nbr_of_vectors&gt;</var>&nbsp;=&nbsp;9&nbsp;...&nbsp;16&nbsp;777&nbsp;215:</td>
+												<td class="colsep-0 rowsep-0">1&nbsp;...&nbsp;262&nbsp;144</td>
+												</tr>
+											</tbody></table></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">RPTV #
+										</span>&nbsp;<var class="varname">&lt;repetitions&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Repeats a sequence of vectors. The first parameter
+										<span class="keyword">#</span>, which defines the number of vectors,
+									is predefined by the current selection.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">SRCV
+										</span>&nbsp;<var class="varname">&lt;block_size&gt;</var>&nbsp;<var class="varname">&lt;repeats&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Instructs to perform different actions on source pins and
+									non-source pins.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">SSRC
+										</span>&nbsp;<var class="varname">&lt;pattern_name&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Sets the source memory pointer to the specified DSRC pattern.</p>
+								<p>Not allowed in subroutines.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">STOP</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Stops the pattern. Must be present in each main pattern.</p>
+							</td>
+						</tr>
+						
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">TMUA</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Arms the TMU per pin for all pins of the pattern port.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__1">
+								<p><span class="keyword">WAIT</span>&nbsp;<var class="varname">&lt;nanoseconds&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_99880__entry__2">
+								<p>Causes the sequencer to create a number of break vectors, which
+									approximates the specified number of nanoseconds. The range is
+									from 0 to 5592402.</p>
+								<div class="p">
+									<div class="note"><span class="title">Note</span> The WAIT instruction cannot be used on <a href="127608.htm">DC Scale cards</a>.</div>
+								</div>
+							</td>
+						</tr>
+						<tr id="_99880__row_XACT">
+							<td class="colsep-0 rowsep-0" headers="_99880__entry__1">
+								<p><span class="keyword">XACT</span>&nbsp;<var class="varname">&lt;waveform_name&gt;</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_99880__entry__2">
+								<p>Executes a DC waveform.</p>
+							</td>
+						</tr>
+					</tbody></table>
+			
+			
+			<div class="note"><span class="title">Note</span> When the <a href="150814.htm" title="Serial interfaces on many DUTs require non-deterministic handling. Normally they consist of a small number of pins (1, 2 or 4). Fast Sync enables the local synchronization of the test processor (TP). It enables up to 8 sync ports reacting independently on non-deterministic DUT responses per test processor.">Fast Sync</a> feature is configured on the Smart
+			Scale cards, smaller number of vectors are needed for error propagation. <a href="98591.htm" title="The EPRC? query serves to calculate how often a block of buffer vectors must be repeated before execution of a conditional jump (JMPE instruction). These buffer vectors are required to ensure that the internal error flag on which the jump depends is set correctly (see Calculating the buffer vectors for JMPE and RETC (and match loops)).The calculation is based on the current primary sets. In particular, the currently active timing set (as defined by SPRM) is used to determine the tester period.">EPRC? - (Error Propagation Repetition Count)</a>
+			can be used to determine the impact. Sequencer programs using <span class="keyword">COGO</span>,
+				<span class="keyword">JMPE</span>, <span class="keyword">RETC</span>, <span class="keyword">MACT</span> and
+				<span class="keyword">MRPT</span> can profit from it.</div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99704.htm" title="The Pattern Editor allows you to insert sequencer instructions into a pattern, and also to edit and delete sequencer instructions.">Inserting, editing, and deleting sequencer instructions</a></div><div><a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG, SQPG? - (SeQuencer ProGramming)</a></div><div><a href="150814.htm" title="Serial interfaces on many DUTs require non-deterministic handling. Normally they consist of a small number of pins (1, 2 or 4). Fast Sync enables the local synchronization of the test processor (TP). It enables up to 8 sync ports reacting independently on non-deterministic DUT responses per test processor.">Fast Sync</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 6.5.2: Additional sequencer instructions: RPTV 1, SSRC,
+					SRCV.</li><li>SmarTest 6.5.2: Removed sequencer instructions: MATCH, MATCHEND.</li><li>SmarTest 7.0.3:  Removed MTST instruction</li><li>SmarTest 7.2.0:  Removed Match loop (old style) instructions (eg. WTER,MBGN,MJPE).
+					Additional sequencer instructions: XACT, TMUA, PRBS.</li><li>SmarTest 7.4.0:  New feature Fast Sync enables COGO, JMPE, RETC, MACT and MRPT to
+					run faster.</li><li>SmarTest 7.4.4: MACT supports CONTINUE as a parameter option.</li><li>SmarTest 7.5.0: MACT supports TIL_FAIL_STOP and TIL_FAIL_CONT as parameter
+					options.</li></ol></div><div class="fs"><div class="p"><a id="_99880__fn1"><sup>1)</sup></a>  The sequence of the two
+											parameters is different for the SQPG command and the
+											Sequencer instructions of the pattern editor: command
+											SQPG utilizes the sequence "param_1 = label if error
+											flag is not set" and "param_2 = label if error flag is
+											set" for the two instructions COGO and JMPE; the
+											reversed sequence "<var class="varname">&lt;pattern1&gt;</var> =
+											error flag is set" and
+												"<var class="varname">&lt;pattern2&gt;</var> = error flag is
+											not set" is used for the two sequencer instructions COGO
+											and JMPE of the pattern editor.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99880</span><script type="text/javascript">var ti='99880';var tt='Sequencer instructions'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

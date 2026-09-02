@@ -1,0 +1,50 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Voltage ranges are implemented to utilize the maximum specified output current per channel as well as to effectively maximize the available current budget per board."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DPS128 voltage ranges</title><meta name="keywords" content="DPS, 128"></head><body id="_147812"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 147812</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DPS128 voltage ranges</h1>
+	
+	<div><p>Voltage ranges are implemented to utilize the maximum specified output current per channel as well as to effectively maximize the
+		available current budget per board.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span> The voltage ranges are not linked to any electrical performance or accuracy specification and are only applicable to HC
+				type of channels.</div>
+			<ul>
+				<li><strong>Maximum output current</strong><p>The maximum clamp current limit depends on the voltage range. For a specified voltage range of
+						2.5&nbsp;V, the maximum current is 1&nbsp;A, while for a specified voltage range of 7&nbsp;V, the maximum current is
+						500&nbsp;mA.</p><p>For more details, refer to <a href="147810.htm" title="The V-I curves of the two types of DPS128 channels are quite different. Despite the fact of different voltage ranges and less current capability for HV type of channels, the HV type of channels do not have any current limit to voltage dependency over their voltage operating range as there is for HC type. In other words a HV type of channel can provide its maximum current limit for all possible voltages over the whole operating range.">DPS128 V-I curves and board power restrictions</a>.</p></li>
+				<li><strong>Power budget optimization</strong><p>Using voltage ranges minimize the current dissipation, which also increases the effectively
+						usable current budget per power domain.</p>
+					<p>SmarTest internally calculates a certain current margin in dependency to the programmed clamp current and programmed voltage
+						range. By limiting the voltage range the available current margin will increase. The amount of effective power gain depends on
+						multiple factors and is built up in a very complex formula that cannot be described here. </p></li>
+			</ul>
+			<p>If no voltage range is specified, the HC channels always works in the maximum voltage range of 7&nbsp;V (DPS32 compatible). This
+				significantly limits the effective current budget of a power domain because the SmarTest internal power budget calculations are based
+				on a potential force voltage of 7&nbsp;V (which may never be programmed or applied). </p>
+			<p>To optimize the overall power usage of the board, it is mandatory to set up voltage ranges for all channels, if some of them are
+				operating in the 1 A current range.</p>
+			<p>The voltage range can be programmed to any value (no dedicated range), while all values below 2.25&nbsp;V are auto‑corrected to
+				2.25&nbsp;V (minimum voltage range for 1&nbsp;A current range operation).</p>
+			<p>In total there are 256 internal range steps from 2.25&nbsp;V up to 7&nbsp;V. This gives a resolution of ~18&nbsp;mV per step. Any
+				programmed value is therefore mapped to the next higher range based on the resolution.</p></section>
+		<section class="section">
+			<p>Limiting the voltage range can be done by:</p>
+			<ul>
+				<li><strong>DPS operation mode:</strong><p><span class="keyword">vout_frc_rng</span> keyword in level equations, for example:</p>
+					<p><code>DPSPINS VDD</code></p>
+					<p><span class="keyword">vout</span>
+						<code>= 1.8</code></p>
+					<p><span class="keyword">vout_frc_rng</span>
+						<code>= 3.5 # max bump voltage</code></p></li>
+				<li><strong>PMU operation mode:</strong><p><span class="keyword">vForceRange</span> API of SPMU_TASK, for example:</p><p><code>SPMU_TASK
+						dc;</code></p><p><code>dc.pin("VREF").vForce(1.8 V).</code><span class="keyword">vForceRange</span><code>(3.5 V);
+					</code></p></li>
+				<li>The voltage range should define the maximum voltage that is applied when the DPS is in the connected state. Any dynamic actions
+					that may "over-program" the force voltage must be considered.</li>
+				<li>Switching the voltage force range requires a disconnect sequence. From a test time point of view no spec should be used, but a
+					maximum value that is valid for all relevant specs and equations.</li>
+				<li>The HV type of channel does not implement voltage ranges. It operates solely in the 15 V range fix.</li>
+			</ul>
+		</section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 147812</span><script type="text/javascript">var ti='147812';var tt='DPS128 voltage ranges'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

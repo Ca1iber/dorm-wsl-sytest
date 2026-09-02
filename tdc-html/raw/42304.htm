@@ -1,0 +1,190 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This example demonstrates the usage of general prober driver functions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Application model for wafer test</title></head><body id="_42304"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42304</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Application model for wafer test</h1>
+	
+	
+	<div><p>This example demonstrates the usage of general prober driver functions.</p>
+		<p>It is recommended to use this example application model as a template for your own application
+			models for package test. You find this example application model file, named
+				<em>wafer_generic_prober,</em> in the directory</p>
+		<p><em>/opt/hp93000/soc/applic_models/</em> .</p>
+		<div></div><pre class="prettyprint linenums copyable">hp93000,applicmodel,0.1
+
+--      ---------------------------------------------------------------------
+--      FILE NAME:  wafer_generic_prober
+--
+--      Example application model file for an automatically performed
+--      WAFER test, using the GenericProber driver
+--      ---------------------------------------------------------------------
+
+--      DESCRIPTION: 
+--
+--      First, the operator must enter the DIALOG_INPUT items:
+--
+--      Operator_id ....: string
+--
+--      Press the START button once a wafer prober has been connected
+--      and all equipment is prepared for the test.
+--
+--      If the pause button is pressed the test pauses at DEVICE level
+--      where a PAUSE dialog menu is displayed and the operator is asked to
+--      enter the reason for the interruption. 
+--      The operator may change the prober driver's configuration or change 
+--      the driver's mode of operation during PAUSE.
+
+--      ---------------------------------------------------------------------
+
+START_DIALOG
+
+{ testprogram:
+
+    SCREEN_DIALOG
+        Operator_id   = DIALOG_INPUT     / REGEXP(string);
+
+    ACTIONS
+        Test_description = GET_TEST_INFO (test_desc);
+        Test_version     = GET_TEST_INFO (test_rev);
+        Device_name      = GET_TEST_INFO (dev_name);
+        Device_revision  = GET_TEST_INFO (dev_rev);
+        Test_program     = GET_TEST_INFO (testprog);
+        Start_time       = GET_TEST_INFO (date_time);
+
+        -- A call to ph_driver_start is mandatory
+
+        PROB_HND_CALL (ph_driver_start);
+
+        -- Optionally increase the prober driver's debug level
+
+        -- PROB_HND_CALL (ph_set_configuration debug_level: 1);
+
+        -- Optionally create new prober driver log files
+
+        PROB_HND_CALL (ph_set_configuration driver_message_log: "/tmp/driver_messages" driver_error_log: "/tmp/driver_errors");
+
+        -- Optional calls to retrieve information from the prober driver
+
+        PH_driver_id        = PROB_HND_CALL (ph_get_id driver);
+        PH_plugin_id        = PROB_HND_CALL (ph_get_id plugin);
+        PH_equipment_id     = PROB_HND_CALL (ph_get_id equipment);
+
+        PH_family     = PROB_HND_CALL (ph_get_configuration prober_family);
+        PH_model      = PROB_HND_CALL (ph_get_configuration model);
+        PH_plugin     = PROB_HND_CALL (ph_get_configuration driver_plugin);
+        PH_config     = PROB_HND_CALL (ph_get_configuration configuration);
+
+        -- The SET_DIE_X_Y (0,0) is mandatory for the GenericProber driver
+        -- This disables the wafermap description from influencing the control
+        -- flow within this application model.
+
+        SET_DIE_X_Y (0,0);
+
+    { lot:
+        ACTIONS
+            PROB_HND_CALL (ph_lot_start);
+        PH_lot_id = PROB_HND_CALL (ph_get_id lot);
+
+        { cassette:
+            ACTIONS
+                PROB_HND_CALL (ph_cassette_start);
+            PH_cassette_id = PROB_HND_CALL (ph_get_id cassette);
+
+            { WAFER wafer:
+                ACTIONS
+                    PROB_HND_CALL (ph_wafer_start);
+                    PH_wafer_id = PROB_HND_CALL (ph_get_id wafer);
+                SUBLEVEL_COUNT wafer_log_count = CONST_INPUT(1);
+
+                { wafer_log:
+
+                    -- This level is used, to ensure, that a wafer log file 
+                    -- is written, after the DEVICE level is left.
+                    -- The wafer_log level is executed exactly once for each 
+                    -- wafer.
+
+                    { DEVICE [({PH_wafer_id}),()] die:
+                        ACTIONS
+                            -- Step to the next die or sub-die
+
+                            -- You may measure the handling performance by 
+                            -- removing the comment signs of the 
+                            -- ph_timer_start and ph_timer_stop calls and of 
+                            -- the NEW_RESULT_FILE specification below. 
+                            -- ph_timer_start and ph_timer_stop may be nested.
+
+                            -- PROB_HND_CALL (ph_timer_start);
+                            PROB_HND_CALL (ph_die_start);
+                            -- PH_get_die_time = PROB_HND_CALL (ph_timer_stop);
+
+                        {
+                            DEVICE_TEST
+                        }
+
+                        -- Reprobe may always be defined, 
+                        -- even if the used prober does not provide reprobing
+
+                        REPROBE_ACTION = PROB_HND_CALL(ph_reprobe);
+
+                        ACTIONS
+                            -- Bin devices
+
+                            -- You may measure the handling performance by 
+                            -- removingthe comment signs of the 
+                            -- ph_timer_start and ph_timer_stop calls.
+
+                            -- PROB_HND_CALL (ph_timer_start);
+                            PROB_HND_CALL (ph_die_done);
+                            -- PH_bin_die_time = PROB_HND_CALL (ph_timer_stop);
+
+                        -- end of DEVICE level
+                    }
+
+                      -- end of wafer_log level
+                }
+
+                ACTIONS
+                    PROB_HND_CALL (ph_wafer_done);
+                -- end of wafer level
+            }
+
+            ACTIONS
+                PROB_HND_CALL (ph_cassette_done);
+            -- end of cassette level
+        }
+
+        ACTIONS
+            PROB_HND_CALL (ph_lot_done);
+        -- end of lot level
+    }
+
+    ACTIONS
+        PROB_HND_CALL (ph_driver_done);
+    -- end of testprogram
+}
+
+{ ON_PAUSE pause:
+
+    ACTIONS
+        -- The prober driver MUST be notified about the pause start !
+        PROB_HND_CALL (ph_pause_start);
+        
+    LINE_DIALOG
+
+    -- Here is a list of typical prober driver actions during pause.
+    -- Add comment signs at the beginning of the lines you want to disable.
+
+    BUTTON reprobe = PROB_HND_CALL (ph_reprobe);
+    BUTTON clean = PROB_HND_CALL (ph_clean_probe);
+    BUTTON configure = PROB_HND_CALL (ph_interactive_configuration);
+    BUTTON step_on = PROB_HND_CALL (ph_stepmode_start);
+    BUTTON step_off = PROB_HND_CALL (ph_stepmode_stop);
+
+    reason = DIALOG_INPUT;
+
+    ACTIONS
+        -- The prober driver MUST be notified about the end of pause !
+        PROB_HND_CALL (ph_pause_done);
+}
+</pre><div></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.0:  GDF logging in application model is obsolete.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42304</span><script type="text/javascript">var ti='42304';var tt='Application model for wafer test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The test system applies test vectors to the DUT. A test vector consists of a drive signal for every input pin and a receive signal for every output pin. For bidirectional pins, the signal can contain both drive and receive components. The time span used for executing one test vector is called the test system cycle."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Waveform Shapes and Edge Delays</title><meta name="keywords" content="wave form waveform table"></head><body id="_98145"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98145</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Waveform Shapes and Edge Delays</h1>
+	
+	
+	<div><p>The test system applies test vectors to the DUT. A test vector consists of a drive
+		signal for every input pin and a receive signal for every output pin. For bidirectional pins, the
+		signal can contain both drive and receive components. The time span used for executing one test
+		vector is called the <em>test system cycle</em>.</p>
+		<section class="section"><h2>Drive waveforms</h2><p>A drive signal is a <em>waveform</em> that is realized by
+				certain voltage levels. A typical example of a drive waveform is:</p><div class="p"><figure class="fignone">
+					
+					<img src="10587.png" alt="A Typical Drive Waveform">
+				</figure></div><p>Such a waveform can be described as an ordered sequence of actions (drive to 1 or to 0) at
+				certain points in time within a test system cycle. These points in time are called <em>edges</em>;
+				they are marked in the figure by d1, d2, and d3 ('d' for 'drive', see <a href="10608.htm" title="Every action in a waveform shape definition must be associated with an edge, which is a point in time within a tester cycle. SmarTest knows two types of edges, drive edges, which can only be associated with a drive action, and receive edges, which can only be associated with a compare action.">Selecting and ordering edges</a>). </p>
+			<p>SmarTest supports 8 drive edges, d1 to d8.</p><p>The <em>shape</em> of a waveform is defined by its sequence of actions.
+				Accordingly, the shape of the waveform in the figure above is:</p><p>Drive to 0; then drive to
+				1; then drive to 0 again.</p><p>This shape description abstracts from the <em>position</em> of the
+				edges. Thus, for example, the following waveform has the same shape, but different edge
+				positions:</p><div class="p"><figure class="fignone">
+					
+					<img src="10588.png" alt="Another Similar Drive Waveform">
+				</figure></div><p>SmarTest supports the separation between the shape of a waveform and its edge
+				positions, which are usually called <em>edge delays</em> (relative to the start of the test system
+				cycle). Shape and edge delays of a waveform are defined independently of each other in the
+				timing setup.</p><p>The common shape of the two waveforms in the figures above is denoted in the
+				timing setup of SmarTest as follows:</p><p>(PDW) <kbd class="userinput">"d1:0 d2:1
+				d3:0"</kbd></p><p>Such a definition is usually called a <em>physical waveform</em> (although
+				it is strictly speaking only a waveform shape).</p><p>The specification of the edge delays
+				depends on the length of the test system cycle. If, for example, the length of the test system
+				cycle is 60 ns, the positions for the first waveform would be defined in equation based timing
+				by</p><p>(DE1) <kbd class="userinput">d1=0</kbd></p><p> <kbd class="userinput">d2=20</kbd></p><p><kbd class="userinput">
+					d3=40</kbd></p><p>and those for the second waveform by</p><p>(DE2)<kbd class="userinput">
+					d1=0</kbd></p><p> <kbd class="userinput">d2=15</kbd></p><p><kbd class="userinput">
+				d3=25</kbd></p><p>The numbers to the right of the equals sign specify the delay of the
+				respective edge from the beginning of the test system cycle in ns.</p></section>
+		<section class="section"><h2>Receive waveforms</h2><p>Receive waveforms consist of one or more compare
+				actions at certain points in time within a test system cycle. A compare action compares the
+				actual state of an output pin with an expected state at a certain distance from the start of the
+				test system cycle. Thus speaking of receive "waveforms" is a slight abuse of language, which is,
+				however, common practice. The states are again defined in terms of voltage levels. A typical
+				example of a receive waveform is</p><div class="p"><figure class="fignone">
+					
+					<img src="98148.png" alt="A typical receive waveform">
+				</figure></div><p>This receive waveform compares an output signal first with low, then with high, and then with low
+				again. The edges for the compare actions are marked in the figure by r1, r2, and r3 ('r' for
+				'receive', see <a href="10608.htm" title="Every action in a waveform shape definition must be associated with an edge, which is a point in time within a tester cycle. SmarTest knows two types of edges, drive edges, which can only be associated with a drive action, and receive edges, which can only be associated with a compare action.">Selecting and ordering edges</a>). </p>
+			<p>SmarTest supports 8 receive edges, r1 to r8.</p><p>The
+				shape of this waveform is denoted in the timing setup of SmarTest as
+					follows:</p><p>(PRW) <kbd class="userinput">"r1:L r2:H r3:L"</kbd></p><p>The edge positions for this
+				waveform would be defined in equation based timing for a test system cycle of 60 ns
+					by</p><p>(RE) <kbd class="userinput">r1=3</kbd></p><p><kbd class="userinput">r2=23</kbd></p><p><kbd class="userinput">
+					r3=43</kbd></p><p>(PDW) and (PRW) are pure drive and pure receive waveforms,
+				respectively. But as already indicated, it is possible to combine drive and compare actions in
+				one and the same waveform for an I/O pin.</p>
+			<p>Additionally, r7 specifically, can be used for TMU measurements, see <a href="125483.htm" title="The following describes how to set up and execute a TMU measurement on the firmware level for a PS1600 pin in STDDIFF mode.">How to set up and execute a TMU measurement</a>.</p></section>
+		<section class="section"><h2>Wavetables and timing sets</h2><p>Physical waveform shapes are defined in a
+					<em>wavetable</em>, edge delays are defined in a <em>timing set</em>. The timing sets also contain
+				the definition of the <em>period</em>, that is, the length of a test system cycle. Multiple timing
+				sets can be associated with the same set of shapes so that you can change the edge positions of
+				a waveform shape in this set by switching to another timing set. Thus, if you include (PDW) into
+				a wavetable for a certain drive pin, you could incorporate (DE1) into timing set 1, and (DE2)
+				into timing set 2 for this pin. Then you could switch between the two waveforms by switching to
+				the respective timing set within one and the same test.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: Logical waveforms are no longer supported.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98145</span><script type="text/javascript">var ti='98145';var tt='Waveform Shapes and Edge Delays'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The EVENT_VC class provides the functionality to change the clamp voltage in pattern‑based PMU measurements."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>EVENT_VC</title></head><body id="_150263"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 150263</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">EVENT_VC</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="150264.htm" title="Sets the lower clamp voltage.">EVENT_VC.vClampLow()</a></li><li><a href="150265.htm" title="Reads the lower clamp voltage that has been defined by EVENT_VC.vClampLow().">EVENT_VC.getVClampLow()</a></li><li><a href="150266.htm" title="Sets the upper clamp voltage.">EVENT_VC.vClampHigh()</a></li><li><a href="150267.htm" title="Reads the upper clamp voltage that has been defined by EVENT_VC.vClampHigh().">EVENT_VC.getVClampHigh()</a></li></ol></div></nav>
+	
+	
+	<div><p>The <span class="keyword">EVENT_VC</span> class provides the functionality to change the clamp
+		voltage in pattern‑based PMU measurements.</p>
+		<section class="section">
+			
+			<p>This class is supported only for the <a href="350661.htm" title="The XPS256 is a high-density scalable DUT power supply and V/I card for all SOC test applications. The card belongs to the DC Scale family and can reside in any channel card slot of a V93000 EXA Scale system.">DC Scale XPS256 card</a> in PMU operating mode.</p></section>
+		<section class="sectiontitlefake"><h2>Class definition</h2><p>The class derives from
+				the <a href="116893.htm" title="The EVENT_BASE class is the base class for all other specific event types. It provides the interface for generic handling of all kinds of events, for example, downloading or binding to a test point in a pattern.">EVENT_BASE</a> class.</p>
+			<p>The object that is created by this class has to be assigned to the <a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a> which is responsible for further handling.</p>
+			<p>This class is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Events.h</span>.</p></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">EVENT_VC (const STRING &amp; id);
+EVENT_VC (INT id);</pre></section>
+		<section class="section"><h3>Member functions</h3><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<ul>
+									<li><a href="150264.htm" title="Sets the lower clamp voltage.">vClampLow()</a></li>
+									<li><a href="150266.htm" title="Sets the upper clamp voltage.">vClampHigh()</a></li>
+								</ul></td>
+							<td class="colsep-0 rowsep-0"><ul>
+									<li><a href="150265.htm" title="Reads the lower clamp voltage that has been defined by EVENT_VC.vClampLow().">getVClampLow()</a></li>
+									<li><a href="150267.htm" title="Reads the upper clamp voltage that has been defined by EVENT_VC.vClampHigh().">getVClampHigh()</a></li>
+								</ul></td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">EVENT_VC (const STRING &amp; id);
+EVENT_VC (INT id);</pre><p>The
+				constructor creates an object of the type <span class="keyword">EVENT_VC</span> and assigns the given
+				identifier to the object.</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_150263__entry__3">Parameter</th>
+							<th class="colsep-0 rowsep-0" id="_150263__entry__4">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_150263__entry__3"><var class="varname">id</var></td>
+							<td class="colsep-0 rowsep-0" headers="_150263__entry__4"><p>Identifier of the event.</p>
+								<p>The identifier may be defined as integer value or as string.</p></td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Return value</h3><p>The constructor has no return value.</p></section>
+		<h2>Example</h2><div class="example"><p>The following example creates a new DC event, sets the data of the DC event and
+				inserts the DC event into an already existing pattern. The programmed data are then read back
+				from the event object and shown in the console
+			window.</p><pre class="prettyprint linenums copyable">PATTERN_CONTROLLER patController;
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Create a new event object
+    //
+    EVENT_VC event_VC ("VC");
+
+    //
+    // Set the event data
+    //
+    event_VC
+        .vClampLow (-5.0 V)
+        .vClampHigh(20.0 V);
+
+    //
+    // Insert the event into a pattern
+    //
+    PATTERN &amp; pattern = patController.label("...", "@");
+
+    pattern.vecEvents("pin1").clearAll();
+
+    pattern.vecEvents("pin1")
+        .insert(100, event_VC)
+        .setup ();
+
+    //
+    // Read data from the event object
+    //
+    EVENT_VALUE_DOUBLE vClampLow, vClampHigh;
+
+    event_VC.getVClampLow (vClampLow);
+    event_VC.getVClampHigh(vClampHigh);
+
+    cout &lt;&lt; "vClampLow  = " &lt;&lt; vClampLow    &lt;&lt; endl;
+    cout &lt;&lt; "vClampHigh = " &lt;&lt; vClampHigh   &lt;&lt; endl;
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="116893.htm" title="The EVENT_BASE class is the base class for all other specific event types. It provides the interface for generic handling of all kinds of events, for example, downloading or binding to a test point in a pattern.">EVENT_BASE</a></div><div><a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.4.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 150263</span><script type="text/javascript">var ti='150263';var tt='EVENT_VC'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

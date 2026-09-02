@@ -1,0 +1,81 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This test method measures the quiescent power supply current (IDDQ) of a device, using the device power supplies."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>ProductionIddq</title><meta name="keywords" content="production Iddq, Production, Iddq"></head><body id="_121966"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121966</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">ProductionIddq</h1>
+	
+	
+	<div><p>This test method measures the quiescent power supply current (I<sub>DDQ</sub>) of a
+		device, using the device power supplies.</p>
+		<section class="section"><p>It allows you to perform a sequence of production IDDQ
+				measurements at different vectors or cycles in a single test.</p><p>Measurements can be
+				performed with respect to a (list of) DPS pin(s) or DCScale pin(s) in DPS mode. If a list of DPS
+				pins are specified then the sum of all IDDQ currents measured or the current measured for each
+				DPS pin can be given back.</p><div class="p"><figure class="fignone">
+					
+					<img src="26337.png" alt="Production Iddq Measurement">
+				</figure></div><p>Firstly, the test system is set to the <strong>CONNECTED</strong> state, with the AC relays
+				closed, the sequencer set to <strong>BREAK</strong> and the DPS set to the voltage programmed in Level
+				Setup. The test system then: </p><ul>
+				<li>checks the specified dps pinsfor applicable pins (<strong>dps</strong> pin only). If you specify a
+					list of dps pins, the test method will either return the sum of the production Iddq currents
+					sourced by the dps pins specified or the production Iddq current for each dps pin. </li>
+				<li>checks the <span class="keyword">disconnectPins</span> for applicable pins. By default, the AC relays
+					for <em>all</em> AC pins are closed for the I<sub>DDQ</sub> measurement. This means that for all
+					these pins, the break waveform is sent to the device during the measurement. However, if this
+					is not suitable for your test, you can <strong>disconnect</strong> (AC relays open) a pin or more pins
+					for the measurement. </li>
+				<li>if a vector orcycle is specified, the delay counter is set to stop the sequencer at the
+					specified vector or cycle. The specified vector or cycle is also executed.<p>If
+						a list of vectors or cycles is specified, the delay counter is first set to
+						stop the sequencer at the first vector or cycle specified, then at the
+						second vector or cycle and all subsequent vectors or cycles
+						specified.</p><div class="note"><span class="title">Note</span> If no vector or cycle number is specified
+						but <span class="keyword">checkFunctional</span> is <kbd class="userinput">ON</kbd>, the
+						whole pattern will be executed before current measurement.</div></li>
+			</ul><p>A functional test is executed, and stopped at the first vector or cycle you define. The
+				AC relays for all disconnected pins are then opened, and the break waveform is generated at all
+				other AC pins. You can specify whether the result of this functional test shall contribute to
+				the overall test result or not. If the result of the functional test contributes to the overall
+				test result a failing functional test will always cause a fail overall test result regardless of
+				the production Iddq currents measured. </p><p>After the settling time, the Iddq current is
+				measured by the DPS at the specified pins. The measurements are made in a serial mode.
+				</p><p>Any result value in the range of pass limit gives a <em>pass</em> result. </p><p>This is
+				repeated for all vectors or cycles you have specified (in the order as specified). That is, if
+				you set up a list with N vectors or cycles, N production Iddq measurement results are returned
+				by the test method. </p><p>You can also define how often the measurement is made before a result
+				is returned by specifying a sample number. Default number is 16.</p><p><strong>Execution Time for a
+					Sample</strong></p><p>For the GP-DPS, the test method performs auto ranging. Dependent on which
+				range the final measurement is taken, a measurement burst is performed with the number of
+				specified samples. Because of the auto ranging mechanism, the total number of measurements taken
+				depends on how many trials were necessary to find the right measurement range. </p><p>In
+				addition, because the measurements are controlled by the system controller the real total
+				execution time also depends on the system controller speed. As a conclusion, it cannot be
+				specified exactly how long the test method will take.</p></section>
+		<section class="section"><h2>Dependencies</h2><ul>
+				<li>The device must be kept stable during the dc measurement. </li>
+			</ul></section>
+		
+		<section class="section"><h2>Limits</h2><p>If you define new test names in the parameter
+					<span class="keyword">testName</span>, you need to add limits to the test suite with the same test name.
+				(Refer to <a href="100677.htm">Adding a limit in the Properties view</a> and <a href="100357.htm">Adding a limit on the Tests page</a>.)</p></section>
+		<section class="section"><h2>Implementation pseudo
+			code</h2><pre class="prettyprint linenums copyable">IF not already connected THEN
+ connect DUT
+ENDIF
+FOR all the vectors/cycles in the list
+ run to the stop vector/cycle
+ IF test fails AND check functional selected THEN
+ set result fail
+ ENDIF
+ disconnect pins in the disconnect pin list
+ measure the current on the DPS pins
+ connect the disconnected pins
+ENDFOR
+IF ganged mode selected THEN
+ add the measured result of each pin
+ judge the pass/fail result
+ENDIF
+datalog test result</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is supported in
+					TML 2.1.1.</li><li>SmarTest 7.2.1: New parameter controlTestNumOfFunctional is added.</li><li>SmarTest 7.2.1:  New option ShowFailOnly for the parameter output in TML 2.2.0.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121966</span><script type="text/javascript">var ti='121966';var tt='ProductionIddq'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

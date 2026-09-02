@@ -1,0 +1,202 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="There are two common ways SmarTest can be run in a docker container. You can either directly display the SmarTest user interface on the host workstation’s X Display or in headless mode, where a VNC Server runs inside the container, accessed using a VNC client."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using SmarTest Docker containers</title><meta name="keywords" content="Smar, Test"></head><body id="_354137"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 354137</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using SmarTest Docker containers</h1>
+	
+	
+	<div><p>There are two common ways SmarTest can be run in a docker container. You can either
+		directly display the SmarTest user interface on the host workstation’s X Display or in headless
+		mode, where a VNC Server runs inside the container, accessed using a VNC client.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>There are two common ways to start SmarTest in a docker container:</p><ul>
+				<li>Start the container in headless mode, which starts a VNC server inside the container, to
+					which you can connect from your computer.</li>
+				<li>Start the container using the X Display of the host workstation you are already running and
+					directly displays SmarTest windows on the host's X Server.</li>
+			</ul>
+			</section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div>
+			<p>Before you can use the Docker image, make sure that you have completed the following steps and
+				actions: </p>
+			<ul>
+				<li>You are familiar with Docker and using docker images. The following points include some
+					pointers to the Docker steps that you must have completed before running a Docker image. </li>
+				<li>The workstation operating system is Red Hat Enterprise Linux 7.2 or higher, or the
+					required operating system version for the SmarTest versions to be installed, whichever is
+					higher. Older operating systems are not supported.</li>
+				<li>Docker engine is installed:<div class="note"><span class="title">Note</span> If you have the Platform Delta Bundle (PDB)
+						version 422 or higher installed, Docker is pre-installed but not enabled. If this is the case,
+						skip the following installation step. </div><p><kbd class="userinput">sudo yum install docker-ce
+							docker-ce-cli containerd.io</kbd></p></li>
+				<li><span class="keyword">docker</span> daemon is set to automatically start on restart:<p><kbd class="userinput">sudo
+							systemctl enable docker</kbd></p></li>
+				<li><span class="keyword">docker</span> daemon is started:<p><kbd class="userinput">sudo systemctl start
+							docker</kbd></p></li>
+				<li>Check whether the docker daemon is running: <p>
+						<kbd class="userinput">sudo systemctl status docker</kbd></p></li>
+				<li><b>Optional: </b> Add users to Docker group using:<p><kbd class="userinput">sudo usermod -a -G
+							docker <var class="varname">user name</var></kbd></p></li>
+			 <li>The Docker image is installed. For details, see <a href="354136.htm" title="Advantest provides an easy way to deploy and run SmarTest with Advantest container images. The container contains the SmarTest components that can be run on a workstation without the need to physically install SmarTest on the workstation itself.">Installing SmarTest Docker images</a>.</li>
+			</ul>
+			<p>For more information about <span class="keyword">docker run</span>, also refer to: <a href="https://docs.docker.com/engine/reference/run/" target="_blank" rel="external noopener" class="ex">https://docs.docker.com/engine/reference/run/</a></p>
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Start the Docker container by entering the <code>docker run -it</code> command in a
+					terminal.</span>
+				<ul>
+					<li>
+						<p>To start a container using the X Display of  your workstation, enter:</p>
+						<div></div><pre class="no-prettify"><code>docker run -it --shm-size="<var class="varname">host_max_memory</var>g" \ 
+           -v <var class="varname">host_license_pointer</var>:<var class="varname">container_license_pointer</var>\
+           -v <var class="varname">host_project_folder</var>:<var class="varname">container_project_folder</var> \ 
+           -v <var class="varname">host_model_file_folder</var>/<var class="varname">model_file</var>:<var class="varname">container_model_file_folder</var>/<var class="varname">model_file</var> \
+           -v /tmp/.X11-unix:/tmp/.X11-unix \
+           -v <var class="varname">host_log_file_directory</var>:<var class="varname">container_log_file_directory</var> \
+           <var class="varname">repository</var>/<var class="varname">image</var> <var class="varname">mode</var></code></pre><div></div>
+					</li>
+					<li>
+						<p>To start a container using its internal VNC server, enter:</p>
+						<p>Enter the following command with appropriate modifications for your environment and chosen
+							package:</p>
+						<div></div><pre class="no-prettify"><code>docker run -it --shm-size="<var class="varname">host_max_memory</var>g" \ 
+           -v <var class="varname">host_license_pointer</var>:<var class="varname">container_license_pointer</var>\
+           -v <var class="varname">host_project_folder</var>:<var class="varname">container_project_folder</var> \ 
+           -v <var class="varname">container_model_file_folder</var>/<var class="varname">model_file</var>:<var class="varname">local_model_file_folder</var>/<var class="varname">model_file</var> \
+           -p <var class="varname">external_port</var>:<var class="varname">container_port</var> \ 
+           <var class="varname">repository</var>/<var class="varname">image</var> <var class="varname">mode</var></code></pre><div></div>
+					</li>
+				</ul>
+				<div>
+					<div class="p">The docker run command requires the following parameters:<dl>
+							
+								<dt class="dlterm"><var class="varname">host-license-mapping pointer:container-license-pointer</var></dt>
+								<dd>
+									<div class="p">The mapping of your licensing file so that it is available in the container. These are
+										fixed strings, depending on the licensing system used:<dl>
+											
+												<dt class="dlterm">FNE</dt>
+												<dd><kbd class="userinput">/etc/fne/client.conf:/etc/fne/client.conf</kbd></dd>
+											
+											
+												<dt class="dlterm">FNP</dt>
+												<dd><kbd class="userinput">/opt/flexlm/license:/opt/flexlm/license</kbd></dd>
+											
+										</dl></div>
+								</dd>
+							
+							
+							
+								<dt class="dlterm"><var class="varname">container_project_folder</var></dt>
+								<dd>
+									<p>The absolute path at the project folder is made available in the container. You can
+										specify any convenient path.</p>
+								</dd>
+							
+						
+						
+							<dt class="dlterm"><var class="varname">host_project_folder</var></dt>
+							<dd>
+								<p>The absolute path of the project folder on your workstation.</p>
+							</dd>
+						
+						
+							
+								<dt class="dlterm"><var class="varname">external_port</var></dt>
+								<dd>
+									<p>The external port through which a VNC client on the host system communicates with the
+										Docker container.</p>
+									<p>As explained in the <a href="354135.htm#_354135__network">Network</a> section, this is a number in the
+										range from 5902 to 5999 that is usually referred to by the shorthand 2 to 99 and specified
+										when you start up the VNC client.</p>
+									<p>To connect using a remote VNC client,specify
+											<var class="varname">my_hostname</var>:<var class="varname">port_minus_5900</var>. For example:
+											<kbd class="userinput">myhostname:88</kbd> (if the specified external port is 5988).</p>
+									<p>If the VNC client and the Docker container are running on the same host workstation, the
+										hostname can be replaced with
+											<kbd class="userinput">localhost:<var class="varname">port_minus_5900</var></kbd>. For example:
+											<kbd class="userinput">localhost:88</kbd> (if the specified external port is 5988).</p>
+								</dd>
+							
+							
+								<dt class="dlterm"><var class="varname">container_port</var></dt>
+								<dd>
+									<p>The port through which the VNC server running in the docker container communicates. For
+										Advantest Docker containers, this port is set to <kbd class="userinput">5901</kbd>. </p>
+								</dd>
+							
+						
+							<dt class="dlterm"><var class="varname">host_max_memory</var></dt>
+							<dd>As explained in the <a href="354135.htm#_354135__memory">Memory and CPU</a> section, SmarTest makes intensive use
+									of shared memory. Specify the full amount of RAM that installed on your workstation as
+									shared memory. For example: <kbd class="userinput">--shm-size=64g</kbd> (if the workstation is
+									equipped with 64GB of RAM).</dd>
+						
+							
+								<dt class="dlterm"><var class="varname">repository</var></dt>
+								<dd>
+									<p>The location where your docker images are stored. This can be a local folder or a shared
+										repository such as Docker Hub, which is a service for hosting Docker repositories. </p>
+								</dd>
+							
+							
+								<dt class="dlterm"><var class="varname">image</var></dt>
+								<dd>
+									<p> The file name of the docker container that you are wanting to run. </p>
+								</dd>
+							
+							
+								<dt class="dlterm"><var class="varname">mode</var></dt>
+								<dd>
+									<div class="p">There are two different modes in which to use a SmarTest container:<dl>
+											
+												<dt class="dlterm">smartest</dt>
+												<dd>The SmarTest Work Center is started and the graphical user interface expects that
+													the X Server of the host is accessible.</dd>
+											
+											
+												<dt class="dlterm">headless</dt>
+												<dd>
+													<p>SmarTest is started with an internal VNC server which will be used by the graphical
+														user interface.</p>
+												</dd>
+											
+										</dl></div>
+								</dd>
+							
+						</dl></div>
+				</div>
+			</li><li class="stepexpand">
+				<span>For VNC environments, access the session by opening a VNC client and connect to host
+					workstation using the command:</span>
+				<div>
+					<p><kbd class="userinput">vncviewer</kbd>
+						<var class="varname">docker_hostname</var>:<var class="varname">port_minus_5900</var></p>
+					<p>For example, if the specified external port is 5988:</p>
+					<p><kbd class="userinput">my_hostname:88</kbd></p>
+					<p>If the VNC client and the Docker container are hosted on the same host workstation, the IP
+						address can be replaced with <kbd class="userinput">localhost</kbd>. </p>
+					<p>For example, if the specified external port is 5988:</p>
+					<p><kbd class="userinput">localhost:88</kbd></p>
+				</div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div>
+			<p>You have started SmarTest in a Docker container.</p>
+			
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div>
+			<p>Starting a container using the host workstation’s X Display:</p>
+			<div></div><pre class="no-prettify"><code>docker run -it --shm-size="64g" \ 
+           -v /etc/fne/client.conf:/etc/fne/client.conf \ 
+           -v /etc/opt/hp93000/soc_common/tester.model:/etc/opt/hp93000/soc_common/tester.model \
+           -v /data/my-device:/data/my-device \ 
+           -v /tmp/.X11-unix:/tmp/.X11-unix  \ 
+           advantest/smartest-suite:8.4.2.0 headless</code></pre><div></div>
+			<p>Starting a container with an internal VNC server:</p>
+			<div></div><pre class="no-prettify"><code>docker run -it --shm-size="64g" \ 
+           -v /etc/fne/client.conf:/etc/fne/client.conf \ 
+           -v /etc/opt/hp93000/soc_common/tester.model:/etc/opt/hp93000/soc_common/tester.model \
+           -v /data/my-project:/data/my-project \ 
+           -p 5988:5901 \ 
+           advantest/smartest-suite:8.4.2.0 smartest</code></pre><div></div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 8.4.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 354137</span><script type="text/javascript">var ti='354137';var tt='Using SmarTest Docker containers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

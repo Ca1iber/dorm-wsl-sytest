@@ -1,0 +1,63 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Background threads using SmartCalc (SMC) in SmartRDI can be implemented as &#34;thread per site&#34; or as &#34;common thread&#34; (also known as &#34;single thread&#34;). The following example shows the pseudo code for implementing a &#34;common thread&#34; for all sites."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Common thread SMC pseudo code example for SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_350195"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 350195</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Common thread SMC pseudo code example for SmartRDI</h1>
+	
+	
+	<div><p>Background threads using SmartCalc (SMC) in SmartRDI can be implemented as "thread
+		per site" or as "common thread" (also known as "single thread"). The following example shows
+		the pseudo code for implementing a "common thread" for all sites.</p>
+		<section class="section">
+			<p>The "common thread" is defined by calling <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> or a variant of this
+				function <strong>inside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block.
+				This creates one single thread for all active sites. Results for all active sites
+				can be uploaded within this thread <a href="144747.htm" title="SmartRDI supports the hidden upload for the measurement with digitizer, RF measurement, DC measurement, and digital capture test, error maps and TMU.">Using hidden upload with SmartRDI</a>.</p>
+			<p>You must pass an array, holding the numbers of all active sites to the background
+				process. The background process must parse this array and process only the active
+				sites.</p>
+			<p>For more information, refer to <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a>.</p>
+		</section>
+		<h2>Example</h2><div class="example"><h3>Common thread pseudo code example</h3>
+			
+			<p>The pseudo code below shows the typical code structure of a hidden upload using a
+				"common thread" for all active
+				sites:</p><pre class="prettyprint linenums copyable">ARRAY_I sites;
+
+GET_ACTIVE_SITES(sites);
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    rdi.hiddenUpload(TA::ALL)
+
+    RDI_BEGIN();
+    {
+        ...
+         rdi.dc("Result_ID").pin("..."). … .execute();
+        ...
+    }
+    RDI_END();
+
+    SMC_ARM(sites);
+
+ON_FIRST_INVOCATION_END();
+...</pre><p>Background
+				process of the same test
+				suite:</p><pre class="prettyprint linenums copyable">public:
+
+void SMC_backgroundProcessing(ARRAY_I sites)
+{
+    double result;
+
+    for(int i = 0; i &lt; sites.size(); i++)
+    {
+        result = rdi.site(sites[i]).id("Result_ID").getValue();
+        ...
+        ...
+    }
+}</pre><p>For
+				information on how to transfer data like the array of active sites to the background
+				process, refer to section <a href="120107.htm#_120107__dle_SMC_ARM_Passing_data_to_the_background_process">Passing data to the background process</a> in <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>.</p>
+			<p>For a compilable, none-SmartRDI example, see <a href="347966.htm" title="A common SMC thread requires the implementation of SMC_ARM() inside of the ON_FIRST_INVOCATION block. The thread is created once for all sites. Site handling within the thread requires the transfer of an array that holds all active sites.">SmartCalc common thread example</a>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div><div><a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 350195</span><script type="text/javascript">var ti='350195';var tt='Common thread SMC pseudo code example for SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

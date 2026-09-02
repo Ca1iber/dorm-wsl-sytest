@@ -1,0 +1,251 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DUT representation file is used by the redundancy analysis algorithm to learn the structure of the DUT."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DUT representation file</title></head><body id="_106189"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 106189</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DUT representation file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="106542.htm" title="When you have created or edited a DUT representation file, you must compile it into a shared library to be able to use it for redundancy analysis.">Compiling the DUT representation file</a></li><li><a href="106191.htm" title="The DUT Representation Language (DRL) is a simple description for describing DUTs.">DUT Representation Language</a></li></ol></div></nav>
+	
+	
+	<div><p>The DUT representation file is used by the redundancy analysis algorithm to learn the
+		structure of the DUT. </p>
+		<section class="section"><p>The file has the <span class="filepath">.drs</span> suffix.</p><p>The completed representation
+				file is compiled to a shared library, as described in <a href="106542.htm" title="When you have created or edited a DUT representation file, you must compile it into a shared library to be able to use it for redundancy analysis.">Compiling the DUT representation file</a>.</p><div class="note"><span class="title">Note</span> Shared libraries that have been compiled with version 2.x of MTP cannot be used with
+				version 3.x (MTP for SOC 103.x) or later and need to be recompiled.</div></section>
+		<h2>Syntax</h2><div class="syntax"><p>The DUT representation file consists of declaration of <a href="106330.htm" title="The DUT Representation Language (DRL) supports untyped variables. Variables can contain integers as values.">system
+					variables</a> and, optionally, user variables and calls to the <a href="106353.htm" title="Initialization functions of the DUT Representation Language (DRL) let you describe the current state of the DUT.">Initialization functions</a>. The
+				system variables must always be declared before the initialization functions are
+				called.</p><p>The DUT is described using the <a href="106191.htm" title="The DUT Representation Language (DRL) is a simple description for describing DUTs.">DUT Representation Language</a>.</p></div>
+		<h2>Example</h2><div class="example"><p>This is sample DUT representation file to show how such files might look. (This file
+				does not describe a real
+			device.)</p><pre class="prettyprint linenums copyable">// DUT representation
+deviceDirectory =  "/home/devices/eDram_xx"; //only for identification
+deviceName =       "eDram_xx";               //only for identification
+
+/*******************************************************************************
+ * DUT Architecture Section
+ ******************************************************************************/
+// For whole DUT
+nSegment =   512; 
+nDatabit =   16;
+nDatabitGroup = 1;
+nRow =  4096;
+nCol =  2048;
+nSpareRow = 64;
+nSpareCol = 64;
+nRowsInWLSet = 4;
+nColsInBLPair = 2;
+
+// Per segment
+nRowPerSegment = 8;
+nColPerSegment = 4;
+nSpareRowPerSegment = 1;
+nSpareColPerSegment = 1;
+
+// Among segments
+nSpareRowSharing = 1;
+nSpareRowLinkage = 8;
+nSpareColSharing = 4;
+nSpareColLinkage = 2;
+
+
+/*******************************************************************************
+ * DUT Initialization Section
+ ******************************************************************************/
+/**
+ * ++++ databit_groups ++++
+ * databit_groups_index: (firstDatabit, lastDatabit)
+ *   Initialize one databit group (index starts from 0) with its first databit 
+ * (number starts from 1) and its last data bit.
+ **/
+
+/*-------- direct format --------
+@Syntax
+DG_STMT_SINGLE: TOK_DG '(' TOK_NUMBER ')' 
+                '=' '('  OFFSET_EXPR1 ',' OFFSET_EXPR2 ')' TOK_EOI
+  TOK_NUMBER: databit group index               
+  OFFSET_EXPR1: first data bit index in this data bit group
+  OFFSET_EXPR1: last data bit index in this data bit group                  
+
+OFFSET_EXPR:   '+' EXPR 
+             | '-' EXPR  
+             | EXPR
+
+#all index starts from 0  
+--------------------------------*/
+dg(0) = (1,nDatabit/2);
+dg(1) = (nDatabit/2+1,nDatabit);
+
+/*-------- incremental format --------
+#All incremental format syntax is also covered by the syntax of direct format
+--------------------------------*/
+dg(0) = (1,nDatabit/2);
+dg(1) = (+nDatabit/2,+nDatabit/2);
+
+/*-------- formular format --------
+DG_STMT_MULTIPLE: TOK_DG '(' RANGE ')' 
+                  '=' '{'  '('   EXPR ','  EXPR  ')' '}' TOK_EOI
+RANGE:    TOK_NAME '=' '[' EXPR ',' EXPR ',' EXPR ']'                   
+--------------------------------*/
+dg(i=[0,1,1]) = {(i*nDatabit/2+1,(i+1)*nDatabit/2)};
+
+
+/**
+ * segments
+ * segment_index: databitgroup_idx, 
+                  origin_x, origin_y, 
+                  num_of_spare_rows, num_of_spare_cols 
+   Initialize properties of one segment, for example, databit group it belongs to,
+   position of its origin, as well as the number of the spare rows and columns
+ */
+
+/*-------- direct format --------
+@Syntax
+SG_STMT_SINGLE: TOK_SG  '(' TOK_NUMBER ')' 
+                '='  '(' EXPR ','  
+                         OFFSET_EXPR ',' OFFSET_EXPR ','  
+                         OFFSET_EXPR ',' OFFSET_EXPR ')' TOK_EOI 
+****************************************/
+sg(0) = (0, 0, 0, nSpareRowPerSegment, nSpareColPerSegment);
+sg(1) = (0, 1, 0, nSpareRowPerSegment, nSpareColPerSegment);
+//...
+sg(7) = (0, 7, 0, nSpareRowPerSegment, nSpareColPerSegment);
+sg(8) = (0, 0, 1, nSpareRowPerSegment, nSpareColPerSegment);
+sg(9) = (0, 1, 1, nSpareRowPerSegment, nSpareColPerSegment);
+//...
+sg(15) = (0, 7, 1, nSpareRowPerSegment, nSpareColPerSegment);
+
+/*-------- incremental format --------
+--------------------------------*/
+sg(0) = (0, 0,  0, nSpareRowPerSegment, nSpareColPerSegment);
+sg(1) = (0, +1, +0, nSpareRowPerSegment, nSpareColPerSegment);
+//...
+sg(7) = (0, +1, +0, nSpareRowPerSegment, nSpareColPerSegment);
+sg(8) = (0, 0,  +1, nSpareRowPerSegment, nSpareColPerSegment);
+sg(9) = (0, +1, +0, nSpareRowPerSegment, nSpareColPerSegment);
+//...
+sg(15) = (0, +1,+0, nSpareRowPerSegment, nSpareColPerSegment);
+
+
+/*-------- formular format --------
+@Syntax
+SG_STMT_MULTIPLE: TOK_SG '(' RANGE ')' 
+                  '=' '{'  '(' EXPR ','  
+                               EXPR ',' EXPR ',' 
+                               EXPR ',' EXPR  ')' '}' TOK_EOI
+--------------------------------*/
+sg(i=[0,nSegment-1, 1]) = {(0, 
+                            i%8, i/8, 
+                            nSpareRowPerSegment, nSpareColPerSegment)};
+
+/**
+ * spare resource assignment
+ * segment_index: databitg_idx, idx_of_spare_row_in_this_segment, spare_row_id
+   segment_index: databitg_idx, idx_of_spare_col_in_this_segment, spare_col_id
+   Specify spare resource assignment of one segment, for example, which spare resource 
+   (spare_row_id) is allocated for this segment and its index in this segment.
+ **/
+/*-------- direct format --------
+@Syntax
+SRA_ROW_STMT_SINGLE: TOK_SRA_ROW '(' TOK_NUMBER ')' 
+                     '='  '(' EXPR1 ','  
+                              EXPR2 ',' OFFSET_EXPR ')' TOK_EOI
+SRA_COL_STMT_SINGLE: TOK_SRA_COL '(' TOK_NUMBER ')' 
+                     '='  '(' EXPR ','  
+                              EXPR ',' OFFSET_EXPR ')' TOK_EOI 
+--------------------------------*/
+sra_row(0) = (0, 0, 0);
+//...
+sra_row(7) = (0, 0, 0);
+//spare row 0 is used by segments 0,1,2,..7
+// and it's the first (0) spare row in the segments.
+sra_row(8) = (0, 0, 1);
+
+sra_col(0) = (0, 0, 0);
+//...
+sra_col(3) = (0, 0, 0);
+sra_col(4) = (0, 0, 1);
+//...
+sra_col(7) = (0, 0, 1);
+sra_col(8) = (0, 0, 0);
+//...
+sra_col(15) = (0, 0, 1);
+sra_col(16) = (0, 0, 2);
+
+/*-------- incremental format --------
+--------------------------------*/
+sra_row(0) = (0, 0, 0);
+//...
+sra_row(7) = (0, 0, 0);
+sra_row(8) = (0, 0, +1);
+
+sra_col(0) = (0, 0, 0);
+//...
+sra_col(3) = (0, 0, 0);
+sra_col(4) = (0, 0, +1);
+//...
+sra_col(7) = (0, 0, 1);
+sra_col(8) = (0, 0, 0);
+//...
+sra_col(15) = (0, 0, 1);
+sra_col(16) = (0, 0, +1);
+
+
+/*-------- formular format --------
+@Syntax
+SRA_ROW_STMT_MULTIPLE: TOK_SRA_ROW '(' RANGE ')' 
+                       '=' '{'  '(' EXPR ','  
+                                    RANGE ',' EXPR  ')' '}' TOK_EOI
+SRA_COL_STMT_MULTIPLE: TOK_SRA_COL '(' RANGE ')' 
+                       '=' '{'  '(' EXPR ','  
+                                    RANGE ',' EXPR  ')' '}' TOK_EOI
+--------------------------------*/
+sra_row(i=[0,nSegment-1, 1]) = {(0, j=[0, nSpareRowPerSegment-1, 1], i/8)};
+sra_col(i=[0,nSegment-1, 1]) = {(0, j=[0, nSpareColPerSegment-1, 1], 
+                                 (i%8)/4+(i/16)*2)};
+
+
+/**
+ * spare resource usage
+ * Resource: databitg_idx, sharing_length, linkage_length, repairing_segment_ids
+ *
+   Specify the usage of spare resource (row/col), for example, its shareing length, its
+   linkage length, as well as which segments it can repair.
+ **/
+/*-------- direct format --------
+@Syntax
+SRU_ROW_STMT_SINGLE: TOK_SRU_ROW '(' TOK_NUMBER ')' 
+                     '='  '(' EXPR ',' 
+                              EXPR ',' EXPR ','  
+                              '(' OFFSET_EXPR_LIST ')' ')' TOK_EOI 
+SRU_COL_STMT_SINGLE: TOK_SRU_COL '(' TOK_NUMBER ')' 
+                     '='  '(' EXPR ',' 
+                              EXPR ',' EXPR ','  
+                              '(' OFFSET_EXPR_LIST ')' ')' TOK_EOI
+--------------------------------*/
+sru_row(0)=(0, 1, 8, (0,1,2,3,4,5,6,7));
+sru_row(1)=(0, 1, 8, (8,9,10,11,12,13,14,15));
+//...
+sru_col(0)=(0, 2, 4, (0,1,2,3,8,9,10,11));
+sru_col(1)=(0, 2, 4, (4,5,6,7,12,13,14,15));
+//...
+
+/*-------- incremental format --------
+--------------------------------*/
+sru_row(0)=(0, 1, 8, (0,1,2,3,4,5,6,7));
+sru_row(1)=(0, 1, 8, (+8,+8,+8,+8,+8,+8,+8,+8));
+//...
+sru_col(0)=(0, 2, 4, (0,1,2,3,8,9,10,11));
+sru_col(1)=(0, 2, 4, (+4,+4,+4,+4,+4,+4,+4,+4));
+//...
+
+/*-------- formular format --------
+@Syntax
+SRU_ROW_STMT_MULTIPLE: TOK_SRU_ROW '(' RANGE ')' 
+                       '=' '{'  '(' EXPR ','  
+                                    RANGE ',' RANGE ',' 
+                                    EXPR  ')' '}' TOK_EOI
+--------------------------------*/
+sru_row(i=[0, nSpareRow-1,1])={(0, j=[0,0,1], k=[0,7,1], i*8+k)};
+sru_col(i=[0, nSpareCol-1,1])={(0, j=[0,1,1], k=[0,3,1], i*4+k+j*8)};</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="106542.htm" title="When you have created or edited a DUT representation file, you must compile it into a shared library to be able to use it for redundancy analysis.">Compiling the DUT representation file</a></div><div><a href="106191.htm" title="The DUT Representation Language (DRL) is a simple description for describing DUTs.">DUT Representation Language</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 2.6.5</li><li>MTP 3.0.3: (MTP on SOC 103.0.0) Libraries compiled with MTP 2.x require
+					recompilation</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 106189</span><script type="text/javascript">var ti='106189';var tt='DUT representation file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

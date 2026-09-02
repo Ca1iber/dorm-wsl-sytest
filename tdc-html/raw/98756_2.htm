@@ -1,0 +1,174 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SSCT command combines source synchronous test result data of several source channels and transfers the result to a target channel. The source data is combined by AND, that is, the combined result is 1 if and only if the result of all source channels is 1. The source channels can be associated with the pins to be tested, but they can also be buffer channels which are used in source synchronous testing for accumulating global cycle results (see Exploiting hardware resources for performance enhancement)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SSCT, SSCT? - (Source Synchronous data: Combine and Transfer)</title><meta name="keywords" content="SSCT_"></head><body id="_98756"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98756</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SSCT, SSCT? - (Source Synchronous data: Combine and Transfer)</h1>
+	
+	
+	<div><p>The <span class="keyword">SSCT</span> command combines source synchronous test result data of
+		several source channels and transfers the result to a target channel. The source data is combined
+		by AND, that is, the combined result is 1 if and only if the result of all source channels is 1.
+		The source channels can be associated with the pins to be tested, but they can also be buffer
+		channels which are used in source synchronous testing for accumulating global cycle results (see
+			<a href="85197.htm" title="Source synchronous testing is rather time consuming. First, it requires multiple executions of the same functional test. Second, the results of each execution (shot) must be combined with the already existing global results for the previous shots. Finally, if this result accumulation is executed on the workstation, the results must be uploaded after each shot.">Exploiting hardware resources for performance enhancement</a>).</p>
+		<section class="section"><p>The meaning of the combined result depends on how 1 and 0 are mapped to PASS and FAIL.
+				If 1 is PASS and 0 is FAIL, then a combined result of 1 says that all source channels contain
+				PASS, and 0 says that at least one source channel contains FAIL. If 0 is PASS and 1 is FAIL,
+				then a combined result of 1 says that all source channels contain FAIL, and 0 says that at least
+				one source channel contains PASS. </p><p>In the hardware, 1 means PASS and 0 means FAIL. But in
+				source synchronous testing, you want to return PASS already if a cycle has passed for all pins
+				at least in one shot. To enable such a disjunctive evaluation of the source data, you can cause
+					<span class="keyword">SSCT</span> to invert 0 and 1 internally (the data in the source channel is
+					<em>not</em> changed) before actually processing the data. </p><p>Suppose, for example, that you
+				have three input channels, one of which contains 1=PASS, while the other two contain 0=FAIL. If
+				you want to get a PASS result in such a case, let <span class="keyword">SSCT</span> invert the data (so
+				that 0 means PASS and 1 means FAIL) and then combine them by AND. The result will be 0, which
+				now means that at least one source channel contains PASS. </p><p>The inversion option of
+					<span class="keyword">SSCT</span> is global. You can only invert all or no source channels. In order to
+				invert only some of the source channels, use the <span class="keyword">SSAC</span> command.</p><div class="note"><span class="title">Note</span> The inversion options of <span class="keyword">SSAC</span> and <span class="keyword">SSCT</span> are
+				concatenated. If you have required inversion for one source channel with
+				<span class="keyword">SSAC</span>, this inversion will be canceled if you also require global inversion
+				with <span class="keyword">SSCT</span>.</div><p>The <span class="keyword">SSCT</span> command can be executed
+				immediately, but its execution can also be delayed. In the latter case the command will be
+				triggered by the next <a href="98608.htm" title="The FTST? (Functional TeST) query executes a functional test and returns either a pass or a fail result. The test that is executed must have previously been defined by the SQLB, SQLB? - (SeQuencer LaBel definition) command and activated for execution by the SQSL, SQSL? - (SeQuencer Start Label) command.">FTST?</a> call or the next <span class="keyword">SSCT</span>
+				command for which immediate execution is required. This serves to enhance the performance of
+				source synchronous testing in two respects. Triggering execution of <span class="keyword">SSCT</span> with
+					<span class="keyword">FTST?</span> has the advantage that the command will be processed in parallel with
+				the next functional test, and if several source synchronous tests are executed in parallel,
+				their accumulation steps can be executed in parallel under certain conditions. For details see
+					<a href="85281.htm" title="Result accumulation in the hardware is only possible if the channels involved in the data transfer satisfy the following requirements:">Hardware restrictions for result accumulation</a>.</p><p>The <span class="keyword">SSCT?</span> query returns all
+					<span class="keyword">SSCT</span> instances not yet executed for one or more destination
+			pins.</p></section>
+		<div class="syntax"><h2>SSCT</h2><pre class="prettyprint copyable singleline"><span class="keyword">SSCT</span> {<span class="keyword">exec_mode</span>},[<span class="keyword">read_mode</span>],[<span class="keyword">nr_of_results</span>],{(<span class="keyword">dest_pin</span>)}, {(<span class="keyword">source_pins</span>)}</pre></div><div class="syntax"><h2>SSCT?</h2><pre class="prettyprint copyable singleline"><span class="keyword">SSCT?</span> {(<span class="keyword">dest_pins</span>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">SSCT</span> {<span class="keyword">exec_mode</span>},{<span class="keyword">read_mode</span>},{<span class="keyword">nr_of_results</span>},{(<span class="keyword">dest_pin</span>)}, {(<span class="keyword">source_pins</span>)}</pre><table class="frame-none"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="4"><p><span class="keyword">exec_mode</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Possible execution modes
+									are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">IMM</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>The command is executed immediately.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">ACC</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Command execution is delayed to the next
+										<span class="keyword">FTST?</span> call or the next <span class="keyword">SSCT IMM</span> call (whichever
+									comes first).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">DEL</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Deletes all <span class="keyword">SSCT</span> instances that ar still
+									pending for the specified destination pin and source pins. The other parameters are
+									ignored.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="4"><p><span class="keyword">read_mode</span></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Possible read modes are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">NORM</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Source data is processed as it is stored in the source
+									channels. This is the default.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">INV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Source data is inverted internally before it is processed.
+									The source data itself is not changed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Note that the read modes of
+										<span class="keyword">SSAC</span> and <span class="keyword">SSCT</span> are concatenated. If inversion has
+									been set for a source channel with <span class="keyword">SSAC</span>, and the read mode of
+										<span class="keyword">SSCT</span> is also set to <span class="keyword">INV</span> then the data of the
+									respective channel will be inverted twice, and therefore processed as it is stored. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">no_of_results</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Specifies the number of results
+									to be processed. The default is all results (as defined with <span class="keyword">SSAC</span>). The
+									maximum is the number of results that are configured by <span class="keyword">SSAC</span>.</p>
+								<p>The number to be specified here must be calculated as <code>result_granularity *
+										number_of_cycles</code><em>.</em></p>
+								<p>The result granularity is the number of results per cycle. It can be 1 (one global
+									result), in which case you must specify the number of cycles, or 8 (one result for every
+									edge), in which case you must specify <code>8 * number_of_cycles</code>.</p>
+								<p>The number of bytes required to store the specified number of results must be a multiple
+									of 8. If this requirement is not satisfied, the number of results will be
+									auto-corrected.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">dest_pin</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>The target buffer pin into which
+									the combined results are transferred. This should be an input pin, in order to avoid
+									conflicts within the result area between the buffer function and pin specific result data.
+									This pin must have been defined as a buffer pin with <span class="keyword">SSAC</span>.</p>
+								<p>Note that the Error Map for this pin must be located in RDRAM (<span class="keyword">DCRT</span>
+									command).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">source_pins</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>The pins whose results are to be
+									combined. Note that the Error Map for these pins must be located in RDRAM
+										(<span class="keyword">DCRT</span> command).</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Errors</h2><p>An error is generated if:</p><ul>
+				<li>The hardware requirements for the transfer operation are not fulfilled, that is, source and
+					target channels belong to different card cages, or different source channels belong to
+					different logical (for Pin Scale 3600 cards) or physical (for Pin Scale 800 carrds)
+					boards.</li>
+				<li>The target channel has not been configured with <span class="keyword">SSAC</span>.</li>
+				<li>The requested number of results is greater than the size configured with
+						<span class="keyword">SSAC</span>.</li>
+				<li>The number of configured sites is greater than the licenses allow.</li>
+			</ul></div><div class="syntax"><h2>Warnings</h2><p>A warning is generated if one of the source channels has been
+				set to inverse read mode with <a href="98755.htm" title="The SSAC command defines the pins whose associated channels are to be used as buffers for source synchronous testing. It mainly specifies the read mode and the number of results that are to be stored in the channel.">SSAC</a>, and <span class="keyword">SSCT</span> also
+				operates with inverse read mode, in which case the two concatenated inversions will cancel each
+				other</p></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><p>The following example shows a typical start sequence of a source synchronous
+				test:</p><pre class="prettyprint linenums copyable">&gt; DCGM ALL,STRT,NONE
+&gt; DCRT RAM,(@)
+&gt; SSRC (@)
+&gt; SSAC INV,128,,(SB)
+&gt; SSAC NORM,128,,(G1,G2)
+&gt; SVLR TIM,1,1,"sweep",2.4
+&gt; FTST?
+&gt; SSCT IMM,NORM,128,(SB),(D1,D2,D3,CL)
+&gt; SSCT ACC,NORM,128,(G1),(SB)
+&gt; SVLR TIM,1,1,"sweep",2.5
+&gt; FTST?
+&gt; SSCT IMM,NORM,128,(SB),(D1,D2,D3,CL)
+&gt; SSCT ACC,NORM,128,(G2),(SB,G1)
+. . .</pre><p>At
+				first, the detailed Error Map is configured for the requirements of result buffering (error map
+				located in RDRAM, recording mode <span class="keyword">ALL</span>). After the first functional test the
+				results of the data pins D1 through D3 and the output clock pin CL are immediately combined and
+				transferred into the source buffer SB. The subsequent transfer into the first global buffer is
+				delayed and will only be triggered by the next <span class="keyword">FTST?</span> call. After the second
+				functional test, the <span class="keyword">SSCT ACC</span> call combines the results of the source buffer
+				and the first global buffer into the second global buffer.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98756</span><script type="text/javascript">var ti='98756';var tt='SSCT, SSCT? - (Source Synchronous data: Combine and Transfer)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

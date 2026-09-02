@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to detect and report errors from running SmarTest with HVM API</title><meta name="keywords" content="high voltage High Volume Manufacture, Smar, Test"></head><body id="_124157"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 124157</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to detect and report errors from running SmarTest with HVM API</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The following categories of errors and warnings can detected and reported with the
+				alarm notification of HVM API (Refer to <a href="96808.htm" title="This notification is provided whenever an error occurred in the system.">ALARM_NOTIFICATION</a> for details):</p><ul>
+				<li>firmware execution warnings and errors</li>
+				<li>SmarTest initialization warnings and errors</li>
+				<li>test program execution warnings and errors</li>
+				<li>Advantest generic prober/handler driver errors and warnings</li>
+			</ul><p>Currently only calibration data errors and licensing errors can be identified from the
+				alarm code. The other categories of errors can be handled generally.</p><p>The procedure below
+				applies for the handling of all categories of alarm notification with HVM API.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 6.2 or later versions. Not all the categories are
+				supported from 6.2. Refer to the <strong>Functional Changes</strong> below.</p></section>
+		<section class="sectiontitlefake"><h2>Procedure</h2><ol>
+				<li>Define the event handler function to handle the event type ALARM.</li>
+				<li>In the main() function, register the event handler with <a href="97227.htm" title="This signature is to register an event listener which will be executed by HVMAPI internal execution thread upon a particular event.">addEventListener</a>.</li>
+				<li>In the main() function, start the event loop to execute the event handler with <a href="97228.htm" title="This signature is to start an HVMAPI internal event loop. The main job of event loop is to execute the particular event listener when the corresponding event occurs in HVMAPI internal execution thread. Calling this function will make the client give the control to the HVMAPI internal thread. The client execution will be blocked until exiting from the event loop.">eventLoop</a>.</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The event handler for alarm notification is created and registered. It will be executed
+				when the ALARM occurs.</p></section>
+		<h2>Examples</h2><section><h3>Handling the general errors with alarm
+			notification</h3><pre class="prettyprint linenums copyable">using namespace std;
+using namespace ::xoc::hvmapi;
+void alarmHandler(const string &amp;evName, const ParamList &amp;evParams,
+                  unsigned long sec, long usec, const string &amp;sessionId)
+{
+  if ( evName == "ALARM" )
+  {
+    string severity = params["ALARM_SEVERITY"];
+    string code = params["ALARM_CODE"];
+    string text = params["ALARM_TEXT"];
+    cout &lt;&lt; "PM: Event received ### Session: " &lt;&lt; session &lt;&lt; " # EventType: " &lt;&lt; type
+         &lt;&lt; "# Severity:" &lt;&lt; severity &lt;&lt; "# Code:" &lt;&lt; code &lt;&lt; "# Text:" &lt;&lt; text &lt;&lt; endl;
+  }
+}</pre></section>
+		<section><h3>Handling the license error during SmarTest
+			startup</h3><pre class="prettyprint linenums copyable">using namespace std;
+using namespace ::xoc::hvmapi;
+void alarmHandler(const string &amp;evName, const ParamList &amp;evParams,
+                  unsigned long sec, long usec, const string &amp;sessionId)
+{
+  if ( evName == "ALARM" )
+  {
+    string severity = params["ALARM_SEVERITY"];
+    string code = params["ALARM_CODE"];
+    string text = params["ALARM_TEXT"];
+    if(code=="LICENSING_ERROR")
+    {
+      cout &lt;&lt; "license error occurred"&lt;&lt;endl;
+      cout &lt;&lt; "PM: Event received ### Session: " &lt;&lt; session &lt;&lt; " # EventType: " &lt;&lt; type
+           &lt;&lt; "# Severity:" &lt;&lt; severity &lt;&lt; "# Code:" &lt;&lt; code &lt;&lt; "# Text:" &lt;&lt; text &lt;&lt; endl;
+      //add your code to handle the license error here
+      
+    }
+  }
+}</pre></section>
+		<section><h3>Handling the error when calibration data
+			expires</h3><pre class="prettyprint linenums copyable">using namespace std;
+using namespace ::xoc::hvmapi;
+void alarmHandler(const string &amp;evName, const ParamList &amp;evParams,
+                  unsigned long sec, long usec, const string &amp;sessionId)
+{
+  if ( evName == "ALARM" )
+  {
+    string severity = params["ALARM_SEVERITY"];
+    string code = params["ALARM_CODE"];
+    string text = params["ALARM_TEXT"];
+    if(code=="CAl_DATA_INVALID")
+    {
+      cout &lt;&lt; "The calibration data expires. Please do the calibrate!"&lt;&lt;endl;
+      cout &lt;&lt; "PM: Event received ### Session: " &lt;&lt; session &lt;&lt; " # EventType: " &lt;&lt; type
+           &lt;&lt; "# Severity:" &lt;&lt; severity &lt;&lt; "# Code:" &lt;&lt; code &lt;&lt; "# Text:" &lt;&lt; text &lt;&lt; endl;
+      //add your code to handle the calibration error here
+      
+    }
+  }
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="112046.htm" title="This topic introduces how to handle the event from SmarTest in a HVM API client.">How to get notified with a SmarTest event</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: CAL_DATA_INVALID and LICENSING_ERROR are supported.</li><li>SmarTest 6.5.2: SmarTest initialization warnings and errors, Test program execution warnings and
+					errors and Verigy Generic Prober/Handler driver errors and warnings are
+					supported.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 124157</span><script type="text/javascript">var ti='124157';var tt='How to detect and report errors from running SmarTest with HVM API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

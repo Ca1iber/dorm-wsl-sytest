@@ -1,0 +1,136 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="An alarm setup file contains groups of limit setups for all the pins on which alarm checks are applied."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Alarm setup file</title></head><body id="_345140"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 345140</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Alarm setup file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="345144.htm" title="The parameters used in the alarm setup file can be divided into two categories: global parameters and local parameters.">Parameters in the alarm setup file</a></li><li><a href="345145.htm" title="Low and high limit values are determined by vForce or vClamp related values. For vForce, the decisive values are vForce, LimitRelForce, and LimitMinDisForce. For vClamp, the decisive values are vClampLo, vClampHi, and LimitRelClamp.">Limit setup of alarm checking</a></li></ol></div></nav>
+	
+	
+	<div><p>An alarm setup file contains groups of limit setups for all the pins on which alarm
+		checks are applied.</p>
+		<section class="section">
+			<p>The alarm setup file must be stored in the root path or a sub-folder of the loaded
+				device. We recommend using folder <span class="filepath">testmethod</span> of the loaded
+				device.</p>
+			<p>The path to the alarm setup must be defined by keyword <a href="146692.htm#_146692__row_ALARM_HANDLING_DCVI_SETUP_FILE">ALARM_HANDLING_DCVI_SETUP_FILE</a> of the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>.</p>
+		</section>
+		<section class="section"><h2>Alarm setup file format</h2>
+			
+			<p>In an alarm setup file, a group of setups is called a <span class="keyword">SET</span>. Each
+					<span class="keyword">SET</span> has a name and contains pins to be checked, global limit parameters, and
+				local limit parameters.</p>
+			<p>An example of the file format: </p>
+			<div></div><pre class="prettyprint linenums copyable">SET setName # Set name
+GlobalLimit... = # Global limit parameter
+GlobalLimit... = 
+PINS pinName pinName # A pin name or several pin names
+Limit... =  # Local limit parameter
+Limit... =</pre><div></div>
+			<div class="p">
+				<ul>
+					<li><span class="keyword">SET</span>: Specify a set name. The SET name can be any string but
+							<span class="keyword">DEFAULT</span> is reserved for default setups.</li>
+					<li><span class="keyword">GlobalLimit...</span>: Represent a global limit parameter.</li>
+					<li><span class="keyword">PINS</span>: Specify a DCVI pin group or pins on which alarm checks are
+						applied. </li>
+					<li><span class="keyword">Limit...</span>: Represent a local limit parameter.</li>
+				</ul>
+			</div>
+			<div class="p">Pay attention to the following points: <ul>
+					<li>Alarm checks are done only for the pins listed in the active SET.</li>
+					<li>If <span class="keyword">LimitLo</span> and <span class="keyword">LimitHi</span> are defined in the file, their
+						values are applied for vClamp/vForce in alarm checking. The values of other specified
+						parameters will be ignored, such as <span class="keyword">GlobalLimitRelForce</span>,
+							<span class="keyword">LimitRelForce</span>, <span class="keyword">GlobalLimitRelClamp</span>, and
+							<span class="keyword">LimitMinRelClamp</span>.</li>
+					<li>If there is no <span class="keyword">GlobalLimitRelForce</span> or <span class="keyword">LimitRelForce</span>
+						specified in the file, the value of <span class="keyword">GlobalLimitMinDisForce</span> or
+							<span class="keyword">LimitMinDisForce</span> is applied for <span class="keyword">vForce</span> checks.</li>
+					<li>If there is no <span class="keyword">GlobalLimitMinDisForce</span> or
+							<span class="keyword">LimitMinDisForce</span>, an error is thrown in the first run. </li>
+					<li>If there is no <span class="keyword">GlobalLimitRelClamp</span> or
+							<span class="keyword">LimitMinRelClamp</span>, the <span class="keyword">vClamp</span> values are used as limits
+						for <span class="keyword">vClamp</span> checks.</li>
+				</ul></div>
+		</section>
+		<section class="section"><h2>Alarm setup template</h2>
+			
+			<p>An alarm setup template file will be generated when the alarm handling is enabled by
+					<span class="keyword">ALARM_HANDLING_DCVI_ENABLE = TRUE</span> in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure
+					file</a>. Based on the template, you can create your own alarm setup file.</p>
+		</section>
+		<section class="section" id="_345140__debug_value"><h2>Debug value in the UI report window</h2><p>You can set
+					<code>DEBUG_VALUE = TRUE</code> in the alarm setup file to enable all the results of vMeas
+				events displayed in the report window. For example, some alarm DC results in the report window
+				are displayed as follows: </p><samp class="sysout">ID: id1, pin A = 0.5, pin B = 1.0, pin C =
+				2.0</samp><p><samp class="sysout">ID: id2, pin A = 0.5, pin B = 1.1, pin C =
+				2.0</samp></p><p><samp class="sysout">ID: id3, pin A = 0.6, pin B = 1.0, pin C =
+					2.1</samp></p><p>The default value of <span class="keyword">DEBUG_VALUE</span> is
+					<span class="keyword">FALSE</span>, which means that no results of vMeas events will be displayed.
+				</p><p>If set in the alarm setup file, <span class="keyword">DEBUG_VALUE</span> must be the first setup
+				entry in the file.</p><p>Starting from 7.5.2, SmartRDI provides more information in the UI
+				report window for debugging when the <span class="keyword">DEBUG_VALUE</span> is enabled. See the example
+				below.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Example 1 </h3>
+			
+			<p>An alarm setup file </p>
+			<div></div><pre class="prettyprint linenums copyable">DEBUG_VALUE = TRUE  # This must be the first setup entry in the file.
+
+SET DEFAULT  # Applied by default
+    GlobalLimitRelForce = 10%
+    GlobalLimitMinDisForce = 10 mV
+    GlobalLimitRelClamp = 10 mV
+
+    PINS UB_AVI VDD_AVI VDD_PVI
+    # No local limit value defined means that global values are applied.
+
+SET A1
+    # Alarm checks on VDD_AVI are skipped.
+
+    PINS UB_AVI
+    LimitRelForce = 10%
+    LimitMinDisForce = 5 mV
+    # Used for vForce checks.
+    # vClamp settings are used for vClamp checks.
+ 
+    PINS VDD_PVI
+    GlobalLimitRelForce = 10% #
+    GlobalLimitMinDisForce = 10 mV
+    # Used for vForce checks.
+
+    LimitRelClamp = 100 mV
+    # Used for vClamp checks.
+
+SET A2
+    # Alarm checks on both VDD_AVI and VDD_PVI are skipped.
+
+    PINS UB_AVI 
+    LimitLo = 4.7  # default V
+    LimitHi = 5.3
+    # Used for both vForce and vClamp checks.
+...</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<p>DEBUG_VALUE setting allows more information shown in the UI report window</p>
+			<p>Starting from 7.5.2, SmartRDI provides more information in the UI report window when the
+					<span class="keyword">DEBUG_VALUE</span> is enabled in the alarm setup file.</p>
+			<p><samp class="sysout">burst:: _rdi_burst_AVI64_Alarm_handling_Test_bk2</samp></p>
+			<p><samp class="sysout">Alarm DC Result ::</samp></p>
+			<p><samp class="sysout">Site [1]</samp></p>
+			<p><samp class="sysout">ID:alarm_pass_fail_pin_AVI2_AVI4   , AVI2 = 3.00034, AVI4 = 2.00040 &lt;&lt; F
+					&lt;&lt; (2.80000,3.20000),</samp></p>
+			<p><samp class="sysout">ID:func_fail2                      , AVI2 = 2.999909, AVI4 = 2.00036 &lt;&lt; F
+					&lt;&lt; (2.80000,3.20000),</samp></p>
+			<p><samp class="sysout">=============================================</samp></p>
+			<p><samp class="sysout">Site [2]</samp></p>
+			<p><samp class="sysout">ID:alarm_pass_fail_pin_AVI2_AVI4   , AVI2 = 2.999226, AVI4 = 1.99909 &lt;&lt; F
+					&lt;&lt; (2.80000,3.20000),</samp></p>
+			<p><samp class="sysout">ID:func_fail2                      , AVI2 = 3.00074, AVI4 = 2.00028 &lt;&lt; F
+					&lt;&lt; (2.80000,3.20000),</samp></p>
+			<p><samp class="sysout">=============================================</samp></p>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="345144.htm" title="The parameters used in the alarm setup file can be divided into two categories: global parameters and local parameters.">Parameters in the alarm setup file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.5.0</li><li>SmartRDI 7.5.1: An alarm setup template file will be generated if the alarm handling is enabled
+					in the RDI_Configure file.</li><li>SmartRDI 7.5.1: A DEBUG_VALUE keyword in the alarm setup file to enable the display of voltage
+					measurement results in the UI report window.</li><li>SmartRDI 7.5.2: SmartRDI provides more information in the UI report window when the DEBUG_VALUE
+					is enabled.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 345140</span><script type="text/javascript">var ti='345140';var tt='Alarm setup file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

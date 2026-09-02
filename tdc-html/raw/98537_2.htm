@@ -1,0 +1,72 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DELV (DELete Vectors) command deletes a number of active vectors from the end of a sequencer construct. The instruction of the construct must be GENV (GENerate Vectors), RPTV (RePeaT Vectors), or MRPT (Match RePeaT)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DELV - (DELete Vectors)</title><meta name="keywords" content="DE, Lete"></head><body id="_98537"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98537</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DELV - (DELete Vectors)</h1>
+	
+	
+	<div><p>The <span class="keyword">DELV</span> (DELete Vectors) command deletes a number of active vectors
+		from the end of a sequencer construct. The instruction of the construct must be
+			<span class="keyword">GENV</span> (GENerate Vectors), <span class="keyword">RPTV</span> (RePeaT Vectors), or
+			<span class="keyword">MRPT</span> (Match RePeaT). </p>
+		<section class="section"><h2>Predependencies</h2><p><span class="keyword">DELV</span> can only be issued after the
+				label to which the sequencer construct belongs has been activated for editing with the
+					<span class="keyword">TSTL</span> command.</p></section>
+		<section class="section"><h2>Mode of operation</h2><p>The deletion is achieved by reducing the length of the
+				sequencer construct accordingly. This can have the effect that one or more complete memory units
+				become inactive. In this case, the inactive units are deleted, and the <span class="keyword">STVA</span>
+				instructions of the labels that use later segments of the respective vector area are updated
+				accordingly.</p><p>If
+				the number of vectors to be deleted equals the active vectors of the sequencer construct, the
+				instruction at <span class="keyword">cmd_No</span> is overwritten by a <span class="keyword">NOP</span> instruction.
+				See also <em><a href="96733.htm" title="The simplest method to delete an instruction is to use the DELI edit command. In the case of a vector generating instruction, however, using DELI will lead to similar difficulties as using INSI and SQPG for insertion: the following GENV and RPTV instructions of the label will refer to incorrect waveform DC/DC power units after the deletion because DELI leaves the vector areas as they are.">Deleting a sequencer instruction</a></em>.</p><p>This command also moves the comments so that they
+				are aligned to the correct vectors.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">DELV</span> {<span class="keyword">cmd_No</span>}, {<span class="keyword">vect_length</span>}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">cmd_No</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The command number which references the sequencer construct where vectors are to be
+									deleted. The instruction of the construct must be <span class="keyword">GENV</span> (GENerate
+									Vectors) or <span class="keyword">RPTV</span> (RePeaT Vectors)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">vect_length</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of active vectors to be deleted at the end of the referenced sequencer
+									construct. </p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Edit command in Pattern Tool.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if: </p><ul>
+				<li>You specify a negative vector length.</li>
+				<li>The sequencer construct is not of type <span class="keyword">GENV</span> or <span class="keyword">RPTV</span>. </li>
+				<li>You try to delete more vectors than the sequencer construct contains. </li>
+				<li>No label has been activated for editing. </li>
+				<li>The specified command number is out of range.</li>
+			</ul></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&gt; SQPG? ALL,(@)
+&lt; SQPG 0,STVA,504,,,(@)
+&lt; SQPG 1,STSA,,,,(@)
+&lt; SQPG 2,GENV,34,,,(@)
+&lt; SQPG 3,STOP,,,,(@)
+&lt; SQPG 4,STVA,544,,,(@)
+&lt; SQPG 5,STSA,,,,(@)
+&lt; SQPG 6,STOP,,,,(@)
+&gt; TSTL "test_1",(@)
+&gt; DELV 2,25
+&gt; SQPG? ALL,(@)
+&lt; SQPG 0,STVA,504,,,(@)
+&lt; SQPG 1,STSA,,,,(@)
+&lt; SQPG 2,GENV,9,,,(@)
+&lt; SQPG 3,STOP,,,,(@)
+&lt; SQPG 4,STVA,520,,,(@)
+&lt; SQPG 5,STSA,,,,(@)
+&lt; SQPG 6,STOP,,,,(@)</pre><p>This
+				example deletes 25 vectors from the end of the sequencer construct referenced by command number
+				2. Three memory words become inactive in the process and are deleted. The start address of the
+				following label (command line 4) is adjusted.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG, SQPG? - (SeQuencer ProGramming)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98537</span><script type="text/javascript">var ti='98537';var tt='DELV - (DELete Vectors)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="On the PS9G and PS1600 cards, you can execute a PRBS (Pseudo Random Bit Sequence) or a SmartLoop test (for background information see Commands for PRBS and SmartLoop tests). Each of these is triggered by a dedicated sequencer instruction. If a pattern (label) contains such an instruction the only other instructions that are allowed in it (except the obligatory STVA, STSA, and STOP instructions) are"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Instructions for PRBS and SmartLoop tests</title><meta name="keywords" content="loopback, Smart, Loop"></head><body id="_118334"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118334</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Instructions for PRBS and SmartLoop tests</h1>
+	
+	
+	<div><p>On the PS9G and PS1600 cards, you can execute a PRBS (Pseudo Random Bit Sequence) or a
+			SmartLoop™ test (for background information see <a href="118427.htm">Commands for PRBS and SmartLoop tests</a>). Each of these is triggered by a
+		dedicated sequencer instruction. If a pattern (label) contains such an instruction the only other
+		instructions that are allowed in it (except the obligatory <span class="keyword">STVA</span>,
+			<span class="keyword">STSA</span>, and <span class="keyword">STOP</span> instructions) are</p>
+		<ul>
+			<li><span class="keyword">BRKV</span><p>This instruction can be used to program an initial delay before a
+					PRBS test starts.</p></li>
+			<li><span class="keyword">TMUA</span><p>This instruction serves to arm the TMU per pin from within a
+					pattern. This allows you to execute a TMU measurement in parallel with a SmartLoop™ or PRBS test.</p>
+				<p>Note that <span class="keyword">TMUA</span> arms the TMU per pin on the port level, namely for the port
+					to which the pattern belongs. Therefore, a TMU configuration must be present for all port pins
+					in this case.</p></li>
+			<li><span class="keyword">LBGN</span> / <span class="keyword">LEND</span><p>This instruction can be used to repeat a
+					block containing a <span class="keyword">TMUA</span> instruction within a PRBS test (<em>not</em> a SmartLoop™ test).</p>
+				<div class="note"><span class="title">Note</span> The PRBS checker can only start and stop at a 32 cycle boundary. If the number
+					of break vectors at the start of the pattern is not a multiple of 32, the PRBS test checker
+					skips the received data up to the next multiple of 32.</div>
+			</li>
+		</ul>
+		<p>The instruction for a PRBS test is <span class="keyword">PRBS</span>. The number of cycles is specified
+			with <span class="keyword">param_1</span>. <span class="keyword">param_2</span> can also be specified. It will be
+			multiplied with <span class="keyword">param_1</span>. In this way, the maximum number of cycles you can
+			request is considerably increased.</p>
+		<p>The instruction for a SmartLoop™ test is
+				<span class="keyword">LPBK</span>. The number of cycles can be specified with <span class="keyword">param_1</span>.
+				<span class="keyword">param_2</span> can also be specified. It will be multiplied with
+				<span class="keyword">param_1</span>. If you omit both parameters, then the behavior of the SmartLoop™ test depends on whether ports without loopback
+			pins exist in the start label. If so, the SmartLoop™ test
+			will run until all ports without loopback pins have finished their test. If all pins are loopback
+			pins, the test will start, but stop at once.</p>
+		<p>You can trigger a TMU measurement with TMUA more than once in a PRBS or SmartLoop™ pattern. In this case, take care that <span class="keyword">LPBK</span>
+			is called without any parameters only as the last instruction before <span class="keyword">STOP</span>,
+			since any further instructions will be never be executed.</p>
+		<p>Since the waveforms for a PRBS test or a SmartLoop™
+			test are created internally, and the order in which they are applied is defined by the connection
+			polynomial (PRBS) or the received data (SmartLoop™), such
+			a test does not require a user defined sequence of waveform DC/DC power units. Therefore the vector area
+			address specified with the <span class="keyword">STVA</span> instruction is ignored in both PRBS and SmartLoop™ tests.</p>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>The following is the sequencer program of a PRBS test.
+				</p><pre class="prettyprint linenums copyable">&gt; SQPG? "prbs_test",(@)
+&lt; SQPG 0,STVA,0,,,(@)
+&lt; SQPG 1,STSA,,,,(@)
+&lt; SQPG 2,BRKV,200,0,,(@)
+&lt; SQPG 3,LBGN,100,,,(@)
+&lt; SQPG 4,TMUA,,,,(@)
+&lt; SQPG 5,PRBS,2147483647,4095,,(@)
+&lt; SQPG 6,LEND,,,,(@)
+&lt; SQPG 7,STOP,,,,(@)</pre><p>This
+				example combines a PRBS test with a TMU per pin measurement. Note that the
+					<span class="keyword">TMUA</span> instruction is included in a loop. Note also that the first parameter
+				of <span class="keyword">PRBS</span> is set to its maximum value 2<sup>31</sup> - 1, and that the number
+				of cycles is increased above this maximum by multiplication with the second parameter, which is
+				also set to its maximum value 2<sup>12</sup> - 1. </p></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">&gt; SQPG? "loopback_tmu",(@)
+&lt; SQPG 0,STVA,0,,,(@)
+&lt; SQPG 1,STSA,,,,(@)
+&lt; SQPG 2,LPBK,1000,1,,(@)
+&lt; SQPG 3,TMUA,,,,(@)
+&lt; SQPG 4,LPBK,500,1,,(@)
+&lt; SQPG 5,STOP,,,,(@)</pre><p>This
+				example combines a SmartLoop™ test with a TMU per pin
+				measurement.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li><li>SmarTest 7.1.3: New sequencer instruction TMUA for arming the TMU from a SmartLoop or PRBS
+					test.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118334</span><script type="text/javascript">var ti='118334';var tt='Instructions for PRBS and SmartLoop tests'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

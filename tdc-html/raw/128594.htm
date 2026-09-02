@@ -1,0 +1,101 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="With digital result emulation, a pattern block of a setup file defines failures within this pattern on the X-cycle level. The result emulation determines the x-mode of the pattern, that is, the number of X-cycles that make up one tester cycle, by looking up the base wavetable of this pattern. If a STATEMAP section is present in the wavetable, this STATEMAP section defines the ratio of X-cycles to tester cycles. If no STATEMAP section exists, this ratio is determined by an analysis of the device cycle names."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Processing a setup file for (digital) offline result emulation</title></head><body id="_128594"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 128594</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Processing a setup file for (digital) offline result emulation</h1>
+	
+	
+	<div><p>With digital result emulation, a pattern block of a setup file defines failures within
+		this pattern on the X-cycle level. The result emulation determines the x-mode of the pattern, that
+		is, the number of X-cycles that make up one tester cycle, by looking up the base wavetable of this
+		pattern. If a <span class="keyword">STATEMAP</span> section is present in the wavetable, this
+			<span class="keyword">STATEMAP</span> section defines the ratio of X-cycles to tester cycles. If no
+			<span class="keyword">STATEMAP</span> section exists, this ratio is determined by an analysis of the device
+		cycle names.</p>
+		
+		
+		<p>The offline result emulation associates every X-cycle within one tester cycle with one receive
+			edge. The result mode (which is set in the <span class="uicontrol">Result Configuration</span> window)
+			determines which edges are used. The failure injection requires that you request one bit codes in
+			the result configuration (<span class="uicontrol">P/F</span> of the <span class="uicontrol">Result Width</span>
+			group in the <span class="uicontrol">Result Mode</span> tab), and define the edges in the <span class="uicontrol">Edge
+				to Result Relation</span> sub-window, one edge per result (see the example below). The
+			edges that are associated with a failing X-cycle will be set to FAILED.</p>
+		
+		<div class="note"><span class="title">Note</span> The offline result emulation takes no account of the edges that are actually
+			used in the waveforms. These come into play only when the injected results are displayed in the
+			expanded mode of the Pattern Debug Tool. This can lead to a discrepancy between the failure
+			injection file and the actual results if the result mode is not defined according to the actual
+			waveform definitions.</div>
+		<h2>Examples</h2><div class="example"><h3>Setup
+				file</h3><pre class="prettyprint linenums copyable">&lt;offlineResultEmulation&gt;
+  &lt;pattern name="err_sim"&gt;
+    &lt;pin name="out"&gt;
+      &lt;fail xmode_cycle="0" to="2"/&gt;
+      &lt;fail xmode_cycle="6" to="7"/&gt;
+      &lt;fail xmode_cycle="17" to="23"/&gt;
+    &lt;/pin&gt;
+  &lt;/pattern&gt;
+&lt;/offlineResultEmulation&gt;</pre><p>Now
+				assume that the base wavetable of pattern <code>err_sim</code> looks as follows for pin
+					<code>out</code>:</p><pre class="prettyprint linenums copyable">...
+PINS out
+
+0  "r1:H  r2:L  r7:H  r8:L"  HLHL
+... </pre><p>Since
+				no <span class="keyword">STATEMAP</span> section is present, an X-mode of 4 is inferred from the device
+				cycle name. Thus, the X-cycle blocks 0-3, 4-7, 8-11, and so on, will each make each up one
+				tester cycle.</p><p>Since the edges <span class="keyword">r1</span>, <span class="keyword">r2</span>,
+					<span class="keyword">r7</span>, and <span class="keyword">r8</span> are used in the (only) waveform, the result
+				mode must be configured as follows:</p><div class="p"><figure class="fignone">
+					<img src="128711.png" alt="Result mode for error injection">
+				</figure></div><p>This will have the effect that, for example, X-cycles 0, 4, 8, ... in the failure
+				injection file are mapped to edge <span class="keyword">r1</span>, and X-cycles 3, 7, 11, ... to
+					<span class="keyword">r8</span>. Accordingly, for instance, edges <span class="keyword">r1</span>,
+					<span class="keyword">r2</span>, and <span class="keyword">r7</span> will be set to FAILED in tester cycle 0, and
+				edges <span class="keyword">r7</span> and <span class="keyword">r8</span> will be set to FAILED in tester cycle
+				1.</p><p>If the base wavetable of <code>err_sim</code> is also used as the primary
+				wavetable, these injected results will look in the Pattern Debug tool as follows:</p><div class="p"><figure class="fignone">
+					<img src="128595.png" alt="error injection for x8">
+				</figure></div><p>Here, the failing X-cycles correspond to the definitions of the failure injection
+				file.</p></div>
+		<div class="example"><h3>Selecting the correct edges in the result mode configuration</h3><p>In order to
+				illustrate the importance of the result mode configuration, we now define the result mode as
+				follows:</p><div class="p"><figure class="fignone">
+					<img src="128712.png" alt="Defining the result mode for error injection (2)">
+				</figure></div><p>Now, X-cycles 2, 6, 10, ... in the error injection file will be mapped to
+					<span class="keyword">r3</span> instead of <span class="keyword">r7</span>, and X-cycles 3, 7, 11, ... to
+					<span class="keyword">r4</span> instead of <span class="keyword">r8</span>. Accordingly, for instance, edges
+					<span class="keyword">r1</span>, <span class="keyword">r2</span>, and <span class="keyword">r3</span> will be set as FAILED
+				in tester cycle 0, and edges <span class="keyword">r3</span> and <span class="keyword">r4</span> will be set as
+				FAILED in tester cycle 1.</p><p>If again the base wavetable of <code>err_sim</code> is also
+				used as the primary wavetable, the Pattern Debug tool will display this as:</p><div class="p"><figure class="fignone">
+					<img src="128713.png" alt="error injection for x4 (2)">
+				</figure></div><p>Since edges <span class="keyword">r3</span> and <span class="keyword">r4</span> (which are set to
+				FAILED) do not occur in the waveform, and edges <span class="keyword">r7</span> and <span class="keyword">r8</span>
+				(which do occur in the waveform) are not set to FAILED, only X-cycles 0 and 1 of tester cycle 0
+				fail, and judging only from the <span class="uicontrol">SC</span> (State Character) column, tester cycle
+				1 even passes.</p></div>
+		<div class="example"><h3>Defining the result mode for an odd timing x-mode</h3><p>The possible result
+				granularities are 1, 2, 4, 6, and 8. If the x-mode of the base wavetable is not a power of 2,
+				select the smallest result granularity that is greater than the x-mode of the wavetable. Assume,
+				for example, that the same failure injection file is used as above, but that the only waveform
+				of the base wavetable for <code>err_sim</code> is
+				</p><pre class="prettyprint linenums copyable">...
+PINS out
+
+0  "r1:H  r2:L  r7:H"  HLH
+... </pre><p>Then the x-mode will
+				be 3, so that the X-cycle blocks 0-2, 3-5, 6-8, and so on, will each make each up one tester
+				cycle. If you set the result mode again to 4 one bit codes, and select again edges
+					<span class="keyword">r1</span>, <span class="keyword">r2</span>, <span class="keyword">r7</span>, and <span class="keyword">r8</span>
+				to be recorded, X-cycles 0, 3, 6, ... of the failure injection file will be mapped to edge
+					<span class="keyword">r1</span>, X-cycles 1, 4, 7, ... to edge <span class="keyword">r2</span>, and X-cycles 3, 7,
+				11, ... to edge <span class="keyword">r7</span>. If base and primary wavetable are identical, the result
+				will be as required, namely:</p><div class="p"><figure class="fignone">
+					<img src="130344.png" alt="error injection for x3">
+				</figure></div><p>Note however that you cannot select the edges to be recorded when the timing x-mode
+				is &gt; 4. In this case 6 or 8 results must be recorded per cycle, but even if you select only 6
+				results, it is always the first 6 edges that will be recorded.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="128892.htm" title="In the ORE setup file you can define:">Offline result emulation setup file</a></div><div><a href="128962.htm" title="This section contains examples for digital, parametric and analog offline result emulation.">Examples on how to use offline result emulation</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 128594</span><script type="text/javascript">var ti='128594';var tt='Processing a setup file for (digital) offline result emulation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

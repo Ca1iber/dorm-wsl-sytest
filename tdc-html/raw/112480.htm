@@ -1,0 +1,102 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A pin configuration can be organized as one single file, or different parts of the pin configuration can be stored in separate files. In the latter case, the respective pin configuration files can be merged through a master file which contains references to the individual files. The Setup Management Tool uses the master file to assemble the in configuration files."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Pin configuration master file</title><meta name="keywords" content="config masterfile pin config pinconfiguration"></head><body id="_112480"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 112480</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Pin configuration master file</h1>
+	
+	
+	<div><p>A pin configuration can be organized as one single file, or different parts of the pin
+		configuration can be stored in separate files. In the latter case, the respective pin
+		configuration files can be merged through a master file which contains references to the
+		individual files. The <a href="91306.htm" title="The Setup Management tool enables multiple users to work on different parts of the same setup component in parallel without interfering with each others work. It can be used for distributed setup development and debugging even if the individual users need access to the complete setup component, provided that they do not change the same part of it. The Setup Management tool can handle the following setup components:">Setup Management Tool</a> uses the master file to assemble the in configuration
+		files. </p>
+		<section class="section"><p>One of the individual pin configuration files is the "package file", which contains
+				the specification for the complete package. The other files are referred to as "alias files".
+				The pin names in the alias files are taken as pin aliases in the assembled file.</p><p>Splitting
+				the pin configuration into multiple individual files allows multiple users to work on the
+				configuration in parallel.</p><p>The Setup Management Tool verifies that the following
+				conditions are true for all files:</p><ul>
+				<li>The numbers of sites specified in different files are same.</li>
+				<li>All the channels in the alias files occur in the package file.</li>
+				<li>The contexts specified in different files are not same, except for the "DEFAULT"
+					context.</li>
+				<li>The channel must be defined as I/O in the package file to allow both I and O directions for
+					the different alias pins. If the channel is defined to be either only I or only O, then all
+					aliases must have the same specification. None of the aliases must have the opposite direction
+					or I/O.</li>
+			</ul><p>If any of the rules is violated, the assembly process is aborted and an error message is
+				generated.</p></section>
+		<div class="syntax"><h2>Header rows</h2><p>A pin configuration master file always begins with a header
+				row that must have this content:</p><pre class="prettyprint copyable singleline">hp93000,config_master_file,0.1</pre><p>The
+				second line specifies the tester file which is to be divided. It has the
+				format:</p><pre class="prettyprint copyable singleline"><span class="keyword">testerfile</span>: &lt;<span class="keyword">tester_file_name</span>&gt;</pre><p>It
+				specifies the tester setup file which is to be split.</p><p>The subsequent lines in the pin
+				configuration master file associate each part of the pin configuration with a subfile.</p><p>The
+				paths for the subfiles can be relative or absolute. The reference directory for relative paths
+				is the directory of the master file.</p><p>You can insert comments anywhere in the file. They
+				are identified by the hash (<kbd class="userinput">#</kbd>) character at the start of a
+			line.</p></div><div class="syntax"><h2>Format of entries</h2><p>The entry format for the parts is as
+				follows:</p><pre class="prettyprint linenums copyable"><span class="keyword">Package</span>: &lt;<span class="keyword">package_file_name.cfg</span>&gt;
+<span class="keyword">alias_set_name_1</span>: &lt;<span class="keyword">alias_file_name_1.cfg</span>&gt;
+...
+<span class="keyword">alias_set_name_X</span>: &lt;<span class="keyword">alias_file_name_X.cfg</span>&gt;</pre><p>The
+					<span class="keyword">Package</span> keyword refers to the package file. The pin names specified in this
+				file are all used in the assembled file. </p><p>The subsequent lines in the master file specify
+				that the alias set named with "<span class="keyword">alias_set_name_X</span>" is generated with the
+				information extracted from the file "<span class="keyword">alias_file_name_X.cfg</span>".</p></div>
+		
+		<h2>Examples</h2><div class="example"><h3>package.cfg</h3><p>The following example shows how the Setup Management Tool
+				assembles three pin configuration files according to the master file.</p><p>The file
+					<code>package.cfg</code> is the package file, and the other two files,
+					<code>TRANSIO.cfg</code> and <code>USB.cfg,</code> are the alias
+			files.</p><pre class="prettyprint linenums copyable">hp93000,config,0.1
+DFPN 10201,"",(Data_in_2)
+DFPN 10202,"",(Data_in_1)
+DFPN 10212,"",(Data_in_5)
+DFPN 10213,"",(Data_in_4)
+DFPN 10214,"",(Data_in_3)
+PSTE 1
+CONF OFF,F160,(Data_in_2,Data_in_1,Data_in_5,Data_in_4,Data_in_3)
+RDIV 0,(Data_in_2,Data_in_1,Data_in_5,Data_in_4,Data_in_3)
+NOOP "6.5.2",,,</pre></div>
+		<div class="example"><h3>transio_file.cfg</h3><pre class="prettyprint linenums copyable">hp93000,config,0.1
+DFPN 10202,"",(Data1)
+DFPN 10201,"",(Data2)
+PSTE 1
+CONF IO,F160,(Data1,Data2)
+RDIV 0,(Data1,Data2)
+NOOP "6.5.2",,,</pre></div>
+		<div class="example"><h3>usb_file.cfg
+				</h3><pre class="prettyprint linenums copyable">hp93000,config,0.1
+DFPN 10214,"",(Data3)
+DFPN 10213,"",(Data4)
+DFPN 10212,"",(Data5)
+PSTE 1
+CONF IO,F160,(Data3,Data4,Data5)
+RDIV 0,(Data3,Data4,Data5)
+NOOP "6.5.2",,,</pre><p>The
+				pin configuration master file is the
+				following:</p><pre class="prettyprint linenums copyable">hp93000,config_master_file,0.1
+testerfile:demo.cfg
+
+Package:package.cfg
+
+TRANSIO:transio_file.cfg
+USB:usb_file.cfg</pre><p>The
+				pin configuration file assembled from the above files looks like
+			this:</p><pre class="prettyprint linenums copyable">hp93000,config,0.1
+DFPN 10201,"",(Data_in_2)
+DFPN 10202,"",(Data_in_1)
+DFPN 10212,"",(Data_in_5)
+DFPN 10213,"",(Data_in_4)
+DFPN 10214,"",(Data_in_3)
+DFPR "TRANSIO","Data2",(Data_in_2)
+DFPR "TRANSIO","Data1",(Data_in_1)
+DFPR "USB","Data5",(Data_in_5)
+DFPR "USB","Data4",(Data_in_4)
+DFPR "USB","Data3",(Data_in_3)
+PSTE 1
+CONF OFF,F160,(Data_in_2,Data_in_1,Data_in_5,Data_in_4,Data_in_3)
+RDIV 0,(Data_in_2,Data_in_1,Data_in_5,Data_in_4,Data_in_3)
+NOOP "6.5.2",,,</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 112480</span><script type="text/javascript">var ti='112480';var tt='Pin configuration master file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

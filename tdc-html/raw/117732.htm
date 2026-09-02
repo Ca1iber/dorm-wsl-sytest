@@ -1,0 +1,167 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC event example: Threshold hysteresis test</title></head><body id="_117732"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117732</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC event example: Threshold hysteresis test</h1>
+	<div>
+		<section class="section"><h2>Setup
+			Function</h2><pre class="prettyprint linenums copyable">void threshold_hyst_dyn_setup()
+{
+  cout &lt;&lt; "threshold_hyst_dyn_setup_2()" &lt;&lt; endl;
+
+  ANALOG_WAVEFORM rampUpDown("rampUpAndDown");
+  rampUpDown.definition(TM::RAMP)
+            .min(2.5).max(3.5)
+            .direction(TM::POS)
+            .samples(11).periods(1);
+
+  ANALOG_WAVEFORM rampDown("rampDown");
+  rampDown.definition(TM::RAMP)
+          .min(2.5).max(3.5).
+           direction(TM::NEG)
+          .samples(11).periods(1);
+
+  rampUpDown.add(rampDown);
+
+  PUT_DEBUG("LM393_IN_NEG", "LM393_THRESHOLD_HYST", rampUpDown.getArray());
+
+  EVENT_WAVEFORM_VF eventRampUpDown("eventRampUpDown");
+  eventRampUpDown.vForce(rampUpDown)
+  eventRampUpDown.sampleVectorDistance(2000);
+  PATTERN_CONTROLLER pc;
+
+  pc.label("LM393_THRESHOLD_HYST")
+    .vecEvents("LM393_IN_NEG")
+    .insert(100, eventRampUpDown)
+    .setup();
+}</pre></section>
+		<section class="section"><h2>Execution
+			Function</h2><pre class="prettyprint linenums copyable">void threshold_hyst_dyn()
+{
+  ostringstream query;
+  FirmwareTask  task;
+  smatch        matches;
+
+  static const STRING testName("Threshold Hysteresis (new dynamic Version)");
+
+  INT logToReportWindow = 0;
+  GET_TESTFLOW_FLAG("debug_analog", &amp;logToReportWindow);
+
+  ON_FIRST_INVOCATION_BEGIN();
+    if ( logToReportWindow ) {
+      cout &lt;&lt; "Testing " &lt;&lt; testName &lt;&lt; "..." &lt;&lt; endl;
+    }
+
+    CONNECT();
+
+ 
+    // Store error map in RAM; not in the test processor.
+    task.eval("DCRT RAM,(@@)\n");
+
+    FUNCTIONAL_TEST();
+    Boolean passed = GET_FUNCTIONAL_RESULT("LM393_OUT");
+    if ( passed ) {
+      throw runtime_error("Functional test has passed (must always fail).");
+    }
+  ON_FIRST_INVOCATION_END();
+
+  task.eval("VALD? ERRM,(LM393_OUT)\n");
+  if (! task.matchLine("VALD CONS,ERRM,([0-9]+),([0-9]+),\\(LM393_OUT\\)", &amp;matches)) {
+    string line;
+    task.getLine(&amp;line);
+
+    ostringstream what;
+    what &lt;&lt; "Failed to read valid data range (bad firmware response: '"
+         &lt;&lt; line &lt;&lt; "')";
+    throw runtime_error(what.str());
+  }
+
+  int startCycle   = lexical_cast&lt;int&gt;(matches[1]);
+  int numberCycles = lexical_cast&lt;int&gt;(matches[2]);
+
+  query &lt;&lt; "ERMP? ERRM," &lt;&lt; startCycle &lt;&lt; "," &lt;&lt; numberCycles &lt;&lt; ",,(LM393_OUT)" &lt;&lt; endl;
+  task.eval(query);
+
+  string ermpData;
+  task.getData(&amp;ermpData);
+
+  if ( numberCycles != ermpData.length() * 8 ) {
+    throw runtime_error("Error map query returned wrong number of cycles.");
+  }
+
+  unsigned int firstTransition  = 0;
+  unsigned int secondTransition = 0;
+  findTransitionsInErrorMap(ermpData, firstTransition, secondTransition);
+
+  PATTERN_CONTROLLER pc; 
+  PATTERN&amp; pattern = pc.label("LM393_THRESHOLD_HYST");
+  DOUBLE riseThreshold = 0.0;
+  if (! pattern.getForceVoltage("LM393_IN_NEG", firstTransition, riseThreshold)) {
+    throw runtime_error("Could not determine rise threshold.");
+  }
+
+  DOUBLE fallThreshold = 0.0;
+  if (! pattern.getForceVoltage("LM393_IN_NEG", secondTransition, fallThreshold)) {
+    throw runtime_error("Could not determine fall threshold.");
+  }
+  
+  DOUBLE hysteresis = riseThreshold - fallThreshold;
+  
+  if ( logToReportWindow ) {
+    cout &lt;&lt; "Site: " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl &lt;&lt; endl;
+  }
+
+  judge_and_log_threshold_hyst(testName,
+                               riseThreshold, "riseThresholdLimit_V",
+                               fallThreshold, "fallThresholdLimit_V",
+                               hysteresis, "hysteresisLimit_V",
+                               logToReportWindow);
+}</pre></section>
+		<section class="section"><h2>Result Post Processing (Transition
+			Lookup)</h2><pre class="prettyprint linenums copyable">void findTransitionsInErrorMap(const string&amp; ermpData,
+                               unsigned int&amp; firstTransition,
+                               unsigned int&amp; secondTransition)
+{
+  enum SearchState { NoTransitionFound, FirstTransitionFound, SecondTransitionFound };
+
+  SearchState searchState = NoTransitionFound;
+
+  unsigned char c = ermpData[0];
+  bool previousCycleFailed = c &amp; 0x80;
+
+  firstTransition  = 0;
+  secondTransition = 0;
+
+  unsigned int numberCycles = ermpData.length() * 8;
+
+  for ( unsigned int currentCycle = 0;
+        searchState != SecondTransitionFound &amp;&amp; currentCycle &lt; numberCycles;
+        ++currentCycle )
+  {
+    unsigned char c = ermpData[currentCycle / 8];
+    unsigned char d = 0x80 &gt;&gt; (currentCycle % 8);
+    bool currentCycleFailed = c &amp; d;
+
+    switch ( searchState )
+    {
+    case NoTransitionFound :
+      if ( currentCycleFailed != previousCycleFailed )
+      {
+        firstTransition = currentCycle;
+        searchState = FirstTransitionFound;
+        previousCycleFailed = ! previousCycleFailed;
+      }
+      break;
+    case FirstTransitionFound :
+      if ( currentCycleFailed != previousCycleFailed )
+      {
+        secondTransition = currentCycle;
+        searchState = SecondTransitionFound;
+      }
+      break;
+    default :
+      assert(!"We should never get here.");
+    }
+  }
+}</pre></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117732</span><script type="text/javascript">var ti='117732';var tt='DC event example: Threshold hysteresis test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

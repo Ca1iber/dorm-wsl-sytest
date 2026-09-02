@@ -1,0 +1,485 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This is a general test method for performing DC measurements with the Pin PMU, DC Scale pin in PPMU mode and board ADC."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GeneralPMU</title><meta name="keywords" content="general PMU parametric measurement unit"></head><body id="_121965"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121965</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GeneralPMU</h1>
+	
+	
+	<div><p>
+		<span>This is a general test method for performing DC measurements with the
+			Pin PMU, DC Scale pin in PPMU mode and board ADC.</span></p>
+		<section class="section">
+			<p>You can force current to the DUT and measure the voltage, or you can force voltage to
+				the DUT and measure the current. The actual operating mode of the PMU is dependent
+				on the external load as well as the programmed parameters.</p><p>The PPMU clamp is ON during PPMU relay switching. When the PPMU relay is ON, the clamp
+			is turned OFF and kept OFF during the PPMU measurement. For details of clamp sequence, refer to
+				<a href="126701.htm" title="In addition to the clamp circuit in the Pin Scale channel board front end, the PPMU on the Pin Scale boards also has a voltage clamp circuit. This is to avoid unexpected spikes or overvoltage during the current force/voltage measurement.">PPMU voltage clamp on Pin Scale systems</a>.</p><p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p></section>
+		
+		<section class="section"><h2>Dependencies</h2><ul>
+				<li>Typically, the device should be kept in a stable condition by applying a
+					suitable waveform. </li>
+				<li>The direction of the current is specified by the sign of the forced value
+					(positive current flows into the DUT pin, negative current flows out of the DUT
+					pin).</li>
+			</ul><table><caption><span>Parameters of measuring with PPMU</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Use PPMU to do the measurement or not. Its value can be
+										<kbd class="userinput">YES</kbd> or <kbd class="userinput">NO</kbd>. The
+									following parameters in this table are only available when its
+									value is <kbd class="userinput">YES</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.pinlist</p>
+							</td>
+							<td class="colsep-1"><p>PinString</p>
+							</td>
+							<td class="colsep-1"><p>The list of pins or pin groups to be measured with PPMU. The
+									pins or pin groups are separated with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.forceMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The force mode. Its value can be:</p>
+								<p><kbd class="userinput">VOLT</kbd>: force voltage</p>
+								<p><kbd class="userinput">CURR</kbd>: force current</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.forceValue</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The value of voltage force in [mV] or current force in [uA].
+									Default is "3800".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.measureMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The measurement mode. Its value can be:</p>
+								<p><kbd class="userinput">PAR</kbd>: parallel test</p>
+								<p><kbd class="userinput">SER</kbd>: serial test</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.precharge</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Precharge before forcing current/voltage or not. It can
+									be:</p>
+								<p><kbd class="userinput">ON</kbd>: enable precharge</p>
+								<p><kbd class="userinput">OFF</kbd>: disable precharge</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.prechargeVoltage_mV</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The precharge voltage in [mV]. Default is "0.0".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.relaySwitchMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The relay switching mode. Its value can be:</p>
+								<p><kbd class="userinput">DEFAULT(BBM)</kbd>: open AC relay and PMU relay,
+									then open ac relay and close PMU relay in parallel.</p>
+								<p><kbd class="userinput">MBB</kbd>: close PPMU relay and then open AC
+									relay</p>
+								<p><kbd class="userinput">PARALLEL</kbd>: open AC relay and close PPMU
+									relay in parallel</p>
+								
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.settlingTime_ms</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The additional settling time to system in [ms]. Default is
+									"0".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.termination</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Use termination or not. Its value can be:</p>
+								<p><kbd class="userinput">ON</kbd>: use termination</p>
+								<p><kbd class="userinput">OFF</kbd>: do not use termination</p>
+								
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UsePPMU.testName</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The test names to be used as limit. You can:</p>
+								<ul>
+			<li id="_121965__d1417e22">Use the test names defined in the test table or testflow limits. Type in the test
+				names manually. Make sure these test names are in the <span class="uicontrol">Test name </span>column of
+				the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in <span class="uicontrol">Test Name</span> column
+				of Tests page of Flow Data Editor.</li>
+			<li id="_121965__d1417e33">Define new test names. After that you need to add the defined test names (limits) to
+				the test suite. (Refer to <a href="100677.htm">Adding a limit in the Properties view</a> and <a href="100357.htm">Adding a limit on the Tests page</a>.)</li>
+		</ul><p>To specify different settings for different pins or pin groups, separate them with
+			commas.</p>
+							</td>
+						</tr>
+					</tbody></table><table><caption><span>Parameters of measuring with DCScale pin in SIG mode</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Use DCScale pin in SIG mode to do the measurement or not. Its
+									value can be <kbd class="userinput">YES</kbd> or
+										<kbd class="userinput">NO</kbd>. The following parameters in this
+									table are only available when its value is
+										<kbd class="userinput">YES</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.pinlist</p>
+							</td>
+							<td class="colsep-1"><p>PinString</p>
+							</td>
+							<td class="colsep-1"><p>The list of pins or pin groups to be measured with DCScale pin
+									in SIG mode. separated with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.forceMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The force mode. Its value can be:</p>
+								<p><kbd class="userinput">VOLT</kbd>: force voltage</p>
+								<p><kbd class="userinput">CURR</kbd>: force current</p>
+								<p>Default is <kbd class="userinput">VOLT</kbd>.</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.forceValue</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The value of current force in [uA] or voltage force in [mV].
+									Default is "3800".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.measureMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The measurement mode. Its value can be:</p>
+								<p><kbd class="userinput">PAR</kbd>: parallel measurement</p>
+								<p><kbd class="userinput">SER</kbd>: serial measurement</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.clampValue</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The value of clamp current or clamp voltage. Unit for current
+									clamp is [uA] and unit for voltage clamp is [mV].</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.precharge</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Precharge before forcing voltage/current or not. Its value can
+									be:</p>
+								<p><kbd class="userinput">ON</kbd>: enable precharge</p>
+								<p><kbd class="userinput">OFF</kbd>: disable precharge</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.prechargeVoltage_mV</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The precharge voltage in [mV]. Default is "0.0".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseDcScaleSIG.relaySwitchMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Relay switching mode. Its value can be:</p>
+								<p><kbd class="userinput">NO</kbd>: no relay action</p>
+								<p><kbd class="userinput">NT</kbd>: only valid for DCScale pins in PMU
+									mode</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseSPMU.settlingTime_ms</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The additional settling time in [ms]. Default is "0".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseSPMU.testName</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The test names to be used as limit. You can:</p>
+								<ul>
+			<li id="_121965__d1417e22">Use the test names defined in the test table or testflow limits. Type in the test
+				names manually. Make sure these test names are in the <span class="uicontrol">Test name </span>column of
+				the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in <span class="uicontrol">Test Name</span> column
+				of Tests page of Flow Data Editor.</li>
+			<li id="_121965__d1417e33">Define new test names. After that you need to add the defined test names (limits) to
+				the test suite. (Refer to <a href="100677.htm">Adding a limit in the Properties view</a> and <a href="100357.htm">Adding a limit on the Tests page</a>.)</li>
+		</ul><p>To specify different settings for different pins or pin groups, separate them with
+			commas.</p>
+							</td>
+						</tr>
+					</tbody></table><table><caption><span>Parameters of measuring with BoardADC</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseBoardADC</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Use Board ADC to do the measurement or not. Its value can be
+										<kbd class="userinput">YES</kbd> or <kbd class="userinput">NO</kbd>. The
+									following parameters in this table are only available when its
+									value is <kbd class="userinput">YES</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseBoardADC.pinlist</p>
+							</td>
+							<td class="colsep-1"><p>PinString</p>
+							</td>
+							<td class="colsep-1"><p>The list of pins or pin groups to be measured with board ADC.
+									The pins or pin groups are separated with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseBoardADC.relaySwitchMode</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Relay switching mode. Its value can be:</p>
+								<p><kbd class="userinput">NTBBM</kbd>: no termination, open AC relay and
+									then close PPMU relay</p>
+								<p><kbd class="userinput">NTMBB</kbd>: no termination, close PPMU relay
+									and then open AC relay</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseBoardADC.settlingTime_ms</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The additional settling time to system in [ms]. Default is
+									"0".</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseBoardADC.termination</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Measure with termination or not. Its value can be:</p>
+								<p><kbd class="userinput">ON</kbd>: use termination</p>
+								<p><kbd class="userinput">OFF</kbd>: do not use termination</p>
+								<p>To specify different settings for different pins or pin groups,
+									separate them with comma.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UseBoardADC.testName</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>The test names to be used as limit. You can:</p>
+								<ul>
+			<li id="_121965__d1417e22">Use the test names defined in the test table or testflow limits. Type in the test
+				names manually. Make sure these test names are in the <span class="uicontrol">Test name </span>column of
+				the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in <span class="uicontrol">Test Name</span> column
+				of Tests page of Flow Data Editor.</li>
+			<li id="_121965__d1417e33">Define new test names. After that you need to add the defined test names (limits) to
+				the test suite. (Refer to <a href="100677.htm">Adding a limit in the Properties view</a> and <a href="100357.htm">Adding a limit on the Tests page</a>.)</li>
+		</ul><p>To specify different settings for different pins or pin groups, separate them with
+			commas.</p>
+							</td>
+						</tr>
+					</tbody></table><table><caption><span>Common parameters for all instruments</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>testerState</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Tester state for the measurement. Its value can be:</p>
+								<p><kbd class="userinput">CONNECTED</kbd> - connects the test system
+									before executing the test method; if the test system is already
+									connected (connect flag set) the connect sequence is not
+									executed.</p>
+								<p><kbd class="userinput">DISCONNECTED</kbd> - disconnects the test system
+									before executing the test method if the test system is already
+									disconnected (connect flag not set) the disconnect sequence is
+									not executed.</p>
+								<p><kbd class="userinput">UNCHANGED</kbd> - leaves the test system state
+									(CONNECTED or DISCONNECTED) unchanged from its previous setting,
+									when the test is executed. This is the fastest option.</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>preFunction</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Execute the pattern to the specified vector/cycle or not. It
+									is only available when <span class="keyword">testerState</span> is
+										<kbd class="userinput">CONNECTED</kbd>. Its value can be:</p>
+								<p><kbd class="userinput">NO</kbd>: do not execute the functional test</p>
+								<p><kbd class="userinput">ALL</kbd>: execute the whole pattern</p>
+								<p><kbd class="userinput">ToStopVEC</kbd>: execute the pattern and stop at
+									the specified vector</p>
+								<p><kbd class="userinput">ToStopCYC</kbd>: execute the pattern and stop at
+									the specified cycle</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>stopVec</p>
+							</td>
+							<td class="colsep-1"><p>int</p>
+							</td>
+							<td class="colsep-1"><p>Number of vector to stop the pattern. It is only available
+									when preFunction is <kbd class="userinput">ToStopVEC</kbd>. It does
+									not support multi-port.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>stopCyc</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Number of cycle to stop the pattern. It is only available when
+									preFunction is <kbd class="userinput">ToStopVEC</kbd>. It supports
+									multi-port. For multi-port pattern, its value is in the format
+									of <kbd class="userinput">cycle_number@port_name</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>output</p>
+							</td>
+							<td class="colsep-1"><p>string</p>
+							</td>
+							<td class="colsep-1"><p>Controls how to output the per pin test result. It can be:</p>
+								<ul>
+									<li><kbd class="userinput">None</kbd>: Do not output the per pin result.</li>
+									<li><kbd class="userinput">ReportUI</kbd>: Output all the per pin result to the report
+				window.</li>
+								</ul><p><kbd class="userinput">ShowFailOnly</kbd>: Only outputs the failed
+									pin result to the report window.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Limits</h2><p>If you define new test names in the parameter
+					<span class="keyword">testName</span>, you need to add limits to the test suite with the
+				same test name. (Refer to <a href="100677.htm">Adding a limit in the Properties view</a> and <a href="100357.htm">Adding a limit on the Tests page</a>.)</p></section>
+		<section class="section"><h2>Implementation pseudo
+			code</h2><pre class="prettyprint linenums copyable">IF tester state is CONNECTED THEN
+  connect to DUT
+  execute a functional test to specified vector/cycle
+ELSEIF tester state is DISCONNECTED THEN
+  disconnect from DUT
+ELSEIF tester state is UNCHANGED THEN
+  keep tester state unchanged
+ENDIF
+IF PPMU current measurement THEN
+  setup PPMU current measurement conditions
+ENDIF
+IF PPMU voltage measurement THEN
+  setup PPMU voltage measurement conditions
+ENDIF
+IF SPMU current measurement THEN
+  setup SPMU current measurement conditions
+ENDIF
+IF SPMU voltage measurement THEN
+  setup SPMU voltage measurement conditions
+ENDIF
+IF DCScale SIG mode current measurement THEN
+  setup the measurement conditions
+ENDIF
+IF DCScale SIG mode voltage measurement THEN
+  setup the measurement conditions
+ENDIF
+IF BoardADC voltage measurement THEN
+  setup the measurement conditions
+ENDIF
+execute PPMU, SPMU, DCScale SIG pin and BoardADC measurement in parallel
+
+retrieve measurement results with PPMU, SPMU, DCScale SIG pin and BoardADC
+set sequencer state OFF
+Judge and log the test results</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is
+					supported in TML 2.1.1.</li><li>SmarTest 7.1.3:  Supports measuring the PS1600 high voltage pins with PPMU and board
+					ADC in TML 2.1.5.</li><li>SmarTest 7.2.1:  New option ShowFailOnly for the parameter output in TML
+					2.2.0.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121965</span><script type="text/javascript">var ti='121965';var tt='GeneralPMU'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

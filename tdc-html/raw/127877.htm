@@ -1,0 +1,193 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This tool is provided to generate the test summary in GDF format from data collection file or real-time event data stream. It is located in the directory /opt/hp93000/soc/formatter/bin."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>LotSummaryGenerator</title><meta name="keywords" content="Lot, Summary, Generator"></head><body id="_127877"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 127877</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">LotSummaryGenerator</h1>
+	
+	
+	<div><p>This tool is provided to generate the test summary in GDF format from data collection
+		file or real-time event data stream. It is located in the directory
+			/<span class="filepath">opt/hp93000/soc/formatter/bin</span>. </p>
+		<section class="section"><ul>
+				<li>Ofline data collection file<p>Provide an offline data collection file (EDL file) as input
+						when executing LotSummaryGenerator from the command line. LotSummaryGenerator will then
+						retrieve data from the file and generate the lot summary for all the test program and testflow
+						executions recorded in the file.</p></li>
+				<li>Real-time event stream<p>If you do not provide the data collection file when executing the
+						LotSummaryGenerator, it will try to attach to the current SmarTest session and generate the
+						lot summary file in real time. If there's no SmarTest running, error messages will be printed
+						and the LotSummaryGenerator exits. Make sure the system flag
+							<span class="uicontrol">log_events_enable</span> is set to <span class="uicontrol">on</span>. Otherwise, no
+						summary data will be generated.</p></li>
+			</ul><p>The application variable <span class="keyword">LOT_SUMMNARY_PATH_NAME,</span>
+				<span class="keyword">FORCE_SUMMARY_GENERATION_FOR_LEVEL</span> and <span class="keyword">
+					ENABLE_LOT_SUMMARY_GENERATOR</span> are defined for LotSummaryGenerator.
+					</p><p><span class="keyword">LOT_SUMMNARY_PATH_NAME</span> is used to specify the path and name of a
+				separate summary file for each level in the application model file or BLC program.
+					</p><p><span class="keyword">FORCE_SUMMARY_GENERATION_FOR_LEVEL</span> is used to generate the summary
+				file before the level loop is completed in application model and BLC
+					program.</p><p><span class="keyword">ENABLE_LOT_SUMMARY_GENERATOR</span> controls whether the
+				LotSummaryGenerator is enabled. If this variable exists in the application model file, the
+				LotSummaryGenerator will be started at the beginning of the application model execution. It will
+				be shut down after the application model is finished.</p><p>If you use BLC client instead of
+				application model file, you need to start and terminate the LotSummaryGenerator in the BLC
+				client. You can define the variable <span class="keyword">LOT_SUMMNARY_PATH_NAME</span> and <span class="keyword">
+					FORCE_SUMMARY_GENERATION_FOR_LEVEL</span> with SetApplicationVar API.</p><p>You can also
+				execute LotSummaryGenerator from the command line as below. The running of this tool will stop
+				automatically when the current SmarTest session is
+				terminated.</p><pre class="prettyprint copyable singleline">./LotSummaryGenerator [-d DataCollection] [-l logfile] [-o outputfile] [-v] [-m] [-h]</pre><p>All
+				the parameters are optional.</p><p><span class="keyword">-d DataCollection</span></p><p>Specify the path
+				and name of the offline EDL data collection file. If not specified, LotSummaryGenerator will try
+				to attach to the current SmarTest session. If successfully attached, it will receive real-time
+				events from SmarTest and generate the lot summary in GDF format. If no SmarTest is running,
+				LotSummaryGenerator will send out error messages and exit.</p><p><span class="keyword">-l
+				logFile</span></p><p>Specify the path and name of the log file. If not specified, the log
+				file <span class="filepath">LotSummaryGenerator.log</span> will be generated in the home directory of the
+				current user.</p><p><span class="keyword">-o outputfile</span></p><p>Specify the path and name of the
+				output lot summary file. If not specified, <span class="filepath">/tmp/LotSummary.output</span> is used
+				by default. If the specified file is already existing, the lot summary will be appended to this
+				file. Otherwise, a new file will be created. When appending the lot summary to the existing
+				file, the following line will be printed in the file as the
+				separator.</p><pre class="prettyprint copyable singleline">========Start Of New TestProgram "testprogram_name" at yyyymmdd hhmmss========</pre><p>where
+				"testprogram_name" is the name of the test program/testflow and "yyyymmdd hhmmss" is the time
+				stamp when the test program/testflow is started.</p><p><span class="keyword">-v</span></p><p>Disables the
+				effect of the application variable <span class="keyword">LOT_SUMMARY_PATH_NAME</span>. This is used when
+				you only want to generate the summary from offline data collection file to the output file
+				specified by <span class="keyword">-o</span>.</p><p><span class="keyword">-m</span></p><p>Disables the printing of
+				the test program separator above in the output summary
+				file.</p><p><span class="keyword">-h</span></p><p>Show the usage of LotSummaryGenerator and the
+				description to each parameter.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Executing the LotSummaryGenerator in the command line</h3><p>The following
+				example generates the lot summary for the specified data collection file. The output file is
+					<span class="filepath">/tmp/LotSummary.out</span>. The log file
+					<span class="filepath">LotSummrayGenerator.log</span> is generated under the home directory of the
+				current
+			user.</p><pre class="prettyprint copyable singleline">/opt/hp93000/soc/formatter/bin/LotSummaryGenerator -d /var/opt/hp93000/soc/tm/93k.iI3eAe/DataColltion.</pre></div>
+		<div class="example"><h3>Using LOT_SUMMNARY_PATH_NAME in the application
+			model</h3><pre class="prettyprint linenums copyable">...
+{ lot:
+         SCREEN_DIALOG
+             Lot_id  = DIALOG_INPUT    /REGEXP(string);
+
+        ACTIONS
+            LOT_SUMMARY_PATH_NAME = CONST_INPUT(/tmp/{Lot_id}.lotSum.gdf);
+}
+...</pre></div>
+		<div class="example"><h3>Using FORCE_SUMMARY_GENERATION_FOR_LEVEL in the application model</h3><p>In the
+				following example, the summary is generated at <code>point #1</code>. If
+				FORCE_SUMMARY_GENERATION_FOR_LEVEL is not used, the lot summary is generated at <code>point
+					#2</code>. Make sure to specify the current level name to FORCE_SUMMARY_GENERATION_FOR_LEVEL
+				and put the variable in the post actions section of the
+			level.</p><pre class="prettyprint linenums copyable">...
+{ lot:
+        ACTIONS
+              ...
+         {DEVICE device:
+                      {
+                               DEVICE_TEST
+                       }
+          }
+
+           ACTIONS
+                  FORCE_SUMMARY_GENERATION_FOR_LEVEL = CONST_INPUT(lot);  
+                   --point #1
+                   EXEC_INP_CALL(process_lot_summary_file);
+                  ...
+}   --point #2
+... </pre></div>
+		<div class="example"><h3>Using ENABLE_LOT_SUMMARY_GENERATOR in the application model</h3><p>In this
+				example, <span class="keyword">ENABLE_LOT_SUMMARY_GENERATOR</span> is used to enable the
+				LotSummaryGenerator. The LotSummaryGenerator will be started at the beginning of the application
+				model
+			execution.</p><pre class="prettyprint linenums copyable">...
+{ lot:
+      SCREEN_DIALOG
+          Lot_id  = DIALOG_INPUT    /REGEXP(string);
+      ACTIONS
+            ENABLE_LOT_SUMMARY_GENERATOR = CONST_INPUT(1);
+}
+...</pre></div>
+		<div class="example"><h3>Using LotSummaryGenerator with BLC
+			program</h3><pre class="prettyprint linenums copyable">//header file
+...
+using namespace std;
+using namespace xoc::hvmapi;
+pid_t LSGPid = 0;
+...
+//Define the function to start the LotSummaryGenerator
+void startLotSummaryGenerator()
+{
+  LSGPid = fork();
+
+  if(LSGPid == 0)
+  {
+      execl("/opt/hp93000/soc/formatter/bin/LotSummaryGenerator", 0);
+  }
+
+}
+
+//Define the function to terminate the LotSummaryGenerator
+void terminateLotSummaryGenerator()
+{
+  int childStatus;
+
+  if(LSGPid &gt; 0)
+  {
+    sleep(5);
+    kill(LSGPid, 9);
+    waitpid(LSGPid, &amp;childStatus, 0);
+  }
+}
+...
+int main(int argc, char* argv[])
+{
+  ParamList inputParam, outputParam;
+  Status  retVal;
+
+ /**********************
+  * Initialize the BLC *
+  **********************/
+  //check if there are input file provided
+  if(argc&lt;=1)
+  {
+    cout&lt;&lt;"Please sepecify a BLC input file!!!"&lt;&lt;endl;
+    cleanup();
+    exit(1);
+  }
+
+  startLotSummaryGenerator();
+  ...
+  /***********************
+  * Start the lot level *
+  ***********************/
+  inputParam.clear();
+  inputParam["LEVEL_TYPE"] = "CUSTOM_LEVEL";
+  inputParam["LEVEL_NAME"] = "lot";
+  retVal = syncCommand("StartLevel", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  for(int lotNum=1; lotNum&lt;=1; lotNum++)
+  { 
+    ...
+    //Add new variable LOT_SUMMARY_PATH_NAME for LotSummaryGenerator
+    inputParam.clear();
+    inputParam["VARIABLE_NAME"] = "LOT_SUMMARY_PATH_NAME";
+    inputParam["VARIABLE_VALUE"] = string("/tmp/")+lotID+string(".lotSum.gdf");
+    retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+    processStatus(retVal);
+    ...
+    //Add new variable FORCE_SUMMARY_GENERATION_FOR_LEVEL for LotSummaryGenerator
+    inputParam.clear();
+    inputParam["VARIABLE_NAME"] = "FORCE_SUMMARY_GENERATION_FOR_LEVEL";
+    inputParam["VARIABLE_VALUE"] = string("lot");
+    retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+    processStatus(retVal);
+  } //end of the lot level loop
+  terminateLotSummaryGenerator();
+  cleanup();
+  return 0;
+}</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.1.1:  Support the option -w waferIDVariable</li><li>SmarTest 7.1.1:  Add FF/TF/TT to the output file</li><li>SmarTest 7.1.1:  Start LotSummaryGenerator automatically when executing test
+					program/testflow</li><li>SmarTest 7.1.2:  New application variable LOT_SUMMNARY_PATH_NAME and
+					FORCE_SUMMARY_GENERATION_FOR_LEVEL</li><li>SmarTest 7.1.2:  Support generating lot summary for incomplete data collection
+					file</li><li>SmarTest 7.1.2:  Support using with BLC program</li><li>SmarTest 7.1.2:  Remove the option -w waferIDVariable</li><li>SmarTest 7.1.3:  New option -v </li><li>SmarTest 7.1.3:  New option -m</li><li>SmarTest 7.1.3:  New application variable ENABLE_LOT_SUMMARY_GENERATOR.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 127877</span><script type="text/javascript">var ti='127877';var tt='LotSummaryGenerator'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

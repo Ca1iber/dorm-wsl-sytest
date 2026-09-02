@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="MTL array carry some restrictions regarding their use in loops and changing their values."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Restrictions when using MTL arrays</title><meta name="keywords" content="ALPAD ALPADC"></head><body id="_130300"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 130300</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Restrictions when using MTL arrays</h1>
+	
+	
+	<div><p>MTL array carry some restrictions regarding their use in loops and changing their
+		values.</p>
+		
+		<p>These restrictions must be observed when using MTL arrays:</p>
+		<ul>
+			<li>Values cannot be assigned to arrays inside a loop, except when there are no other statements
+				inside the loop. See example 1, below, for correct use of a loop with an array and examples 2
+				and 3 for incorrect uses.</li>
+			<li>Inside loops, values of arrays cannot be assigned expressions that depend on variables
+				outside the loop. The only exceptions is that loop variables from outer loops can be assigned in
+				initialization loops (that is, loops that contain no other statements than assignments to array
+				elements).</li>
+			<li>Once arrays have been assigned to other variables or used as function arguments for the first
+				time, their values cannot be changed any
+				more.
+			</li>
+		</ul>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>Correct
+			use.</p><pre class="prettyprint linenums copyable">DataWords[2][2] = { {0,0},
+                    {0,0} };
+DataWordsTwo[2][2] = { {1,1},
+                       {1,1} };
+
+  for(j = 0; j &lt; 2; j+= 1)
+  {
+    for(i = 0; i &lt; 2; i+=1)
+    {
+      DataWords[j][i] = OtherDataWords[i];
+      DataWordsTwo[j][i] = OtherDataWords[i];
+    }
+  }</pre></div>
+		<div class="example"><h3>Example 2</h3><p>Incorrect
+			use.</p><pre class="prettyprint linenums copyable">DataWords[2][2] = { {0,0},
+                    {0,0} };
+var = 0;
+
+for(j = 0; j &lt; 2; j+= 1)
+  {
+  var+= 1;   // This statement changes a value other than the array.
+    for(i = 0; i &lt; 2; i+=1)
+    {
+      DataWords[j][i] = OtherDataWords[i]; 
+    }
+  }</pre></div>
+		<div class="example"><h3>Example 3</h3><p>Incorrect
+			use.</p><pre class="prettyprint linenums copyable">DataWords[2][2] = { {0,0},
+                    {0,0} };
+
+  for(j = 0; j &lt; 2; j+= 1)
+  {
+    for(i = 0; i &lt; 2; i+=1)
+    {
+      DataWords[j][i] = OtherDataWords[i];
+      read(0,0,0,0); // A device access is used in the same loop 
+                     // as the array assignment.
+    }
+  }</pre></div>
+		<div class="example"><h3>Example 4</h3><p>In this example, the last statement incorrectly tries to
+				assign values to an element of an array that has already been read (in the next-to-last
+				statement).</p><pre class="prettyprint linenums copyable">array[4];
+
+for(j = 0; j &lt; 4; j++)
+{
+  array[j] = 0; // null initialize
+}
+
+array[1] = 0xFF;      // Array values are set.
+deviceAccess(array);  // Array values are read.
+array[2] = 0xAA;      // Array values are set again: This
+                      // is not allowed.</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="130245.htm" title="Defining MTL arrays (either global arrays or non-global arrays) includes defining the array sizes and providing initial values for all array elements. They are defined in the APG program file (*.prog) with C-like syntax.">Defining MTL arrays</a></div><div><a href="130248.htm" title="The elements of an MTL array are accessed individually by array index which is made up of the array's name, and a series of indexes - one for each dimension of the array - to identify the element's location within the array.">Accessing elements of an MTL array</a></div><div><a href="130272.htm" title="MTL arrays can be passed to functions or device accesses through the function parameters, or the interface parameters of device accesses.">Passing MTL arrays to functions and device accesses</a></div><div><a href="130224.htm" title="Array in MTL is a C-like array.">Array in MTL</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.1.4</li><li>MTP 3.1.7: Remove the restriction of defining global arrays as constant tables without
+					allowing any changes during programs</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 130300</span><script type="text/javascript">var ti='130300';var tt='Restrictions when using MTL arrays'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

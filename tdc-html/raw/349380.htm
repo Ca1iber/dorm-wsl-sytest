@@ -1,0 +1,122 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="cont() can be used to link actions of different pins or work together with insertVec() and insertSub() in the dc() class, addVecRange() in the digCap() class, and smartVec() commands such as writeData(), readData(), writeBit(), and expectData() to simplify the programming of numerous measurements."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>cont()</title></head><body id="_349380"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 349380</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">cont()</h1>
+	
+	
+	<div><p>cont() can be used to link actions of different pins or work together with insertVec()
+		and insertSub() in the dc() class, addVecRange() in the digCap() class, and smartVec() commands
+		such as  writeData(), readData(), writeBit(), and expectData() to simplify the programming of
+		numerous measurements.</p>
+		<section class="section"><h2>Combining different pins' actions together</h2>
+			
+			<p>When <span class="keyword">cont()</span> is used to combine actions of different pins, it supports all
+				SmartRDI classes.</p>
+			<div class="p">For example, two pins are forced with current within an <span class="keyword">execute()</span> action,
+				the code snippet can be written as
+				follows:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").iForce(10 mA).cont();
+rdi.dc().pin("B").iForce(100 mA).cont();
+rdi.dc().execute();</pre></div>
+			<div class="p">The code snippet above is equal to
+				<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").iForce(10 mA)
+        .pin("B").iForce(100 mA)
+        .execute();</pre></div>
+			<div class="p">If an array is used to hold pins and parameters, write the code as follows:
+				<div></div><pre class="prettyprint linenums copyable">for (I = 0;I &lt; n;i++)
+    rdi.dc().pin(vpin[i]).iForce(iForce[i]).cont();
+    rdi.dc().execute();</pre></div>
+			<p>All the actions that are performed on a pin must be listed in one line.</p>
+		</section>
+		<section class="section"><h2>Working together with insertSub() and insertVec() in the dc() class</h2>
+			
+			<p><span class="keyword">cont()</span> supports <a href="148656.htm" title="Specifies a line number in a pattern where you want to apply dynamic DC measurement actions.">insertVec()</a> and <a href="150932.htm" title="This function inserts one or more subroutines with DC, PPMU or BADC actions into an existing pattern.">insertSub()</a> in the
+					<span class="keyword">dc()</span> class. It can separate actions of different vector numbers on a pin to
+				multiple command lines. Each insertion action with a vector number is listed as a command line
+				with <span class="keyword">cont()</span></p>
+			<div class="p">For <a href="148656.htm" title="Specifies a line number in a pattern where you want to apply dynamic DC measurement actions.">insertVec()</a>, inserting DC actions to a label without
+					<span class="keyword">cont()</span>:
+				<div></div><pre class="prettyprint linenums copyable">rdi.dc().label("sLabel").pin("A").insertVec(50).vForce(1)
+                                 .insertVec(100).vForce(2)
+                                 ....
+                                 .insertVec(1000).vForce(5)
+                                 .execute();</pre></div>
+			<div class="p">Using <span class="keyword">cont()</span> to list each action in a command
+				line:<div></div><pre class="prettyprint linenums copyable">rdi.dc().label("sLabel").pin("A").insertVec(50).vForce(1).cont();
+rdi.dc().label("sLabel").pin("A").insertVec(100).vForce(2).cont();
+...
+rdi.dc().label("sLabel").pin("A").insertVec(1000).vForce(5).cont();
+rdi.dc().execute();</pre></div>
+			<div class="p">For <a href="150932.htm" title="This function inserts one or more subroutines with DC, PPMU or BADC actions into an existing pattern.">insertSub()</a>, without <span class="keyword">cont()</span>, you have to list all the
+				subroutine insertion actions for the same pin as
+				follows:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc("meas").label("abc").insertSub(1).pin("pinA").vForce(0).iMeas()
+                             .insertSub(2).pin("pinA").vForce(0).iMeas()
+                             .insertSub(3).pin("pinA").vForce(0).iMeas()
+                             ....
+                             .insertSub(200).pin("pinA").vForce(0).iMeas()
+                             .execute();
+RDI_END();</pre></div>
+			<div class="p">Using <span class="keyword">cont()</span> to simplify the code snippet as follows:
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  for (i = 0; i &lt; 200; i++)
+      rdi.dc("meas").label("abc").insertSub(IddQVec[i]).pin("pinA").vForce(0).iMeas().cont();
+      rdi.dc("meas").execute();
+RDI_END();</pre></div>
+		</section>
+		<section class="section"><h2>Working together with addVecRange() in the digCap() class</h2>
+			
+			<p>For the <span class="keyword">digCap()</span> class, <span class="keyword">cont()</span> can be used together with
+					<a href="143797.htm" title="Specifies a vector range within which digital capture actions can be inserted.">addVecRange()</a>.</p>
+			<div class="p">Using <span class="keyword">cont()</span> together with <a href="143797.htm" title="Specifies a vector range within which digital capture actions can be inserted.">addVecRange()</a> for multiple capture
+				position
+				ranges:<div></div><pre class="prettyprint linenums copyable">rdi.digCap().pin("A").samples(100).cont();
+rdi.digCap().pin("A").addVecRange(3,6).cont();
+rdi.digCap().pin("A").addVecRange(10,20).cont();
+rdi.digCap().execute();</pre><div></div>The
+				code snippet above is equal to the following one without <span class="keyword">cont()</span>:
+				<div></div><pre class="prettyprint linenums copyable">rdi.digCap().pin("A").samples(100).addVecRange(3,6)
+                                  .addVecRange(10,20)
+                                  .execute();</pre></div>
+			<p>Adding a vector range from a parameter list: </p>
+			<div></div><pre class="prettyprint linenums copyable">rdi.digCap().pin("A").samples(100).cont();
+  for (i = 0; i &lt; listSize(); i++)
+      rdi.digCap().pin("A").addVecRange(beginVec[i],endVec[i]).cont();
+rdi.digCap().execute();</pre><div></div>
+		</section>
+		<section class="section"><h2>cont() usage in the smartVec() class</h2>
+			
+			<p>The <span class="keyword">smartVec()</span> class supports <span class="keyword">cont()</span> on the same pin. So
+					<span class="keyword">cont()</span> can be used to link actions of a pin in different command lines with
+				or without <a href="152250.htm" title="Specifies the name of a pattern‑based on which a copy of the pattern is to be generated.">label()</a>.</p>
+			<div class="p">
+				<span class="keyword">cont()</span> works together with <a href="149051.htm" title="Writes blocks of data to pattern.">writeData()</a> and <a href="149057.htm" title="Reads a specified length of data from a specified starting position. Usually, readData() is used together with getReadData(). The maximum length of bits that can be specified in readData() is 64.">readData()</a> as follows:
+				<div></div><pre class="prettyprint linenums copyable">rdi.smartVec("id").pin("A").writeData(0x01,8,0).cont();
+rdi.smartVec("id").pin("A").readData(8,10).cont();
+...
+rdi smartVec ("id").pin("A").writeData(0xff,8,90).cont();
+rdi smartVec ("id").pin("A").readData(8,100).cont();
+
+rdi smartVec ("id").execute();</pre></div>
+			<div class="p">The code snippet above is eual to the following one without
+				<span class="keyword">cont()</span>:<div></div><pre class="prettyprint linenums copyable">rdi.smartVec("id").pin("A").writeData(0x01,8,0)
+                           .readData(8,10)
+                           ....
+                           .writeData(0xff,8,90)
+                           .readData(8,100)
+                           .execute();</pre></div>
+			<p>With <span class="keyword">label()</span>: </p>
+			<div></div><pre class="prettyprint linenums copyable">rdi.smartVec().label("sLabel").pin("A").writeData(0x01,8,0).cont();
+rdi.smartVec().label("sLabel").pin("A").writeData(0x02,8,10).cont();
+...
+rdi.smartVec().label("sLabel").pin("A").writeData(0xff,8,100).cont();
+rdi.smartVec().execute();</pre><div></div>
+			<div class="p">The code snippet above is equal to the following one without <span class="keyword">cont()</span>:
+				<div></div><pre class="prettyprint linenums copyable">rdi.smartVec().label("sLabel").pin("A").writeData(0x01,8,0)
+                                       .writeData(0x02,8,10)
+                                       ....
+                                       .writeData(0xff,8,100)
+                                       .execute();</pre></div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149036.htm" title="The SmartRDI Vector class supports the generation of vector and patterns with simple commands. It provides an easy way to read digital outputs of a device.">SmartRDI: Vector and protocol programming</a></div><div><a href="148656.htm" title="Specifies a line number in a pattern where you want to apply dynamic DC measurement actions.">insertVec()</a></div><div><a href="150932.htm" title="This function inserts one or more subroutines with DC, PPMU or BADC actions into an existing pattern.">insertSub()</a></div><div><a href="143797.htm" title="Specifies a vector range within which digital capture actions can be inserted.">addVecRange()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.0</li><li>SmartRDI 2.4.3: cont() supports addVecRange().</li><li>SmartRDI 7.5.1: cont() supports insertVec().</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 349380</span><script type="text/javascript">var ti='349380';var tt='cont()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

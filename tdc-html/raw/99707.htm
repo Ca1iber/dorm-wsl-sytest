@@ -1,0 +1,93 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To display the x-modes in the Pattern Debug Tool, the wavetable contains the STATEMAP section. In this section the xN and x1/N modes are defined."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>STATEMAP section of the wavetable</title><meta name="keywords" content="wave table"></head><body id="_99707"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99707</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">STATEMAP section of the wavetable</h1>
+	
+	
+	<div><p>To display the x-modes in the Pattern Debug Tool, the wavetable contains the STATEMAP
+		section. In this section the xN and x1/N modes are defined.</p>
+		<p>Waveforms are consistently defined for both xN and x1/N modes.</p>
+		<h2>Examples</h2><div class="example"><h3>STATEMAP section with X1
+				waveforms</h3><pre class="prettyprint linenums copyable">WAVETBL mytable
+PINS io_pins
+0 "d1:0 r1:X" 0
+1 "d1:1 r1:X" 1
+2 "d1:Z r1:L" L
+3 "d1:Z r1:H" H
+4 "d1:Z r1:X" X
+brk ""
+STATEMAP
+#physSeq statechars x-mode selector
+0 0 x1
+1 1 x1
+2 L x1
+3 H x1
+4 X x1</pre><p>The
+				five STATEMAP lines of above example define X1 waveforms.</p><p>The second STATEMAP example
+				below defines xN and x1/N mode
+				waveforms.</p><pre class="prettyprint linenums copyable">WAVETBL mytable
+P1NS a11
+0 "{d:1:0 d2:0 r1:H} {d3:0 d4:0 r3:H} {d5:0 d6:0 r5:H}" drv0-3
+1 "{d1:1 d2:0 r1:H} {d3:1 d4:0 r3:H} {d5:1 d6:0 rS:H}" drv1-3
+2 "{d1:0 d2:0 r1:H} {d3:0 d4:0 r3:H} {d5:0 d6:0 r5:H} {d7:0 d8:0 r7:H}" drv0-4
+3 "{d1:1 d2:0 r1:H} {d3:1 d4:0 r3:H} {d5:1 d6:0 r5:H} {d7:1 d8:0 r7:H}" drv1-4
+4 "{d1:0 r1:H} {d2:0 r2:H} {d3:0 r3:H} {d4:0 r4:H} {d5:0 r5:H} {d6:0 r6:H} {d7:0 r7:H} {d8:0 r8:H}" drv0-8
+5 "{d1:1 r1:H} {d2:1 r2:H} {d3:1 r3:H} {d4:1 r4:H} {d5:1 r5:H} {d6:1 r6:H} {d7:1 r7:H} {d8:1 r8:H}" drv1-8
+6 "d1:FOO" drv0
+7 "d1:F10" drv1
+STATEMAP
+#physSeq statechars x-mode se1ector
+0 000 x3
+1 111 x3
+2 0000 x4
+3 1111 x4
+4 00000000 x8
+5 11111111 x8
+6,6,6,6 0 x1/4
+7,7,7,7 1 x1/4
+6{8} 0 x1/8
+7{8} 1 x1/8
+6{16} 0 x1/16
+7{16} 1 x1/16</pre><p>The
+				first six lines of above example STATEMAP section define xN waveforms and the last six lines
+				define x1/N waveforms.</p></div>
+		<div class="example"><h3>General</h3><p>The STATEMAP section is appended after the PINS statement
+				containing all waveform definitions. The STATEMAP ends when a new WAVETBL or PINS keyword is
+				found or at end-of-file (equation setup file). </p><p>Within a single WAVETBL several PINS and
+				corresponding waveform definitions may be defined. All edges belonging to the same X-waveform
+				are enclosed in {} braces (see also <a href="106829.htm" title="If no timing set change is executed within a label (pattern), the tester cycle length remains the same throughout the label. But even then it is possible to accelerate or slow down the test execution from the standpoint of the DUT. Acceleration is realized with tester waveforms that comprise the actions of several DUT waveforms (x-mode), a slowdown with tester waveforms that contain only a part of the actions belonging to one DUT waveform and which must be combined in a certain order to produce one slow DUT waveform (fractional x-mode). Both acceleration and slowdown can be realized within the same label. It is also possible to use different (integer or fractional) x-modes for different pins.">Representing a pattern in device orientation</a>). The STATEMAP may also be defined
+				per PINS statement.</p></div>
+		<div class="example"><h3>physSeq</h3><p>Defines the sequence of physical waveforms. Each value of the
+				physSeq column references an existing physical waveform defined in the PINS section. Similarly,
+				each waveform defined in the PINS section must be represented at least once in the STATEMAP
+				section. That is full consistency between the waveforms defined in the PINS section and the
+				STATEMAP section.</p><p>The physSeq specifications must match the x-mode as follows:</p><ul>
+				<li>xN-mode: one hex number</li>
+				<li>x1/N-mode: N hex numbers, comma separated, N ≤ 1024</li>
+			</ul><p>When defining x1/N-mode, you can use the following syntax:</p><ul>
+				<li>Wildcard string *<p>Example 1: when defining x1/4-mode: 0,A*,2 represents 0,A,A,2</p>
+					<p>Example 2: when defining x1/16-mode: 2*,F,3 represents 2,2,2,2,2,2,2,2,2,2,2,2,2,2,F,3</p></li>
+				<li>Repetition factor in curly braces {n}<p>Example: when defining x1/16-mode: 2{14},F,3
+						represents 2,2,2,2,2,2,2,2,2,2,2,2,2,2,F,3</p></li>
+			</ul></div>
+		<div class="example"><h3>statechars</h3><p>Defines the state characters displayed in the Pattern Editor.
+				The Pattern Editor and the Configure Layout dialog list state characters (statechars) as SC. The
+				state characters consist of the characters [a-z][A-Z][0][1]. The length is: </p><ul>
+				<li>always one character for x1/N-mode and</li>
+				<li>N characters for xN-mode. </li>
+			</ul><p>Examples: </p><ul>
+				<li>when defining x1/8 mode: 0</li>
+				<li>when defining x8-mode: 00000000</li>
+			</ul></div>
+		<div class="example"><h3>x-mode</h3><p>Defines the x-mode. The maximum values are:</p><ul>
+				<li>for xN-mode: x8</li>
+				<li>for 1/N-mode: x1/1024.</li>
+			</ul></div>
+		<div class="example"><h3>selector</h3><p>The selector is optional and not used in these examples.
+				</p><p>It allows to assign the same state character to different tester waveforms (waveform
+				sequences) with the same x-mode. In this case the two waveforms (waveform sequences) are
+				uniquely identified by the selector. This is required for a unique translation of state
+				characters to indexes and vice versa. </p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="100339.htm" title="This topic explains the usage of the xN-mode on the basis of an example.">xN-mode example</a></div><div><a href="100340.htm" title="This topic explains the usage of the x1/N-mode on the basis of an example.">x1/N-mode example</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99707</span><script type="text/javascript">var ti='99707';var tt='STATEMAP section of the wavetable'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In most applications, users will not need to call the DSP_RF_NORMALIZE() function, because normalization (if it is needed) is performed automatically by the DSP_RF_ACLR() function. The DSP_RF_NORMALIZE() function is provided for the benefit of users who wish to create their own custom ACLR functions within a TestMethod, and therefore need direct access to a normalization function."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_RF_NORMALIZE()</title></head><body id="_92959"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 92959</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_RF_NORMALIZE()</h1>
+	
+	
+	<div><p>In most applications, users will not need to call the
+			<kbd class="userinput">DSP_RF_NORMALIZE()</kbd> function, because normalization (if it is needed) is
+		performed automatically by the <kbd class="userinput">DSP_RF_ACLR()</kbd> function. The
+			<kbd class="userinput">DSP_RF_NORMALIZE()</kbd> function is provided for the benefit of users who wish
+		to create their own custom ACLR functions within a TestMethod, and therefore need direct access to
+		a normalization function.</p>
+		<section class="section"><p>Normalization is the process of correcting for differences in measured power which
+				occur when two measurements have different bandwidths. If power measurements at a carrier
+				frequency and an offset channel frequency do not have the same bandwidth, you can use the
+					<kbd class="userinput">DSP_RF_NORMALIZE</kbd> function to calculate a normalization factor (which can
+				then be used to compensate for the bandwidth difference, so that the two measurements can be
+				compared).</p><p>The <kbd class="userinput">DSP_RF_NORMALIZE()</kbd> function uses this
+				formula:</p><pre class="prettyprint copyable singleline">10.0*log10(toBW/fromBW)</pre><p>where <kbd class="userinput">fromBW
+				</kbd>is typically the bandwidth of the carrier measurement and <kbd class="userinput">toBW
+				</kbd>is typically the bandwidth of an offset channel measurement.</p><p>This API is
+				defined in the header file
+				<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_RF_NORMALIZE(const DOUBLE    fromBW,
+                 const DOUBLE    toBW,
+                 DOUBLE        * normFactor);</pre><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_92959__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1" id="_92959__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_92959__entry__3"><p>Notes</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_92959__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_92959__entry__2"><p><kbd class="userinput">fromBW</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_92959__entry__3"><p>Bandwidth of the measurement that is being normalized (typically, the bandwidth of
+									the carrier measurement).</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_92959__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_92959__entry__2"><p><kbd class="userinput">toBW</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_92959__entry__3"><p>Bandwidth of the measurement to which the <kbd class="userinput">fromBW </kbd>measurement
+									is being normalized (typically, the bandwidth of the offset measurement).</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_92959__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1" headers="_92959__entry__2"><p><kbd class="userinput">normFactor</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_92959__entry__3"><p>The normalization factor (in dB) which must be subtracted from the difference
+									between the two power measurements to compensate for the difference in bandwidth.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>How the function is used</h2><p>Given a carrier bandwidth of 1.23 MHz and a
+				channel bandwidth of 30 kHz, the normalization factor will be calculated
+				as:</p><p>10.0*log10(0.03e6/1.23e6) = -16.1</p><p>This normalization factor can be used in
+				calculating channel power relative to carrier power:</p><ul>
+				<li>Channel_dBc = Channel_dBm - Carrier_dBm - normFactor</li>
+				<li>Channel_dBm = -80</li>
+				<li>Carrier_dBm = -10</li>
+				<li>normFactor = -16.1</li>
+				<li>Channel_dBc: (-80) - (-10) - (-16.1) = -53.9 dBc</li>
+			</ul></div>
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">ARRAY_D measParams = MEAS_DEF().getParameters(TM::RF_MEAS_ACLR,0);
+DOUBLE fromBW = measParams[TM::ACLR_CARRIER_BW];
+DOUBLE toBW = measParams[TM::ACLR_CHANNEL_BW];
+DOUBLE normFactor = 0;
+DSP_RF_NORMALIZE(fromBW, toBW, normFactor);</pre></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 92959</span><script type="text/javascript">var ti='92959';var tt='DSP_RF_NORMALIZE()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

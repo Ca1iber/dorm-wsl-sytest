@@ -1,0 +1,62 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When the individual pins have been fully defined, you may want to assemble groups of pins. This lets you perform any actions on all pins within the group with one statement. There are two types of pin groups, fixed groups and expression based groups."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining pin groups</title></head><body id="_10658"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 10658</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining pin groups</h1>
+	
+	
+	<div><p>When the individual pins have been fully defined, you may want to assemble groups of
+		pins. This lets you perform any actions on all pins within the group with one statement. There are
+		two types of pin groups, <em>fixed</em> groups and <em>expression based</em> groups. </p>
+		<p>Fixed groups are defined by specifying a list of pins. Expression based groups are built up
+			from existing pins or pin groups, or from a mixture of pins and pin groups, by basic set
+			operations. Fixed groups are called "fixed" because they do not depend on other groups, whereas
+			the expression based groups are automatically changed if one of the fixed groups from which they
+			are ultimately built up is changed.</p>
+		<p>Individual pins can be included in more than one group. For example, an io pin can be included
+			in both an input and in an output pin group. Pin groups are not supported for DPS pins and analog
+			pins. </p>
+		<section class="section"><h2>Fixed groups</h2><p>Fixed groups are defined with the <a href="98546.htm" title="The DFGP (DeFine GrouP) command defines a fixed group of digital pins. Pin groups can be used as though they were individual pins. The DFGP? query returns a list of the pins and pin types in the named group.">DFGP</a> command. Every fixed pin group has a type. The following types are supported for
+				fixed groups:</p><ul>
+				<li><span class="keyword">I</span>: input group </li>
+				<li><span class="keyword">O</span>: output group </li>
+				<li><span class="keyword">DC</span>: DC measurement pins</li>
+				<li><span class="keyword">X</span>: pins of any type </li>
+			</ul><p>An <span class="keyword">I</span> group is expected to contain only i or io pins, an
+					<span class="keyword">O</span> group should contain only io or o pins. However, <span class="keyword">DFGP</span>
+				performs no plausibility check with respect to the group type. You can add, for example, an
+				output pin (type o) to an input pin group (type I) without any objection from the firmware.
+				Internally, however, SmarTest proceeds as usual, and considers only the pins that fit the group
+				type in any action on the group. </p></section>
+		<section class="section"><h2>Expression based groups</h2><p>Expression based groups are defined with the
+					<a href="98544.htm" title="The DFGE (DeFine Group Expressions) command defines an expression based group. Pin groups can be used as though they were individual pins. The DFGE? query returns the group type and group expression of the named group.">DFGE</a> command. As with fixed pin groups, every expression based
+				group has a type. The following types are supported for expression based groups:</p><ul>
+				<li><span class="keyword">I</span>: input group </li>
+				<li><span class="keyword">O</span>: output group</li>
+				<li><span class="keyword">IO</span>: bidirectional pins </li>
+				<li><span class="keyword">DC</span>: DC measurement pins</li>
+			</ul><p>The above remarks about plausibility checks for and processing of heterogeneous pin
+				groups also hold for pin groups defined with <span class="keyword">DFGE.</span>
+			</p><p>The format of the expression can be inductively defined as follows:</p><ol>
+				<li>A pin name or pin group name is a legitimate expression.</li>
+				<li>If <span class="keyword">ex1</span> and <span class="keyword">ex2</span> are legitimate expressions, then
+						<span class="keyword">ex1</span> + <span class="keyword">ex2</span> (set union), <span class="keyword">ex1</span> *
+						<span class="keyword">ex2</span> (set intersection), and <span class="keyword">ex1</span> - <span class="keyword">ex2</span>
+					(set difference) are also legitimate expressions.</li>
+			</ol><p>Note that if you want to inspect the member pins of an expression based pin group, you
+				must use <span class="keyword">DFGP?</span>, not <span class="keyword">DFGE?</span>. <span class="keyword">DFGE?</span> will
+				return the defining expression for the group.</p></section>
+		<section class="section"><h2>Deleting group definitions</h2><p>The <a href="98822.htm" title="The UDGP (UnDefine GrouP) command dismantles a group that has been previously defined by DFGP or DFGE.">UDGP</a> command
+				serves to delete both fixed and expression based group definitions.</p></section>
+		<h2>Example</h2><div class="example"><p>The following example contains both fixed and expression based pin group
+				definitions:</p><pre class="prettyprint linenums copyable">&gt; DFGP X,(SI1,SI2,SO1,SO2),(SCAN)
+&gt; DFGP O,(O1,SO1,SO2),(OUT)
+&gt; DFGE O,"SCAN * OUT",(SCAN_OUT)
+&gt; DFGE? (SCAN_OUT)
+&lt; DFGE O,"SCAN * OUT",(SCAN_OUT)
+&gt; DFGP? (SCAN_OUT)
+&lt; DFGP O,(SO1,SO2),(SCAN_OUT)</pre><p>The
+					<span class="keyword">DFGE</span> command defines <kbd class="userinput">SCAN_OUT</kbd> as the intersection of
+					<kbd class="userinput">SCAN</kbd> and <kbd class="userinput">OUT</kbd>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98546.htm" title="The DFGP (DeFine GrouP) command defines a fixed group of digital pins. Pin groups can be used as though they were individual pins. The DFGP? query returns a list of the pins and pin types in the named group.">DFGP, DFGP? - (DeFine GrouP)</a></div><div><a href="98544.htm" title="The DFGE (DeFine Group Expressions) command defines an expression based group. Pin groups can be used as though they were individual pins. The DFGE? query returns the group type and group expression of the named group.">DFGE, DFGE? - (DeFine Group by Expressions)</a></div><div><a href="98822.htm" title="The UDGP (UnDefine GrouP) command dismantles a group that has been previously defined by DFGP or DFGE.">UDGP - (UnDefine GrouP)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 10658</span><script type="text/javascript">var ti='10658';var tt='Defining pin groups'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

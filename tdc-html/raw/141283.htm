@@ -1,0 +1,158 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DPS_AUX_TASK class controls the surge tracker and the TMU (Time Measure Unit) of DC Scale cards."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DPS_AUX_TASK</title></head><body id="_141283"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 141283</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DPS_AUX_TASK</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="141284.htm" title="The DPS_AUX_PIN_TASK class is a subsidiary data container of the DPS_AUX_TASK API.">DPS_AUX_PIN_TASK</a></li><li><a href="141290.htm" title="The DPS_AUX_TASK.execute() member function calls the DPS_AUX_TASK.setup() member function if the measurement conditions have not downloaded to the firmware layer yet.">DPS_AUX_TASK.execute()</a></li><li><a href="141288.htm" title="The pin() member function instances a DPS_AUX_PIN_TASK to each pin in the list.">DPS_AUX_TASK.pin()</a></li><li><a href="141289.htm" title="The DPS_AUX_TASK.setup() member function allows to program and configure the surge tracker comparator pair or the TMU (Time Measure Unit) comparator pair of DC Scale cards.">DPS_AUX_TASK.setup()</a></li><li><a href="141291.htm" title="The DPS_AUX_TASK.getSurgeTrackerStatus() member function retrieves the status of the surge tracker from the test method cache. The surge tracker of the DC Scale cards monitors the voltage via sense lines or monitors the output current of the channels.">DPS_AUX_TASK.getSurgeTrackerStatus()</a></li><li><a href="150053.htm" title="The DPS_AUX_TASK class features several member functions for reading the accumulated power supply status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode or in Digital I/O operating mode.">DPS power flags - get...() functions</a></li><li><a href="150054.htm" title="The DPS_AUX_TASK class features several member functions for reading the accumulated power supply status flags.">DPS status flags - get...() functions</a></li></ol></div></nav>
+	
+	
+	<div><p>The DPS_AUX_TASK class controls the surge tracker and the TMU (Time Measure Unit) of DC
+		Scale cards.</p>
+		<section class="section">Supported DC
+			Scale cards:<ul>
+				
+				<li>Surge tracker: <a href="140638.htm" title="The DPS128 and the DPS64 cards are members of the family of DC Scale power supplies and can reside in any I/O channel card slot.">DPS128/DPS64</a> and <a href="351111.htm" title="The XPS256 card features a surge tracker per channel that monitors the voltage between the high sense (PS#) and ground sense (GS#) pins or the output current of the PMU.">XPS256</a></li>
+				
+				<li>TMU (Time Measure Unit): Currently not supported by any card.</li>
+			</ul><p>The DPS_AUX_TASK can be added to <a href="29792.htm" title="The TASK_LIST class is a data container holding PPMU_SETTING, PPMU_RELAY, and PPMU_MEASURE tasks to be performed.">TASK_LIST</a> and work with other
+				TASK-type classes.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/DpsAuxTask.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">DPS_AUX_TASK();</pre><p>Creates an object of the DPS_AUX_TASK
+				class.</p><div class="note"><span class="title">Note</span> Do not create static objects of the class in the test method and do not
+			create test method member variables from this class.</div><p><strong>List of parameters</strong></p><p>There are no parameters.</p></div><div class="syntax"><h2>Return value</h2><p>The constructor has no return value.</p></div>
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			<p>The example below sets current thresholds, activates the surge tracker, checks the
+			status against the current thresholds, and retrieves the result.</p><pre class="prettyprint linenums copyable">DPS_AUX_TASK auxTask;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    //
+    // Set the current thresholds to -1 mA/1 mA and switch on surge tracker
+    //
+    auxTask.pin("dps1")
+        .selectISensorSetThresholds(-1 mA, 1 mA)
+        .setMode(TM::SURGE_TRACKER);
+
+    auxTask.execute();
+
+    auxTask.pin("dps1").checkSurgeTracker(TM::AGAINST_BOTH); 
+
+ON_FIRST_INVOCATION_END();
+
+//
+// Get the result of surge tracker
+//
+TM::SURGE_TRACKER_STATUS surgeTrackerStatus = auxTask.getSurgeTrackerStatus("dps1");
+
+switch (surgeTrackerStatus)
+{
+    case TM::SURGE_TRACKER_NONE_DETECTED:
+
+        cout &lt;&lt; "DPS_AUX_TASK::getSurgeTrackerStatus for pin dps1: SURGE_TRACKER_NONE_DETECTED" 
+             &lt;&lt; endl &lt;&lt; endl;
+
+        break;
+
+    case TM::SURGE_TRACKER_HIGH_DETECTED:
+
+        cout &lt;&lt; "DPS_AUX_TASK::getSurgeTrackerStatus for pin dps1: SURGE_TRACKER_HIGH_DETECTED" 
+             &lt;&lt; endl &lt;&lt; endl;
+
+        break;
+
+    case TM::SURGE_TRACKER_LOW_DETECTED:
+
+        cout &lt;&lt; "DPS_AUX_TASK::getSurgeTrackerStatus for pin dps1: SURGE_TRACKER_LOW_DETECTED" 
+             &lt;&lt; endl &lt;&lt; endl;
+
+        break;
+
+    case TM::SURGE_TRACKER_BOTH_DETECTED:
+
+        cout &lt;&lt; "DPS_AUX_TASK::getSurgeTrackerStatus for pin dps1: SURGE_TRACKER_BOTH_DETECTED" 
+             &lt;&lt; endl &lt;&lt; endl;
+
+        break;
+
+    default:
+
+        break;
+};</pre></div>
+		<div class="example"><h3>Example 2: Site‑specific thresholds for XPS256</h3>
+			
+			<p>The example activates both the voltage surge tracker and the current surge tracker of an <a href="350312.htm">XPS256</a> pin. Common thresholds are defined in the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block and replaced with
+				site‑specific thresholds in the <a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE</a>
+				loop.</p>
+			<p>To prevent <a href="141294.htm" title="The DPS_AUX_PIN_TASK.setMode() member function sets the surge tracker operating mode or selects the TMU (Time Measure Unit) comparator pair of DC Scale cards.">DPS_AUX_PIN_TASK.setMode()</a> from issuing a warning, this function is called only
+				outside the <span class="keyword">FOR_EACH_SITE</span> loop. <a href="141275.htm" title="Initializes an environment for SmartRDI.">RDI_INIT()</a> is used
+				at the very beginning as a prerequisite of the <a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a> code to be
+				implemented for the DUT test. The surge tracker results are read within another
+					<span class="keyword">FOR_EACH_SITE</span> loop to comply with requirements of
+				SmartRDI.</p>
+			<div></div><pre class="prettyprint linenums copyable">RDI_INIT();
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    DPS_AUX_TASK auxTask;
+
+    //
+    // Setup surge tracker
+    //
+    double vThresholdLow    = -0.5 V;
+    double vThresholdHigh   =  3.5 V;
+    double iThresholdLow    = -0.1 A;
+    double iThresholdHigh   =  0.4 A;
+
+    auxTask.pin("XPS256_PMU_1")
+        .setMode                    (TM::SURGE_TRACKER)
+        .selectVSensorSetThresholds (vThresholdLow, vThresholdHigh)
+        .selectISensorSetThresholds (iThresholdLow, iThresholdHigh);
+
+    FOR_EACH_SITE_BEGIN();
+    {
+        //
+        // Set site specific thresholds
+        //
+        ...
+        ...
+
+        //
+        // Apply site specific thresholds
+        //
+        auxTask.pin("XPS256_PMU_1")
+            .selectVSensorSetThresholds (vThresholdLow, vThresholdHigh)
+            .selectISensorSetThresholds (iThresholdLow, iThresholdHigh);
+    }
+    FOR_EACH_SITE_END();
+
+    auxTask.execute();
+
+    //
+    // Setup and execute the DUT test
+    //
+    ...
+    ...
+
+    //
+    // Check the state of the surge tracker for all sites
+    //
+    auxTask.pin("XPS256_PMU_1").checkSurgeTracker(TM::AGAINST_BOTH);
+
+    FOR_EACH_SITE_BEGIN();
+    {
+        TM::SURGE_TRACKER_STATUS statusVoltage, statusCurrent;
+
+        auxTask.getSurgeTrackerStatus("XPS256_PMU_1", statusVoltage, statusCurrent);
+
+        cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; ", Voltage surge tracker: " &lt;&lt; statusVoltage &lt;&lt; endl;
+        cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; ", Current surge tracker: " &lt;&lt; statusCurrent &lt;&lt; endl;
+    }
+    FOR_EACH_SITE_END();
+}
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="141284.htm" title="The DPS_AUX_PIN_TASK class is a subsidiary data container of the DPS_AUX_TASK API.">DPS_AUX_PIN_TASK</a></div><div><a href="29792.htm" title="The TASK_LIST class is a data container holding PPMU_SETTING, PPMU_RELAY, and PPMU_MEASURE tasks to be performed.">TASK_LIST</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.1</li><li>SmarTest 7.3.1: DC Scale PVI8 card added.</li><li>SmarTest 7.4.0: DC Scale AVI64 card added.</li><li>SmarTest 7.4.0: New member functions DPS_AUX_TASK.getBatteryFull().</li><li>SmarTest 7.4.0: New member functions
+					DPS_AUX_TASK.getPowerBudgetWarningAll().</li><li>SmarTest 7.4.0: New member functions DPS_AUX_TASK.getPowerBudgetWarning1(),
+					...Warning2(), and ...Warning3().</li><li>SmarTest 7.4.0: New member functions returning the
+					DPS_POWER_FLAG_STATUS.</li><li>SmarTest 7.5.0: DC Scale FVI16 card added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 141283</span><script type="text/javascript">var ti='141283';var tt='DPS_AUX_TASK'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

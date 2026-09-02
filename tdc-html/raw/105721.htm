@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To set up redundancy analysis, you specify the relevant details of the DUT, the execution options for the analysis, specific options for the algorithm, and the desired output format options."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up and performing a redundancy analysis</title></head><body id="_105721"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105721</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up and performing a redundancy analysis</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="106870.htm" title="The various files required for setting up and performing redundancy analysis (RA) have their own folder structure within the device directory.">Folder structure for redundancy analysis files</a></li><li><a href="125660.htm" title="Redundancy analysis can be performed on multiple test suites, either online or offline. Some specific considerations apply.">Redundancy analysis on multiple test suites</a></li><li><a href="149382.htm" title="This section describes the information about RA configuration files, wizard, and file generation tools.">Setting up RA configuration and file generation tool</a></li><li><a href="126318.htm" title="The RaServer is performing the redundancy analysis. You only can use it for offline analysis.">Using RaServer for offline analysis</a></li><li><a href="123515.htm" title="A bit fail data list file (.bfdl) contains a list of bit fail data (.bfd) files.">Bit fail map list file</a></li><li><a href="126636.htm" title="A physical address-based list file (.pabl) contains a list of failed addresses, provided as tuples of x-, y-, z-, and d-coordinates.">Physical address-based list file</a></li></ol></div></nav>
+	
+	
+	<div><p>To set up redundancy analysis, you specify the relevant details of the DUT, the
+		execution options for the analysis, specific options for the algorithm, and the desired output
+		format options.</p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Gather all required information about the architecture of the DUT, its redundancy
+				capabilities, and the guidelines used to assign spares to failed elements.</p><p>Set up the map
+				converter library you plan to use and make sure that it contains the required functions. If it
+				does not, add them and recompile the library as described in <a href="79554.htm" title="To display the topological addresses, you need to specify the mapping between physical addresses and topological addresses (which are computed by the Result Server).">Setting up address scrambling</a>. The
+				required functions are:</p><ul>
+				<li>If the map converter type is RA_LAYOUT_BASED: <a href="150590.htm" title="This function is used to get the RA layout information that is data bit group, segment, row and column for the map converter.">get_ra_layout</a> and
+						<a href="150620.htm" title="This function converts a specified physical address into an RA layout address. It is contained in the map converter shared library. It works together with the functions get_ra_layout for the map converter in an RA execution.">phys_to_layout</a>.</li>
+				<li>If the map converter type is TOPO_ADDR_BASED: <span class="keyword">get_map_size</span> and
+						<span class="keyword">phys_to_map</span>.</li>
+			</ul><p>Make sure that the folder structure for the redundancy analysis files is correctly set
+				up, as described in <a href="106870.htm" title="The various files required for setting up and performing redundancy analysis (RA) have their own folder structure within the device directory.">Folder structure for redundancy analysis
+				files</a>.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Online analysis</h3><ol>
+				<li>Decide on whether you want to use the Successive algorithm supplied by Advantest.<p>If you
+						want to use your own algorithm, write it as explained in <a href="106452.htm" title="You can write your own analysis algorithm to replace the Successive algorithm supplied by Advantest. Advantest provides template files that provide a framework for this purpose.">Writing a custom redundancy analysis algorithm</a>.</p></li>
+				<li>Describe the DUT in the DUT representation file as explained in <a href="106189.htm" title="The DUT representation file is used by the redundancy analysis algorithm to learn the structure of the DUT.">DUT representation file</a>.</li>
+				<li>Compile the DUT representation file as described in <a href="106542.htm" title="When you have created or edited a DUT representation file, you must compile it into a shared library to be able to use it for redundancy analysis.">Compiling the DUT representation file</a>.</li>
+				<li>Set up the operation parameters for the redundancy analysis as described in <a href="105740.htm" title="The redundancy analysis configuration file specifies settings for performing the analysis.">Redundancy analysis configuration file</a>.</li>
+				<li>Set up the operation parameters for the redundancy analysis algorithm as described in <a href="106181.htm" title="Some basic aspects of the Successive algorithm are configured in a control file.">Control file for the Successive algorithm</a>.</li>
+				<li>For using the redundancy analysis online (that is, as part of a test flow), insert the
+					ExecutionEngine test method in a test flow. Configure it as described in <a href="90370.htm" title="These parameters are available in the ExecutionEngine test method:">Parameters for the ExecutionEngine test method</a>.</li>
+				<li>Run the test flow.</li>
+			</ol></section>
+		<section class="section"><h3>Offline analysis</h3><ol>
+				<li>If the bit fail map you want to analyze does not already exist, run a test to create a bit
+					fail map for the DUT.</li>
+				<li>Perform steps 1 through 5 from the "Online analysis" procedure (above).<p>In step 4, make
+						sure to specify the bit fail map in the <span class="keyword">faildata_file</span> parameter of the
+							<a href="105740.htm" title="The redundancy analysis configuration file specifies settings for performing the analysis.">Redundancy analysis configuration file</a>.</p></li>
+				<li>Enter this command in a terminal
+						window:<div></div><pre class="prettyprint copyable singleline">RaServer -o <span class="keyword">&lt;ra_config_file&gt;</span></pre><p>Where
+							<span class="keyword">&lt;ra_config_file&gt;</span> is the <a href="105740.htm" title="The redundancy analysis configuration file specifies settings for performing the analysis.">Redundancy analysis configuration file</a>.</p></li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The algorithm log and solution output is available in the locations described in <a href="106406.htm" title="Running the redundancy analysis creates several log and solution files as the output.">Output of the Successive algorithm</a>.</p><p>The redundancy analysis logs
+				are available in <span class="filepath">/var/opt/93000mts/mts/log</span>:</p><ul>
+				<li>The redundancy analysis server log is named <span class="filepath">MTP_RAServer.log</span> and is
+					stored directly in that directory.</li>
+				<li>Logs of the individual services are named <span class="keyword">
+						&lt;ra_service_id&gt;</span><span class="filepath">.log</span> and are stored in the
+						<span class="filepath">RA_logs</span> subdirectory.</li>
+			</ul></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Implement the repair solution for the device.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="105694.htm" title="Redundancy analysis evaluates memory test results to see if failed DUTs can be repaired by substituting built-in spare cells for failed cells. If there are repair possibilities, one of them is suggested.">Redundancy analysis</a></div><div><a href="126318.htm" title="The RaServer is performing the redundancy analysis. You only can use it for offline analysis.">Using RaServer for offline analysis</a></div><div><a href="93309.htm" title="MTP comes with a ready-made test method for memory testing, the ExecutionEngine test method. In addition, you can create your own custom test method.">Memory testing test method</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 2.6.5</li><li>MTP 3.0.3: (MTP on SOC 103.0.0) Redundancy analysis is now performed via the
+					ExecutionEngine test method.</li><li>MTP 3.2.1: MTP-on-SOC and MTP-on-HSM become one software. There are no differences between
+					them. Features can be different if the used licenses are different.</li><li>MTP 3.2.2: Removes the tool used for verifying the redundancy analysis.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105721</span><script type="text/javascript">var ti='105721';var tt='Setting up and performing a redundancy analysis'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

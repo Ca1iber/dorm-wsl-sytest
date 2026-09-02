@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When you need result information on the edge level, it is usually advisable to put the detailed Error Map into the external memory, which provides much more space than the internal error map. This decision is made on the port level (with the DCRT command). But if"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Dealing with storage problems on Smart Scale systems</title><meta name="keywords" content="SmartScale"></head><body id="_127709"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 127709</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Dealing with storage problems on Smart Scale systems</h1>
+	
+	
+	<div><p>When you need result information on the edge level, it is usually advisable to put the
+		detailed Error Map into the external memory, which provides much more space than the internal
+		error map. This decision is made on the port level (with the <span class="keyword">DCRT</span> command). But
+		if </p>
+		<ul>
+			<li>all channels of an 8-channel group or 4-channel group (<a href="150772.htm" title="The Smart Scale digital cards use the following channel groups:">Channel groups of Smart Scale cards</a>) are
+				associated with O or IO pins of such a port, and </li>
+			<li>the tester cycle is very short, </li>
+		</ul>
+		<p>then the amount of edge data to be written to the common channel group memory can become too
+			large for the bandwidth of the memory. In this case, recording will be aborted, and consequently,
+			not all requested results will be stored.</p>
+		<p>Two measures can be taken against such a recording abort:</p>
+		<ul>
+			<li>It is possible that all channels of a Smart Scale channel group belong to a port that has its
+				error map in the external memory, but that you are only interested in the results of
+				some of them. In this case you can mitigate the recording problem by directing the
+				result data of the irrelevant pins to the internal error map. This is done with the
+					<span class="keyword">DCEL</span> command.<p>Note that the risk of an overflow of the
+					internal Error Map is smaller on Smart Scale systems than on Pin Scale systems
+					(see <a href="129431.htm" title="There is an error map size difference between previous Pin Scale cards and newer Pin Scale cards of the Smart Scale generation (PS1600, PS9G).">PS1600 error map size</a>).</p></li>
+			<li>If you require information on the edge level, but not for all edges, you can tell SmarTest
+				(using the <span class="keyword">DCRM</span> command) to record not all 8 edges, but only a subset that
+				comprises all the edges you are interested in. This will reduce the amount of data that must be
+				stored in the Error Map. <p>In particular, if you are only interested in less than 5 edges, you
+					can tell SmarTest to record only 4 or 2 edges, since in this case, you can select the edges to
+					be recorded with the <span class="keyword">sub_cycles</span> parameter of <span class="keyword">DCRM</span>. If you
+					retrieve the result data with <span class="keyword">ERMP?</span> or <span class="keyword">EMAP?</span> using the
+					resolution mode <span class="keyword">EDGE</span>, the reply will not only return the recorded results,
+					but will also display the edges in their correct position within the cycle (by returning a byte
+					per cycle, where the first bit corresponds to <span class="keyword">r1</span>, and the last to
+						<span class="keyword">r8</span>). For details see <a href="98590.htm" title="The EMAP? query returns binary data from the detailed Error Map (which contains the error information of the last test execution) in a variety of formats. It is a more powerful version of ERMP?. Note that EMAP? can only report what was actually recorded. The recording options are defined with DCRM.">EMAP? - (Error MAP)</a>.</p></li>
+		</ul>
+		<p>If recording is aborted despite these precautions, the functional test will nonetheless be
+			completed. You can configure with the <span class="keyword">SQIB</span> command what the system will do
+			thereafter. There are three options:</p>
+		<ul>
+			<li>SmarTest issues an error message immediately after completion of the functional test. This
+				message reports the channels, pins, and sites of all channel groups on which recording was
+				aborted.</li>
+			<li>SmarTest does not issue an error message immediately after completion of the test, but only
+				if a channel which is involved in a recording abort is queried for result data. In this case
+				again, the channels, pins, and sites of a all channel groups on which recording was aborted will
+				be reported. This is the default.</li>
+			<li>SmarTest does not issue any error message. If a channel of a group on which recording was
+				aborted is queried for result data, all its cycles will be reported as failing.<p>This option
+					can be used in a production environment if the result data is recorded in acquire failure mode,
+					since if any data is recorded with this recording mode, the device must in fact have failed.
+					Actually, recording will only be aborted in case of a massive fail on several pins belonging to
+					the same channel group. </p></li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>Suppose that the default port <span class="keyword">@</span> comprises 8 IO pins,
+					<code>P1</code> through <code>P8</code>, and that all these pins are associated with a
+				channel of the 8-channel group 10101 through 10108 on an PS1600 system. Assume further that you
+				want edge information about <span class="keyword">r2</span>, <span class="keyword">r4</span>, <span class="keyword">r6</span>,
+				and <span class="keyword">r8</span> for pins <code>P1</code>, <code>P3</code>,
+				<code>P5</code>, and <code>P7</code>. Then the following setup would minimize the risk
+				that recording is
+				aborted:</p><pre class="prettyprint linenums copyable">DCRT RAM,(@)
+DCEL DCRT,TP,SET,(P2,P4,P6,P8)
+DCRM EMAP,4,PF,"c1:2 c2:4 c3:6 c4:8",(@)</pre><p>If
+				you call <span class="keyword">EMAP?</span> after completion of the test with resolution mode
+					<span class="keyword">EDGE</span>, you will get the values for the edges of interest in a format that
+				also identifies their edge numbers. If, for example, all 4 edges have failed in a cycle, the
+				result will be returned as</p><pre class="prettyprint copyable singleline">01010101</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="150772.htm" title="The Smart Scale digital cards use the following channel groups:">Channel groups of Smart Scale cards</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 127709</span><script type="text/javascript">var ti='127709';var tt='Dealing with storage problems on Smart Scale systems'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

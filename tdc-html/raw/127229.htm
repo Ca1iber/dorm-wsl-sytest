@@ -1,0 +1,60 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In addition to STIL, STIL Reader also supports SVF, TDL, and WGL as input formats."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Support for SVF, TDL, and WGL</title></head><body id="_127229"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 127229</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Support for SVF, TDL, and WGL</h1>
+	
+	
+	<div><p>In addition to STIL, STIL Reader also supports SVF, TDL, and WGL as input
+		formats.</p>
+		<p>SVF, TDL, and WGL files are processed by first converting them to STIL and then handling them
+			as STIL files. See below for an example of this preprocessing conversion.</p>
+		<h2>Example</h2><div class="example"><p>Consider this WGL input
+				file:</p><pre class="prettyprint linenums copyable">waveform project
+  signal
+    "data":input;
+  end
+  timeplate "t1" period 100ns
+    "data" := input [0ns:D, 50ns:S];
+  end
+pattern P1 ("data")
+  vector(+,"t1") := [0];
+  vector(+,"t1") := [1];
+  vector(+,"t1") := [X];
+end
+end</pre><p>Specifying
+				it as the file to convert causes STIL reader to transparently convert it into this STIL
+				file.</p><pre class="prettyprint linenums copyable">Signals {
+  "data" In;
+}
+
+Timing {
+  WaveformTable "t1" {
+    Period '100ns';
+    Waveforms {
+      "data" {
+        DUNZ { '0ns' D; '50ns' D/U/N/Z; }
+      }
+    }
+  }
+}
+
+PatternBurst "w1_burst" {
+  PatList {
+    "P1";
+  }
+}
+
+PatternExec "w1_exec" {
+  PatternBurst "w1_burst";
+}
+
+Pattern "P1" {
+  W "t1";
+  V { "data"=D; }
+  V { "data"=U; }
+  V { "data"=N; }
+}</pre><p>This
+				intermediate STIL file is then converted to V93000 as usual.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118730.htm" title="The WGL-related options in a STIL Reader setup file let you configure translation options that are specific to WGL files.">WGL-related STIL Reader setup options</a></div><div><a href="118731.htm" title="The TDL-related options in a STIL Reader setup file let you configure translation options that are specific to TDL files.">TDL-related STIL Reader setup options</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 127229</span><script type="text/javascript">var ti='127229';var tt='Support for SVF, TDL, and WGL'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

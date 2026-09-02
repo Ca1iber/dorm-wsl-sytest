@@ -1,0 +1,93 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The MULTI_PORT_BURST statement is intended for a setup where the timing ports and the vector ports are identical. It is organized as a table. Every column contains the information for one port; every row contains information of a certain type. The information type is determined for most rows by a row header; rows without a header contain pattern names. The pattern rows must follow the rows with headers. The order of the latter is arbitrary."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The MULTI_PORT_BURST Statement</title></head><body id="_37520"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37520</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The MULTI_PORT_BURST Statement</h1>
+	
+	
+	<div><p>The <kbd class="userinput">MULTI_PORT_BURST</kbd> statement is intended for a setup where the
+		timing ports and the vector ports are identical. It is organized as a table. Every column contains
+		the information for one port; every row contains information of a certain type. The information
+		type is determined for most rows by a row header; rows without a header contain pattern names. The
+		pattern rows must follow the rows with headers. The order of the latter is arbitrary.</p>
+		<p>The general format of the <kbd class="userinput">MULTI_PORT_BURST</kbd> statement is:</p>
+		<p><kbd class="userinput">MULTI_PORT_BURST &lt;</kbd><em>burst_name</em><kbd class="userinput">&gt; {</kbd></p>
+		
+		<p><kbd class="userinput">PORTS &lt;</kbd><em>port_1</em><kbd class="userinput">&gt;
+				&lt;</kbd><em>port_2</em><kbd class="userinput">&gt; ...
+				&lt;</kbd><em>port_n</em><kbd class="userinput">&gt;</kbd></p>
+		<p><kbd class="userinput">CTIM (CT|NCT) (CT|NCT) ... (CT|NCT)</kbd></p>
+		<p><kbd class="userinput">SEQ_GRPS &lt;</kbd><em>group_1</em><kbd class="userinput">&gt;
+				&lt;</kbd><em>group_2</em><kbd class="userinput">&gt; ... &lt;</kbd><em>group_n</em><kbd class="userinput">&gt;
+			</kbd></p>
+		<p><kbd class="userinput">PHASE (ON|OFF) (ON|OFF) ... (ON|OFF)</kbd></p>
+		<p> <kbd class="userinput">&lt;</kbd><em>pat_1_1</em><kbd class="userinput">&gt;|""
+				&lt;</kbd><em>pat_2_1</em><kbd class="userinput">&gt;|"" ...
+				&lt;</kbd><em>pat_n_1</em><kbd class="userinput">&gt;|""</kbd></p>
+		<p> <kbd class="userinput">&lt;</kbd><em>pat_1_2</em><kbd class="userinput">&gt;|""
+				&lt;</kbd><em>pat_2_2</em><kbd class="userinput">&gt;|"" ...
+				&lt;</kbd><em>pat_n_2</em><kbd class="userinput">&gt;|""</kbd></p>
+		<p><em>&lt;pat_1_m&gt;</em><kbd class="userinput">|"" </kbd><em>&lt;pat_2_m&gt;</em><kbd class="userinput">|"" ...
+				</kbd><em>&lt;pat_n_m&gt;</em><kbd class="userinput">|""</kbd></p>
+		<p> <kbd class="userinput">... </kbd></p>
+		<p><kbd class="userinput">};</kbd></p>
+		<p>The function of the individual rows is as follows:</p>
+		<ul>
+			<li><kbd class="userinput">MULTI_PORT_BURST&lt;</kbd><em>burst_name</em><kbd class="userinput">&gt;</kbd>
+				(mandatory): This line defines the group type within the <kbd class="userinput">GROUPS</kbd> section
+				and the name of the multi-port burst, which is also used as the name of the multi-port
+				specification. This line is copied into the vector configuration file.</li>
+			
+			<li><kbd class="userinput">PORTS&lt;</kbd><em>port_i</em><kbd class="userinput">&gt;</kbd> (mandatory): This
+				line defines the ports for every column. It is copied to the vector configuration file. Note
+				that the timing translation creates a separate wavetable (and therefore also a separate timing
+				map file) and a separate equation set for each of these ports. <p>Note also that the ports of
+					the <kbd class="userinput">MULTI_PORT_BURST </kbd>statement must contain<em> every</em> configured pin.
+					This is a restriction that is only required by the ASCII interface; SmarTest also accepts port
+					sets that do not contain all pins.</p></li>
+			<li><kbd class="userinput">CTIM (CT|NCT)</kbd> (mandatory): This row specifies for every port whether
+				timing set changes are allowed "between" (that is, before the first vector of) the patterns of
+				this port within the multi-port burst. This line is not copied into the vector configuration
+				file; but the information it contains is integrated into the pattern configuration (*.vbc) files
+				for the individual patterns of the burst.<p>If the port is set to <kbd class="userinput">NCT</kbd>,
+					only one timing set is created for all patterns of the port; if the group elements have
+					different ASCII periods, the common test system cycle length will be calculated as described
+					under <kbd class="userinput">ctim </kbd>in <a href="37462.htm" title="The following list explains all the input columns of the PATTERNS section within the global configuration file. The columns are ordered alphabetically by their name.">The Input Columns</a>. Every pattern of the port must
+					have been set to <kbd class="userinput">NCT</kbd> in the <kbd class="userinput">PATTERNS</kbd> section.
+					Automatic insertion of a <kbd class="userinput">CTIM</kbd> instruction at the start of the first
+					group element is also suppressed.</p>
+				<p>If the port is set to <kbd class="userinput">CT</kbd>, different timing sets may be created for
+					different patterns of the port. In this case the automatic insertion of
+						<kbd class="userinput">CTIM</kbd> instructions between vectors of<em> one</em> pattern of the port is
+					controlled by the <kbd class="userinput">ctim</kbd> column of the <kbd class="userinput">PATTERNS</kbd>
+					section (see <kbd class="userinput">ctim </kbd>in <a href="37462.htm" title="The following list explains all the input columns of the PATTERNS section within the global configuration file. The columns are ordered alphabetically by their name.">The Input Columns</a>).
+						<kbd class="userinput">CTIM</kbd> instructions are always inserted before the first vector of every
+					group element even if the respective group element is associated with the same timing set as
+					the previous element; this can be suppressed by specifying the option <strong>-T</strong> for the
+					respective pattern in the <kbd class="userinput">v2b_options</kbd> column.</p></li>
+			<li><kbd class="userinput">SEQ_GRPS&lt;</kbd><em>group_i</em><kbd class="userinput">&gt;</kbd> (mandatory):
+				This line specifies for every port the sequencing group to which it belongs. It is copied to the
+				vector configuration file and then incorporated by the vector translation into the
+					<kbd class="userinput">SQLB</kbd> command that defines the multi-port burst component for the
+				respective port.</li>
+			<li><kbd class="userinput">PHASE (ON|OFF)</kbd> (mandatory): This line specifies for every port whether
+				or not phase synchronization is to be activated. It is not copied to the vector configuration
+				file.</li>
+			<li><kbd class="userinput">&lt;</kbd><em>pat_i_j</em><kbd class="userinput">&gt;|""</kbd> (mandatory): This
+				statement specifies for every port the patterns to be included in the multi-port burst. In
+				principle, the patterns must have been defined in the <strong>PATTERNS</strong> section (<strong>port</strong>
+				column) for the port of column i. If, however, shots have been defined for a pattern (see <a href="46273.htm" title="A shot is an instance of a pattern which executes all drive actions associated with the state character, for every state character of the ASCII device cycle specified for the pattern, but only a subset of its compare actions. Compare actions are distributed between the different shots in such a way that every compare action is executed in exactly one shot.">Using Shots: the shots Column</a>), you can also specify one of these shots in the
+						format<p><em>&lt;pattern_name&gt;.&lt;shot_no&gt;, </em></p>
+				<p>where <em>&lt;shot_no&gt;</em> must not exceed the number specified in the shots column of the
+						<strong>PATTERNS </strong>section. </p>
+				<p>If the number of patterns is not the same for all the ports, the place holder <strong>""</strong> must
+					be used to inform <strong>ait </strong>which patterns belong to which column. The pattern lines are
+					copied to the vector configuration file.</p>
+				<p>All patterns in the same column must share the same equation set. This implies that any
+						<strong>EQUATIONS </strong>and <strong>SPECS </strong>blocks that are associated with them in the <strong>equations
+					</strong> and <strong>specs</strong> columns (see <a href="37462.htm" title="The following list explains all the input columns of the PATTERNS section within the global configuration file. The columns are ordered alphabetically by their name.">The Input Columns</a>) of the <strong>PATTERNS </strong>section must
+					be compatible.</p>
+				
+			</li>
+		</ul>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37520</span><script type="text/javascript">var ti='37520';var tt='The MULTI_PORT_BURST Statement'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

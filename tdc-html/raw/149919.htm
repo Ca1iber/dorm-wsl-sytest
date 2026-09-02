@@ -1,0 +1,113 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Lets you check the general test program setup risks."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>General risks</title></head><body id="_149919"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149919</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">General risks</h1>
+	
+	
+	<div><p>Lets you check the general test program setup risks. </p>
+		<section class="section"><p>These risks include:</p><ul>
+				<li>Unused files in test program</li>
+				<li>HiZ risk</li>
+				<li>Hot-switching and clamp risk</li>
+				<li>Relay switching times risk</li>
+				<li>MSET resource usage risk</li>
+				<li>Overvoltage/overcurrent risk</li>
+				<li>Multisite handling alert with test flow branching </li>
+				<li>Tester's hardware insufficiency through EDC data </li>
+			</ul></section>
+		<section class="section"><h2>Unused files in test program</h2>
+			
+			<p>This function will check if there are unused files that are not linked by selected flow or
+				related master file and other files.</p>
+		</section>
+		<section class="section"><h2>HiZ risk</h2><p>High-Z issue is caused by incomplete device set up condition.
+				Normally the stable production pattern needs a complete status definition for all valid device
+				pins (I/IO type). In the pattern with high-z issue, some pins definition (drive 0 or 1) are
+				missing. The leakage from tester pin electronics will apply the unpredictable voltage shift on
+				these pins instead of the correct set up level. If some of these pins are sensitive to
+				functional result, it will cause functional test fail in specific tester or needs disconnect
+				before the pattern execution. It happens mostly on correlation phase. The functional test will
+				pass in some testers and failed in others.</p><p>This function checks related test program setup
+				and reports HiZ risk details based on the test suite. The checks include:</p><ul>
+				<li>Suspicious pins which are not terminated in the level setup</li>
+				<li>Suspicious pins whose iol and ioh voltage levels are both set to zero</li>
+				<li>Suspicious waveform definitions by using "no drive state, tri-state on, compare Do not care"
+					action (that is, FNZX)</li>
+				<li>Waveform DC/DC power units used in a vector but not defined in the waveform table</li>
+				<li>Level set 0 is not defined for termination and clamp on PS400 (Only SmarTest 6.3.6 or
+					above).</li>
+			</ul></section>
+		<section class="section"><h2>Hot switching</h2><p>About hot-switching, please see <a href="107295.htm">Programming guidelines for relay switching</a>.</p><p>This function will check hot
+				switching risk and report warning message for every selected criteria. The checks include:</p><ul>
+				<li>PPMU relay open-&gt;close, measure mode is voltage and clamp is in OFF state.</li>
+				<li>PPMU relay close-&gt;open, measure mode is voltage and force current is larger than
+					limit.</li>
+				<li>PPMU relay open-&gt;close, measure mode is current and expected current is larger than
+					limit</li>
+				<li>PPMU relay close-&gt;open, measure mode is current and expected current is larger than
+					limit</li>
+				<li>DC relay open-&gt;close, PPMU relay is in close state</li>
+				<li>DC relay close-&gt;open, PPMU relay is in close state</li>
+				<li>AC relay open-&gt;close, active load enabled, load current is larger than limit, sequencer
+					in break state</li>
+				<li>AC relay close-&gt;open, active load enabled, load current is larger than limit, sequencer
+					in break state</li>
+			</ul></section>
+		<section class="section"><h2>Relay switching times</h2><p>Generally, both mechanical relays (reed relays)
+				and solid state relays are used in V93000 platform. </p><p>A reed relay is a mechanical relay
+				operated by an applied magnetic field. There are different reed relays used in V93000 channel
+				board. They all have a similar life time. For this type of reed relay, it is typically 1000
+				million switching cycles at 1V and 10mA. </p><p>In some test programs, a lot of
+				disconnect/connect, or relay switching commands are used, which are not really necessary. This
+				wastes test time and reduces the life time of the relays. In one example, this resulted in 1.8
+				million relay switches per-day in production.</p><p>This function will count the switching times
+				of DC relay, AC relay,PPMU relay and Utility line during one test flow execution and highlight
+				risky setup pins with frequently relay switching, The relays to be checked include:</p><ul>
+				<li>DC relay.</li>
+				<li>AC relay.</li>
+				<li>PPMU relay.</li>
+				<li>Utility line.</li>
+			</ul></section>
+		<section class="section"><h2>MSET resource usage</h2><p>The Flex DC is the DC Test solution of the 93000
+				platform to provide flexibility and shorter test time in DC Test. When you perform the DC Test
+				by the PPMU (Pin PMU) using Flex DC, the settings of the PPMU are stored in the sequencer
+				memory. If the same settings of the PPMU are executed, this stored information is used and this
+				saves the time to download the settings of the PPMU again. But the size of this area in the
+				sequencer memory is limited and if the number of the settings of the PPMU is very large, some
+				settings may not be stored in the sequencer memory due to the lack of space. This situation is
+				known as "MSET Overflow".</p><p>When the number of the DC Tests is large and many different
+				settings are used in the application, the system cannot store all of the settings in the
+				specified MSET. If this situation happens, the reserved two DC_SETs are used repeatedly to set
+				the different settings. Therefore, the setting of the PPMU is downloaded every time and this
+				slows down the test execution time. In some cases, the test execution time becomes more than 10
+				times slower than the execution time without MSET Overflow.</p><p>This function will record all
+				MSET resource usage in the second run of test flow and highlight this MSET Overflow
+			risk.</p></section>
+		<section class="section"><h2>Overvoltage/overcurrent risk</h2><p>This function checks digital
+				pins, DPS pins and DC Scale pins during test program execution and identifies any risky setup of
+				voltage and current against the custom rule set that defines the allowed max/min voltage
+				,current and power setup over I/O pins and power supply pins.</p><p>Supported pin types:</p><ul>
+				<li>For digital pins, the voltage checked are vil/vih, the current value checked are
+					iol/ioh.</li>
+				<li>For DPS pins, the voltage checked is vout set in the level file, and the current checked is
+					the ilimit also set in the level file.</li>
+				<li>For DC Scale DPS pins, the voltage and current forced in the test event will be checked
+					besides the setup in level file.</li>
+				<li>For DC Scale signal pins, the voltage and current forced in the test event will be
+					checked.</li>
+			</ul><p>Custom rule set example:</p><div class="p"><figure class="fignone">
+					<img src="149935.png" alt="General risks (1)">
+				</figure></div></section>
+		<section class="section"><h2>Multisite handling alert with test flow handling</h2>
+			
+			<p>This function checks</p>
+		</section>
+		<section class="section"><h2>Check tester's hardware insufficiency through EDC data </h2>
+			
+			<p>This function checks if the hardware of the tester is enough or not for one test program by
+				checking EDC data and device license file. </p>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="148495.htm" title="Lets you customize the checking process for the items you want to check. Different items are associated with different preference pages.">Preferences for the release check</a></div><div><a href="148498.htm" title="To check risky voltage/current programmed to pins with Smart correlation – Release Checker, you must prepare a CSV file that defines the checked pins, test suites, the voltage/current limits and the checking rules.">CSV rule file for checking voltage/current risks</a></div><div><a href="107295.htm">Programming guidelines for relay switching: Avoid excessive relay stressing of V93000 digital cards</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.3</li><li>TP360 3.10.4: Check tester's hardware insufficiency through EDC code is
+					added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149919</span><script type="text/javascript">var ti='149919';var tt='General risks'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The BIT_TRANSITION class can be used for a source synchronous bus. This API measures the transition delay on each pin and each bit. You can use it to calculate parameters like setup/hold times between pins on a per-bit or per-transition basis. The API supports multi-site parallel test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>BIT_TRANSITION</title></head><body id="_92411"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 92411</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">BIT_TRANSITION</h1>
+	
+	
+	<div><p>The <kbd class="userinput">BIT_TRANSITION</kbd> class can be used for a source synchronous
+		bus. This API measures the transition delay on each pin and each bit. You can use it to calculate
+		parameters like setup/hold times between pins on a per-bit or per-transition basis. The API
+		supports multi-site parallel test.</p>
+		<p>To determine when a data transition occurs, a search method is used. This search is linear. The
+			detail of search is performed as follows:</p>
+		<p>Functional tests are performed for each sampling point in the area between
+				<kbd class="userinput">BIT_TRANSITION::sampleStart </kbd>and
+				<kbd class="userinput">BIT_TRANSITION::sampleStop</kbd>. After each functional test, the test results
+			are analyzed. This analysis compares the functional test results of the previous test execution
+			with the functional test results of the current test execution bit by bit. If the test results of
+			the two executions differ, the following actions are performed:</p>
+		<ul>
+			<li>If this is the first test difference that occurs for this bit, the sample offset number of
+				the previous test execution is stored in a variable (<strong>t1</strong>) and the sample offset number of
+				the current test execution is stored in a variable (<strong>t2</strong>).</li>
+			<li>If this is not the first test difference for this bit, the sample offset number of the
+				current test execution is stored in a variable (<strong>t2</strong>).</li>
+		</ul>
+		<p>If no difference is found for any functional test result pair per bit:</p>
+		<ul>
+			<li>Both variables will be set to <kbd class="userinput">(sampleStart-1)</kbd> if the test result for
+				this bit was FAIL for all functional test executions.</li>
+			<li>Both variables will be set to <kbd class="userinput">(sampleStop+1) </kbd>if the test result for
+				this bit was PASS for all functional test executions.</li>
+		</ul>
+		<p>The sample offset value is calculated as (t1 + t2) / 2, rounding to an integer number.</p>
+		<p>The principle of this test method is illustrated in the figure below.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="56308.png" alt="BIT_TRANSITION Test Method">
+			</figure></div>
+		<div class="note"><span class="title">Note</span> This API can be applied to pins of both FAST mode and STD mode. But it supports
+			x-mode only in FAST mode. For STD mode, it only supports 1 compare edge per cycle.</div>
+		<div class="note"><span class="title">Note</span> For related topics, see <em><a href="92418.htm" title="The purpose of this class is to capture (approximately) a segment of an actual digital output signal. To do so, the instances of DIGITAL_WAVEFORM execute m * n functional tests in a double loop. The n functional tests of the inner loop serve to determine the actual voltage level of the output signal at a certain edge position for all x used receive edges. This is achieved by linearly modifying the receiver threshold with a fixed step width (within a range based on the level setup threshold) for each of the n tests. The outer loop moves the positions of the receive edges m times to the right by a fixed step width after every n functional tests. The result is a sequence of m * x voltage levels that approximates the specified segment of the output signal.">DIGITAL_WAVEFORM</a>.</em></div><p>This API is defined in the header file
+				<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/BitTransition.h</span>.</p>
+		<section class="sectiontitlefake"><h2>Class definition</h2></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION(const STRING&amp; pinlist)</pre></section>
+		<section class="section"><h3>Member functions</h3><p>They are listed in alphabetical order.</p><pre class="prettyprint linenums copyable">BIT_TRANSITION&amp; bitStart(INT bit)
+BIT_TRANSITION&amp; bitStop(INT bit)
+void execute()
+INT getBitStart() const
+INT getBitStop() const
+const ARRAY_I&amp; getResult(const STRING&amp; pin) const
+INT getSamplesPerCycle() const
+INT getSampleStart() const
+INT getSampleStop() const
+DOUBLE getTimingResolution() const
+BIT_TRANSITION&amp; samplesPerBit(INT samples)
+BIT_TRANSITION&amp; sampleStart(INT sample_offset)
+BIT_TRANSITION&amp; sampleStop(INT smaple_offset)
+BIT_TRANSITION&amp; timingResolution(DOUBLE time_resolution)</pre></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION(const STRING&amp; pinlist)</pre><p>This
+				constructor creates an object class that searches the pass/fail transition in 1 UI (Unit
+				Interval).</p><p>Parameter</p><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>pinlist</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The pins or pin groups to which the transition analysis is applied.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2><p>The member function are described in alphabetical order.</p></section>
+		<section class="section"><h3>bitStart()</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION&amp; bitStart(INT bit)</pre><p>This function specifies the bit number where data retrieval starts. "bit" means the sub-cycle in
+				a tester cycle (1 cycle/x-mode), for example in x-8 mode, there are 8 bits in a tester
+				cycle.</p><div class="note"><span class="title">Note</span> x-mode only applies to pins of FAST mode. For STD
+				mode, it only supports 1 compare edge per cycle.</div><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>bit</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The bit number where data retrieval starts. The default value is 0.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>bitStop()</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION&amp; bitStop(INT bit)</pre><p>This function specifies the bit number where data retrieval stops.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>bit</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The bit number where data retrieval stops. The default value is the last bit.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>execute()</h3><pre class="prettyprint copyable singleline">void execute()</pre><p>This function executes the functional test for each sampling point, uploads the data from
+				hardware and then calculates the offset value <kbd class="userinput">(t1+t2)/2</kbd> of each bit for
+				later <kbd class="userinput">BIT_TRANSITION::getResult()</kbd> calls.</p></section>
+		<section class="section"><h3>getBitStart()</h3><pre class="prettyprint copyable singleline">INT getBitStart() const</pre><p>This
+				function returns the bit number where data retrieval starts.</p></section>
+		<section class="section"><h3>getBitStop()</h3><pre class="prettyprint copyable singleline">INT getBitStop() const</pre><p>This function
+				returns the bit number where data retrieval stops.</p></section>
+		<section class="section"><h3>getResult()</h3><pre class="prettyprint copyable singleline">const ARRAY_I&amp; getResult(const STRING&amp; pin) const</pre><p>This
+				function returns the analysis result data for the error map information per bit retrieved in a
+				previous execution of the function execute() as <kbd class="userinput">ARRAY_I</kbd> for the specified
+				pin. Possible values as elements of <kbd class="userinput">ARRAY_I</kbd> are samples from start to
+				stop.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>pin</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The pin to retrieve the result.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getSamplePerCycle()</h3><pre class="prettyprint copyable singleline">INT getSamplesPerCycle() const</pre><p>This
+				function returns the sampling point for data retrieval in 1 UI.</p></section>
+		<section class="section"><h3>getSampleStart()</h3><pre class="prettyprint copyable singleline">INT getSampleStart() const</pre><p>This
+				function returns the sampling point offset to start data retrieval in 1 UI.</p></section>
+		<section class="section"><h3>getSampleStop()</h3><pre class="prettyprint copyable singleline">INT getSampleStop() const</pre><p>This
+				function returns the sampling point offset to finish data retrieval in 1 UI.</p></section>
+		<section class="section"><h3>getTimingResolution()</h3><pre class="prettyprint copyable singleline">DOUBLE getTimingResolution() const</pre><p>This
+				function returns the timing resolution for data retrieval in seconds.</p></section>
+		<section class="section"><h3>samplePerBit()</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION&amp; samplesPerBit(INT samples)</pre><p>This function specifies the number of sampling points for data retrieval in 1 UI. You can specify
+				the timing resolution or number of sampling points per bit. If timing resolution is specified
+				afterwards, number of sampling points per bit is overriden.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>samples</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of sampling points for data retrieval in 1 UI. The default value is 1.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>sampleStart()</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION&amp; sampleStart(INT sample_offset)</pre><p>This function specifies the sampling point offset to start data retrieval in 1 UI (Unit Interval
+				= 1 Bit time).</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>offset</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The sampling point offset to start the data retrieval.  The default value is 0, which means the
+									current position specified by the timing setup.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>sampleStop()</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION&amp; sampleStop(INT smaple_offset)</pre><p>This function specifies the sampling point offset to stop data retrieval in 1 UI (Unit Interval =
+				1 Bit time) by sample.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>offset</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The sampling point offset to stop the data retrieval. The default value is 0, which means the
+									current position specified by the timing setup.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>timingResolution()</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION&amp; timingResolution(DOUBLE time_resolution)</pre><p>This function specifies the timing resolution for data retrieval. You can specify the timing
+				resolution or number of sampling points per bit. If number of sampling points per bit is
+				specified afterwards, timing resolution is overriden.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>time_resolution</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The timing resolution for data retrieval in seconds. The default value is 1 UI.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<h2>Examples</h2><div class="example"><h3>Set bit transition
+				range</h3><pre class="prettyprint linenums copyable">BIT_TRANSITION(pin).bitStart(1);
+BIT_TRANSITION(pin).bitStop(1023);</pre><p>This
+				example sets the bit number where data retrieval starts to 1 and the bit number where data
+				retrieving stops to 1023.</p></div>
+		<div class="example"><h3>Set the sampling point
+				offset</h3><pre class="prettyprint linenums copyable">BIT_TRANSITION(pin).sampleStart(8);
+BIT_TRANSITION(pin).sampleStop(31);</pre><p>This
+				example sets the sampling point offset to start data retrieval in 1 UI to 8 and the sampling
+				point offset to stop data retrieval in 1UI to 31.</p></div>
+		<div class="example"><h3>Set time
+				resolution</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION(pin).timingResolution(20 ps);</pre><p>This
+				example sets the time resolution for data retrieval to 20 ps.</p></div>
+		<div class="example"><h3>Set the sampling points per
+				bit</h3><pre class="prettyprint copyable singleline">BIT_TRANSITION(pin).samplesPerBit(100);</pre><p>This example sets
+				the number of sampling points per bit for data retrieval to 100.</p></div>
+		<div class="example"><h3>Execute the bit transition and retrieve the
+				settings</h3><pre class="prettyprint linenums copyable">BIT_TRANSITION(pin).execute();
+INT bitstart = BIT_TRANSITION(pin).getBitStart();
+INT bitstop = BIT_TRANSITION(pin).getBitStop();
+INT samplestart = BIT_TRANSITION(pin).getSampleStart();
+INT samplestop = BIT_TRANSITION(pin).getSampleStop();
+INT samples = BIT_TRANSITION(pin).getSamplesPerBit();
+DOUBLE timingres = BIT_TRANSITION(pin).getTimingResolution();
+ARRAY_I result = BIT_TRANSITION(pin).getResult(pin);</pre><p>The
+				first line executes functional test for each sampling point and uploads data from the hardware.
+				The following six lines return:</p><ul>
+				<li> the bit number where data retrieval starts and stops,</li>
+				<li> the sampling offset to start and stop data retrieval in 1 UI,</li>
+				<li> and the number of sampling points and time resolution for data retrieval. </li>
+			</ul><p>The last line returns the analysis result data for the error map information per bit
+				retrieved in previous execution of the function <kbd class="userinput">execute()</kbd>.</p></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 92411</span><script type="text/javascript">var ti='92411';var tt='BIT_TRANSITION'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

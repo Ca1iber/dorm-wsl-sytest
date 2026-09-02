@@ -1,0 +1,67 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When you execute a multisite test in parallel, you can either start all sites simultaneously, or you can start them one after the other successively, each with a small offset. This is controlled by the setting of the Site Match test suite flag. If this flag is set to OFF, all sites are started simultaneously; if it set to ON, they are started successively."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Controlling Site Synchronization</title><meta name="keywords" content="sync"></head><body id="_42666"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42666</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Controlling Site Synchronization</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="42667.htm" title="As mentioned in the section Controlling Site Synchronization, for realizing the match loop action per site and per sequencing group, SmarTest, by default, starts the sites successively (unless it finds shared pins in the pin configuration, in which case it starts all sites synchronously).">Multi-Site Synchronization in a multiport Setup</a></li><li><a href="100096_2.htm" title="The Site Control window shows the states of the individual site. Sites unavailable due to defect pin configuration, cannot be enabled, activated or receive result focus. You can only set the states for available sites.">The states of the sites</a></li></ol></div></nav>
+	
+	
+	<div><p>When you execute a multisite test in parallel, you can either start all sites
+		simultaneously, or you can start them one after the other successively, each with a small offset.
+		This is controlled by the setting of the <strong>Site Match</strong> test suite flag. If this flag is set to
+		OFF, all sites are started simultaneously; if it set to ON, they are started
+		successively.</p>
+		<p>Selecting the correct option is important in the following two situations:</p>
+		<ul>
+			<li id="_42666__d306e32">The test pattern contains a match loop.</li>
+			<li id="_42666__d306e35">One and the same channel is shared by the same pin on different sites.</li>
+		</ul>
+		<p>Note that if both these constructs are present in the same setup, an optimal selection
+			is not possible.</p>
+		<section class="section"><h2>Test patterns containing match loops</h2><p id="_42666__d306e45">If all sites are started simultaneously and the test pattern contains a match loop, then
+				the judgment on whether a match has been obtained will be based on the compare results of all
+				active sites. Accordingly, if the match loop fails on one single site the test will be canceled
+				for all sites even if a match is found for all the remaining sites. The option to start all
+				sites with a small offset is intended to enable independent evaluation of a match loop for every
+				site. In this way, the test can be continued on one site even if it has been canceled on another
+				site because of a failing match loop.</p><p id="_42666__d306e47">The following figure shows this
+				behavior:</p><div class="p" id="_42666__d306e49"><figure class="fignone" id="_42666__d306e50">
+					
+					<img src="47540.png" alt="Default Digital Timing Behavior (Site Match Function: ON)">
+				</figure></div><p id="_42666__d306e61">The order in which the sites are started is determined by SmarTest. By the
+				way, do not confuse this successive start with serial execution, where the second site is only
+				started after the first site has finished its test.</p><div class="note" id="_42666__d306e63"><span class="title">Note</span> In a multiport setup, basically the same method must be applied to make a
+				match loop within one port independent of the other ports. In this case the offset is enforced
+				by putting the ports into separate sequencing groups, see <a href="104675.htm" title="If two ports are to be members of the same sequencing group, the pattern sequences that are associated with them in a multi-port burst must fulfill certain requirements.">Sequencing groups and pattern structure</a>.</div></section>
+		<section class="section"><h2>Using the same channel for triggering several sites</h2><p id="_42666__d306e72">If a multisite test associates the same channel with the same pin on more than one site,
+				and if it is executed in parallel or semi-parallel, successive starting can lead to
+				problems.</p><p id="_42666__d306e74">The reason for this is that if a digital channel is used, for example, as a common
+				trigger for triggering analog modules on several parallel sites, the trigger signal will
+				normally be generated according to the timing of the highest numbered site of the sites that
+				share the digital channel. Now if the sites are started successively, this will have the effect
+				of delaying the trigger signal as shown in the following figure:</p><div class="p" id="_42666__d306e76"><figure class="fignone" id="_42666__d306e77">
+					
+					<img src="47541.png" alt="Harmful Effect on Default Digital Timing (Site Match Function: ON)">
+				</figure></div><p id="_42666__d306e88">The analog measurements on sites 1 through 3 are now executed with
+				unexpected timing, because the digital vectors are generated based on the independent timing for
+				each site, but the analog modules used on each site are triggered according to the trigger
+				timing of the highest numbered site.</p><p id="_42666__d306e90">To avoid this problem, all sites must be started synchronously if a shared analog module
+				is used in a multisite test. This is shown below.</p><div class="p" id="_42666__d306e92"><figure class="fignone" id="_42666__d306e93">
+					
+					<img src="47542.png" alt="Site Synchronization (Site Match Function: OFF)">
+				</figure></div></section>
+		<section class="section"><h2>Default behavior</h2><p>To meet the requirements of
+				both match loops and shared trigger channels as far as possible, SmarTest by default starts the
+				sites successively, provided that it does not find a shared channel in the pin configuration. If
+				it does, it will start all sites synchronously. In this case individual evaluation of match
+				loops will not be possible.</p><p><strong>How to Change the
+					Synchronization.</strong></p><p>You can change the synchronization behavior on the test flow level
+				with the <span class="keyword">Site Match Mode</span> test flow flag, or on the test suite level with the <span class="keyword">Site
+					Match</span> test suite flag.</p><ul>
+				<li>If the flag is set to ON, SmarTest will start the sites successively even if shared pins are
+					present.</li>
+				<li>If the flag is set to OFF, all sites will be started simultaneously.</li>
+			</ul><p>If a test flow contains both match loops and shared analog modules, but not within the
+				same test suite, you can configure site synchronization individually for each test suite with
+				the <em>Site Match</em> test suite flag. </p><p>If match loops are to be combined with shared pins in the same test suite of a multisite test
+				flow, switch the <span class="keyword">Site Match</span> test suite flag to <span class="keyword">off</span> and consult the section <a href="42694.htm">Match Loops</a> for possible workarounds concerning the match loops.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42666</span><script type="text/javascript">var ti='42666';var tt='Controlling Site Synchronization'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

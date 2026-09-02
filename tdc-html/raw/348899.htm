@@ -1,0 +1,94 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Starting from 7.5.2, SmartRDI allows you to generate an ORE template file from online test results."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Template file from online test results</title></head><body id="_348899"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 348899</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Template file from online test results</h1>
+	
+	
+	<div><p>Starting from 7.5.2, SmartRDI allows you to generate an ORE template file from online
+		test results.</p>
+		<section class="section">
+			<p>If you set <span class="keyword">ORE_TEMPLATE_BY_USER_CODE = TRUE</span> in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>, SmartRDI can add real test results into the template file
+					<span class="filepath">rdi_ore_template_by_user_code.xml</span>. </p>
+			<div class="p">If you have a piece of SmartRDI code as follows:
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.func("id1").label("abc")...;
+  rdi.smartVec("id2").pin("P1")...;
+  ...
+RDI_END();</pre></div>
+			<div class="p">It will generate an ORE template file as follows: <figure class="fignone">
+					
+					<img src="348900.png" alt="ORE template file generated from online test results">
+				</figure></div>
+			<div class="p">From the original code and the generated template file, you can see: <ul>
+					<li>
+						<p>All measurements with ID in the SmartRDI code are converted to ore result frames in the
+							template file.</p>
+					</li>
+					<li>
+						<p>SmartRDI automatically fills the real active sites information in the template file.</p>
+					</li>
+					<li>
+						<p>SmartRDI automatically fills the real test result (only the first site result) in the
+							template file.</p>
+					</li>
+				</ul></div>
+			<p>If you are going to use this template, add <kbd class="userinput">&lt;/offlineResultEmulation&gt;</kbd>
+				at the end of the <span class="filepath">rdi_ore_template_by_user_code.xml</span> file. </p>
+			<p>You can also use <span class="keyword">ORE_FOLDER</span> in the RDI_Configure file to specify a location
+				for the <span class="filepath">rdi_ore_template_by_user_code.xml</span> file. For more information, see
+					<a href="146692.htm#_146692__dle_ORE_setup">RDI_Configure file</a>.</p>
+		</section>
+		<section class="section" id="_348899__ORE_all_sites_results_to_template"><h2>Test results of all sites to the template file</h2>
+			
+			<div class="p">Just like adding real test results on the first site to the template file, SmartRDI can also
+				add real test results of all sites to the template file. The template file for all sites is
+				similar to that for the first site results, but it is more adaptive to get runtime ORE values.
+				For example,
+				<div></div><pre class="prettyprint linenums copyable">&lt;offlineResultEmulation&gt;
+  &lt;testSuite name = "offline_ORE"&gt;
+    &lt;id name = "id"&gt;
+      &lt;site num = "1"&gt;
+        &lt;pin name = "DATA1"&gt;
+          &lt;smartVec readData = "12,"/&gt; // Site 1 real result
+        &lt;/pin&gt;
+      &lt;/site&gt;
+    &lt;/id&gt;
+    &lt;id name = "id"&gt;
+      &lt;site num = "2"&gt;
+        &lt;pin name = "DATA1"&gt;
+          &lt;smartVec readData = "16,"/&gt;
+        &lt;/pin&gt;
+      &lt;/site&gt;
+    &lt;/id&gt;
+  &lt;/testSuite&gt;</pre></div>
+		</section>
+		<section class="section"><h2>ARRAY results in the template file</h2>
+			
+			<div class="p">For ARRAY value type, the result size may be very big. It is not possible to check all the
+				results in the template file. <ul>
+					<li>If the result size is less than 200, SmartRDI inserts all the results to the XML file. </li>
+					<li>If the result size is equal to or greater than 200, SmartRDI inserts all the results into a
+							<span class="filepath">.txt</span> file which is located in the same folder as the
+							<span class="filepath">rdi_ore_template_by_user_code.xml</span>. SmartRDI also adds the path
+						information in the <span class="filepath">.xml</span> file.</li>
+				</ul></div>
+			<div class="p">For example, the result of following code will be greater than 200:
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.tmu("id1").pin("P1").vth().sample(4)...;   
+  rdi.tmu("id2").pin("P2").vth().sample(1024)...; // result size &gt; 200 
+  ...
+RDI_END();</pre></div>
+			<div class="p">SmartRDI will generate the template file (<span class="filepath">.xml</span>) as follows: <figure class="fignone">
+					
+					<img src="348901.png" alt="Oversized results in the template file">
+				</figure></div>
+			<p>For the <span class="filepath">.txt</span> result file, its naming convention:
+					<span class="filepath">testSuiteName_idString_pinName_className_resultType_result_file</span>. For
+				example, <span class="filepath">TestPlay_id1_DATA1_tmu_stamp_result_file</span>. </p>
+			<p>SmartRDI offers a flag <a href="146692.htm#_146692__row_ORE_TEMPLATE_DATA_FILE_SIZE_THRESHOLD">ORE_TEMPLATE_DATA_FILE_SIZE_THRESHOLD</a>, which can be used in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>
+				to set a threshold of the result size. See <a href="146692.htm#_146692__row_ORE_TEMPLATE_DATA_FILE_SIZE_THRESHOLD">ORE_TEMPLATE_DATA_FILE_SIZE_THRESHOLD</a> for how to set the threshold.</p>
+		</section>
+
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.5.2</li><li>SmartRDI 7.10.0: Real test results of all sites can be added to the template
+					file.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 348899</span><script type="text/javascript">var ti='348899';var tt='Template file from online test results'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

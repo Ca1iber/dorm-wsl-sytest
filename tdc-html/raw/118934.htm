@@ -1,0 +1,95 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Result areas allow independent data capture and upload."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Result areas for hidden digital upload</title></head><body id="_118934"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118934</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Result areas for hidden digital upload</h1>
+	
+	
+	<div><p>Result areas allow independent data capture and upload.</p>
+		<p>Capture samples of several test suites can be collected before an upload is executed. SmartCalc
+			provides the framework to perform upload and calculation in such a way that the test suites
+			remain self-contained, while ensuring excellent test time. For traditional error map data, see
+				<a href="349886.htm">Result areas for error map data</a>. </p>
+		<p>By creating a <code>RESULT_AREA_CONFIG</code> object for all digital capture pins the
+			number of bytes needed are specified. Each byte can hold the result of several capture samples,
+			depending on the x-mode being used.</p>
+		<p>The function <code>appendArea()</code> allocates the memory of the given size and maps it
+			to the identifier. The result size of selective capture depends on the following rules:</p>
+		<p><span class="keyword">ResultAreaSizeInBytes</span> = <span class="keyword">NumberOfSamples</span> /
+				<span class="keyword">SamplesPerByte</span> + 1024</p>
+		<table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><span class="keyword">NumberOfSamples</span>
+							</p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Total number of capture samples per pin to be recorded, including initial,
+								inter-sample and inter-frame discards.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><span class="keyword">SamplesPerByte</span>
+							</p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Depending on the x-mode used, either</p>
+							<p>4 in x1/2 mode or </p>
+							<p>8 in x4/8 mode.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p>1024 </p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>internal Buffer.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<div class="note"><span class="title">Note</span> Discarded capture samples will not be uploaded, but require capture
+			memory.</div>
+		<div class="note" id="_118934__maxNumberResultArea"><span class="title">Note</span>  Result areas reduce the available memory and accessing
+			a large number of them may impact your test times. Therefore, the total number of allocated
+			result areas should be minimized and stay below 465 in total. That is, the sum of all TMU,
+			digital, and DC result areas must not exceed 465. Out of this, 15 areas are reserved as minimum
+			for TMU and a maximum of 100 areas can be allocated for TMU.</div><p>In order to activate result areas defined by <code>appendArea()</code> use
+				<code>activate()</code>. It is possible to re-define result areas within a test flow,
+			however a re-issued <code>activate()</code> deletes all previously defined areas.</p>
+		<p>If you need to activate new result areas defined within individual test suites, use
+				<code>activateWithoutOverwrite()</code> not to delete the previous result areas.</p>
+		<p><code>RESULT_AREA_CONFIG</code> has two methods to release the allocated memory:</p>
+		<ul>
+			<li><code>.release()</code></li>
+			<li><code>RESULT_AREA_CONFIG::removeAllAreas()</code></li>
+		</ul>
+		<p>As <code>RESULT_AREA_CONFIG</code> internally does not access HW its overhead is
+			negligible.</p>
+		<h2>Examples</h2><div class="example"><h3>Determine NumberOfSamples</h3><p>To determine the required memory size with the
+				formula shown above, use 1536 for the <span class="keyword">NumberOfSamples</span>, for a vector variable
+				with an initial discard of 512 samples and 1024 capture samples.</p><div class="note"><span class="title">Note</span> Capture
+				cycles are different to capture samples in all but the x1 mode!</div><ul>
+				<li>1024 captures <em>samples </em>in x2 mode translate to 512 capture <em>cycles</em>.</li>
+				<li>1024 captures <em>cycles </em>in x2 mode translate to 2048 capture <em>samples</em>.</li>
+			</ul></div>
+		<div class="example"><h3>Determine ResultAreaInBytes</h3><ul>
+				<li>1024 capture <em>samples </em>in X2 mode<p><span class="keyword">NumberOfSamples =</span> 1024</p>
+					<p><span class="keyword">SamplesPerByte</span> = 4</p>
+					<p><span class="keyword">ResultAreaSizeInBytes</span> = 1024 / 4 + 1024 = 1280</p></li>
+				<li>128000 capture <em>samples </em>in X1 mode<p><span class="keyword">ResultAreaSizeInBytes</span> = 128000
+						/ 4 + 1024 = 33024</p></li>
+				<li>16000 capture <em>cycles </em>in x8 mode<p><span class="keyword">NumberOfSamples =</span> 16000 * 8 =
+						128000</p>
+					<p><span class="keyword">SamplesPerByte</span> = 8</p>
+					<p><span class="keyword">ResultAreaSizeInBytes</span> = 128000 / 8 + 1024 = 17024</p></li>
+				<li>8000 capture <em>cycles </em>in x4 mode<p><span class="keyword">NumberOfSamples =</span> 8000 * 4 =
+						32000</p>
+					<p><span class="keyword">SamplesPerByte</span> = 8</p>
+					<p><span class="keyword">ResultAreaSizeInBytes</span> = 32000 / 8 + 1024 = 5024</p></li>
+			</ul></div>
+		<div class="example"><h3>Source code</h3><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+
+    // Define resConf for all digital capture pins
+    RESULT_AREA_CONFIG resConf("p1,p2,p3,p4,p5,p6,p6,p8");
+
+    // Allocate and map memory to identifier
+    resConf.appendArea("16KBITArea",3072).appendArea("128KBitArea",17408).activate();
+
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="19952.htm" title="Many test applications in the field of V93000 testing require the test system to be capable of acquiring large amounts of digital output data of a device at a high data rate, and storing this data for later analysis and data processing. This is called digital capturing.">Using Digital Capture</a></div><div><a href="121706.htm" title="The RESULT_AREA_CONFIG API specifies the number and size of result areas used for digital hidden upload.">RESULT_AREA_CONFIG</a></div><div><a href="99058.htm" title="The DVVA command (Define Vector VAriable) defines a vector variable for a vector label. The DVVA? query returns the definition of the specified or of all vector variables.">DVVA, DVVA? - (Define Vector VAriable)</a></div><div><a href="349886.htm">Result areas for error map data</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118934</span><script type="text/javascript">var ti='118934';var tt='Result areas for hidden digital upload'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

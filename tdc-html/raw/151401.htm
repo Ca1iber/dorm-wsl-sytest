@@ -1,0 +1,78 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Tool for Baseband IQ calibration when you have shared AWG/DGT resources to different sites</title><meta name="keywords" content="cal"></head><body id="_151401"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 151401</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Tool for Baseband IQ calibration when you have shared AWG/DGT resources to different
+		sites</h1>
+	
+	<div>
+		<p>Yun Dai, Advantest Asia COE</p>
+		<p>Paper ID: 151401 June 2016</p>
+		<section class="section"><h2>Abstract</h2><p>In massive sites' application, we may nedd to share a AWG or
+				DGT for different sites to test devices in semi-parallel. Standard Baseband IQ calibration is not able handle this semi-parallel sharing resource
+				case. This application note will introduce a script which is designed for the above mentioned
+				shared resource case.</p></section>
+		<section class="section"><h2>Key Words</h2><p>Baseband IQ calibration, Shared Resource, Script</p></section>
+		<section class="section"><h2>Introduction</h2><p>In some applications you need to do a baseband IQ
+				calibration and use the calibration data file in your program. Because of the limited hardware
+				resource users may share the AWG or DGT resource to different sites. For example users can share
+				the AWG/DGT from site 1 and site 3 to site 2 and site4. In the above case, the standard baseband
+				IQ calibration will only do the calibration once for site 1 and site 3, and does not care you
+				shared the same resource to sites 2 and 4. In this situation, SMT will report an error when you
+				run site 2 and site 4. The error message is similar to the
+				below.</p><pre class="msgblock">ERROR: ACMD "SRCA" - No specified Baseband IQ CAL data is measured or downloaded.
+BBIQ Calibration file load failed. Exiting test program...</pre><p>The
+				script mentioned in this application note is defined to handle this kind of case. It will create
+				a new calibration data file and will not overwrite the original. First step is moving the
+				original calibration file to ".original" before calling the script. The new calibration file
+				name should be the same as the condition file name. Meanwhile the condition file time stamp
+				should be earlier than the calibration file.</p><p>The difference between the original and new
+				calibration data file is that data is duplicated for all shared sites.</p></section>
+		<section class="section"><h2>User Procedure</h2><p>The tool name is "expand_bbiq_data" and is attached
+				here.</p><p>Usage is as below: </p><p><kbd class="userinput">expand_bbiq_data.pl &lt;pinconfig&gt;
+					&lt;calfile.original&gt; &lt;outfile&gt;</kbd></p><p>pinconfig: current pin configuration
+				file</p><p>calfile_original: original calibration file which is got from normal baseband IQ
+				calibration.</p><p>outfile: output file, the file name should be same with your condition
+				file.</p><ol>
+					<li>Follow TDC topic <span>93100</span> to get calibration file, no need to care
+					pin sharing at this step.</li>
+				<li>If there is sharing AWG/DGT pin used, use the attached script to convert the calibration
+					file. Please copy the script into your device dir.</li>
+				<li>Write code in Test Method to call the script. Pseudocode is for your reference.
+					<div></div><pre class="prettyprint linenums copyable"> if(!CollectBBIQFile)
+ {
+     if(perlFirstRun)
+     {
+          //file_name path is /var/opt/hp93000/soc/calibration/mc/&lt;device&gt;/&lt;pinconfig&gt;_&lt;analog&gt;/&lt;file name&gt; 
+          //above file is got in standard BBIQ calibration procedure 
+              
+          STRING perlCpCalFile = "cp /var/opt/hp93000/soc/calibration/mc/&lt;device&gt;/&lt;pinconfig&gt;_&lt;analog&gt;/&lt;file name&gt; 
+          /var/opt/hp93000/soc/calibration/mc/&lt;device&gt;/&lt;pinconfig&gt;_&lt;analog&gt;/&lt;file name.original&gt;"; 
+          int cpStatus = system (perlCpCalFile);
+              
+          //creat "script" folder in your device dir, then put the expand_bbiq_data.pl into this folder 
+          //please add full path of pingconfig and file_name 
+     
+          STRING perlCommand =  "../script/perl expand_bbiq_data.pl &lt;pinconfig&gt;  &lt;file_name.original&gt;  &lt;file_name&gt;";
+          int perlStatus = system (perlCommond.c_str());     
+          if(perlStatus == 0)
+          {
+              cout&lt;&lt;" BB IQ Calibration files for sharing resource generated."&lt;&lt;endl;
+              perlFirstRun = 0;
+          }
+          else
+          {
+              cout&lt;&lt;"Script Running ERROR!!!"&lt;&lt;endl;
+          }
+     }
+     BCAL.loadCalData(file_name);
+}</pre></li>
+			</ol><p>The perl script will only be called one time during testflow first run, where
+				pinconfig, calfile.original and outfile should be given with full path.</p><p>Download: <a href="expand_bbiq_data.pl.tgz"><span class="filepath">expand_bbiq_data.pl.tgz</span></a></p></section>
+		<section class="section"><h2>Biography</h2><p>Yun Dai is a graduate of JiaoTong University, Shanghai, with a
+				Master Degree in DSP. Yun Dai has worked for Agilent/Verigy since 2005, now as application
+				consultant focused in DC, Mixed-signal, RF, etc.</p></section>
+		<section class="section"><h2>Copyright</h2><p>Advantest owns the copyright of all submitted papers and has
+				the right to reuse these papers. By submitting this paper you are agreeing to these
+			terms.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 151401</span><script type="text/javascript">var ti='151401';var tt='Tool for Baseband IQ calibration when you have shared AWG/DGT resources to different sites'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

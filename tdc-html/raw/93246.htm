@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The AI_DIGCAP_SETTINGS section serves to generate SDGC and DVVA commands in the binary vector file. SDGC defines the resolution mode for digital capture, DVVA defines a vector variable, which serves to filter digital capture results. The section is organized as a table. Every row of the table specifies the parameters of one vector variable (the res_mode column is an exception, see below)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The AI_DIGCAP_SETTINGS section</title></head><body id="_93246"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 93246</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The AI_DIGCAP_SETTINGS section</h1>
+	
+	
+	<div><p>The <kbd class="userinput">AI_DIGCAP_SETTINGS</kbd> section serves to generate
+			<kbd class="userinput">SDGC</kbd> and <kbd class="userinput">DVVA</kbd> commands in the binary vector file.
+			<kbd class="userinput">SDGC</kbd> defines the resolution mode for digital capture,
+			<kbd class="userinput">DVVA</kbd> defines a vector variable, which serves to filter digital capture
+		results. The section is organized as a table. Every row of the table specifies the parameters of
+		one vector variable (the <kbd class="userinput">res_mode</kbd> column is an exception, see
+		below).</p>
+		<p>The format of the table may vary. Optional columns can be omitted, and the order of the columns
+			is arbitrary. The actual format of the table is defined in a header row. This row specifies which
+			columns exist and how they are ordered. The columns have fixed names. </p>
+		<p>Every row must be terminated with a semicolon. Because of this, a row is allowed to extend over
+			more than one line.</p>
+		<p>The totality of the data rows must be enclosed by a pair of braces (<kbd class="userinput">{}</kbd>).
+			The section as a whole must also be terminated with a semicolon.</p>
+		<p>It is possible that a cell of the table contains more than one entry. In this case these
+			entries must be enclosed by curly brackets.</p>
+		<p>The following list explains all the columns of the <kbd class="userinput">AI_DIGCAP_SETTINGS</kbd>
+			section. The columns are ordered alphabetically by their name. </p>
+		
+		<ul>
+			<li><kbd class="userinput">init_discard</kbd> (optional): The offset relative to the start location of
+				a capture block within the capture memory. The vectors before this offset will not be
+					uploaded.<p>The default value is 0.</p></li>
+			<li><kbd class="userinput">label</kbd> (mandatory): specifies the name of a vector label (pattern). The
+				pattern must be of type <kbd class="userinput">MAIN</kbd>. You can define more than one vector
+				variable for the same pattern.</li>
+			<li><kbd class="userinput">nr_frames</kbd> (optional): The number of frames that are to be extracted,
+				starting from the first frame. The default value is 1.</li>
+			<li><kbd class="userinput">nr_frames_interdisc</kbd> (optional): The number of irrelevant vectors
+				between frames. These will be discarded in the extraction process. The default value is 0.</li>
+			<li><kbd class="userinput">{pins}</kbd> (mandatory): List of pins for which the vector variable is
+				defined. If the list contains more than one element, the element names must be separated with a
+				comma. The entries belonging to this column must be enclosed by curly brackets in every line
+				even if only one entry is present. <p>If you have set the <em>xfer_mode</em> parameter to
+						<kbd class="userinput">SERI</kbd>, specify only one pin.</p>
+				<p>If you have set <em>xfer_mode</em> to <kbd class="userinput">PARA</kbd>, the LSB of the sample will
+					be assigned to the last pin of the pin list.</p></li>
+			<li><kbd class="userinput">res_mode</kbd> (optional): This column specifies a parameter for the
+					<kbd class="userinput">SDGC</kbd> command, <em>not</em> for <kbd class="userinput">DVVA</kbd>. The possible
+				values are <kbd class="userinput">STD</kbd> (this is also the default) and <kbd class="userinput">DBL</kbd>.
+				The <kbd class="userinput">SDGC</kbd> commands are derived from analyzing the
+					<kbd class="userinput">res_mode</kbd>, the <kbd class="userinput">label</kbd>, and the
+					<kbd class="userinput">pins</kbd> column for all rows of the table. One <kbd class="userinput">SDGC</kbd>
+				command is created per label for all pins with resolution mode <kbd class="userinput">STD</kbd>, and
+				one <kbd class="userinput">SDGC</kbd> command for all pins with resolution mode
+					<kbd class="userinput">DBL</kbd> (if necessary). If you define more than one vector variable for the
+				same combination of pin and label, make sure that the respective rows have the same resolution
+				mode.</li>
+			<li><kbd class="userinput">variable</kbd> (mandatory): specifies the name of the vector variable. This
+				name must be unique within the table.</li>
+			<li><kbd class="userinput">vec_interdisc</kbd> (optional): Defines the length of irrelevant vector
+				blocks within a frame. These will be discarded in the extraction process. If set to 2, for
+				example, only the first and then every third vector will be extracted within a frame.<p>The
+					default value is 0, in which case no vectors within a frame will be discarded.</p></li>
+			<li><kbd class="userinput">vec_per_frame</kbd> (mandatory): The number of relevant vectors within a
+				frame.</li>
+			<li><kbd class="userinput">vec_per_sample</kbd> (mandatory): The number of (relevant) vectors that are
+				contained in one sample. The suitable values for this parameter depend on the selected transfer
+				mode (<kbd class="userinput">xfer_mode</kbd> parameter).<ul>
+					<li>For transfer mode <kbd class="userinput">PARA</kbd>, this parameter must be set to 1 (the default
+						value).</li>
+					<li>For <kbd class="userinput">SERI</kbd>, the maximum number is 32. The bigger the number is, the
+						faster the upload will be. For example, if one frame contains 5 relevant vectors, you could
+						set <kbd class="userinput">nr_vec_per_sample</kbd> to 30 in order to put 6 frames into one
+						sample.</li>
+				</ul></li>
+			<li>
+				<kbd class="userinput">xfer_mode</kbd> (optional): Optional parameter that determines the transfer
+				mode. The options available are:<ul>
+					<li><kbd class="userinput">PARA</kbd> Parallel. This is the default.</li>
+					<li><kbd class="userinput">SERI</kbd> Serial<p>Note that you cannot select
+								<kbd class="userinput">SERI</kbd> if the vector variable is associated with more than one pin.</p></li>
+				</ul></li>
+		</ul>
+		<p>The following figure shows an example:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="94281.png" alt="Creating Digital Capture Settings">
+			</figure></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 93246</span><script type="text/javascript">var ti='93246';var tt='The AI_DIGCAP_SETTINGS section'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Usually, both the timing and the vector ports of a multi-port setup will include all configured pins. But it is also possible to work with incomplete setups, where either the timing ports or the vector ports or both do not cover all pins. Note, however, that some combinations must be used with care."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Incomplete multi-port setups</title><meta name="keywords" content="multiport"></head><body id="_119902"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119902</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Incomplete multi-port setups</h1>
+	
+	
+	<div><p>Usually, both the timing and the vector ports of a multi-port setup will include all
+		configured pins. But it is also possible to work with <em>incomplete</em> setups, where either the
+		timing ports or the vector ports or both do not cover all pins. Note, however, that some
+		combinations must be used with care. </p>
+		<p>The most common case is that the timing ports include all pins, but that the vector ports are
+			incomplete, for example:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="105307.png" alt="Incomplete vector port set">
+			</figure></div>
+		<p>In such a case, break vectors (as defined in the specified timing) will be executed for the
+			pins that are not included in any vector port (in the example, the pins of <strong>timing_port_B</strong>).
+			This is convenient when you want to keep a PLL alive across several test suites (see <em><a href="79315.htm" title="The multi-port setup allows you to de-couple ports (pins), so that you can, for example, reload primary sets (CTOF sequence) to selectively change the timing of data, of control pins belonging to a particular port (or ports), while allowing the continuous execution of clocking signals in a different port and sequencing group.">Continuous Clock Setup</a></em>).</p>
+		<p>A second option is to let timing and vector ports cover the same proper subset of the
+			configured pins, for example:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="119904.png" alt="Incomplete, but coextensive timing and vector ports">
+			</figure></div>
+		<p>In this case the primary timing for the pins not included in the setup (which must be present
+			to prevent a possible sequencer timeout) will be based on the default timing specified in
+			waveform set 1. In particular, the period for these pins will be based on the period of waveform
+			set 1, but it may be slightly greater or smaller. In this case, too, break vectors (but now as
+			defined in waveform set 1) will be executed for pins not included in the setup.</p>
+		<p>Since the default period of waveform set 1 is 1000 ns, this behavior may prolong the activation
+			of the primary sets. If you want to avoid this, define a smaller period for waveform set 1. </p>
+		<p>SmarTest will issue a warning if the timing setup contains a multi-port timing specification
+			that does not cover all pins with sequencing capability. This warning will usually read as
+			follows: </p>
+		<div></div><pre class="prettyprint copyable singleline">WARNING: W280: Some pins are not used in the following multiport timing specifications: &lt;<span class="keyword">List_of_specifications</span>&gt;</pre><div></div>
+		<p>The wording, however, will be different in the following special case: If test points have been
+			enabled by setting the <span class="keyword">testpoints:</span> entry of the
+				<span class="filepath">.technology</span> file to a value &gt; 0, all DC Scale pins have sequencing
+			capability, and therefore SmarTest expects that a timing setup is defined for them in a
+			multi-port specification. But if no test points have been actually defined for any DC Scale pin,
+			enabling test points is redundant, and the problem of an incomplete specification can be solved
+			by simply setting <span class="keyword">testpoints:</span> to 0. Therefore, if all omitted pins with
+			sequencing capability are DC Scale pins, the following message will be issued:</p>
+		<div></div><pre class="prettyprint copyable singleline">WARNING: W280 Some DC pins are not used in the following multiport timing specifications: &lt;<span class="keyword">List_of_specifications</span>&gt;</pre><div></div>
+		<p>You can also combine the two previous constellations as follows:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="119911.png" alt="Incomplete timing and vector ports, not coextensive">
+			</figure></div>
+		<p>Finally, the setup can be incomplete in that not all pins of the vector ports are also included
+			in a timing port, for example:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="119913.png" alt="Complete vector ports with incomplete timing ports">
+			</figure></div>
+		<p>In this case SmarTest will issue the following warning at runtime:</p>
+		<div></div><pre class="prettyprint linenums copyable">WARNING: There are pins with vectors running at undefined speed
+   Label: &lt;<span class="keyword">label</span>&gt;
+   Pins: &lt;<span class="keyword">pins</span>&gt;</pre><div></div>
+		<p>This scenario should be avoided. The primary timing for the excluded pins will again be based
+			on waveform set 1 (see <a href="103995.htm" title="The standard timing of SmarTest is equation based. Such a timing consists of three data collections, equation sets, wavetables and specifications. Every collection can contain several items of the respective type and is downloaded to the tester as one string argument of the EQSP or EQFS commands. There exists another type of timing, called fixed timing, where each single setup element, such as a waveform or the edge positions for one pin and timing set, is defined separately by calling a firmware command. In fixed timing, periods and edge delays must be specified as constants. Also, the organization of the data differs from that of equation based timing (for which see Data organization of equation based timing).">Fixed timing</a>). The period will be close to that of waveform set
+			1, and the waveform DC/DC power units of the vector setup will be interpreted according to the waveform
+			definitions of waveform set 1. Note that in this case keeping the default period for waveform set
+			1 (1000 ns) will usually lead to a significant slow down of the test, since the other ports
+				(<strong>port_1</strong> and <strong>vector_port_A</strong> in the example) will most probably have finished their
+			test much earlier than the vector port (<strong>vector_port_B</strong> in the example) that runs with the
+			period of waveform set 1. But it is the slowest port that determines the overall length of the
+			test.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.3: Support for incomplete multi-port setups has been extended.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119902</span><script type="text/javascript">var ti='119902';var tt='Incomplete multi-port setups'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

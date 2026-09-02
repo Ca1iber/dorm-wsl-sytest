@@ -1,0 +1,88 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In a production environment, you may want to protect your setup files against any unauthorized modification. Modification from within SmarTest can be prevented by starting the software in the Protected mode (option -P). This mode gives no access to any debug or setup GUI's, and does also not allow switching into any other (for example, engineering) mode."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Protection for your setup files</title></head><body id="_93153"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 93153</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Protection for your setup files</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="93176.htm" title="If you want to protect your setup files against unauthorized modification in a production environment, you should store them in encrypted form, see How to crypt a file.">Customized hp83_import for encrypted setup files</a></li><li><a href="126347.htm" title="This topic gives the command how to crypt a file using ccrypt based on the topic Customized hp83_import for encrypted setup files.">How to crypt a file</a></li><li><a href="126350.htm" title="This topics gives the commands on how to compile the hp83_import file.">How to compile hp83_import</a></li></ol></div></nav>
+	
+	
+	<div><p>In a production environment, you may want to protect your setup files against any
+		unauthorized modification. Modification from <em>within</em> SmarTest can be prevented by starting
+		the software in the Protected mode (option <kbd class="userinput">-P</kbd>). This mode gives no access
+		to any debug or setup GUI's, and does also not allow switching into any other (for example,
+		engineering) mode.</p>
+		<section class="section"><h2>File encryption</h2><p>In order to exclude modification of the files from
+					<em>outside</em> of SmarTest, you can encrypt them. For this, you can use the <strong>ccrypt</strong> tool
+				which is preinstalled on every system controller that is shipped with the test system. The
+				encrypted files must be protected against unauthorized decryption by an encryption
+				password.</p><p>If you encrypt your setup files, you must decrypt them before they can be loaded
+				into SmarTest. This must be done in such a way that the decrypted content is not stored anywhere
+				in a file, since otherwise these files could be tampered with. </p><p>You can achieve this by
+				creating a customized version of the <kbd class="userinput">hp83_import</kbd> script (see <a href="92415.htm" title="The script hp83_import is automatically executed every time you load setup data, immediately before the actual load operation.">Pre-Load Operations for Setup Data: hp83_import</a>) which calls <strong>ccrypt</strong> to decrypt the files. The script must be compiled
+				in order to hide the decryption pass word that it must pass to <strong>ccrypt</strong>. If you use
+				conventional setup files (or a pattern master file for the vector setup), the decrypted content
+				can be passed directly through <kbd class="userinput">stdout</kbd> to the SmarTest software, so that
+				it will never be stored in a file. For an example of such a modified import script, which also
+				takes care of other security issues, see <a href="93176.htm" title="If you want to protect your setup files against unauthorized modification in a production environment, you should store them in encrypted form, see How to crypt a file.">Customized hp83_import for encrypted setup files</a>.</p></section>
+		<section class="section"><h2>Using master files</h2><p>Things are more complicated if you use master files
+				for setup components other than the vector setup (see <a href="91306.htm" title="The Setup Management tool enables multiple users to work on different parts of the same setup component in parallel without interfering with each others work. It can be used for distributed setup development and debugging even if the individual users need access to the complete setup component, provided that they do not change the same part of it. The Setup Management tool can handle the following setup components:">Setup Management Tool</a>). In this case
+					<kbd class="userinput">hp83_import</kbd> would have to decrypt not only the master file which is
+				passed to it, but also the subfiles pointed at in the master file. Furthermore, the decrypted
+				subfiles would have to be stored somewhere to be available to the Setup Management tool.
+				Therefore some mechanism would have to be implemented which removes the decrypted subfiles after
+				they have been merged and downloaded by the Setup Management tool. However, since the Setup
+				Management tool is primarily intended for distributed <em>development</em>, there will be probably
+				no reason to make use of it in a production environment. You can always transform a setup
+				component that is controlled by a master file into a conventional setup file by loading it with
+				the Setup Management tool and then saving it under a new name which has <em>not</em> the extension
+					<kbd class="userinput">*.mfh</kbd>.</p></section>
+		<section class="section"><h2>Temporarily stored file</h2><div class="note"><span class="title">Note</span> Some files are accessible even if
+				the described safety scheme is used. These files are located in the directory
+					<kbd class="userinput">/var/opt/hp93000/soc/93k.&lt;</kbd><em>string</em><kbd class="userinput">&gt;/</kbd>.
+				This directory exists only as long as SmarTest is running. The files that are temporarily stored
+				in this directory are:</div><table class="frame-top"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_93153__entry__1"><p><strong>File name</strong></p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_93153__entry__2"><p><strong>Description</strong></p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__1"><p>TestFlow</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__2"><p>Copy of testflow file</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__1"><p>*.vvc</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__2"><p>Vector variable definition</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__1"><p>Eqlev.*</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__2"><p>Level equation and specification information</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__1"><p>Eqtim.*</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__2"><p>Timing equation and specification information</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__1"><p>Offl_pvec</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__2"><p>Binary offline pattern data</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__1"><p>Virt_seq</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_93153__entry__2"><p>Binary sequencer data</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="92415.htm" title="The script hp83_import is automatically executed every time you load setup data, immediately before the actual load operation.">Pre-Load Operations for Setup Data: hp83_import</a></div><div><a href="93176.htm" title="If you want to protect your setup files against unauthorized modification in a production environment, you should store them in encrypted form, see How to crypt a file.">Customized hp83_import for encrypted setup files</a></div><div><a href="91306.htm" title="The Setup Management tool enables multiple users to work on different parts of the same setup component in parallel without interfering with each others work. It can be used for distributed setup development and debugging even if the individual users need access to the complete setup component, provided that they do not change the same part of it. The Setup Management tool can handle the following setup components:">Setup Management Tool</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 93153</span><script type="text/javascript">var ti='93153';var tt='Protection for your setup files'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

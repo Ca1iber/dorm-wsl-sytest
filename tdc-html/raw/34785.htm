@@ -1,0 +1,55 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DRLStart</title><meta name="keywords" content="DRL, Start"></head><body id="_34785"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 34785</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DRLStart</h1>
+	
+	
+	<div><p></p>
+		<p class="codeblock">int DRLStart (const char *path, int flags, DRLDataStream *stream)</p>
+		<p>This function initializes a new data retrieval process. If you implement the data retrieval as
+			a stand-alone process, this function needs to be called before any other DRL function is used.
+			For a report formatter, this function is called automatically. (See <a href="34914.htm" title="This section contains low-level information about the Event Formatter which you may need if you want to make changes to the formatter, or which will help you if you want to write your own event-based report formatter. For normal use of the Event Formatter, this information is not needed.">How the Event Formatter works</a>.)</p>
+		<p>If the parameter <em>path</em> is NULL, the data retrieval process attaches to the system shared
+			memory and reads data from the data log stream. If the parameter <em>path</em> is not NULL, the
+			saved data log file specified in <em>path</em> is opened and logged data will be read from that
+			file. This allows for offline analysis of saved data log data.</p>
+		<p>As it is possible to start several data retrieval processes on more than one data log stream or
+			file, the pointer <em>stream</em> is used to distinguish between the different data log streams or
+			files. <em>stream</em> should be seen as an abstract variable representing the connection to the
+			data log stream or file. <em>stream</em> is used in various DRL functions that access the data log
+			stream or file.</p>
+		<p>See <a href="34778.htm">DRLSave</a> for information on how to save the data log stream to a file.</p>
+		<p>The parameter <em>flags</em> is composed of the following flags by bitwise OR:</p>
+		<ul>
+			<li>DRL_SYNC_COUNTER: If set, the event counter used in the new data retrieval process is
+				initialized with the value of the current event counter of the data log stream. Thus the
+				function <a href="34716.htm">DRLEventAvailable</a> only checks for new event records written to the data log
+				stream. If this flag is not set all pending event records are considered.</li>
+			<li>DRL_RESET_MASK: If set, the active event mask (see <a href="34740.htm">DRLGetEventMask</a>) is reset so that
+				all events are unmasked. If this flag is not set, the currently active event mask is used. Use
+				this flag if no active event mask has been previously defined.</li>
+			<li>DRL_TRUNCATE: If set, the data collection will be truncated immediately before attaching.
+				From the formatter's perspective, the attachment will behave as if it were synchronized, since
+				all past events are cleared.</li>
+			<li>DRL_WAIT_FOR_EVENT: If set, calls to <a href="34716.htm">DRLEventAvailable</a> and <a href="34743.htm">DRLGetNetUnmaskedEvent</a> are blocked until the next event arrives. This eliminates the
+				need to poll for events and improves the performance of the formatter process. We recommend
+				always setting this flag unless there is a specific reason not to set it.</li>
+			<li>DRL_NO_EVENTS: If set, the formatter will not receive data events. This mode can be used to
+				improve performance if only formatter control commands such as <a href="34778.htm">DRLSave</a> and <a href="34792.htm">DRLTruncate</a> are used.</li>
+		</ul>
+		<section class="section"><h2>Return Value</h2><p>The return value is zero if the function was successful;
+				otherwise the error code ERR_ACCESS (see <a href="34857.htm" title="The functions of the DRL return error codes for failures. The following error codes are defined:">Error Codes</a>) is returned if the file
+				specified in <em>path</em> could not be accessed.</p></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">void example (void)
+{
+ DRLDataStream stream;
+ if (DRLStart (NULL,(DRL_SYNC_COUNTER | DRL_RESET_MASK,
+    &amp;stream))
+    {
+       /* error handler  */
+     };
+/* starts a data retrieval operating on the data log stream and checks */
+/* only for new event records. The active event mask is reset.*/
+}</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 34785</span><script type="text/javascript">var ti='34785';var tt='DRLStart'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

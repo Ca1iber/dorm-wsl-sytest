@@ -1,0 +1,73 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Both the timing translator and the vector translator are organized on two levels. There is a high level tool, which serves as the user interface, and a low level tool, which is called, usually more than once, by the high level tool and performs the translation as described in Timing Translation and Vector Translation. You call the high level tools with a configuration file. Every line of this file contains a set of input parameters for the associated low level tool. The high level tool successively calls the low level tool with these parameter sets."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>High Level Tools and Low Level Tools</title></head><body id="_37454"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37454</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">High Level Tools and Low Level Tools</h1>
+	
+	
+	<div><p>Both the timing translator and the vector translator are organized on two levels. There
+		is a high level tool, which serves as the user interface, and a low level tool, which is called,
+		usually more than once, by the high level tool and performs the translation as described in <a href="37447.htm" title="First the timing translator translates the ASCII timing file. The information of the event sequences, which already contain delays for every action, is separated on the one hand into a wavetable, and on the other hand into a timing set.">Timing Translation</a> and <a href="37450.htm" title="In the second step, the vector translator converts the ASCII vector file into a binary vector file. This includes converting the state characters of the ASCII vector file into physical waveform DC/DC power units.">Vector Translation</a>. You call the high level tools with a configuration
+		file. Every line of this file contains a set of input parameters for the associated low level
+		tool. The high level tool successively calls the low level tool with these parameter
+		sets.</p>
+		<p>The high level tool of the timing translator is called <kbd class="userinput">ait</kbd>; its low
+			level tool has the name <kbd class="userinput">d2w</kbd>. The high level tool of the vector translator
+			is called <kbd class="userinput">aiv</kbd>; its low level tool has the name <kbd class="userinput">v2b</kbd>.
+			The low level tools can also be called directly, but generally it is recommended to use the high
+			level tools. Certain components of a multi-port setup can only be created through the high level
+			tools.</p>
+		<p>The configuration file for <kbd class="userinput">ait</kbd> is called a <em>global configuration
+				file</em>. It is called "global" because it contains not only information for the timing
+			translation, but also for the vector translation. The main section of this file is a table each
+			row of which connects a pattern, among other things, with one or more ASCII device cycles. These
+			ASCII device cycles are passed to <kbd class="userinput">d2w</kbd>, which will create a timing setup
+			for the pattern from them.</p>
+		<p>The configuration file for <kbd class="userinput">aiv</kbd> is called a <em>vector configuration
+				file</em>. It specifies, among other things, the ASCII vector file and timing map file which are
+			to be used for the vector translation of the pattern. The vector configuration file is
+			automatically created by <kbd class="userinput">ait</kbd>. Thus, <kbd class="userinput">ait</kbd> and
+				<kbd class="userinput">d2w</kbd> create all the input files for <kbd class="userinput">aiv</kbd> and
+				<kbd class="userinput">v2b</kbd> except the ASCII vector files and the pin configuration file.</p>
+		<p>The following figure illustrates the operation mode of the high level tools:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46171.png" alt="Operation Mode of the ASCII Interface High Level Tools">
+			</figure></div>
+		<p>The global configuration file of this example contains two entries, which associate the
+			patterns <kbd class="userinput">pat1</kbd> and <kbd class="userinput">pat2</kbd> (<kbd class="userinput">name</kbd>
+			column) with the ASCII device cycles <kbd class="userinput">std</kbd> and <kbd class="userinput">slow</kbd>,
+			respectively (<kbd class="userinput">{ascii_dvc}</kbd> column). Therefore, <kbd class="userinput">ait</kbd>
+			calls <kbd class="userinput">d2w</kbd> twice in order to create timings from <kbd class="userinput">std
+			</kbd>and <kbd class="userinput">slow</kbd>.</p>
+		<p><kbd class="userinput">ait</kbd> also writes two entries into the vector configuration file. These
+			entries connect <kbd class="userinput">pat1</kbd> and <kbd class="userinput">pat2</kbd> with the timing map
+			files <kbd class="userinput">pat.01.tmf</kbd> and <kbd class="userinput">pat.02.tmf</kbd>, which the timing
+			translation has created on the basis of the generated timing setup.</p>
+		<p>The two entries of the vector configuration file, in turn, cause <kbd class="userinput">aiv</kbd> to
+			call <kbd class="userinput">v2b</kbd> twice. These calls must specify an ASCII vector file and a timing
+			map file. Since the vector configuration file contains no names for the ASCII vector files,
+				<kbd class="userinput">aiv </kbd>assumes that these files derive their names from the pattern name;
+			thus, for example, it takes the name of the ASCII vector file for pattern
+				<kbd class="userinput">pat1</kbd> to be <kbd class="userinput">pat1.avc</kbd>. The timing map files for the
+			vector translation are specified in the vector configuration file.</p>
+		<p>Observe also the following additional points in the previous figure:</p>
+		<ul>
+			<li>There is only one ASCII timing file, which must contain all ASCII device cycles for all
+				patterns (in the example: both <kbd class="userinput">std</kbd> and <kbd class="userinput">slow</kbd>). In
+				contrast, every pattern has its own ASCII vector file.</li>
+			<li>The vector translation creates one binary vector file for every pattern, and also a
+				comprehensive binary vector file that contains the vectors for all patterns of the vector
+				configuration file.</li>
+			<li>The figure is incomplete insofar as both the timing and the vector translation can be called
+				with additional auxiliary files: <ul>
+					<li>For the timing translation, these are the x-mode control file (see <a href="37494.htm" title="Every row of the PATTERNS section in the global configuration file associates the respective pattern with one or more ASCII device cycles, and also (explicitly or implicitly) with an x-mode factor. If this factor is &gt; 1, the waveforms for any combination of a pin with one of these ASCII device cycles will be created not from single state characters, but from state character sequences. The length of the sequences is determined by the x-mode factor; if, for example, the x-mode factor is 4, then the waveforms are generated from sequences of length 4. For details see Using X-Modes: the xfact Column.">The X-Mode Control File (*.cmb)</a>),
+						and the pin multiplexing file (see <a href="37509.htm" title="If you need more edges or waveforms for a DUT pin than the system supplies, one way to circumvent these restrictions is to attach more than one tester channel to one DUT pin, and to distribute the required resources among these channels. The ASCII interface is able to cope with this situation. It accepts the state character definitions for the DUT pin in the ASCII timing file, and creates timings for the different associated channels. You can choose between several distribution algorithms.">The Pin Multiplexing File (*.mux)</a>). </li>
+					<li>For the vector translation the auxiliary input files are the pattern configuration files
+						(see <a href="37618.htm" title="The pattern configuration file is an optional, pattern specific input file for the vector translation. It is generated automatically by the timing translation. If you use the vector translation without the timing translation, you must create this file manually. Note that aiv expects the name of the pattern configuration file to be in the format">The Pattern Configuration File (*.vbc)</a>), the padding translation file (see <a href="37625.htm" title="If the total number of vectors in the ASCII vector file, or of the vectors between two sequencer instructions, is not a multiple of the x-mode factor, the vector translation can automatically insert ASCII padding vectors; see X-Modes, Processing of the Repeat Factor, and ASCII Vector Padding. There is a default as to how this padding vector is created from the last vector of the file, or the last vector before the sequencer instruction, but you can define your own rules be creating a padding translation file and passing it to aiv(in the v2b_options column of the vector configuration file) or to v2b with the -xpe, -xpi, and -xph parameters.">The Padding Translation File</a>), and
+						the oversampling map file (see <a href="37584.htm" title="The oversampling map file defines the rules for the discarding mechanism. It may be used not only to discard repeated vectors, but in general to convert arbitrary blocks of ASCII vectors for a port into one single vector. The definitions in the oversampling file map a column of an ASCII vector block (a sequence of state characters) to a single state character.">The Oversampling Map File</a>). The pattern configuration files are
+						generated automatically by the timing translation, the other files must be created
+						manually.</li>
+				</ul></li>
+		</ul>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37454</span><script type="text/javascript">var ti='37454';var tt='High Level Tools and Low Level Tools'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

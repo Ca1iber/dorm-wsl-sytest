@@ -1,0 +1,258 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Data Plotting use cases include sample programs using the Data Display API for plotting, overlaying, copying and pasting, and clearing waveforms."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Data Plotting</title></head><body id="_31393"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 31393</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Data Plotting</h1>
+	
+	
+	<div><p>The Data Plotting use cases include sample programs using the Data Display API for
+		plotting, overlaying, copying and pasting, and clearing waveforms.</p>
+		<p>In the following examples, it is assumed that graph 1 is already existing in the signal
+			analyzer. Otherwise, you can use <code>createGraph()</code> to create a new graph in the
+			Signal Analyzer.</p>
+		<section class="section"><h2>Plot 1D
+				waveform</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+graphManager-&gt;setTaskMode(Display::DISPLAY);
+ARRAY_D waveform = Analog.DGT("digitizer").getWaveform();
+vector&lt;double&gt; wfm;
+for (int i = 0; i&lt;waveform.size(); i++)
+{
+  wfm.push_back(waveform[i]);
+}
+Graph graph;
+Trace trace; 
+trace.setPinName("digitizer").setTestLabel("sample");
+trace.setWaveform(wfm);
+graph.setTitle("1D waveform");
+graph.setTrace(trace, 1);
+graphManager-&gt;setGraph(graph, 1);</pre><p>The
+				waveform data is retrieved from digitizer and then plot the waveform trace in the graph 1 of the
+				signal analyzer. Graph 1 is already existing in the signal analyzer.</p></section>
+		<section class="section"><h2>Plot 2D waveform in time
+				domain</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+graphManager-&gt;setTaskMode(Display::DISPLAY);
+ARRAY_D waveform = Analog.DGT("digitizer").getWaveform();
+vector&lt;double&gt; wfm;
+for (int i = 0; i&lt;waveform.size(); i++)
+{wfm.push_back(waveform[i]);}
+Graph graph;
+Trace trace;
+trace.setPinName("digitizer").setTestLabel("sample");
+trace.setWaveform(wfm);
+// Captured waveform is a time domain data (40MHz sampling)
+trace.setSamplingPeriod(25, "ns");
+graph.setTitle("2D waveform with time domain");
+// Set a unit of x-axis with time domain
+graph.getXAxis(1).setUnit("ns");
+graph.setTrace(trace,1);
+graphManager-&gt;setGraph(graph, 1);</pre><p>This
+				example retrieves the waveform data from digitizer and then plot it in the graph 1 of the signal
+				analyzer. The sampling period of X-axis is set to "25 ns" and the unit of X-axis is set to "ns".
+				Graph 1 is already existing in the signal analyzer.</p></section>
+		<section class="section"><h2>Plot 2D Waveform in Frequency
+				Domain</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+ARRAY_D waveform = Analog.DGT("digitizer").getWaveform();
+vector&lt;double&gt; wfm;
+for (int i = 0; i&lt;waveform.size(); i++) 
+{wfm.push_back(waveform[i]);}
+Graph graph;
+Trace trace;
+trace.setPinName("digitizer").setTestLabel("sample");
+trace.setWaveform(wfm);
+// Captured waveform is a time domain data (40MHz sampling)
+trace.setSamplingFrequency(40, "MHz");
+graph.setTitle("2D waveform with frequency domain");
+// Set a unit of x-axis with frequency domain
+graph.getXAxis(1).setUnit("kHz");
+graph.setTrace(trace, 1);
+graphManager-&gt;setGraph(graph, 1);</pre><p>This
+				example retrieves the waveform data from digitizer and then plot it in the graph 1 of signal
+				analyzer. The samping frequency of X-axis is set to "40 MHz" and the unit of the signal analyzer
+				is set to "kHz". Graph 1 is already existing in the signal analyzer. Otherwise, you can use
+					<code>createGraph()</code> of Trace API to create a new graph in the signal
+			analyzer.</p></section>
+		<section class="section"><h2>Plot difference between
+				waveforms</h2><pre class="prettyprint linenums copyable">GraphManager* graphManager = GraphManager::getInstance();
+Graph graph = graphManager-&gt;getSelectedGraph();
+vector&lt;string&gt; inputs;
+GraphDialogBox dialog("Diff. Waveforms");
+dialog.addTextField("Trace ID (waveform 1): ", "","")
+      .addTextField("Trace ID (waveform 2): ", "","")
+      .addTextField("Trace ID (difference): ", "","");
+// Open a dialog box and get user inputs
+inputs = graphManager-&gt;openDialogBox(dialog);
+int id1, id2, id3;
+id1 = atoi(inputs[0].c_str());
+id2 = atoi(inputs[1].c_str());
+id3 = atoi(inputs[2].c_str());
+vector&lt;double&gt; waveform1 = graph.getTrace(id1).getWaveform();
+vector&lt;double&gt; waveform2 = graph.getTrace(id2).getWaveform();
+ARRAY_D difference (waveform1.size());
+ARRAY_D array_d1(waveform1.size());
+for (int i = 0; i &lt; waveform1.size(); i++)
+{array_d1[i] = waveform1[i];}
+ARRAY_D array_d2(waveform2.size());
+for (int i = 0; i &lt; waveform2.size(); i++)
+{array_d2[i] = waveform2[i];}
+// Calculate the difference between the specified waveforms
+DSP_SUB_VEC (array_d1, array_d2, difference);
+vector&lt;double&gt; waveform3(difference.size());
+for (int i = 0; i &lt; difference.size(); i++)
+{waveform3[i] = difference[i];}
+Trace trace;
+trace.setPinName("digitizer").setTestLabel("difference");
+trace.setWaveform(waveform3);
+graph.setTrace(trace, id3);
+graphManager-&gt;setSelectedGraph(graph);</pre><p>This
+				example creates an object of Graph for the currently selected graph. Then the waveform data of
+				two traces in the graph are retrieved. The trace ID are input from a graph dialog box. Then the
+				difference between these two traces are caculated and plotted on the third trace of the
+				graph.</p></section>
+		<section class="section"><h2>Plot Scattered Data
+				Points</h2><pre class="prettyprint linenums copyable">// Scattered data points already exist
+GraphManager * graphManager = GraphManager::getInstance();
+Graph graph;
+Trace trace;
+vector&lt;double&gt; x1,y1,x2,y2,x3,y3;
+for(int i=0;i&lt;10;i++)
+{
+  x1.push_back(0.5*i);
+  y1.push_back(i);
+  x2.push_back(0.5*i+1);
+  y2.push_back(i);
+  x3.push_back(0.5*i+2);
+  y3.push_back(i); 
+}
+trace.setPinName("test").setTestLabel("scatter(first time)");
+trace.setScatter(x1, y1).setColor(Display::RED);
+graph.setTrace(trace, 1);
+trace.setTestLabel("scatter(second time)");
+trace.setScatter(x2, y2).setColor(Display::BLUE);
+graph.setTrace(trace,2);
+trace.setTestLabel("scatter(third time)");
+trace.setScatter(x3,y3).setColor(Display::YELLOW);
+graph.setTrace(trace,3);
+graphManager-&gt;setTaskMode(Display::BOTH);
+graphManager-&gt;setGraph(graph,1);</pre><p>This
+				example plot the scattered data points in the graph 1 of signal analyzer. <code>x1</code>,
+					<code>y1</code>, <code>x2</code>, <code>y2</code>, <code>x3</code> and
+					<code>y3</code> define the x coordinate data and y coordinate data of the scattered data
+				points. Graph 1 is already existing in the signal analyzer.</p></section>
+		<section class="section"><h2>Plot Test Mask and Indicate Failed
+				Points</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+ARRAY_D waveform = Analog.DGT("digitizer").getWaveform();
+vector&lt;double&gt; wfm;
+for (int i = 0; i&lt;waveform.size(); i++)
+{
+  wfm.push_back(waveform[i]);
+}
+Graph graph;
+Trace trace;
+TestMask testMask;
+TestMaskInequality inequality;
+trace.setPinName("digitizer").setTestLabel("sample");
+trace.setWaveform(wfm);
+graph.setTitle("1D waveform");
+graph.setTrace(trace, 1);
+trace.setTestLabel("test mask");
+// If y-value is over 0, the point will be highlighted with red
+inequality.setTestMaskInequality(0,1,0);
+testMask.setTestMaskStyle(1,Display::RED);
+testMask.setInequality(inequality, 1);
+graph.setTestMask(testMask);
+graph.setTrace(trace, 2);
+graphManager-&gt;setGraph(graph, 1);</pre><p>This
+				example retrieves the waveform data from digitizer and set the test mask to highlight the points
+				if the y-value is larger than 0. And then the waveform data is plotted in graph 1 of the signal
+				analyzer.</p></section>
+		<section class="section"><h2>Plot Bar Chart</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+ARRAY_D waveform = Analog.DGT("digitizer").getWaveform();
+Graph graph;
+Trace trace; 
+trace.setPinName("digitizer").setTestLabel("sample");
+ARRAY_I histogram;
+INT_VECTOR vec;
+// Calculate the histogram of captured waveform
+DSP_HISTOGRAM(waveform, histogram, -5.0, 5.0, 10);
+for(int i=0;i&lt;histogram.size();i++)
+{
+  vec[i]=histogram[i];
+}
+trace.setVector(vec);
+graph.setTitle("Histogram");
+graph.setTrace(trace,1);
+graph.setGraphStyle(Display::PLOT_BAR);
+graphManager-&gt;setGraph(graph, 1);</pre><p>This example
+				retrieves the waveform data from digitizer. Then it calculates the histogram of the waveform and
+				creates a bar plot in the graph 1 of signal analyzer.</p></section>
+		<section class="section"><h2>Overlay Multiple Waveforms with Same
+				Domain</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+ARRAY_D waveform1 = Analog.DGT("digitizer").getWaveform(1);
+ARRAY_D waveform2 = Analog.DGT("digitizer").getWaveform(2);
+vector&lt;double&gt; wfm1;
+for (int i = 0; i&lt;waveform1.size(); i++)
+{
+  wfm1.push_back(waveform1[i]);
+}
+vector&lt;double&gt; wfm2;
+for (int i = 0;i&lt;waveform2.size();i++)
+{
+  wfm2.push_back(waveform2[i]);
+}
+Graph graph;
+Trace trace;
+trace.setPinName("digitizer(1)").setTestLabel("sample");
+trace.setWaveform(wfm1).setColor(Display::WHITE);
+// Captured waveform is a time domain data (40MHz sampling)
+trace.setSamplingPeriod(25, "ns");
+graph.setTitle("2D waveforms with time domain");
+// Set a unit of x-axis with time domain
+graph.getXAxis(1).setUnit("ns");
+graph.setTrace(trace, 1);
+trace.setPinName("digitizer(2)").setTestLabel("sample");
+trace.setWaveform(wfm2).setColor(Display::YELLOW);
+graph.setTrace(trace, 2);
+graphManager-&gt;setGraph(graph, 1);</pre><p>This
+				example retrieves the data of two waveforms from digitizer and plot two traces for them in the
+				graph 1 of signal analyzer.</p></section>
+		<section class="section"><h2>Overlay Multiple Waveforms with Dual
+				Scale</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+ARRAY_D waveform = Analog.DGT("digitizer").getWaveform();
+vector&lt;double&gt; wfm;
+for(int i=0; i&lt;waveform.size(); i++)
+{
+  wfm.push_back(waveform[i]);
+}
+Graph graph;
+Trace trace;
+trace.setPinName("digitizer").setTestLabel("time domain");
+trace.setWaveform(wfm).setColor(Display::WHITE);
+
+// Captured waveform is a time domain data (40MHz sampling)
+trace.setSamplingPeriod(25, "ns");
+graph.setTitle("2D waveforms with dual scale");
+// Set a unit of first x-axis with time domain
+graph.getXAxis(1).setUnit("ns");
+graph.setTrace(trace, 1);
+
+// Set a unit of second x-axis with frequency domain
+graph.getXAxis(2).setUnit("kHz");
+trace.setTestLabel("frequency domain").setColor(Display::YELLOW);
+trace.setXAxisId(2);
+graph.setTrace(trace, 2);
+
+graphManager-&gt;setGraph(graph, 1);</pre><p>This
+				example retrieves the data of two waveforms from digitizer and plot two traces for them in the
+				graph 1 of signal analyzer. The x-axes of the two traces have different scales.</p></section>
+		<section class="section"><h2>Copy and Paste
+				Waveform</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+Graph graph = graphManager-&gt;getGraph(1);
+graphManager-&gt;setGraph(graph, 2);</pre><p>This
+				example copies the graph 1 to graph 2.</p></section>
+		<section class="section"><h2>Clear
+				Waveforms</h2><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+Graph graph = graphManager-&gt;getGraph(1);
+graph.init();
+graphManager-&gt;setGraph(graph, 1);</pre><p>This
+				example clears the waveforms in the graph 1.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 31393</span><script type="text/javascript">var ti='31393';var tt='Data Plotting'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

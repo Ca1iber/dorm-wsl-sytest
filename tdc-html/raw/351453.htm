@@ -1,0 +1,552 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Register Access library provides many predefined transactions for JTAG protocol, which can be used directly in a newly-created protocol."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>JTAG predefined transactions</title></head><body id="_351453"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351453</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">JTAG predefined transactions</h1>
+	
+	
+	<div><p>The Register Access library provides many predefined transactions for JTAG protocol,
+		which can be used directly in a newly-created protocol.</p>
+		<section class="section">
+			<div class="p">
+				<table class="frame-topbot"><caption><span>Overview of predefined transactions for JTAG</span></caption><colgroup><col style="width:180pt"><col style="width:400pt"></colgroup><thead>
+							<tr>
+								<th class="rowsep-1" id="_351453__entry__1">Transaction</th>
+								<th class="rowsep-1" id="_351453__entry__2">Description</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>changeSpeed(double freq)</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Change the JTAG clock speed. The JTAG speed can be changed in between transactions calls
+										when register read/write sequence is defined.</p>
+									<p>The speed is adapted to the resolution of the tester period.</p>
+									<p><code>freq</code>: The frequency of clock to be changed to.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>comment(const string&amp; comments)</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Add comments to the generated pattern where the subsequent transaction is located.</p>
+									<p>For debug into the generated pattern, comments can be issued together with the
+										subsequent transaction, for example,  <code>jtag.comment("AAA").toIdle(10)</code>. </p>
+									<p><code>comments</code>: The user comments in string.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>compareBits(RA::ULONG64 sendData, int bitLength, RA::ULONG64 expectedData,
+										RA::ULONG64 mask = 0, const std::string&amp; sendParamName = "")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<div class="p">Shift bits as the bits are being received from DUT, compare them against the expected
+										data, but not terminate the shifting.<table class="frame-none"><caption><span>Transactions before and after comapreBits</span></caption><colgroup><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__9">Before</th>
+														<th id="_351453__entry__10">After</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__9"><code>compareBits()</code></td>
+														<td headers="_351453__entry__10"><code>receiveBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__9"><code>receiveBits()</code></td>
+														<td headers="_351453__entry__10"><code>recieveData()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__9"><code>sendBits()</code></td>
+														<td headers="_351453__entry__10"><code>sendBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__9"><code>enterDR()</code></td>
+														<td headers="_351453__entry__10"><code>sendData()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__9"><code>enterIR()</code></td>
+														<td headers="_351453__entry__10"><code>compareBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__9"></td>
+														<td headers="_351453__entry__10"><code>compareData()</code></td>
+													</tr>
+												</tbody></table></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>compareData(RA::ULONG64 sendData, int bitLength, RA::ULONG64 expectedData,
+										RA::ULONG64 mask = 0, const std::string&amp; sendParamName = "")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Shift bits as the bits are being received from DUT, compare them against the expected
+										data, and terminate the shifting.</p>
+									<div class="p">This transaction is used in the state of shift IR or shift DR. It receives data from
+											DUT.<table class="frame-none"><caption><span>Transactions before and after compareData()</span></caption><colgroup><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__25">Before</th>
+														<th id="_351453__entry__26">After</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__25"><code>compareBits()</code></td>
+														<td headers="_351453__entry__26"><span class="keyword">exitIR()</span></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__25"><code>receiveBits()</code></td>
+														<td headers="_351453__entry__26"><span class="keyword">exitDR()</span></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__25"><code>sendBits()</code></td>
+														<td headers="_351453__entry__26"></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__25"><code>enterDR()</code></td>
+														<td headers="_351453__entry__26"></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__25"><code>enterIR()</code></td>
+														<td headers="_351453__entry__26"></td>
+													</tr>
+												</tbody></table></div>
+									<div class="p">Parameters: <ul>
+											<li><code>sendData</code>: The data sent to DUT while data is being received at the
+												same time. JTAG is full duplex and data sent must be specified during receiving
+												actions.</li>
+											<li><code>bitLength</code>: The bit length of data to be received. It also has the
+												same length of sending data.</li>
+											<li><code>expectedData</code>: The expected data to compare with from receive
+												actions.</li>
+											<li><code>mask</code>: The mask setting. Bit 1 stands for mask, 0 stands for no-mask.
+												If not set, no mask applies by default.</li>
+											<li><code>sendParamName</code>: A tagged string name as reference to sending data if
+												needed.</li>
+										</ul></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>enterDR()</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Enter the JTAG state to shift DR. The last state MUST be JTAG
+										<span class="keyword">idle</span>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>enterIR()</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Enter the JTAG state to shift IR. The last state MUST be JTAG
+										<span class="keyword">idle</span>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>exitDR()</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Exist the JTAG state from shift DR. The last state MUST be JTAG
+											<span class="keyword">shiftDR</span>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>exitIR()</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Exist the JTAG state from shift IR. The last state MUST be JTAG
+											<span class="keyword">shiftIR</span>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>loopBegin(int numberOfLoops)</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Issue the instruction command of loop begin.</p>
+									<p>A sequencer instruction command is inserted to the generated pattern. This transaction
+										must be used in pair with <span class="keyword">loopEnd()</span>.</p>
+									<p><code>numberOfLoops</code>: The number of loops.</p>
+									<div class="p">For example,
+										<div></div><pre class="prettyprint linenums copyable">jtag.loopBegin(10);
+jtag.sendByte(0xFF);
+jtag.loopEnd();</pre></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>loopEnd()</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Issue an instruction command of loop end. This transaction must be used in pair with
+											<span class="keyword">loopBegin()</span>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>matchLoopBegin(int numberOfLoops, bool continueOnFail =
+									false)</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2"><p>Start a counted match loop.</p>This transaction must be used in pair with
+										<span class="keyword">matchLoopEnd()</span>.<ul>
+										<li><code>numberOfLoops</code>: The number of loops.</li>
+										<li><code>continueOnFail</code>: Specify whether the digital sequence continues when
+											the maximum loop number is exceeded and no match is reached. </li>
+									</ul></td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>matchLoopEnd(const string&amp; repeatStateCharacterList =
+									"")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>End a block of match loop. It must be used in pair with
+											<span class="keyword">matchLoopBegin()</span>.</p>
+									<p><code>repeatStateCharacterList</code>: The state character strings of pins when
+										matching is evaluated. Format is:
+											<code>pinList1@Pattern1:PinList2@Pattern2:........PinListN@PatternN</code></p>
+									<div class="p">Where: <ul>
+											<li>PinLists are separated by comma.</li>
+											<li>Pattern is DVC name (1 character length) string streams. For example,
+													<code>1000L1H</code>. </li>
+											<li>Groups of Pinlists and patterns are separated by colon.</li>
+										</ul></div>
+									<p>By default, it holds the last state of pattern.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>receiveData(RA::ULONG64 sendData, int bitLength, const std::string&amp;
+										recParamName, const std::string&amp; sendParamName = "")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Shift bits as the bits are being received from DUT and terminate the shifting. </p>
+									<p>This transaction is used in the state of shift IR or shift DR. It receives data from
+										DUT. It terminates the data shift and MUST be followed by <span class="keyword">exitIR</span> or
+											<span class="keyword">exitDR</span>.</p>
+									<div class="p">Parameters:<ul>
+											<li><code>sendData</code>; The data sent to DUT while data is being received. JTAG is
+												full duplex and the sent data must be specified during receive actions.</li>
+											<li><code>bitLength</code>: The bit length of data to be received. It has the same
+												length of sent data.</li>
+											<li><code>recParamName</code>: A tagged string name in reference to received data.
+												The name must be referenced in <span class="keyword">composeRegisterReadData()</span>. </li>
+											<li><code>sendParamName</code>: A tagged string name in reference to sent data if
+												required.</li>
+										</ul></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>receiveBits(RA::ULONG64 sendData, int bitLength, const std::string&amp;
+										recParamName, const std::string&amp; sendParamName = "")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<div class="p">Shift bits as the bits are being received from DUT but not terminate the shifting.<table class="frame-none"><caption><span>Transactions before and after receiveBits()</span></caption><colgroup><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__57">Before</th>
+														<th id="_351453__entry__58">After</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__57"><code>compareBits()</code></td>
+														<td headers="_351453__entry__58"><code>receiveBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__57"><code>receiveBits()</code></td>
+														<td headers="_351453__entry__58"><code>recieveData()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__57"><code>sendBits()</code></td>
+														<td headers="_351453__entry__58"><code>sendBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__57"><code>enterDR()</code></td>
+														<td headers="_351453__entry__58"><code>sendData()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__57"><code>enterIR()</code></td>
+														<td headers="_351453__entry__58"><code>compareBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__57"></td>
+														<td headers="_351453__entry__58"><code>compareData()</code></td>
+													</tr>
+												</tbody></table></div>
+									<p>There should be one of the mentioned transactions used before and after this
+											<span class="keyword">receiveBits()</span> transaction.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>restoreSpeed()</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Restore the speed to its specification by <code>getClockSpeed()</code>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>sendBits(RA::ULONG64 data, int bitLength, const std::string&amp; name =
+										"")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Shift bits as the bits are being sent to DUT and not terminate the shifting. </p>
+									<div class="p">This transaction is used in the state of shift IR or shift DR. When it has been
+										executed, the last bit is still in shift IR or shift DR. Therefore it must NOT be followed
+										directly by <span class="keyword">exitIR</span> and <span class="keyword">exitDR</span>. During bits are being
+										sent, receives are masked.<table class="frame-none"><caption><span>Transactions before and after sendBits()</span></caption><colgroup><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__75">Before</th>
+														<th id="_351453__entry__76">After</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__75"><code>compareBits()</code></td>
+														<td headers="_351453__entry__76"><code>receiveBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__75"><code>receiveBits()</code></td>
+														<td headers="_351453__entry__76"><code>recieveData()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__75"><code>sendBits()</code></td>
+														<td headers="_351453__entry__76"><code>sendBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__75"><code>enterDR()</code></td>
+														<td headers="_351453__entry__76"><code>sendData()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__75"><code>enterIR()</code></td>
+														<td headers="_351453__entry__76"><code>compareBits()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__75"></td>
+														<td headers="_351453__entry__76"><code>compareData()</code></td>
+													</tr>
+												</tbody></table></div>
+									<p>There must be one of the above transactions used before and after. </p>
+									<p>Parameters: </p>
+									<div class="p">
+										<ul>
+											<li><code>data</code>: The data to be shifted by bits. LSB first.</li>
+											<li><code>bitLength</code>: The bit length of the data. MSBs that exceeds the length
+												are cut.</li>
+											<li><code>name</code>: A tagged string name as a reference to the data. The name can
+												be used in <span class="keyword">composeRegisterWriteData()</span>.</li>
+										</ul>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>sendData(RA::ULONG64 data, int bitLength, const std::string&amp; name =
+										"")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Shift bits as the bits are being sent DUT and then terminate the shifting.
+											<span class="keyword">sendData</span> is used in the state of shift IR or shift DR.</p>
+									<div class="p">During bits are being sent, the receive actions are masked.<table class="frame-none"><caption><span>Transactions before and after sendData()</span></caption><colgroup><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__91">Before</th>
+														<th id="_351453__entry__92">After</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__91"><code>compareBits()</code></td>
+														<td headers="_351453__entry__92"><code>exitIR()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__91"><code>receiveBits()</code></td>
+														<td headers="_351453__entry__92"><code>exitDR()</code></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__91"><code>sendBits()</code></td>
+														<td headers="_351453__entry__92"></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__91"><code>enterDR()</code></td>
+														<td headers="_351453__entry__92"></td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__91"><code>enterIR()</code></td>
+														<td headers="_351453__entry__92"></td>
+													</tr>
+												</tbody></table></div>
+									<p>Parameters: </p>
+									<div class="p">
+										<ul>
+											<li><code>data</code>: The data to be shifted by bits. LSB first.</li>
+											<li><code>bitLength</code>: The bit length of the data. Those MSBs that exceeds the
+												length are cut.</li>
+											<li><code>name</code>: A tagged string name as a reference to the data. The name can
+												be used in <span class="keyword">composeRegisterWriteData()</span>.</li>
+										</ul>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>setState(const string&amp; tckState, const string&amp; tmsState, const
+										string&amp; tdiState, const string&amp; tdoState)</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Set the state character list of JTAG pins.</p>
+									<div class="p">The lengths of state characters on all pins must be the same.<ul>
+											<li><code>tckState</code>: The state character of pin TCK. </li>
+											<li><code>tmsState</code>: The tate character of pin TMS.</li>
+											<li><code>tdiState</code>: The state character of pin TDI.</li>
+											<li><code>tdoState</code>: The state character of pin TDO.</li>
+										</ul></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>shiftIR(RA::ULONG64 data, int bitLength, const std::string&amp; name =
+										"")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>JTAG shift on IR data. This transaction behaves as the combination of </p>
+									<div class="p"><span class="keyword">enterIR()</span>, <span class="keyword">sendData()</span>, and
+											<span class="keyword">exitIR()</span> in sequence.<table class="frame-none"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__107">Pin</th>
+														<th id="_351453__entry__108">enterIR</th>
+														<th id="_351453__entry__109">shiftData</th>
+														<th id="_351453__entry__110">exitIR</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__107">TCK</td>
+														<td headers="_351453__entry__108">RRRR</td>
+														<td headers="_351453__entry__109">R...R</td>
+														<td headers="_351453__entry__110">RR</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__107">TMS</td>
+														<td headers="_351453__entry__108">1100</td>
+														<td headers="_351453__entry__109">0...1</td>
+														<td headers="_351453__entry__110">10</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__107">TDI</td>
+														<td headers="_351453__entry__108">0000</td>
+														<td headers="_351453__entry__109">D...D</td>
+														<td headers="_351453__entry__110">00</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__107">TDO</td>
+														<td headers="_351453__entry__108">XXXX</td>
+														<td headers="_351453__entry__109">D...D</td>
+														<td headers="_351453__entry__110">XX</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__107">TRST</td>
+														<td headers="_351453__entry__108">1111</td>
+														<td headers="_351453__entry__109">1...1</td>
+														<td headers="_351453__entry__110">11</td>
+													</tr>
+												</tbody></table></div>
+									<p>The previous JTAG state must be idle.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>shiftDR(RA::ULONG64 data, int bitLength, const std::string&amp; name =
+										"")</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2"><p>JTAG shift on DR data. This transaction behaves as the combination of
+											</p><div class="p"><span class="keyword">enterDR()</span>, <span class="keyword">sendData(),</span> and
+											<span class="keyword">exitDR()</span> in sequence.<table class="frame-none"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+													<tr>
+														<th id="_351453__entry__133">Pin</th>
+														<th id="_351453__entry__134">enterDR</th>
+														<th id="_351453__entry__135">shiftData</th>
+														<th id="_351453__entry__136">exitDR</th>
+													</tr>
+												</thead><tbody>
+													<tr>
+														<td headers="_351453__entry__133">TCK</td>
+														<td headers="_351453__entry__134">RRR</td>
+														<td headers="_351453__entry__135">R...R</td>
+														<td headers="_351453__entry__136">RR</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__133">TMS</td>
+														<td headers="_351453__entry__134">110</td>
+														<td headers="_351453__entry__135">0...1</td>
+														<td headers="_351453__entry__136">10</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__133">TDI</td>
+														<td headers="_351453__entry__134">000</td>
+														<td headers="_351453__entry__135">D...D</td>
+														<td headers="_351453__entry__136">00</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__133">TDO</td>
+														<td headers="_351453__entry__134">XXX</td>
+														<td headers="_351453__entry__135">D...D</td>
+														<td headers="_351453__entry__136">XX</td>
+													</tr>
+													<tr>
+														<td headers="_351453__entry__133">TRST</td>
+														<td headers="_351453__entry__134">111</td>
+														<td headers="_351453__entry__135">1...1</td>
+														<td headers="_351453__entry__136">11</td>
+													</tr>
+												</tbody></table></div>The previous JTAG state must be idle.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>toIdle(int resetCycles )</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Set to the Idle state. This transaction can be used to force JTAG state to jump to Idle
+										by sourcing enough reset cycles.</p>
+									<div class="p">
+										<table class="ly"><caption></caption><colgroup><col><col><col><col></colgroup><tbody>
+													<tr>
+														<td>TCK</td>
+														<td>RRRR</td>
+														<td>RRRR</td>
+														<td>R</td>
+													</tr>
+													<tr>
+														<td>TMS</td>
+														<td>1111</td>
+														<td>1111</td>
+														<td>0</td>
+													</tr>
+													<tr>
+														<td>TDI</td>
+														<td>0000</td>
+														<td>0000</td>
+														<td>0</td>
+													</tr>
+													<tr>
+														<td>TDO</td>
+														<td>XXXX</td>
+														<td>XXXX</td>
+														<td>X</td>
+													</tr>
+												</tbody></table>
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>toReset(int resetCycles )</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<div class="p">Set to the idle state. This transaction can be used to force JTAG state to jump to Reset
+										by sourcing enough reset cycles.<table class="ly"><caption></caption><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><tbody>
+													<tr>
+														<td>TCK</td>
+														<td>RRRR</td>
+														<td>RRRR</td>
+													</tr>
+													<tr>
+														<td>TMS</td>
+														<td>1111</td>
+														<td>1111</td>
+													</tr>
+													<tr>
+														<td>TDI</td>
+														<td>0000</td>
+														<td>0000</td>
+													</tr>
+													<tr>
+														<td>TDO</td>
+														<td>XXXX</td>
+														<td>XXXX</td>
+													</tr>
+												</tbody></table></div>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351453__entry__1"><code>wait(double waitTime)</code></td>
+								<td class="rowsep-1" headers="_351453__entry__2">
+									<p>Set a hold time.</p>
+									<p><code>waitTime</code>: The hold time in seconds.</p>
+								</td>
+							</tr>
+						</tbody></table>
+			</div>
+		</section>
+		<h2>Example</h2><div class="example">
+			<p>Transaction definitions for read operations:</p>
+			<div></div><pre class="prettyprint linenums copyable">virtual void defineReadRegister(JTAG&amp; jtag, ULONG64 address, int numberOfData)
+{
+  jtag.shiftIR(ADDRESS, 8);
+  jtag.shiftDR(address, 16);
+  jtag.shiftIR(DATA, 8);
+  jtag.enterDR();
+  jtag.receiveData 0, 8, "data_out");
+  jtag.exitDR();
+}</pre><div></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351453</span><script type="text/javascript">var ti='351453';var tt='JTAG predefined transactions'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmarTest can generate test numbers for each pin. This feature must be enabled by setting a testflow flag and set up by setting a test suite flag and specifying the desired values to test suite variables."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Generating per-pin test numbers</title></head><body id="_149845"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149845</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Generating per-pin test numbers</h1>
+	
+	
+	<div><p>SmarTest can generate test numbers for each pin. This feature must be enabled by setting
+		a testflow flag and set up by setting a test suite flag and specifying the desired values to test
+		suite variables.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Set up per-pin test numbers when you need separate test numbers for individual pins
+				and do not want to set them up manually.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Enabling the per-pin test numbering feature in SmarTest</h3><ol>
+				<li>On the <a href="99273.htm" title="On this page, you can set the system flags and testflow flags.">testflow flag page</a>, turn on the
+						<span class="keyword">test_number_enable</span> flag.</li>
+				<li><p>On the <a href="99275.htm" title="On this page, you can add, delete, and edit variables.">testflow variable page</a>, set the testflow variable
+					<span class="keyword">PerPinTestNumberAutoGenEnable</span> to 1.</p>
+					<p>To disable the per-pin test numbering feature, set
+								<span class="keyword">PerPinTestNumberAutoGenEnable</span> to 0. </p>
+					</li>
+				<li>In the test table, define a base test number for the test item for which you are to enable
+					the per-pin test numbering generation.<p>SmarTest takes the base test number as a starting
+						number to generating incremental test numbers for all pins. </p></li>
+			</ol></section>
+		<section class="section"><h3>Setting up the per-pin test numbering for a testflow</h3><ol>
+				<li>Turn on the <span class="uicontrol">test_number_enable</span> flag on the <a href="99273.htm" title="On this page, you can set the system flags and testflow flags.">testflow flag page</a>.</li>
+				<li>Define the required testflow variables on the <a href="99275.htm" title="On this page, you can add, delete, and edit variables.">testflow variable
+						page</a>.<div class="p"><figure class="fignone">
+							<img src="149846.png" alt="Setting up PerPinTestNumberAutoGenEnable">
+						</figure></div><ul>
+						<li>Set the type of <span class="keyword">PerPinTestNumberAutoGenEnable</span> and
+								<span class="keyword">PerPinTestNumberIncNum</span> to
+									<span class="keyword">USERFLAG</span>.<p><span class="keyword">PerPinTestNumberIncNum</span> sets the test
+								number step incrementing from the base test number.</p></li>
+						<li>Set <span class="keyword">PerPinTestNumberAutoGenEnable</span> to 1.</li>
+					</ul></li>
+				<li>Define the base test number for the specified test item of the test suite in the test
+					table.</li>
+			</ol><p>During the test suite execution, if a generated test number conflicts with an existing
+				test number, the system shows an error message in the report window to indicate the conflicting
+				in the following format: </p><p>Error: Duplicate testnumber '$number' detected in
+				$testsuite_name.</p></section>
+		<h2>Examples</h2><section><h3>Writing the test
+			method</h3><pre class="prettyprint linenums copyable">virtual void run()
+{
+    STRING_VECTOR Pin_List;
+    STRING Test_Name;
+    int Pin_Num;
+    int Pin_List_No;
+
+    Pin_List = PinUtility.getDigitalPinNamesFromPinList(mPins,TM::IO_PIN,true,true);
+    Pin_Num = Pin_List.size();
+
+    Test_Name = "passCurrLimit_uA";
+
+    ARRAY_D values(Pin_Num);
+    for (int i = 0; i &lt; Pin_Num; i++){
+      values[i] = (i+100);
+    }
+
+    STRING pinstr = PIN_UTILITY::createPinListFromPinNames(Pin_List);
+    TEST(pinstr.c_str(), Test_Name.c_str(), V93kLimits::tmLimits,values,TM::CONTINUE); 
+    // If this feature is disabled, only one test number is generated in the execution. Otherwise, 100 test numbers are generated. </pre></section>
+		<section><h3>Creating a testflow by using the above-defined test method. </h3><div class="p"><figure class="fignone">
+					<img src="149848.png" alt="Per-pin test number testflow">
+				</figure></div><ol>
+				<li>At the Start, the testflow reads the value of
+						<span class="keyword">PerPinTestNumberAutoGenEnable</span> in the testflow variable table, which is 1 to
+					enable the per-pin test numbering feature.</li>
+				<li>Set the value of <span class="keyword">PerPinTestNumberAutoGenEnable</span> to 0 to disable the
+					per-pin test numbering feature for the following test suites.</li>
+				<li>Set the value of <span class="keyword">PerPinTestNumberAutoGenEnable</span> to 1 to enable the per-pin
+					test numbering for the following test suites.<p>Since
+							<span class="keyword">PerPinTestNumberAutoGenEnable</span> is a global testflow variable, changing it
+						in the source code may lead to an unsafe thread issue. We do not recommend to change it in the
+						source code.</p></li>
+			</ol></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="108779.htm" title="Test numbers can be quickly and easily generated using the SmarTest Work Center.">Generating test numbers from the SmarTest GUI</a></div><div><a href="108783.htm" title="The Test Number Generator can be controlled from test methods via public APIs, allowing test numbers to be generated automatically.">Generating test numbers from a test method</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149845</span><script type="text/javascript">var ti='149845';var tt='Generating per-pin test numbers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

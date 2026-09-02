@@ -1,0 +1,132 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies the range of forcing current for DC Scale pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>iForceRange()</title><meta name="keywords" content="i, Force, Range"></head><body id="_143535"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 143535</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">iForceRange()</h1>
+	
+	
+	<div><p>Specifies the range of forcing current for DC Scale pins.</p>
+		<section class="section">
+			<ul>
+				
+				<li>XPS256 pins:<p>The function can be used in the code‑based mode and in
+						the pattern‑based mode. The pin must not be disconnected for changing
+						the current force range.</p></li>
+				<li>Other DC Scale pins:<p>The function can be used only in the code‑based mode together
+						with the <a href="143892.htm" title="Specifies a current to force.">iForce()</a> function. Disconnect the pin before
+						changing the range of the forcing current.</p></li>
+			</ul>
+		</section>
+		<section class="section" id="_143535__s_Force_or_clamp_value_and_range_programming_sequence"><h2>Range programming
+				sequence (<span>XPS256</span>)</h2><p><span>DC Scale XPS256 pins</span> can change the
+				force or clamp range in connected mode. The programmed force or clamp value must
+				always match to the selected range. Violating this rule may lead to a range overflow
+				warning.</p>
+			<p>The behavior of SmartRDI differs for the code‑based mode and the
+				pattern‑based mode:</p>
+			<ul>
+				<li>
+					<p>Code-based mode:</p>
+					<p>The programmed sequence is always defined and applied as complete setup. The
+						test processor of <span>XPS256 pins</span> will automatically select the correct
+						sequence to avoid range overflow warnings. No special sequence must be
+						considered in code‑based mode.</p>
+				</li>
+				<li>
+					<p>Pattern-based mode:</p>
+					<p>The programmed value and the range that are defined within the same RDI
+						command (<code>rdi()...execute()</code>) are set by separate patterns of
+						the automatically created pattern burst. Regardless of the programmed
+						sequence within the RDI command, SmartRDI always executes first the pattern
+						that sets the range, followed by the pattern that sets the value.</p>
+					<p>For the pattern‑based mode, we therefore recommend carefully checking
+						the sequence for changing the force value, the clamp value, or the related
+						range of an <span>XPS256</span> pin. For the correct sequence, the settings must be
+						programmed in separate RDI commands.</p>
+					<p>The correct sequence depends on the currently set range and the new force or
+						clamp value to be set:</p>
+					<ul>
+						<li>The force or clamp value of an <span>XPS256</span> pin is to be increased:<ol>
+								<li>The new range that matches to the new force or clamp value must
+									be programmed first and must be applied using function <a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a>.</li>
+								<li>The new force or clamp value can be set now using a new RDI
+									command.</li>
+							</ol></li>
+						<li>The range of an <span>XPS256</span> pin is to be decreased:<ol>
+								<li>The new force or clamp value that matches to the new range must
+									be programmed first and must be applied using function <a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a>.</li>
+								<li>The new range can be set now using a new RDI command.</li>
+							</ol></li>
+					</ul>
+					<p>Both steps of the sequence are to be programmed in separate RDI commands
+							(<code>rdi()...execute()</code>). Using separate RDI commands
+						ensures that the patterns are started in the programmed order.</p>
+				</li>
+			</ul>
+		</section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">dcBase&amp; iForceRange(double dIForceRange);
+dcBase&amp; iForceRange(string SpecName,TA::LEVEL_SPEC);</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">Parameter</dt>
+					<dd>
+						<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_143535__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_143535__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_143535__entry__1"><var class="varname">dIForceRange</var></td>
+										<td class="colsep-0 rowsep-1" headers="_143535__entry__2"><p>The range of the forcing current.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_143535__entry__1"><var class="varname">SpecName</var></td>
+										<td class="colsep-0 rowsep-1" headers="_143535__entry__2">The spec variable name in Level setup.</td>
+									</tr>
+								</tbody></table>
+					</dd>
+				
+				
+					<dt class="dlterm">Return Value</dt>
+					<dd>A reference to the <span class="keyword">dcBase</span> object.</dd>
+				
+			</dl>
+		</div>
+		<section class="section"><h2>Application note</h2>
+			
+			<dl>
+				
+					<dt class="dlterm">Programming both the force and the measurement range of <span>XPS256</span></dt>
+					<dd>
+						<p><span>XPS256
+								does</span> not have different force and measurement ranges.</p>
+						<p>Thus using <span class="keyword">iForceRange()</span> and
+								<span class="keyword">iMeasRange()</span> within one SmartRDI command that is
+							terminated by <a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a> will not result in different
+							ranges, but the current measurement range will finally be active. The
+							applied sequence is</p>
+						<ol>
+							<li>Set current force range (active for a short time)</li>
+							<li>Set current measurement range (overrides the current force
+								range)</li>
+						</ol>
+					</dd>
+				
+			</dl>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Set force range in code‑based
+			mode</h3>
+			<pre class="prettyprint copyable singleline">rdi.dc().pin("pin1").iForceRange(10 mA).iForce(1 mA).execute();</pre></div>
+		<div class="example"><h3>Example 2: Change range of AVI64 without disconnecting</h3>
+			
+			<p>For an example that shows the correct
+				sequence of programming the force or clamp value and the force or clamp range in
+				pattern‑based mode, refer to <span><!--a href="smartest<346573.htm"-->AVI64
+						Use Case - Change range without disconnecting<!--/a--> in the SmarTest 7.6.x
+					documentation</span>.</p>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="138572.htm" title="The DPS128 and the DPS64 cards are members of the family of DC Scale power supplies and can reside in any I/O channel card slot.">DC Scale DPS128/DPS64 cards</a></div><div><a href="350661.htm" title="The XPS256 is a high-density scalable DUT power supply and V/I card for all SOC test applications. The card belongs to the DC Scale family and can reside in any channel card slot of a V93000 EXA Scale system.">DC Scale XPS256 card</a></div><div><a href="349239.htm" title="The implemented number of vectors between DC events, or between the last DC event in a pattern and the end of the pattern, and the SmartRDI applied wait times for DC events are found in tables in the topics linked to below.">SmartRDI timing settings of DC events</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li><li>SmartRDI 2.4.2: AVI64 added.</li><li>SmarTest 7.4.4: The function can be used in the pattern‑based mode for AVI64
+					DPS-type pins.</li><li>SmarTest 7.5.0: FVI16 added.</li><li>SmarTest 7.5.0: Spec variables can be added to DC events.</li><li>SmarTest 7.10.1: XPS256 added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 143535</span><script type="text/javascript">var ti='143535';var tt='iForceRange()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Hidden upload using the SmartCalc (SMC) framework in means that SmartRDI performs the upload of the results in background threads."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Hidden upload examples for SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_350270"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 350270</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Hidden upload examples for SmartRDI</h1>
+	
+	
+	<div><p>Hidden upload using the SmartCalc (SMC) framework in means that SmartRDI performs the
+		upload of the results in background threads.</p>
+		<p>Background threads using SmartCalc (SMC) in SmartRDI can be implemented as "thread per site" or
+			as "common thread" (also known as "single thread"). The following examples use all the
+			"thread per site" meaning that a separate thread is created for each active site.</p>
+		<p>For more information, refer to <a href="149335.htm#_149335__dle_Thread_per_site">Thread per site</a> in <a href="149335.htm" title="SmartRDI can be used in combination with the SmartCalc (SMC) framework. This allows you to move time consuming calculations and uploads of test results to separate background threads and executing them in parallel.">Using SmartCalc (SMC) with SmartRDI</a> and to <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a>.</p>
+		<h2>Examples</h2><div class="example"><h3>Example 1: RF and DC (Thread per site)</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        rdi.hiddenUpload(TA::ALL);
+
+        RDI_BEGIN();
+        {
+            rdi.rfm("id1").pin("A").signal(TA::MOD_OUT).freq(1e9).bw(2e6).execute();
+            rdi.dc("id2").pin("A").iForce(1 mA).vMeas().execute();
+            rdi.dc("id3").pin("B").vForce(1 V).iMeas().average(5).execute();
+        }
+        RDI_END();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing()
+{
+    double pwr = rdi.id("id1").getPower();
+    double r1 = rdi.id("id2").getValue();
+    double r2 = rdi.id("id3").getValue();
+}</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2: Digitizer and digital capture (Thread per site)</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        rdi.hiddenUpload(TA::ALL);
+
+        RDI_BEGIN();
+        {
+            rdi.dgt("id1").pin("A").samples(1024).filter(1e6).FS(20e6).execute();
+            rdi.digCap("id2").pin("A").samples(1024).execute();
+        }
+        RDI_END();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing() 
+{
+    ARRAY_D wave1 = rdi.id("id1").getWaveform(); 
+    ARRAY_I bits  = rdi.id("id2").getVectorBit(); 
+}</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 3: Error map (Thread per site)</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        rdi.hiddenUpload(TA::ALL); // Include the EMAP mode
+
+        RDI_BEGIN();
+        {
+            rdi.smartVec("rb").pin("A").readBit(100).execute();
+            rdi.emap("fc").label("bbb").pin("A").failCyc().execute();
+        }
+        RDI_END();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing()
+{
+    rdi.id("rb").getReadBit();
+    rdi.id("fc").getFailCyc();
+}</pre><div></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 350270</span><script type="text/javascript">var ti='350270';var tt='Hidden upload examples for SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

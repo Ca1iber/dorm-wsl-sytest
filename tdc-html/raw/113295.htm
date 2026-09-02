@@ -1,0 +1,72 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section explains how to use the test method together with the user-defined disconnect sequence in order to implement a conditional final disconnect."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Implementing a conditional final disconnect with disconnect.user_def</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_113295"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113295</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Implementing a conditional final disconnect with disconnect.user_def</h1>
+	
+	
+	<div><p>This section explains how to use the test method together with the user-defined
+		disconnect sequence in order to implement a conditional final disconnect. </p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The <a href="113289.htm" title="Replacing the standard disconnect sequence with a user-defined disconnect sequence needs systematic knowledge to avoid damage to your device or to the test system.">Effects of user-defined disconnect sequence</a> can
+				be solved by inserting an additional test suite in front of every bin. This test
+				suite uses a test method doing a "final" disconnect of all pins including "SQST OFF"
+				via a <a href="29362.htm" title="This API allows direct access from the test method to the system hardware at firmware level.">FW_TASK</a>, when binning of the very last site
+			happens.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure the correct <a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">User-defined disconnect sequence</a>
+				<span class="filepath">disconnect.user_def</span> is existent.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>Create a test method to define a conditional disconnect sequence, which needs
+					to judge whether binning happens for the last enabled site. If yes, apply the
+					"final" disconnect including the command <span class="keyword">SQST OFF</span> to all
+					pins.</span>
+			</li><li>
+				<span>Create a test suite which calls the test method defined above, and insert this
+					test suite in front of each bin.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>In a 2-site test flow, site 1 fails and site 2 passes. In the picture, site 1 is
+				in focus. After implementing a conditional final disconnect, the test flow will look
+				like below:</p><div class="p"><figure class="fignone">
+					<img src="354854.png" alt="test suite using conditional final disconnect">
+				</figure></div></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>Below is the sample code for doing conditional final
+				disconnect:</p><pre class="prettyprint linenums copyable">ARRAY_I enabledSites;
+INT numEnabledSites, numLastBinnedSites;
+
+const string finaldisconnect  = "ACMD \"CNCT\",\"OFF\",(@) \n; FLSH MUX;\n WSDN; \n SQST OFF; \n "
+                                "CNCT OFF,(@); \n CHRS OFF; \n BCMD \"\",ACTION,\"Update\",; \n "
+                                "PSST OFF; \n RLYC IDLE,OFF,(@);";
+
+//
+// Define a FW sequence, which will be used to do the final disconnect for the last enabled site(s)
+//
+numEnabledSites    = GET_ENABLED_SITES(enabledSites);
+numLastBinnedSites = GET_ACTIVE_SITES(enabledSites);
+
+cerr &lt;&lt; "#enabledSites: " &lt;&lt; numEnabledSites &lt;&lt; endl;
+
+//
+// Do the conditional judgment before each binning action
+//
+if(numEnabledSites == numLastBinnedSites)
+{ 
+    cerr &lt;&lt; "do final disconnect with:  " &lt;&lt; finaldisconnect &lt;&lt; endl;
+
+    //
+    // Execute the final disconnect for last enabled site(s)
+    //
+    FW_TASK(finaldisconnect);
+}</pre><p>The
+				implementation of the test method in the same 2-site test flow (as described above)
+				produces the following output in the <span class="keyword">MCDLog</span> file. When site 1
+				fails and is binned out, site 2 is still enabled. Until site 2 passes and reaches to
+				the end of the test flow, it is the last enabled site, then conditional final
+				disconnect sequence (as a string defined in the test method) is executed to shut
+				down the sequencers on all pins (using "@") via <span class="keyword">SQST OFF</span> and do a
+				complete disconnect. </p><div class="p"><figure class="fignone">
+					<img src="354855.png" alt="Results of conditional final disconnect">
+				</figure></div><p>In the above figure, the highlighted output next to bin1 is the string defined in the sample code
+				for doing the final disconnect on site 2. </p><p>Other output commands without highlighting, are the content defined in your
+					<span class="filepath">disconnect.user_def</span> file. SmarTest adds a <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC</a> command automatically before the user-defined
+				disconnect sequence to define the site focus.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113289.htm" title="Replacing the standard disconnect sequence with a user-defined disconnect sequence needs systematic knowledge to avoid damage to your device or to the test system.">Effects of user-defined disconnect sequence</a></div><div><a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">User-defined disconnect sequence</a></div><div><a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a></div><div><a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">Description and analysis of the pass or fail site dependency</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113295</span><script type="text/javascript">var ti='113295';var tt='Implementing a conditional final disconnect with disconnect.user_def'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If hidden calculation is used, it may happen that one of the tests is failing, while SMC threads are still running. In this case SMC may not be terminated correctly and may cause errors during the next test program execution."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Terminate SmartCalc threads after binning</title><meta name="keywords" content="smart calc smartcal, Smart, Calc"></head><body id="_118933"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118933</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Terminate SmartCalc threads after binning</h1>
+	
+	
+	<div><p>If hidden calculation is used, it may happen that one of the tests is failing, while
+		SMC threads are still running. In this case SMC may not be terminated correctly and may
+		cause errors during the next test program execution.</p>
+		<p>To ensure correct execution, it is required to implement the special test suite <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">bin_disconnect</a>. This test suite is always executed after the
+			binning - instead of the default tester disconnect sequence. With that you have two
+			options to terminate SmartCalc threads.</p>
+		<ul>
+			<li><a href="120103.htm" title="Terminates all threads of the currently active site and deletes all corresponding queued data. It ensures that all data in the background queue of this site will be deleted and will not further be uploaded nor evaluated whenever that site is running into a fail bin.">SMC_CLEANUP()</a><p>Execute it inside the special test suite
+						<span class="keyword">bin_disconnect</span>. It operates on the active site only, so
+					it has to be called outside the <span class="keyword">ON_FIRST_INVOCATION</span> block. It
+					will terminate the upload thread, but not the calculation running in the
+					background process.</p></li>
+			<li><a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a><p>It can be used similar to
+					<span class="keyword">SMC_CLEANUP()</span>. However, it will cause SmartCalc to wait for
+					upload and calculation to be finished.</p></li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>The following example code was created by following the description of <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Using the special test suite bin_disconnect</a> and has been adapted for SmartCalc. It is
+				valid for both thread per site and common thread (see <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a>).</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+ ...// example of a customized disconnect
+    ARRAY_I enabledSites;
+    INT numEnabledSites;
+    INT hwBinNumber, goodBin, reprobe, overon, otherwiseBin;
+    STRING hwBinDescription, swBinDesciption, swBinNumber;
+
+    const string nonshareddisconnect="ACMD \"CNCT\",\"OFF\",(@NONSHARED@); \
+    FLSH MUX;WSDN;DLSO(@NONSHARED@); \
+    CNCT OFF,(@NONSHARED@);CHRS OFF; \
+    BCMD \"\",ACTION,\"Update\",; \
+    PSST OFF;RLYC IDLE,OFF,(@NONSHARED@);";
+    const string finaldisconnect ="ACMD \"CNCT\",\"OFF\",(@);FLSH MUX;WSDN; \
+    SQST OFF;CNCT OFF,(@);CHRS OFF; \
+    BCMD \"\",ACTION,\"Update\",; \
+    PSST OFF;RLYC IDLE,OFF,(@);";
+
+    numEnabledSites = GET_ENABLED_SITES(enabledSites);
+
+    <strong>SMC_CLEANUP(false);</strong> // kills running thread only
+
+    if (numEnabledSites == 0)
+    {
+        FW_TASK(finaldisconnect); //last enabled site to be disconnected 
+    }
+    else
+    {
+        //not the last site to be disconnected
+        //only disconnect current site and keep shared resources connected
+        FW_TASK(nonshareddisconnect);
+    }
+
+    return;
+}</pre><div></div>
+			<p>This example works regardless of the used pin <a href="10633.htm" title="A mode context specifies, for every defined pin, the type (input or output or both) and operating mode. Every test is associated with a mode context, and every execution of the CONF command applies to exactly one mode context.">Mode contexts</a>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118933</span><script type="text/javascript">var ti='118933';var tt='Terminate SmartCalc threads after binning'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

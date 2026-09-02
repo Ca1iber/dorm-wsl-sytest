@@ -1,0 +1,115 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Drift and transition tracking</title></head><body id="_114307"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114307</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Drift and transition tracking</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="116368.htm" title="Transition tracking can be switched on and off. This is controlled by the TRACKING_MODE property of a protocol engine test (TTCF command). Adjustment can be enabled (option ACTIVE), it can be suppressed after adjusting once at test start (option FREEZE_AFTER_SYNC), or it can be suppressed altogether (option FREEZE_ALWAYS). When adjustment is disabled, the tracker assumes that transitions occur at their nominal locations, just as in a normal digital test, and lets every observation window immediately follow its predecessor. This option can be useful if you want to use only the pattern matching part of the protocol engine. You can also specify the position of the first sample by specifying a delay for the r1 edge.">Controlling the tracking behavior</a></li><li><a href="116558.htm" title="In many cases, the transition tracker issues the error ErrJMP2 when it detects a BC transition. However, it does not do this when it finds only one such transition, and this is the very first transition at test start or after a IO pin has switched from drive to receive mode.">Positioning the first observation window and jump by 2</a></li><li><a href="116440.htm" title="One requirement for the transition tracking to work correctly is that every bit is sampled at least three times (see Drift and transition tracking). Now it is possible that bits are sampled only one or two times not because the DUT is defective, but for other, external, reasons. Examples are cabling loss from the DUT to the test processor input or limited bandwidth of the DUT output driver. For such cases the transition tracker provides the option to stretch the bit by 1 or 2 samples at the expense of the following bit. This will usually improve the signal quality, since shortening of a pulse in the transmission line will usually lead to a corresponding prolongation of the next bit.">Stretching the pulse</a></li><li><a href="114309.htm" title="When a bi-directional pin is tracked, and it operates in input mode, then the tracker sees the drive data. Since these are irrelevant to the expected data stream, the tracker must be disabled during these sections of the test. For this purpose, the window formatter is used (which entails that window compares are not possible in protocol engine tests). It must be set to &#34;0&#34; to disable the tracker. This has the consequence that the observation window is &#34;frozen&#34;, that is, it is not adjusted any more, regardless of any internal transitions within the current window.">Tracking bi-directional pins</a></li><li><a href="117745.htm" title="Suppose that all data transitions at the output pins of a source synchronous device are expected to occur at multiples of an UI. Suppose further that the output clock and the output data exhibit the same moderate common drift. Since this is acceptable, the device should pass a protocol engine test if no other errors occur.">Forwarding the clock</a></li></ol></div></nav>
+	
+	
+	<div><p>Transition tracking serves to detect data transitions in the presence of drift. To
+		achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these
+		over-sampled data. The length of the observation window is one UI, that is, it always contains 4
+		samples, which will be referred to by ABCD. One sample will be selected as the received value of
+		the current bit and passed on to the pattern matching block for comparison with the expected
+		value. </p>
+		<p>Now if some kind of drift is present, then transitions will occur <em>within</em> such an
+			observation window; such transitions will be called <em>internal</em> transitions. If such a
+			transition is found, and the drift is to be taken into account, then the next window cannot
+			simply be placed immediately after the current window, but must be adjusted depending on where
+			the transition occurs; and the decision which sample to select as the received value for the
+			current bit will have to depend on this as well. Altogether, there are 4 cases to consider.</p>
+		<section class="section"><h2>No transition within the window</h2><p>If no transition occurs within the
+				current window, then a transition coincides with the start of the window, or there is no
+				transition; this will always happen if no drift is present. In this case sample C will be
+				selected, and the observation window for the next bit will be moved by exactly 1 UI to the
+				right: </p><div class="p"><figure class="fignone">
+					
+					<img src="116410.png" alt="Transition at A or no transition">
+				</figure></div></section>
+		<section class="section"><h2>Transition between sample A and B</h2><p>If a transition occurs between sample
+				A and B (called "AB transition"), the tracker deduces that the previous bit has been sampled at
+				least 4 times, and that one of these samples has already been selected in the previous window.
+				In this case, sample D (the value after the transition) will be selected in the current window.
+				The observation window for the next bit will be moved by 1 1/4 UI to the right. This is because
+				the tracker assumes that the bit after the transition has very nearly a length of one UI, so
+				that the first sample after the current window still belongs to the bit starting at B in the
+				current window:</p><div class="p"><figure class="fignone">
+					
+					<img src="116411.png" alt="AB transition">
+				</figure></div></section>
+		<section class="section"><h2>Transition between sample C and D</h2><p>If a transition occurs between sample
+				C and D (called "CD transition"), the tracker deduces that the bit before the transition has
+				been sampled at most 4 times, and that no sample has yet been selected from it. In this case,
+				sample B will be selected. The observation window for the next bit will only be moved by 3/4 UI
+				to the right, so that the first sample of the next window coincides with the last sample of the
+				current window:</p><div class="p"><figure class="fignone">
+					
+					<img src="116412.png" alt="CD transition">
+				</figure></div></section>
+		<section class="section"><h2>Transition between sample B and C</h2><p>If the transition occurs between
+				sample B and C (called "BC transition" or "jump by 2"), the tracker cannot determine by looking
+				at the current observation window whether the reason for this transition is that the previous
+				bit was too short or too long. In such a case the window will be moved forward alternately by
+				either (a) 1/2 UI, responding to the first possibility, or (b) 3/2 UI, responding to the second
+				possibility. In case (a), sample A of the current window will be selected, in case (b) the first
+				sample after the current window:</p><div class="p"><figure class="fignone">
+					
+					<img src="116413.png" alt="BC transition">
+				</figure></div><p>In case (a) two samples of the same bit may be selected, in case (b) a bit may be
+				completely missed. This introduces an indeterminacy which will in many cases be fatal for the
+				test. In these cases, the transition tracker will issue the <span class="keyword">ErrJMP2</span> error
+				message (unless adjustment is suppressed, see <em><a href="116368.htm" title="Transition tracking can be switched on and off. This is controlled by the TRACKING_MODE property of a protocol engine test (TTCF command). Adjustment can be enabled (option ACTIVE), it can be suppressed after adjusting once at test start (option FREEZE_AFTER_SYNC), or it can be suppressed altogether (option FREEZE_ALWAYS). When adjustment is disabled, the tracker assumes that transitions occur at their nominal locations, just as in a normal digital test, and lets every observation window immediately follow its predecessor. This option can be useful if you want to use only the pattern matching part of the protocol engine. You can also specify the position of the first sample by specifying a delay for the r1 edge.">Controlling the tracking behavior</a></em>).</p></section>
+		<section class="section"><h2>Implementation parameters</h2><p>In the current implementation, only every
+					4<sup>th</sup> observation window can be adjusted. Thus one observation window actually
+				consists of three sub-windows, each of which has a size of one UI (= four samples). A transition
+				within such a 3 UI observation window is called internal if it is internal in one of its
+				sub-windows. The adjustment of the next 3 UI window is determined by the last internal
+				transition (if any) of the previous 3 UI window. Under this restriction the transition tracker
+				can be relied on to select exactly one sample for every data bit only if the following
+				conditions are satisfied: </p><ul>
+				<li>Every bit is sampled at least 3 times, and at most 5 times.<p>There are cases in which the
+						DUT satisfies this condition, but the signal is distorted in the transmission line. This can
+						be corrected by pulse stretching, see <em><a href="116440.htm" title="One requirement for the transition tracking to work correctly is that every bit is sampled at least three times (see Drift and transition tracking). Now it is possible that bits are sampled only one or two times not because the DUT is defective, but for other, external, reasons. Examples are cabling loss from the DUT to the test processor input or limited bandwidth of the DUT output driver. For such cases the transition tracker provides the option to stretch the bit by 1 or 2 samples at the expense of the following bit. This will usually improve the signal quality, since shortening of a pulse in the transmission line will usually lead to a corresponding prolongation of the next bit.">Stretching the pulse</a></em>.</p></li>
+				<li>Two of any three consecutive bits are sampled exactly 4 times.<p>This excludes cases like </p>
+					<p><code>HHHHH LLLL HHH LLLL LLL HHHH HHHH</code></p>
+					<p><code>ABCDA BCDA BCD</code></p>
+					<p> <code>ABC DAB CDAB CD,</code></p>
+					<p>where the 2<sup>nd</sup> sub-window of the second window would have a BC transition. It also
+						implies that shifts in opposite directions do not cancel each other out within a block of 3
+						bits. For example, HHHHLLLHHHHH is not allowed.</p>
+					
+					
+					
+					
+					
+					
+					
+					
+				</li>
+				<li>If the number of samples between two transitions is <span class="keyword">n</span>,
+						<span class="keyword">n</span>/4 must not have a remainder of 2.
+					
+				</li>
+			</ul><p>Two further, more global, restrictions are:</p><ul>
+				<li>24 consecutive bits must not be longer than 25 UI, and not shorter than 23 UI.</li>
+				<li>Up to ±7 3/4 UI can be tracked within the whole pattern.</li>
+			</ul></section>
+		<section class="section"><h2>Handling BC transitions</h2><p>A BC transition does not automatically cause an
+					<span class="keyword">ErrJMP2</span> error message. In many situations, the tracker can recover the data
+				bits correctly even in such a case, provided that the above implementation parameters are
+				satisfied. Two examples are:</p><ul>
+				<li>The very first transition is a BC transition. Here the resulting indeterminacy can be
+					defused by initial synchronization (for an example, see <em><a href="116558.htm" title="In many cases, the transition tracker issues the error ErrJMP2 when it detects a BC transition. However, it does not do this when it finds only one such transition, and this is the very first transition at test start or after a IO pin has switched from drive to receive mode.">Positioning the first observation window and jump by 2</a></em>). The
+					same behavior applies to a first BC transition after a bi-directional pin has changed from
+					drive to receive mode (see <em><a href="114309.htm" title="When a bi-directional pin is tracked, and it operates in input mode, then the tracker sees the drive data. Since these are irrelevant to the expected data stream, the tracker must be disabled during these sections of the test. For this purpose, the window formatter is used (which entails that window compares are not possible in protocol engine tests). It must be set to &#34;0&#34; to disable the tracker. This has the consequence that the observation window is &#34;frozen&#34;, that is, it is not adjusted any more, regardless of any internal transitions within the current window.">Tracking bi-directional
+					pins</a></em>).</li>
+				<li>The last internal transition of a 3 UI observation window is a BC transition, but this
+					window also contains an AB or CD transition. In such a case, the tracker can recover the data
+					bits correctly.</li>
+			</ul></section>
+		<h2>Example</h2><div class="example"><div class="p"><figure class="fignone">
+					
+					<img src="146398.png" alt="Transition tracking">
+				</figure></div><p>This example picks up the example of <a href="114244.htm" title="The protocol engine per pin, which is available on Smart Scale systems, serves to cope with non-deterministic behavior of devices on which all data transitions at the output pins are expected to occur at multiples of a unit interval (abbreviated as &#34;UI&#34;). This UI is defined by period_length/x_mode. A protocol engine test can only be executed in x4-mode or x6-mode, so that one tester cycle will comprise either 4 or 6 UI's.">Overview of the protocol engine per pin</a>. Five observation
+				windows are shown. There are last CD transitions in the first and third window. The fourth
+				window has its last internal transition between A and B in the third sub-window.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114307</span><script type="text/javascript">var ti='114307';var tt='Drift and transition tracking'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

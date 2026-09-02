@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="After you have created your own shmoo test method for shmooing over a source-sync test by using the SmarTest provided customizd shmoo test template, on the shmoo tool you can perform this shmoo over source-sync test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Performing customized source-sync shmoo tests with the shmoo tool</title></head><body id="_144098"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144098</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Performing customized source-sync shmoo tests with the shmoo tool</h1>
+	
+	
+	<div><p>After you have created your own shmoo test method for shmooing over a source-sync test
+		by using the SmarTest provided <a href="138507.htm" title="The customized shmoo test template is called &#34;customized shmoo test method class&#34; and used to create a customized shmoo test method.">customizd shmoo test template</a>, on the
+		shmoo tool you can perform this shmoo over source-sync test.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><div class="note"><span class="title">Note</span> The source-sync feature is available only with MTP.</div><p>Use this
+				method when <a href="144084.htm" title="On the shmoo tool, to shmoo over a source-sync test, you must first create a source-sync test suite either with the MTP provided source-sync test method or with the SOURCESYNC_TEST API. Then, you shmoo over this test suite on the shmoo tool.">shmooing over a source-sync test suite on the shmoo
+					tool</a> cannot meet your expectations. For example, you want to do parallel shmoo for
+				multi-site on the shmoo tool. </p><div class="note"><span class="title">Note</span> This is an advanced usage requiring your
+				mastering both C++ and SmarTest.</div></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Load the testflow and its setups.</p><p>Make sure the ac_tml test method library is
+				imported.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Create a source-sync shmoo test method based on the SmarTest provided customized shmoo test
+					template as the description of <a href="136379.htm" title="You can create your own shmoo test method based on a customized shmoo test method template.">Creating a customized shmoo test method</a>.</span>
+				<div><p>When setting up the <span class="keyword">userDefinedMeasure()</span> function in the new test
+						method file, do define the source-sync test that you want to shmoo on with the <a href="143953.htm" title="Lets you create a source-synchronous test method and execute this test without using the MTP provided source-synchronous test method.">SOURCESYNC_TEST</a> and <a href="137385.htm" title="SHMOO_RESULT is a predefined instance for the ShmooResultAdapter class. You use this instance to access the member functions of ShmooResultAdapter.">SHMOO_RESULT</a> APIs. Take the following code as an
+						example:</p><pre class="prettyprint linenums copyable">bool userDefinedMeasure()
+  {
+    // Create a Source Sync test
+    SOURCESYNC_TEST ssTest;
+    string pinGroup = "DQA0_PS,DQA1_PS,DQA2_PS,
+                       DQA3_PS,DQS_A_p_PS,DQS_A_n_PS";
+    string subTestA = "SSspecMin";
+
+    // Use source sync APIs to configure source sync test
+   ssTest.outputMargin(SOURCE_SYNC::DISTRIBUTION)
+          .outputErrorMap(SOURCE_SYNC::YES)
+          .startCycle("128").stopCycle("143");
+    ssTest.test(subTestA)
+        .edgeList("1,2,3,4")
+        .specVar("t_dut_a")
+        .deviceSpec(0)
+        .sweepSpecVar("tsweep_a")
+        .sweepStart("-0.5")
+        .sweepStop("1.5")
+        .sweepStepSize(0.1);
+    ssTest.domain("A").pins(pinGroup);
+    ssTest.execute();
+
+    FOR_EACH_SITE_BEGIN();  // to get value per site
+    // Define the results you want to show on the shmoo plot
+    SHMOO_RESULT.site(CURRENT_SITE_NUMBER())
+                .testName("Domain Result").pin(pinGroup)
+                .setResult(ssTest.domain("A").getPass());
+    FOR_EACH_SITE_END();
+    return true;
+  }</pre><div class="note"><span class="title">Note</span> For the results you want to view on the shmoo plot, you can only use the
+						SHMOO_RESULT API to define them.</div>
+				</div>
+			</li><li class="stepexpand">
+				<span>On the shmoo tool, <a href="136294.htm" title="Use the Properties view of a shmoo page to set up a shmoo test.">set up a shmoo test</a> as setting up a shmoo
+					over a functional test with the following exceptions:</span>
+				<div><ul>
+						<li>In the <span class="uicontrol">Testmethod</span> field, choose the shmoo test method you have
+							created in step 1.</li>
+						<li>In the <span class="uicontrol">shmooTestSuite</span> filed, do not select any test suite.</li>
+						<li>In the <span class="uicontrol">testMode</span> filed, do select <span class="uicontrol">user defined
+								measurement</span>.</li>
+						<li>Keep the default values for the <span class="uicontrol">resultPins</span> and
+								<span class="uicontrol">perPinResult</span> parameters which have no effect on the customized shmoo
+							tests.</li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>On the shmoo tool, <a href="136387.htm" title="There are three manners for you to execute a shmoo test with the Shmoo Tool.">execute the shmoo test</a>.</span>
+				<div><p>A shmoo plot shows up on the shmoo tool. The texts above the plot indicate the name
+						(test mode), pins and site of the result currently displayed on the plot.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>To view shmoo plots of different results, right-click the shmoo plot, select
+						<span class="uicontrol">Test Modes</span> and select an interested result name.</span>
+				<div><p>These results are defined with <a href="136978.htm" title="This member function defines the test results (either measured values or pass/fail results) to be displayed on a shmoo plot.">SHMOO_RESULT.setResult()</a> in step 2.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>To view shmoo plots of different result pins or pin groups, right-click the shmoo plot,
+					select <span class="uicontrol">Result Pin</span> and select an interested pin or pin group.</span>
+				<div><p>These pins and pin groups are defined with <a href="136976.htm" title="This member function defines the specific pin or pin group for the results to be displayed on a shmoo plot.">SHMOO_RESULT.pin()</a> in step 2.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>To view shmoo plots of different sites, see <a href="136496.htm" title="In the Shmoo Tool, to view the shmoo plot of another site, use the Site Control Window to change the site.">Viewing different site's
+						shmoo plot</a>.</span>
+				<div><p>These sites are defined with <a href="136975.htm" title="This member function defines the specific site for the results to be displayed on a shmoo plot.">SHMOO_RESULT.site()</a> in step 2.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>To perform fast shmoo, right-click the plot and select the <span class="uicontrol">Run
+						Fast</span> command. </span>
+				<div><p>Alternatively, click the <img src="136389.png" alt="fast execution button in the Shmoo Tool"> shortcut on the toolbar of SmarTest. For details, see <a href="136552.htm" title="In the menu bar and toolbar of SmarTest, the following commands and shortcuts are added for Shmoo Tool.">Commands
+							on the menu bar and their shortcuts on the toolbar</a>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>To manipulate the plot, such as zooming, right-click the shmoo plot and select a
+					corresponding command from the shortcut menu.</span>
+				<div><p>See the available commands in <a href="136553.htm" title="In the Shmoo Tool, after you right-click a shmoo plot, which is displayed on a shmoo page of the shmoo editor (see The interface of the Shmoo Tool), you will see these commands:">Commands in the shmoo editor of the Shmoo Tool</a>.</p>
+				</div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You shmooed over a source-sync test on the shmoo tool with your own shmoo test
+				method.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>You may want to:</p><ul>
+				<li><a href="136521.htm" title="The snapshot function in the Shmoo Tool takes a picture of both a shmoo plot and its setups.">Take a picture of the current shmoo plot and its setups</a>.</li>
+				<li><a href="136542.htm" title="Once you set up a shmoo test in the Shmoo Tool, you can transfer it to a testflow either as a new test suite or to replace an existing test suite.">Transfer this shmoo test to the testflow as a new shmoo test
+						suite</a>. <p>After execute this test suite, you may want to log all the generated shmoo
+						plots and their setups into the UI report window, and save all the plots as .png files. See
+							<a href="136536.htm" title="When executing a shmoo test suite or testflow, to log its shmoo setups and plots into the report window, and to save the generated shmoo plots as .png files or as ASCII files, use the Event Formatter.">Logging shmoo tests into the report window and saving shmoo plots as
+							png files</a> for the procedure.</p></li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144084.htm" title="On the shmoo tool, to shmoo over a source-sync test, you must first create a source-sync test suite either with the MTP provided source-sync test method or with the SOURCESYNC_TEST API. Then, you shmoo over this test suite on the shmoo tool.">Shmooing over a source-sync test with Shmoo Tool</a></div><div><a href="136294.htm" title="Use the Properties view of a shmoo page to set up a shmoo test.">Setting up a shmoo test with the Shmoo Tool</a></div><div><a href="136379.htm" title="You can create your own shmoo test method based on a customized shmoo test method template.">Creating a customized shmoo test method</a></div><div><a href="89070.htm" title="The tables describe the parameters for the SourceSync fast mode test method.">SourceSync fast mode</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.2.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144098</span><script type="text/javascript">var ti='144098';var tt='Performing customized source-sync shmoo tests with the shmoo tool'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

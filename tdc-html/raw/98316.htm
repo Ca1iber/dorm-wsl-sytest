@@ -1,0 +1,158 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The high-level (edit) command APTS (APpend TeSt) serves to simplify creation of a vector label (pattern) for a port."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>APTS - (APpend TeSt)</title><meta name="keywords" content="A, Ppend, Te, St"></head><body id="_98316"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98316</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">APTS - (APpend TeSt)</h1>
+	
+	
+	<div><p>The high-level (edit) command <span class="keyword">APTS</span> (APpend TeSt) serves to simplify
+		creation of a vector label (pattern) for a port. </p>
+		<section class="section"><h2>Mode of operation</h2><p><span class="keyword">APTS</span> defines a label (name, type,
+				command line segment, base wavetable, and port) and creates a rudimentary sequencer program for
+				it at the end of the sequencer area for the specified port. It does not support all label types,
+				but only <span class="keyword">MAIN</span>, <span class="keyword">SVEC</span>, <span class="keyword">DSRC</span>.</p><p>The
+				structure of the created sequencer program depends on the label type:</p><ul>
+				<li>For type <span class="keyword">MAIN</span>, it consists of the <span class="keyword">STVA</span> and
+						<span class="keyword">STSA</span> address instructions and of the <span class="keyword">STOP</span> instruction. </li>
+				<li>For type <span class="keyword">SVEC</span>, it consists of the <span class="keyword">STVA</span> and the
+						<span class="keyword">RSUB</span> instructions. </li>
+				<li>For type <span class="keyword">DSRC</span>, it consists of the <span class="keyword">SSRC</span> and
+						<span class="keyword">SRCV</span> instructions.</li>
+			</ul><p>See the <a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG</a> command for more information on these
+				instructions. </p><p><span class="keyword">APTS</span> is similar to the low level command <a href="98748.htm" title="The SQLB (SeQuencer LaBel definition) command defines a label for a port. It specifies the label name, the label type, position and length of the associated sequencer program within the sequencer area, and the base waveform set or wavetable. It also generates a rudimentary sequencer program at the specified position; for details on the sequencer instructions see the SQPG command.">SQLB</a>. Its advantages over <span class="keyword">SQLB</span> are twofold:</p><ul>
+				<li><span class="keyword">APTS</span> expands the sequencer area automatically. In contrast, you can call
+						<a href="98748.htm" title="The SQLB (SeQuencer LaBel definition) command defines a label for a port. It specifies the label name, the label type, position and length of the associated sequencer program within the sequencer area, and the base waveform set or wavetable. It also generates a rudimentary sequencer program at the specified position; for details on the sequencer instructions see the SQPG command.">SQLB</a> only after having done this manually with the <a href="98566.htm" title="The DMAS command defines or extends (depending on the setting of the SAOF command) the logical memory area for the sequencer programs of the individual ports.">DMAS</a> command.</li>
+				<li><span class="keyword">APTS</span> adjusts the address of the <span class="keyword">STVA</span> instruction to
+					the end of the vector areas (if the pins of the port have vector areas of different size, the
+					end of the largest area is taken). In contrast, <a href="98748.htm" title="The SQLB (SeQuencer LaBel definition) command defines a label for a port. It specifies the label name, the label type, position and length of the associated sequencer program within the sequencer area, and the base waveform set or wavetable. It also generates a rudimentary sequencer program at the specified position; for details on the sequencer instructions see the SQPG command.">SQLB</a> sets the
+					address to 0, and you must adjust it manually afterwards with the <a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG</a> command.</li>
+			</ul></section>
+		<section class="section"><h2>Postdependencies</h2><p>After having created the label, you must insert vector
+				generating instructions into the sequencer program. For example, to insert a
+					<span class="keyword">GENV</span> instruction:</p><ol>
+				<li>Activate the label for editing with the <a href="98815.htm" title="The TSTL (TeST Label) command activates the label specified by label for editing. Many commands that modify the sequencer or the vector areas of a label require that the label has been activated with TSTL.">TSTL</a> command.</li>
+				<li>Issue the <a href="98639.htm" title="The INGV (INsert Generate Vectors) command inserts a GENV instruction into the sequencer program of the label currently activated for editing. The parameter of the inserted GENV instruction that specifies the location of the vectors has the same value as the STVA instruction of the label. For more information on the GENV and STVA instructions see the command SQPG, SQPG? - (SeQuencer ProGramming).">INGV</a> command. </li>
+			</ol></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">APTS</span> {"<span class="keyword">label</span>"}, {<span class="keyword">type</span>}, {<span class="keyword">base_wf_set</span>|"<span class="keyword">wavetable</span>"|<span class="keyword">specset_id</span>|"<span class="keyword">multiport_spec</span>"} [,(<span class="keyword">port</span>)]</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">label</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Defines the name of the new
+									label. Enter an alphanumeric string in double quotes containing 1 to 128 characters.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="4"><p><span class="keyword">type</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>The label type. It has the
+									following options: </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">MAIN</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>The MAIN program. You can make calls to both types of
+									subroutine (<span class="keyword">SJMP</span> and <span class="keyword">SVEC</span>), execute commands and
+									sequencer instructions, generate vectors and use <span class="keyword">SSRC</span> and
+										<span class="keyword">SRCV</span> instructions.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">SVEC</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Vector subroutine. A subroutine where you can execute
+									commands and sequencer instructions and generate vectors. You can nest
+										<span class="keyword">SVEC</span> subroutines up to 7 levels deep. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">DSRC</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>The digital source label. A type of label used only by
+										<span class="keyword">SSRC</span> and <span class="keyword">SRCV</span> (see <a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG, SQPG? - (SeQuencer ProGramming)</a>). A
+										<span class="keyword">DSRC</span> label is not executable. The contents of the
+										<span class="keyword">DSRC</span> label are determined by the <span class="keyword">DVCU</span> command. See
+										<a href="99060.htm" title="The DVCU command connects a source label to a vector variable configuration (VVC). When the source label is a DSRC label, it also allocates the required number of frames for this label. When the source label is a main label (flat setup), DVCU expects that the required amount of memory has already been allocated. This command also downloads the static data, if requested.">DVCU, DVCU? - (Define Vector variable Configuration Usage)</a></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">base_wf_set</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Defines a base waveform set.
+									Enter an integer in the range of 1 to the number of used waveform sets as defined by the
+									command <a href="98878.htm" title="The WSUS (Waveform Sets USed) command sets the number of defined waveform sets to the given value. The new value has to be an integer in the range of 1 to Maximum allowed waveform sets as set by DSCP, DSCP? - (Define System Control Parameter) (the default is 16, the maximum is 16).">WSUS, WSUS? - (Waveform Sets USed)</a>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">wavetable</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>The name of the base wavetable.
+									Enter a string of up to 40 alphanumeric characters (upper or lower case) enclosed in double
+									quotes.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">specset_id</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Derived as follows:</p>
+								<p><code>100 *</code> <span class="keyword">equation_set_no</span>  <code>+
+										</code> <span class="keyword">specset_no</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">multiport_</span></p>
+								<p><span class="keyword">spec</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>In a multiport setup, you can
+									also specify the name of a multiport specification.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>This parameter fulfills two
+									functions. It primarily determines the port with which the label is to be associated. If
+									you do not specify a port, the label is associated with the default port @.</p>
+								<p>If you have entered a multiport specification as the third parameter, the parameter also
+									serves to identify uniquely the base wavetable for the label.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Edit command in Pattern Tool.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if: </p><ul>
+				<li>There is insufficient channel memory. </li>
+				<li>There is insufficient disk space (offline operation only). </li>
+				<li>No label is defined. </li>
+				<li>The specified label already exists. </li>
+				<li>No more labels can be defined. </li>
+				<li>You specify an invalid label. </li>
+				<li>The specified waveform set number is out of range of used waveform sets. </li>
+				<li><span class="keyword">wavetable</span> does not reference a defined wavetable.</li>
+			</ul></div>
+		
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">&gt; APTS "test_2",MAIN,"gross_func_wtb"
+&gt; SQLB? ALL,ALL,(@)
+&lt; SQLB "test_1",MAIN,0,3,"gross_func_wtb"
+&lt; SQLB "test_2",MAIN,4,6,"gross_func_wtb"
+&gt; SQPG? ALL,(@)
+&lt; SQPG 0,STVA,504,,,(@)
+&lt; SQPG 1,STSA,,,,(@)
+&lt; SQPG 2,GENV,12,,,(@)
+&lt; SQPG 3,STOP,,,,(@)
+&lt; SQPG 4,STVA,520,,,(@)
+&lt; SQPG 5,STSA,,,,(@)
+&lt; SQPG 6,STOP,,,,(@)</pre><p>This
+				example appends a label to the sequencer area of the default port @. The label has the name
+					<code>test_2</code>, is of type <span class="keyword">MAIN</span> and is configured with the base
+				wavetable <code>gross_func_wtb</code>. The following two queries display the result of the
+				call. The <span class="keyword">STVA</span> instruction of the new label points to the actual end of the
+				vector areas.</p></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint copyable singleline">APTS "NEW",MAIN,"spec_port_1_port_2",(port_1)</pre><p>This example
+				appends the label <code>NEW</code> to the sequencer area of port <code>port_1</code>.
+				The base wavetable is identified uniquely by specifying the multi-port specification
+					<code>spec_port_1_port_2</code> and the port <code>port_1</code>, which belongs to
+					<code>spec_port_1_port_2</code>.</p></div>
+		<div class="example"><h3>Related information</h3><p>For more details see <a href="10548.htm">Creating a label with edit commands</a>.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98316</span><script type="text/javascript">var ti='98316';var tt='APTS - (APpend TeSt)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

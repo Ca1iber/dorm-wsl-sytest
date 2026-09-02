@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The pin mapping table of the MTPT (STPM MCM mapping tables) describes how the pins and utility lines from the STPs (source test programs) are named in the MTP (master test program) and mapped to channels."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Pin mapping table</title></head><body id="_137972"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 137972</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Pin mapping table</h1>
+	
+	
+	<div><p>The pin mapping table of the MTPT (STPM MCM mapping tables) describes how the pins and
+		utility lines from the STPs (source test programs) are named in the MTP (master test program) and
+		mapped to channels.</p>
+		<section class="section"><p>The table is stored in a file named <span class="filepath">pinmap.csv</span> in the MTPT
+				directory. It is created by the <a href="138106.htm" title="The generate_template command for the SmarTest Program Manager MCM (STPM MCM) control file creates an MTPT (mapping template) from the STPs (source test programs) and parameters with which you supply it.">generate_template</a> command. The names of the STP pins and
+				utility lines are automatically entered in the STP columns (see <span class="uicontrol">&lt;STP
+					name&gt;</span>, below) and the <span class="uicontrol">MTP Pin</span> column is prefilled with
+				defaults, but you may need to edit these columns according to the type of mapping:</p><ul>
+				<li>STP pin is mapped to a standard MTP pin (connected to only one device): Enter the name of
+					the MTP pin in the <span class="uicontrol">MTP Pin[@shared port]</span> column.</li>
+				<li>Multiple STP pins are mapped to the same MTP pin (the MTP pin is connected to multiple
+					devices): Enter the names of the STP pins in the same row (each in the <span class="uicontrol">&lt;STP
+						name&gt;</span> column of their respective STP) and the name of the MTP pin in the
+						<span class="uicontrol">MTP Pin[@shared port]</span> column.</li>
+				<li>STP pin is not mapped (does not exist in the MTP): Enter <span class="keyword">__NC__</span> in the
+						<span class="uicontrol">MTP Pin[@shared port]</span> column.</li>
+				<li>New MTP pin (used in MTP but no STP pin is mapped to it): Enter the name of the MTP pin in
+					the <span class="uicontrol">MTP Pin[@shared port]</span> column. (Do not enter anything in the
+						<span class="uicontrol">&lt;STP name&gt;</span> columns in this row.)</li>
+			</ul><p>The naming conventions for pins in the table differ depending on the type of pin:</p><ul>
+				<li>DC pins are listed with just their names.</li>
+				<li>Digital pins that do not belong to a port are listed with just their names.</li>
+				<li>Digital pins that belong to a port are listed with @<span class="keyword">&lt;portname&gt;</span>
+					after their names, for example "A_CLK@MTP_SHARED".</li>
+			</ul><p>The file is best edited by importing it into the <a href="138093.htm" title="Each MTPT directory created by STPM MCM includes an OpenOffice spreadsheet (.ods) that lets you edit the CSV files containing the test program mapping information.">OpenOffice
+				spreadsheet</a> located in the <a href="138082.htm">MTPT</a> folder. Editing is also
+			possible in text editors, but this requires you to make sure yourself that all formatting is
+			correct.</p></section>
+		<h2>Syntax</h2><div class="syntax"><p>Each row in the pin mapping table describes the mapping of a specific STP pin or
+				utility line. The table contains these columns:</p><ul>
+				<li><span class="uicontrol">STP:&lt;STP name&gt;</span>: Beginning at the left of the table, there is
+					one column for each STP, with the STP name as the column title. The columns list the pin names
+					from the STPs.</li>
+				<li><span class="uicontrol">MTP Pin[@shared port]</span>: The name of the pin in the MTP. If the pin
+					belongs to a shared port in the MTP, the port name is appended with a @ character, for example,
+						"A_CLK@MTP_SHARED".<p>The default name STPM MCM enters in this column is the STP pin name with
+						the prefix defined in the <a href="137967.htm" title="The STP table of the MTPT (STPM MCM mapping tables) describes the STPs (source test programs) that are to be combined into one MTP (master test program).">STP table</a>. (If the "apply prefix on pin config"
+						setting is 0, STPM MCM enters just the STP pin name without the prefix.) </p>
+					<p>If an STP pin is not connected to any MTP pin, this is indicated by
+							<span class="keyword">__NC__</span>.</p></li>
+				<li><span class="uicontrol">MTP Pin Attribute</span>: Digital pins can be defined as triggers in this
+					column; analogs pins can be assigned triggers.<p>A digital pin is defined as a trigger by
+						entering a statement in the form
+							<code>TRIG_DEF:</code><span class="keyword">&lt;trigger_id&gt;</span>,
+							<span class="keyword">&lt;input_pin&gt;</span> in this column:</p><ul>
+						<li><span class="keyword">&lt;trigger_id&gt;</span> must be <span class="keyword">C1</span>,
+							<span class="keyword">C2</span>, <span class="keyword">C3</span>, or <span class="keyword">C4</span>. Each of these IDs can
+							be used only once per MCM.</li>
+						<li><span class="keyword">&lt;input_pin&gt;</span> specifies which pin is used as the trigger. It can be
+							either COM1 (to specify the CT2 pin) or COM2 (to specify the CT1 pin).
+							<p>An analog pin is triggered by a digital pin by including a statement of the form
+									<code>TRIG:</code><span class="keyword">&lt;pin name&gt;</span> in this column. <span class="keyword">&lt;pin
+									name&gt;</span> is the name of a pin (as it appears in the <span class="uicontrol">MTP Pin[@shared
+									port]</span> column) that you have declared as a trigger pin as described above.</p></li>
+					</ul></li>
+				<li><span class="uicontrol">Site &lt;n&gt;</span>: There is one column for each site that has been
+					defined in the <span class="keyword">generate_template</span> command. These columns list the channel
+					number that the pin has for the site in question in the MTP. This information is not
+					automatically generated by STPM MCM and must be filled in by you.</li>
+				<li><span class="uicontrol">Notes</span>: This column allows both you and STPM MCM to add remarks about
+					the pin. These notes are just for human consumption and are never processed automatically by
+					STPM MCM. They may be overwritten when the tables are updated, so they are not a suitable place
+					for storing important information.
+					
+				</li>
+			</ul></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="138502.htm" title="The group mapping table of the MTPT (STPM MCM mapping tables) describes how the ports, pin groups, and utility purposes from the STPs (source test programs) are named in the MTP (master test program).">Group mapping table</a></div><div><a href="138082.htm">MTPT (STPM MCM mapping tables)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 137972</span><script type="text/javascript">var ti='137972';var tt='Pin mapping table'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

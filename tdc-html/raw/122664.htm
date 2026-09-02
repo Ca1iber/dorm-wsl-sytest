@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="d2s_LABEL_BEGIN() marks the start of a d2s-block."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>d2s_LABEL_BEGIN</title><meta name="keywords" content="pattern vector label, d, 2, s"></head><body id="_122664"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122664</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">d2s_LABEL_BEGIN</h1>
+	
+	
+	<div><p><code>d2s_LABEL_BEGIN()</code> marks the start of a d2s-block.</p>
+		<section class="section"><p>It defines how the to be generated (multi-)port burst will
+				be named (<span class="keyword">identifier</span>), if it should be generated (<span class="keyword">mode</span>)
+				and how the (multi-)port burst will be executed (<span class="keyword">execMode</span>).</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">void d2s_LABEL_BEGIN(std::string identifier, d2sFrameWorkModeType::Enum mode,
+                     d2sExecutionModeType::Enum execMode=d2sExecutionModeType::FUNCTIONAL_TST);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_122664__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_122664__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_122664__entry__3"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__2"><p><span class="keyword">identifier</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__3"><p>Defines the unique name of the burst (single or multi burst) to be generated.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__2"><p><span class="keyword">mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__3"><p>Defines the mode of the framework.</p>
+								<p><span class="keyword">d2sFrameWorkModeType::LearningMode</span> :Labels will be saved to the vector
+									directory and the corresponding burst label is generated.</p>
+								<p><span class="keyword">d2sFrameWorkModeType::ProductionMode</span> : framework will skip the
+									protocol transactions between <code>d2s_LABEL_BEGIN</code> and
+										<code>d2s_LABEL_END</code>. It only will execute the burst labels generated during
+									learning mode.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__2"><p><span class="keyword">execMode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_122664__entry__3"><p>Defines the API that is used to execute the d2s-label.</p>
+								<p><span class="keyword">d2sExecutionModeType::FUNTIONAL_TST</span>: <a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNTIONAL_TEST()</a> (default)</p>
+								<p><span class="keyword">d2sExecutionModeType::EXECUTE_TST</span>: <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST()</a></p>
+								<p><span class="keyword">d2sExecutionModeType::DIGITAL_CAPTURE_TST</span>: <a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST()</a></p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><p>In learning mode this example will generate two static write pattern and burst them
+				together under <code>MyBurstLabelName</code>.</p><p>In production mode only the
+					<code>MyBurstLabelName</code> pattern will be
+			executed.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+   d2sFramework fr;
+   d2sJTAG&amp; jtag = d2sJTAG::Instance();
+
+   // Register your protocol with the framework
+   fr.registerTransactionPort(jtag);
+
+   ON_FIRST_INVOCATION_BEGIN();
+      fr.<strong>d2s_LABEL_BEGIN</strong>("<strong>MyBurstLabelName</strong>", d2sFrameWorkModeType::<strong>LearningMode</strong>);
+         jtag.write(0xdead, 0xbeaf);
+         jtag.write(0xabcd, 0xef);
+      fr.d2s_LABEL_END();
+
+      // do your measurement here
+
+   ON_FIRST_INVOCATION_END();
+   ...
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="122227.htm">d2s-framework</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122664</span><script type="text/javascript">var ti='122664';var tt='d2s_LABEL_BEGIN'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

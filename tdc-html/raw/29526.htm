@@ -1,0 +1,97 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>ON_FIRST_INVOCATION_BEGIN</title></head><body id="_29526"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29526</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">ON_FIRST_INVOCATION_BEGIN</h1>
+	
+	
+	<div><p>This API declares the beginning of the block that enables you to execute setup and test
+		for all sites in parallel, when the program is run for the first tested site.</p>
+		<section class="section"><p><span class="keyword">ON_FIRST_INVOCATION_BEGIN</span> and <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a> must be used
+				as a pair. The area enclosed by this pair is called "first-invocation block".</p></section>
+		<section class="section"><h2>Application note</h2><ul>
+				<li>This API is meaningful for multisite testing. For single-site testing, this API is
+					ignored.</li>
+				<li>You can describe the Setup and Execute APIs within the first-invocation block, in order to
+					achieve them for all active sites in parallel. In addition to the Setup and Execute APIs, you
+					can describe any other function. However, these functions work for the currently-tested site
+					(for example, Result APIs), or regardless of site information (for example, Computation
+					APIs).</li>
+				<li>All statements in the first-invocation block are executed once only when the program is run
+					for the first tested site.</li>
+				<li>You can describe the <span class="keyword">FW_TASK</span> API enclosed by the
+						<span class="keyword">BEGIN_EXTENSION</span> API <em>with the </em><kbd class="userinput">site</kbd><em>
+						parameter</em> and <span class="keyword">END_EXTENSION</span> API in the first-invocation block for
+					multi-site testing. Note that you should not describe it enclosed by the
+						<span class="keyword">BEGIN_EXTENSION</span> API with no parameter and <span class="keyword">END_EXTENSION</span>
+					API.</li>
+				<li>Do not make the first-invocation block conditional or make sure to put a dummy
+					first-invocation block in the else branch.<div class="caution"><span class="title">CAUTION</span> The <a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST()</a> and <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT()</a>
+						statements as well as all of the "judgeAndLog_***" statements described in
+							<a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a> must never be used inside a first-invocation
+						block. Using any of these statements carries a high risk of defective
+						devices being declared OK by the test.</div></li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">ON_FIRST_INVOCATION_BEGIN();</pre><div></div>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/MapiUtil.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">List of parameters</dt>
+					<dd>There are no parameters.</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl>
+		</div>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Minimum code</h3><p>The following example shows the minimum code for
+				a "first-invocation block". The ellipses ("...") are to be replaced with your
+			code.</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+    ...
+    ...
+ON_FIRST_INVOCATION_END();</pre></div>
+		<div class="example"><h3>Example 2: Optional curly brackets</h3><p>The example utilizes an optional pair
+				of curly brackets "{" and "}". These optional curly brackets are used for simplifying the
+				correct indentation with assistance of the related Eclipse
+			tool.</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+{
+    ...
+    ...
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+		<div class="example"><h3>Example 3</h3><pre class="prettyprint linenums copyable">//
+// Parallel Execution for All Sites - BEGIN
+//
+ON_FIRST_INVOCATION_BEGIN();
+
+    //
+    // Setup and Test Execution
+    //
+    Routing.pin("Aout").connect(TM::SINGLE);
+    Analog.DGT("Aout").enable();
+    EXECUTE_TEST(0.1 sec);
+
+    //
+    // Retrieve measured analog waveform
+    //
+    ARRAY_D AnaWave = Analog.DGT("Aout").getWaveform();
+    Routing.pin("Aout").disconnect();
+    Analog.DGT("Aout").disable();
+
+    FLUSH();
+
+//
+// Parallel Execution for All Sites - END
+//
+ON_FIRST_INVOCATION_END();
+...
+...</pre><p><kbd class="userinput">ON_FIRST_INVOCATION_BEGIN</kbd> and
+				<kbd class="userinput">ON_FIRST_INVOCATION_END</kbd> declare the first-invocation block. All APIs in
+			this block are executed for all sites in parallel once only when the program is run for the first
+			tested site. Hence, the analog modules on the all connected site, specified by the "Aout" pin,
+			are enabled and then the measurements are done on all connected sites.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="118888.htm" title="This API declares the beginning of a block in which the test method code will be only executed for the last site in multisite testing. In the block, all the active sites are setup focus and the last site is query focus.">ON_LAST_INVOCATION_BEGIN</a></div><div><a href="118889.htm" title="This API declares the end of the &#34;last invocation&#34; block that is started by ON_LAST_INVOCATION_BEGIN.">ON_LAST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="135794.htm" title="Declares the beginning of the semi-parallel testing block that enables you to set up and execute test for the sites in semi-parallel. In the semi-parallel testing block, semi-parallel configuration and semi-parallel group will be defined. The semi-parallel groups in a semi-parallel configuration will be executed serially. While the sites in one semi-parallel group will be tested in parallel.">FOR_SEMI_PARALLEL_TEST_BEGIN</a></div><div><a href="135795.htm" title="Declares the end of the semi-parallel test block which is started by FOR_SEMI_PARALLEL_TEST_BEGIN.">FOR_SEMI_PARALLEL_TEST_END</a></div><div><a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a></div><div><a href="42646.htm" title="SmarTest controls which sites are addressed by Setup, Execution, and Result APIs, for achieving multisite testing with maximum performance.">Site States and Test Method Programs</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29526</span><script type="text/javascript">var ti='29526';var tt='ON_FIRST_INVOCATION_BEGIN'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

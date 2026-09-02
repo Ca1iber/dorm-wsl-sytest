@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This element stores the results of alarm checking performed through the SmartRDI's alarm() class."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The &lt;alarm&gt; element</title></head><body id="_352227"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 352227</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The &lt;alarm&gt; element</h1>
+	
+	
+	<div><p>This element stores the results of alarm checking performed through the SmartRDI's
+		alarm() class.</p>
+		<section class="section"><h2>Retrieving the ORE result of alarm handling</h2>
+			
+			<div class="p">The &lt;alarm&gt; element stores alarm checking results in its <span class="keyword">passFail</span>
+				attribute. The attribute saves the pass/fail information which will be retrieved by the <a href="345252.htm" title="Retrieves the alarm pass or fail result on a pin or the general alarm pass or fail result on all pins.">getAlarmPassFail()</a> function.<table class="frame-topbot"><caption></caption><colgroup><col style="width:227.25pt"><col style="width:321pt"></colgroup><thead>
+							<tr>
+								<th class="rowsep-1" id="_352227__entry__1">Get Result Function in SmartRDI</th>
+								<th class="rowsep-1" id="_352227__entry__2">ORE File Syntax Example</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="rowsep-1" headers="_352227__entry__1"><a href="345252.htm" title="Retrieves the alarm pass or fail result on a pin or the general alarm pass or fail result on all pins.">int getAlarmPassFail ();</a></td>
+								<td class="rowsep-1" headers="_352227__entry__2">&lt;alarm passFail = "1"/&gt;</td>
+							</tr>
+						</tbody></table></div>
+			<p>See the <a href="352227.htm#_352227__example_1">Example 1</a>.</p>
+		</section>
+		<section class="section"><h2>Generating an ORE template for alarm handling</h2>
+			
+			<div class="p">For the <span class="keyword">alarm</span> class, if <a href="146692.htm#_146692__row_ORE_TEMPLATE_BY_USER_CODE">ORE_TEMPLATE_BY_USER_CODE = TRUE</a> is set in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>, SmartRDI will
+				add alarming handling results to the <span class="filepath">rdi_ore_template_by_user_code.xml</span>
+					path.<div class="note"><span class="title">Note</span> SmartRDI can only add the alarm handling result which has been specified
+					by the <span class="keyword">rdi.id("id").getAlarmPassFail("*");</span> in the test method.</div></div>
+			<p>See the <a href="352227.htm#_352227__example_2">Example 2</a>.</p>
+		</section>
+		<h2>Examples</h2><div class="example" id="_352227__example_1"><h3>Example 1</h3>
+			
+			<p><span class="keyword">&lt;alarm&gt;</span> elements in an ORE file:</p>
+			<div></div><pre class="prettyprint linenums copyable">&lt;offlineResultEmulation&gt;
+  &lt;id name = "id"&gt;
+    &lt;site num = "1,2,3,"&gt;
+      &lt;pin name = "A"&gt;
+        &lt;alarm passFail = "0"/&gt;
+      &lt;/pin&gt;
+    &lt;/site&gt;
+  &lt;/id&gt;
+  &lt;id name = "id"&gt;
+    &lt;site num = "1,2,3,"&gt;
+       &lt;alarm passFail = "1"/&gt;
+    &lt;/site&gt;
+  &lt;/id&gt;
+&lt;/offlineResultEmulation&gt;</pre><div></div>
+			<div class="p">The corresponding SmartRDI code
+				block:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("A").vForce(0.1).execute();
+  rdi.func("id").label("abc").execute();
+  ...
+RDI_END();
+...
+rdi.id("id").getAlarmPassFail("A");
+rdi.id("id").getAlarmPassFail();</pre></div>
+			<p>The pin name "A" must have been defined in the alarm handling setup file.</p>
+		</div>
+		<div class="example" id="_352227__example_2"><h3>Example 2</h3>
+			
+			<div class="p">Generated ORE
+				file:<div></div><pre class="prettyprint linenums copyable">&lt;offlineResultEmulation&gt;
+  &lt;testSuite name = "offline_ORE"&gt;
+    &lt;id name = "id"&gt;
+      &lt;site num = "1,2,"&gt;
+        &lt;pin name = "DATA"&gt;
+          &lt;smartVec readData = "12,"/&gt;
+        &lt;/pin&gt;
+      &lt;/site&gt;
+    &lt;/id&gt;
+    &lt;id name = "id"&gt;
+      &lt;site num = "1,2,"&gt;
+        &lt;alarm passFail = "0"&gt;
+      &lt;/site&gt;
+    &lt;/id&gt;
+    &lt;id name = "id"&gt;
+      &lt;site num = "1,2,"&gt;
+        &lt;pin name = "A"&gt;
+          &lt;alarm passFail = "1"/&gt;
+        &lt;/pin&gt;
+      &lt;/site&gt;
+    &lt;/id&gt;
+  &lt;/testSuite&gt;
+&lt;/offlineResultEmulation&gt;</pre></div>
+			<div class="p">SmartRDI code
+				block:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.smartVec("id").pin("DATA1").readData(8,2).execute()
+  ...
+RDI_END();
+...
+rdi.id("id").getAlarmPassFail(); 
+rdi.id("id").getAlarmPassFail("A");</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="345252.htm" title="Retrieves the alarm pass or fail result on a pin or the general alarm pass or fail result on all pins.">rdi.id().getAlarmPassFail()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.10.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 352227</span><script type="text/javascript">var ti='352227';var tt='The <alarm> element'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

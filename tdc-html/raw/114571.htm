@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When you set up a DC event, you must define what is to happen when a particular named event (as specified in a :dcSet: in the DC event file) is called in the pattern."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Specifying DC event details</title></head><body id="_114571"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114571</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Specifying DC event details</h1>
+	
+	
+	<div><p>When you set up a DC event, you must define what is to happen when a particular named
+		event (as specified in a <span class="keyword">:dcSet:</span> in the DC event file) is called in the
+		pattern.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Depending on the type of DC event (DCScale or PMU), there are different options for
+				specifying the event actions:</p><ul>
+				<li>For <span class="keyword">DCScale</span> type events: Specify the namespace and ID of a <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a> command.</li>
+				<li>For <span class="keyword">PMU</span> type events: Use the LBL command to specify the label of a
+					subroutine.</li>
+				<li>For <span class="keyword">PMU</span> type events: Use the MEAS command to specify the ID of a
+					measurement set.</li>
+			</ul><p>These options are described in more detail below. </p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Providing a DFTD data set</h3><p>This procedure applies only to
+					<span class="keyword">DCScale</span> type DC events.</p><ol>
+				<li>Define the DC event in the <a href="102566.htm" title="The syntax of the DC event file follows the conventions of the MTL compiler syntax.">DC event file</a> in a
+						<span class="keyword">:dcSet:</span> object.</li>
+				<li>In the <span class="keyword">:dcSetup:</span> column, specify the event as the namespace and ID of a
+					DFTD test data object. For
+					example:<div></div><pre class="prettyprint linenums copyable">{ :dcEvent:     :pinList:   :dcSetup:   :type:   }
+{ sampleEvent1   Pin1        mySetup,1   dcscale }</pre></li>
+				<li>In the level file or the test method, create a call to <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a> in
+					which you specify the name of the DC setup as the test data name, that is, the first parameter.
+					For
+						example:<div></div><pre class="prettyprint linenums copyable">DFTD "mySetup",INSERT,(Pin1),#3237&lt;?xml version="1.0"?&gt;
+&lt;testdata&gt; &lt;td id=1&gt; <span class="keyword">...</span> &lt;/td&gt; &lt;/testdata&gt;</pre><p>Make
+						sure that the name you give to the <span class="keyword">DFTD</span> command is the same as the one
+						specified in the DC event file (in this example, <code>mySetup</code>).</p>
+					<p>Also make sure that the index you use in the DC set's <span class="keyword">:dcSetup:</span> column (1
+						in the example) references the correct <span class="keyword">&lt;td&gt;</span> element in the test data
+						set; it must match the element's <span class="keyword">id</span> value.</p></li>
+				<li>Save and close both files.</li>
+			</ol></section>
+		<section class="section"><h3>Using LBL with a named procedure</h3><p>This procedure applies only to
+					<span class="keyword">PMU</span> type DC events.</p><ol>
+				<li>Define the DC event in the <a href="102566.htm" title="The syntax of the DC event file follows the conventions of the MTL compiler syntax.">DC event file</a> in a
+						<span class="keyword">:dcSet:</span> object.</li>
+				<li>In the <span class="keyword">:dcSetup:</span> column, specify the LBL function with the name of a
+					subroutine as the parameter. For
+					example:<div></div><pre class="prettyprint linenums copyable">{ :dcEvent:     :pinList:   :dcSetup:   :type:   }
+{ sampleEvent2   Pin1       "LBL mySR"   pmu     }</pre></li>
+				<li>In SmarTest's Pattern Explorer, create a subroutine with the name you specified in the DC
+					setup (in the above example, mySR). Make it an empty subroutine containing just a return
+					statement.</li>
+				<li>In the test method, create the necessary measurement sets using these APIs:<ul>
+						<li><a href="29618.htm" title="The PPMU_SETTING class is a data container holding the contents of the task for setting up measurement conditions of pin PMUs. This class can be used to call the PPMU_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for pin PPMU.">PPMU_SETTING</a></li>
+						<li><a href="29602.htm" title="The PPMU_RELAY class is a data container holding the contents of the task for setting up relay connections of pin PMUs. This class can be used to call the PPMU_PIN_RELAY class that is a subsidiary data container to specify the target relay type of the pin.">PPMU_RELAY</a></li>
+						<li><a href="55751.htm" title="The PPMU_CLAMP class is a data container holding the contents of the task for setting up the voltage clamp circuit of pin PMUs. This class can be used to call the PPMU_PIN_CLAMP class that is a subsidiary data container to specify the setup of the voltage circuit per pin.">PPMU_CLAMP</a></li>
+						<li><a href="29585.htm" title="The PPMU_MEASURE class is a data container holding the contents of the task for setting up measurement operations of pin PMUs.">PPMU_MEASURE</a></li>
+					</ul></li>
+				<li>Call the set using the <a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a> API; specify the name of the subroutine
+					("mySR" in the example above) as the first parameter of the <span class="keyword">label()</span> member
+					function and add the measurement sets specified in step 4.</li>
+				<li>Save and close all files.</li>
+			</ol></section>
+		<section class="section"><h3>Using the MEAS command</h3><p>This procedure applies only to
+					<span class="keyword">PMU</span> type DC events.</p><div class="note"><span class="title">Note</span> We do not recommend that you use
+				this method. You should use <span class="keyword">LBL</span> instead (see above).</div><ol>
+				<li>Define the DC event in the <a href="102566.htm" title="The syntax of the DC event file follows the conventions of the MTL compiler syntax.">DC event file</a> in a
+						<span class="keyword">:dcSet:</span> object.</li>
+				<li>In the <span class="keyword">:dcSetup:</span> column, specify the event by using the <a href="98648.htm" title="This command executes a measurement set that is created with the MSET command.">MEAS</a> function with the ids of a DC set and a data object within that set
+					as the parameters. For
+					example:<div></div><pre class="prettyprint linenums copyable">{ :dcEvent:     :pinList:   :dcSetup:   :type:   }
+{ sampleEvent3   Pin1       "MEAS 2,3"   pmu     }</pre></li>
+				<li>Set up the test method you are using so that it creates the referenced measurement set using
+					the <a href="98657.htm" title="The MSET command defines a measurement set within a DC set of the PPMU pool. The measurement set is identified by a number. Every measurement set can be executed (with the MEAS command) independently of the other measurement sets in the same DC set. The same measurement set can contain different actions for different pins.">MSET</a> command.</li>
+				<li>Save and close all files.</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The DC event is ready to be executed when the test program is compiled and is being
+				executed.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Compile the test program.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="77802.htm" title="You can run predefined PPMU tests from within a pattern with the sequencer instruction MEAS. This can be used to:">Executing PPMU tests from a pattern</a></div><div><a href="102566.htm" title="The syntax of the DC event file follows the conventions of the MTL compiler syntax.">DC event file syntax</a></div><div><a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD, DFTD? (DeFine Test Data)</a></div><div><a href="98648.htm" title="This command executes a measurement set that is created with the MSET command.">MEAS - (execute a MEASurement set)</a></div><div><a href="98657.htm" title="The MSET command defines a measurement set within a DC set of the PPMU pool. The measurement set is identified by a number. Every measurement set can be executed (with the MEAS command) independently of the other measurement sets in the same DC set. The same measurement set can contain different actions for different pins.">MSET, MSET? - (definition of Measurement SET)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: Two procedures added for specifying PMU type events</li><li>MTP 3.0.3:  (MTP on SOC 103.0.0) PMU type DC events are now supported in both MTP on HSM
+					and MTP on SOC</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114571</span><script type="text/javascript">var ti='114571';var tt='Specifying DC event details'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Hidden Upload feature allows you to use test methods to set up a test flow to perform a digital capture test and then upload all the results at the end, which can save a lot of time, depending on your test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using Hidden Upload for Digital Capture</title></head><body id="_119803"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119803</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using Hidden Upload for Digital Capture</h1>
+	
+	
+	<div><p>The Hidden Upload feature allows you to use test methods to set up a test flow to
+		perform a digital capture test and then upload all the results at the end, which can save a lot of
+		time, depending on your test.</p>
+		<p>This feature is particularly useful when using SmartCalc as it is integrated into SmartCalc.
+			Note, however, that SmartCalc requires UTM (Universal Test Method).</p>
+		<h2>Example</h2><div class="example"><p>The following gives you an overview how to set up a testflow to utilize the Hidden
+				Upload for a digital capture test.</p><p>Structure your test flow as follows:</p><ul>
+				<li>Allocate result areas</li>
+				<li>Capture Data</li>
+				<li>Start a non blocking digital test</li>
+				<li>Hidden upload of capture data</li>
+				<li>Wait until non-blocking digital test is finished, then do the judgment of data.</li>
+			</ul><p>This is illustrated in the sample test flow below.</p><div class="p"><figure class="fignone">
+					
+					<img src="119812.png" alt="Test Flow Example for HiddenUpload of Digital Capture">
+				</figure></div><p>The test suites are explained in more detail below.</p><p><strong>1. Allocate Result
+					Area</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="119813.png" alt="Allocating the Result Areas">
+				</figure></div><p>The test method example shown above allocates three result areas:</p><ul>
+				<li>16 kBit</li>
+				<li>128 kBit</li>
+				<li>1 MBit</li>
+			</ul><p>The steps are as follows:</p><ol>
+				<li>Create the result area with <code>RESULT_AREA_CONFIG</code> (<code>resConf</code>)
+					for all pins doing the digital capture.</li>
+				<li>Use appendArea to allocate memory for a capture test. The result size is given in
+					bytes.</li>
+				<li>To determine the correct result size in bytes, proceed as follows:<ol type="a">
+						<li><strong>For selective capture:</strong><p>x8/x4 Total recording size = 1024 + (initial discard +
+								frame size * number of frames + interframe discard * (number of frames - 1)) / 8</p>
+							<p>x1/x2/x3/x5/x6/x7 Total recording size = 1024 + (initial discard + frame size * number of
+								frames + interframe discard * (number of frames - 1)) / 4</p></li>
+						<li><strong>For capture:</strong><p>STD size = sample size/4 + 1024</p>
+							<p>DBL size = sample size/8 + 1024</p>
+							<p>If the sample size is too small, you will get an error message during the digital
+								capture.</p>
+							<p>Try to minimize the result areas.</p>
+							<p>The tester memory is limited by memory license.</p>
+							<p>If more memory is needed, upgrading a license only for the capture pins is sufficient.</p>
+							<p>The internal buffer size is 1024 bytes.</p></li>
+					</ol></li>
+				<li>Finally execute an <code>activate</code> to enable the result areas.</li>
+			</ol><p>Additional Aspects:</p><ul>
+				<li>It is possible to define result areas more than once within a test-flow.</li>
+				<li>To delete all defined result areas execute an "<code>activate</code>".</li>
+				<li>To release result areas, you have two methods:<ul>
+						<li><code>resConf.release()</code></li>
+						<li><code>RESULT_AREA_CONFIG::removeAllAreas()</code></li>
+					</ul></li>
+				<li>If you use <code>RESULT_AREA_CONFIG</code> this is performed internally with no HW
+					access, thus the overhead is negligible.</li>
+			</ul><p><strong>2. Capture Data</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="119817.png" alt="Capturing the Data">
+				</figure></div><p>The above test method captures data into the result area named "16KBitArea" (the
+				first result area).</p><p>To enable this, the following test method APIs have been enhanced:</p><ul>
+				<li>DIGITAL_CAPTURE_TEST();</li>
+				<li>NB_DIGITAL_CAPTURE_START();</li>
+			</ul><p>This capture initializes the respective predefined result area and captures the data
+				into this area.</p><p>An error message will be produced if:</p><ul>
+				<li>The result area has not been defined.</li>
+				<li>The result area is defined for some pins but not for all the pins doing the capture.</li>
+			</ul><p>If the result area is too small, an error will appear when the data is
+					uploaded.</p><p><strong>3. Start a Digital Capture Test</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="119818.png" alt="Starting the Digital Capture Test">
+				</figure></div><p>The above test method starts a non-blocking digital test.</p><p>The V93000 tester
+				hardware now executes a digital test while the optical upload link is free of any system
+				controller/HW communication.</p><p>Since the tester's digital hardware has a dual port memory,
+				data can be uploaded from digital channels without interrupting the functional test.</p><p>There
+				are, however, also the following alternative ways, to hide uploads:</p><ul>
+				<li>Use a non blocking digital capture test [<code>NB_DIGITAL_CAPTURE_START</code>].</li>
+				<li>Use waiting times of your device (see <a href="105283.htm" title="Starting from SmarTest release 6.3.3 it is possible to set a custom wait/settling-time within a DPS_TASK by using wait instead of the WAIT_TIME test method API">Using the "wait" Settling Time Within a DPS_TASK</a>).</li>
+				<li>Use analog test [functional test could trigger an analog test] (see <a href="20905.htm" title="The example program shown below performs the following steps:">A dynamic analog test example</a>).</li>
+				<li>Use dynamic DPS tests.</li>
+			</ul><p><strong>4. Upload of the Captured Data</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="119820.png" alt="Uploading the Captured Data">
+				</figure></div><p>The above test method uploads the captured data from a result area named
+					"<code>16KBitArea</code>".</p><p>To ensure that the digital test which has been started
+						does not get stopped, you need to use a <code>run_test</code> (do not use a run and branch
+				test) and leave the timing/level/analog/vector fields in test-suite dialog blank.</p><p>If the
+				captured data is incomplete (area size too small), or nothing is captured an error message will
+				appear.</p><p><strong>Note:</strong> If you are using this in the framework of SmartCalc, the calculations
+				on uploaded capture data can be done at this point (hidden calculation).</p><p><strong>5. End the
+					digital capture test</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="119821.png" alt="Ending the Digital capture Test">
+				</figure></div><p>The above test method waits until the digital test you have previously started has
+				finished, then it does an evaluation of the results.</p><p>To ensure that the digital test which
+				has been started does not get stopped, you need to leave the timing/level/analog/vector fields
+				in the test-suite dialog blank.</p><p>The <code>GET_FUNCTIONAL_TEST()</code> TM-API does not
+				work for a multi-site setup, thus the <code>PRLT?</code> firmware command (see <a href="98689.htm" title="The PRLT? query returns the global pass/fail results of the last executed test for the specified sites in parallel. You can use this command to find out the global results of all sites (not only the one that has the query focus) in one step.">PRLT? - (request Parallel ResuLTs)</a>) is used to retrieve the pass or fail result.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119803</span><script type="text/javascript">var ti='119803';var tt='Using Hidden Upload for Digital Capture'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI provides an INACTIVE_SITE_AUTO_MASK flag in the RDI_Configure file to enable automatic masking on all inactive sites for a test suite. Its default state is FALSE."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Automatic masking on inactive sites</title></head><body id="_355678"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 355678</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Automatic masking on inactive sites</h1>
+	
+	
+	<div><p>SmartRDI provides an INACTIVE_SITE_AUTO_MASK flag in the RDI_Configure file to enable
+		automatic masking on all inactive sites for a test suite. Its default state is FALSE.</p>
+		<section class="section">
+			<p>If you set <span class="keyword">INACTIVE_SITE_AUTO_MASK = TRUE</span>, all inactive sites will be
+				masked and remain in a hold state. A dummy label will be executed on the inactive sites. For
+				active sites, their normal labels will be executed.</p>
+			<p>Results can only be retrieved from the unmasked sites.</p>
+			<div class="p">For example, assuming: there are four sites: sites 1, 3, and 4 are active; site 2 is inactive;
+					<span class="keyword">INACTIVE_SITE_AUTO_MASK = TRUE</span> is set in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>. For the following code:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.smartVec("id1").pin("pinA").writeData()
+                     .pin("pinB").readData()
+                     .execute();
+
+rdi.emap("id2").pin()....execute();
+
+RDI_END();</pre></div>
+			<p>Normal burst labels will be executed on sites 1, 3, and 4; a dummy label will be executed on
+				site 2.</p>
+			<p>RDI provides <span class="keyword">assignLabelOnInactiveSites()</span> to specify a dummy label for
+				masked inactive sites. Its syntax is
+					<span class="keyword">rdi.assignLabelOnInactiveSites("label","port")</span>. The default port is
+					<span class="keyword">"@"</span>.</p>
+		</section>
+		<section class="section"><h2>Key attention points</h2>
+			
+			<p><span class="keyword">INACTIVE_SITE_AUTO_MASK = TRUE</span> does not support: </p>
+			<div class="p">
+				<ul>
+					<li><a href="144747.htm" title="SmartRDI supports the hidden upload for the measurement with digitizer, RF measurement, DC measurement, and digital capture test, error maps and TMU.">Hidden upload</a>.</li>
+					<li><a href="343521.htm" title="SmartRDI supports the SmarTest 7.4.2 new feature - &#34;Immediate upload&#34; mode for captured data upload.">digCap immediate upload</a>.</li>
+					<li><a href="351431.htm" title="The Register Access (RA) library is bundled together with SmartRDI. It can be used to perform protocol operations, including register access operations.">Register access</a>.</li>
+					<li><a href="146692.htm#_146692__row_FAST_PPMU_LEVEL_TRANSFER">FAST_PPMU_LEVEL_TRANSFER</a>.</li>
+					<li><a href="348893.htm" title="Creates an empty burst label and specifies the maximum number of labels to be patched.">func.burstRunTime()</a>.</li>
+					<li><a href="146692.htm#_146692__row_DIGCAP_BURST_SITE_UPLOAD">DIGCAP_BURST_SITE_UPLOAD</a>.</li>
+				</ul>
+			</div>
+			<p><span class="keyword">INACTIVE_SITE_AUTO_MASK = TRUE</span> while shared pins used in any RDI block:</p>
+			<div class="p">
+				<ul>
+					<li><a href="346605.htm" title="Returns the total fail counts of multiple pins in one label. The result can be retrieved by rdi.id().getCombinedFailCount().">combinedFailCount()</a> cannot retrieve results for shared
+						pins.</li>
+					<li>Do not use protocol and cogo actions in the RDI block.</li>
+				</ul>
+			</div>
+			<div class="p">
+				<span class="keyword">rdi.setOnHoldSites()</span>:<ul>
+					<li>Do not use <span class="keyword">rdi.setOnHoldSites()</span> with <a href="149521.htm" title="This function specifies a runtime label for each site.">func().labelRunTime()</a> together.</li>
+					
+				</ul></div>
+		</section>
+		<h2>Example</h2><div class="example"><h3>Defining a dummy label for inactive sites</h3>
+			
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">rdi.assignLabelOnInactiveSites("userlabel","pt1");
+
+RDI_BEGIN();
+  rdi.port("pt1")....execute();  // For pt1, use a user label.
+  rdi.port("pt2")....execute();  // For pt2, run a dummy label created by RDI.
+RDI_END()</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="355681.htm" title="SmartRDI provides multiple commands to put active sites to be on hold and assign labels to them.">Active site on hold</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.10.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 355678</span><script type="text/javascript">var ti='355678';var tt='Automatic masking on inactive sites'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

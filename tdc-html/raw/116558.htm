@@ -1,0 +1,45 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In many cases, the transition tracker issues the error ErrJMP2 when it detects a BC transition. However, it does not do this when it finds only one such transition, and this is the very first transition at test start or after a IO pin has switched from drive to receive mode."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Positioning the first observation window and jump by 2</title></head><body id="_116558"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116558</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Positioning the first observation window and jump by 2</h1>
+	
+	
+	<div><p>In many cases, the transition tracker issues the error <span class="keyword">ErrJMP2</span> when
+		it detects a BC transition. However, it does not do this when it finds only one such transition,
+		and this is the very first transition at test start or after a IO pin has switched from drive to
+		receive mode. </p>
+		<p>The reason for this is that the first observation window may start before the first user
+			vector, and that in this case the BC transition may be caused by the (number of) samples that
+			were taken before the first user vector. Actually, this is exactly what will happen with the
+			default position of the first observation window. </p>
+		<p>In this position, the C sample of the first window is the first sample that is taken after test
+			start. Samples A and B reflect the state of the device before the test. Now if sample A and B
+			have the same value, there will be either a BC transition in the first window or no transition at
+			all. In the latter case, however, the first transition will also be a BC transition if all bits
+			up to this transition are sampled exactly 4 times.</p>
+		
+		<p>BC transitions create an indeterminacy in that the selected sample can either be (a) the A
+			sample of the current observation window, or (b) the first sample after the current window (see
+					<em><a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a></em>). In case (b) no sample will be selected from the current
+			window. Accordingly, the number of bits that are passed on to the pattern matching block will be
+			one less in case (b) as compared to case (a). </p>
+		<p>However, the first bit of case (a) can be skipped at test start. For it either reflects the
+			state of the DUT before the test, or there is one bit too many with the same value before the
+			first transition. Therefore, the first <span class="keyword">n</span> bits (where <span class="keyword">n</span> is
+			the length of the synchronization pattern) of case (a) should not match the first
+				<span class="keyword">n</span> expected bits, and so the first bit will in fact be skipped (see <em><a href="114245.htm" title="Initial synchronization serves to overcome an initial latency and to discover the start of the meaningful data. Its basic idea is to compare the received data, as selected by the tracking mechanism, successively with a start segment of the expected data, the synchronization pattern, until a segment of the received data matches this synchronization pattern. The start of this segment is assumed to be the start of the meaningful data.">Startup latency and initial synchronization</a></em>).</p>
+		<p>Note, however, that for this to work reliably, the restrictions listed in <em><a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a></em> must be satisfied.</p>
+		<h2>Example</h2><div class="example"><p>In order to simplify the graphics, the following examples illustrate the operation
+				mode by 1 UI observation windows. But note that in the actual implementation, the observation
+				window actually consists of 3 UI (= 12 samples); see <a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a>.</p><div class="p"><figure class="fignone">
+					
+					<img src="116448.png" alt="Synchronizing the tracking start">
+				</figure></div><p>This example shows the case where the first transition coincides with the start of
+				the first user vector. The expected data starts with H L H L H L. Therefore if the tracker
+				selects the A sample of the first window, the synchronization pattern cannot match at the first
+				comparison, and so the L which is sampled when shifting backward cannot create any
+				confusion.</p><div class="note"><span class="title">Note</span> Strictly speaking, this example is not quite correct, because at
+				the start of the test, the tracker always shifts backward. But it illustrates the general
+				principle.</div></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116558</span><script type="text/javascript">var ti='116558';var tt='Positioning the first observation window and jump by 2'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

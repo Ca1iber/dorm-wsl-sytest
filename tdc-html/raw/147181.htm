@@ -1,0 +1,59 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DVM_TASK class is a data container for high-accuracy direct voltage measurements (DVM) via utility pogo pins using the Keysight Technologies 3458A Multimeter."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DVM_TASK</title></head><body id="_147181"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 147181</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DVM_TASK</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="147187.htm" title="The DVM_PIN_TASK class is a data container holding the object reflecting the setup data for high-accuracy direct voltage measurements (DVM) using a digital multimeter (DMM).">DVM_PIN_TASK</a></li><li><a href="147278.htm" title="The pin() member function creates a DVM_PIN_TASK object to hold the measurement specifications for the specified pins.">DVM_TASK.pin()</a></li><li><a href="147265.htm" title="The execute() member function executes the DVM measurement with the settings defined by the member functions of DVM_PIN_TASK.">DVM_TASK.execute()</a></li><li><a href="147266.htm" title="The setTimeout() member function sets the timeout in seconds when trying to establish a communication to the DMM (digital multimeter).">DVM_TASK.setTimeout()</a></li><li><a href="147267.htm" title="The getValues() member function returns an array of measurement result values for the specified pin.">DVM_TASK.getValues()</a></li></ol></div></nav>
+	
+	
+	<div><p>The <span class="keyword">DVM_TASK</span> class is a data container for high-accuracy direct
+		voltage measurements (DVM) via utility pogo pins using the Keysight Technologies 3458A Multimeter. </p>
+		<section class="section"><p>This class can be used to call the <a href="147187.htm" title="The DVM_PIN_TASK class is a data container holding the object reflecting the setup data for high-accuracy direct voltage measurements (DVM) using a digital multimeter (DMM).">DVM_PIN_TASK</a> class, which is a
+				subsidiary data container of the DVM_TASK class.</p><div class="note"><span class="title">Note</span> The DVM_TASK class accepts
+						Utility DC pins only.</div><p>This class can be added to TASK_LIST, so all kinds of DC measurement (using PPMU,
+				DPS and DC Scale pins) can be seamlessly executed.</p><p>The DVM_TASK API is
+				defined in the header file
+				<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/DvmTask.h</span>.</p></section>
+		<section class="section"><h2>Syntax</h2><pre class="prettyprint copyable singleline">DVM_TASK();</pre><p>Creates an object to define
+				different conditions for DVM measurements and to execute them concurrently.</p><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></section>
+		<section class="sectiontitlefake"><h2>Multimeter interface</h2></section>
+		<section class="section"><h3>Status check</h3><p>The following interfaces provide the communication with the
+				commands specified in the <em>3458A Multimeter User's Guide.</em> The guide and other product
+				related documents are available on the Keysight Technologies web
+				site.</p><pre class="prettyprint linenums copyable">static DVM_STATUS write (const STRING &amp; pinlist, const STRING &amp; task);
+static DVM_STATUS read (const STRING &amp; pinlist, STRING &amp; answ);
+static DVM_STATUS readError (const STRING &amp; pinlist, STRING &amp; errorMessage);</pre><p>Definition
+				of
+			DVM_STATUS:</p><pre class="prettyprint linenums copyable">typedef enum
+{
+  DVM_STATUS_OK,
+  DVM_STATUS_FAIL
+} DVM_STATUS;</pre></section>
+		<h2>Example</h2><div class="example"><p>The example specifies a pin for a direct voltage measurement (measDVM) using the
+				digital multimeter (DMM). If required, the calibration (doAcal) is executed
+			automatically.</p><pre class="prettyprint linenums copyable">DVM_TASK   measDVM;
+FLEX_RELAY connectDVM, disconnectDVM;
+TASK_LIST  taskList;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    connectDVM.pin   ("Utility_Pogo_1").set("X","<span>EXT</span>");
+    disconnectDVM.pin("Utility_Pogo_1").set("X","<span>OFF</span>");
+
+    measDVM.pin("Utility_Pogo_1")
+           .doAcal(TM::DO_ACAL_IF_NECESSARY);
+
+    taskList.add(connectDVM)
+            .add(measDVM)
+            .add(disconnectDVM)
+            .execute();
+
+ON_FIRST_INVOCATION_END();
+
+ARRAY_D result = measDVM.getValues("Utility_Pogo_1");
+
+for ( int i = 0; i &lt; result.size(); ++i )
+{
+    cout &lt;&lt; "Measured Value: " &lt;&lt; result[i] &lt;&lt; endl;
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="147187.htm" title="The DVM_PIN_TASK class is a data container holding the object reflecting the setup data for high-accuracy direct voltage measurements (DVM) using a digital multimeter (DMM).">DVM_PIN_TASK</a></div><div><a href="147161.htm" title="The Smart Scale test system has BNC (Bayonet Neill-Concelman) connectors for the DC-rail of each card cage, while the EXA Scale test system has a DSUB-9 connection on the front panel for an Ext. DC-rail. This allows connecting the Keysight 3458A Digital Multimeter (DMM) to the V93000 and doing high-accuracy voltage measurements through utility pogo pins.">Direct DMM high-accuracy voltage measurements via utility pogo block</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 147181</span><script type="text/javascript">var ti='147181';var tt='DVM_TASK'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

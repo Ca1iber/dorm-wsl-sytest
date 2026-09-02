@@ -1,0 +1,121 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This topic focuses on rules and examples for programming test methods for multisite hardware if resources are limited."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Semi-parallel best practices</title></head><body id="_122751"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122751</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Semi-parallel best practices </h1>
+	
+	
+	<div><p>This topic focuses on rules and examples for programming test methods for multisite
+		hardware if resources are limited.</p>
+		<section class="section"><p>If you have enough resources available, refer to <a href="122750.htm" title="This topic focuses on rules and examples for programming test methods for multisite hardware.">Usage of
+					Parallel Hardware (PPMU</a>).</p></section>
+		<section class="section"><h2>General rules</h2><ul>
+				<li>Use semi-parallel when you have not enough analog resources for full parallelism multisite
+					testing to improve throughput with limited resources</li>
+				<li>Set a test suite to run in semi-parallel and the test sequence for different sites</li>
+				<li>Share AWG/DGT by adding relays on the DUT board</li>
+			</ul></section>
+		<section class="section"><h2>Multisite resource assignment rules</h2><p><strong>Pin Scale card</strong></p><ul>
+				<li>Assign the same pins to the same hardware</li>
+				
+				<li>Assign pins, connecting to Board ADC. to different logic boards for different sites</li>
+			</ul><p><strong>DPS</strong></p><p>Use a separate DPS channel for each DUT supply.</p><ul>
+				<li>DUT power supplies suffer from same noise issue as ground<ul>
+						<li>Voltage spikes from transient current switching of digital circuits</li>
+						<li>Noise on RF and Analog supplies degrades SNR</li>
+					</ul></li>
+				<li>Noise generated from digital circuit can couple to RF or analog circuit if same supply is
+					used for both</li>
+				<li>Using separate DPS channels reduces the potential for noise to couple on power supplies
+					between digital, RF, and analog circuits</li>
+			</ul><p>Use separate DPS channels at each site</p><ul>
+				<li>For multi-site applications, use separate DPS channels at each site to reduce the potential
+					for noise to couple from one site to another</li>
+			</ul></section>
+		<section class="section"><h2>Using SmartCalc with result areas</h2><p id="_122751__d7115e20">A result area
+				only holds the results from one functional, capture, or DC test. The most recent test overwrites
+				all previous results.</p><p id="_122751__d7115e22">Before you re-use a result area in a testflow use <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> to upload all results. For semi-parallel execution, ensure that you allocate
+				individual result areas for each semi-parallel group execution. If you would use only a single
+				result area for all groups SmarTest will only hold the results from the last
+			group.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">ON_FIRST_INNOVATION_BEGIN();
+    ...
+    ...
+    FOR_EACH_SITE_BEGIN();
+
+        if (CURRENT_SITE_NUMBER() == 1 || CURRENT_SITE_NUMBER() == 2)</pre><p>Set
+				semi parallel sequence in the test suite</p><p>in the graphical user interface, refer to the
+					<a href="100119.htm" title="In the Expanded Site Control window, you can view and change the site test sequence settings of each test suites directly. This is shown in the figure below.">Expanded Site Control window</a>:</p><div class="p"><figure class="fignone">
+					
+					<img src="137934.png" alt="Accessing the Site Control User Interface 1">
+				</figure></div><div class="p"><figure class="fignone" id="_122751__d3602e57">
+				
+				<img src="102523.png" alt="Semi-parallel site control 2">
+			</figure></div><pre class="prettyprint linenums copyable">        {
+            //
+            // Switch routing or relay
+            //
+            ...
+            ...
+        }
+
+        if (CURRENT_SITE_NUMBER() == 3 || CURRENT_SITE_NUMBER() == 4)
+        {
+            //
+            // Switch routing or relay
+            //
+            ...
+            ...
+        }
+
+    FOR_EACH_SITE_END();
+    ...
+    ...
+ON_FIRST_INNOVATION_END();</pre></div>
+		<h2>Examples</h2><div class="example"><h3>General example</h3><p>For example, to test sites 1 and 2 in parallel and then sites 3 and 4 in parallel for
+			four-site semi-parallel testing, you can set up the test sequence by specifying
+				<kbd class="userinput">Size</kbd> = <kbd class="userinput">2</kbd> and <kbd class="userinput">Cycle</kbd> =
+				<kbd class="userinput">Unbounded</kbd>. Each parallel test in the semi-parallel test will be executed
+			from the group including site 1 in numerical order.</p><p>If test sites are added afterward, additional sites will be tested according to the
+				<kbd class="userinput">Size</kbd> and <kbd class="userinput">Cycle</kbd> settings. Therefore, you do not
+			have to set up this again.</p><p>The figure below shows three examples of the site test sequence settings including the
+			above typical example.</p><div class="p"><figure class="fignone" id="_122751__d1944e58">
+				
+				<img src="47559.png" alt="Size and Cycle Parameters">
+			</figure></div><p>You can also enter the order numbers directly into the Site Test Sequence field. Hence,
+			you can set up a free site test sequence. In this case, if test sites are added afterward,
+			additional sites will be tested in parallel after tests of the existing sites are completed.</p><p>The <span class="uicontrol">Parallel</span> and <span class="uicontrol">Serial</span> buttons can be
+			used to change the site test sequence from <kbd class="userinput">Semi-Parallel</kbd> or free
+			sequence to the <kbd class="userinput">Parallel</kbd> or <kbd class="userinput">Serial</kbd>
+			sequence.</p><div class="note"><span class="title">Note</span> If you turn the <a href="342556.htm#_342556__row_allow_parallel">Allow
+				Parallel</a> flag off, all sites will be tested serially. However, the sequence
+			might be different from the sequence specified by clicking the
+				<span class="uicontrol">Serial</span> button. For example, if you click the
+				<span class="uicontrol">Semi-Parallel</span> button and run the test suite in the following
+			sequence as sites 1 and 3 (in parallel), and site 2 and site 4 (in parallel), then after
+			you turn off the <kbd class="userinput">Allow Parallel</kbd> flag, the site test sequence is
+			site 1, site 3, site 2, and site 4. However, for the serial test (the <kbd class="userinput">Allow
+				Parallel</kbd> flag is turned on and the <span class="uicontrol">Serial</span> button
+			is pressed), the site test sequence is site 1, site 2, site 3, and site 4.</div><p><strong id="_122751__d1944e114">TIP:</strong> You can also set up the site test sequence for all test suites in
+			the Site Control window. If you want to set it up for many test suites once, it is better to use
+			the Site Control window.</p></div>
+		
+		
+		<div class="example"><h3>Semi parallel measurement on ports 1A - 1D</h3><p>The following picture shows a symmetrical quad sites configuration based on two Front
+			End cards. The left part shows the first front end card while the right part shows the second
+			front end card. This setup does not use shared resources. Stimuli to the different sites can be
+			provided in parallel. The measurements are configured in a semi parallel configuration using two
+			cycles. </p><div class="p"><figure class="fignone" id="_122751__d3602e22">
+				
+				<img src="102518.png" alt="True parallel stim, semi parallel meas, quad site">
+			</figure></div><p>The following pictures shows the usage of a non symmetrical setup on two Front End
+			Cards. In this case, Stimuli and Measurement are semi parallel.</p><div class="p"><figure class="fignone" id="_122751__d3602e38">
+				
+				<img src="102519.png" alt="Semi parallel stim_meas_quad_site">
+			</figure></div><p>Parallel, semi-parallel or serial testing are controlled by the <a href="100119.htm" title="In the Expanded Site Control window, you can view and change the site test sequence settings of each test suites directly. This is shown in the figure below.">Expanded Site Control window</a>. In a quad site application using two Front End cards, you could use 2 measurement cycles as
+			illustrated below</p><div class="p"><figure class="fignone" id="_122751__d3602e57">
+				
+				<img src="102523.png" alt="Semi-parallel site control 2">
+			</figure></div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42595.htm" title="The following rules apply to multisite testing:">Processing test flow blocks in a multisite setup</a></div><div><a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">Self-contained Testsuites</a></div><div><a href="119982.htm" title="The following figure shows a combination of an RF/MX-Signal Test and a digital test in a semi-parallel setup.">Semi-parallel execution</a></div><div><a href="100119.htm" title="In the Expanded Site Control window, you can view and change the site test sequence settings of each test suites directly. This is shown in the figure below.">Expanded Site Control window</a></div><div><a href="109861.htm">Multi-Site Efficiency and Throughput</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122751</span><script type="text/javascript">var ti='122751';var tt='Semi-parallel best practices'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

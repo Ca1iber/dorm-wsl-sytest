@@ -1,0 +1,94 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Converting a binary scan setup into a binary multi-port setup</title><meta name="keywords" content="multiport"></head><body id="_123808"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123808</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Converting a binary scan setup into a binary multi-port setup</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This task shows you how to convert a binary vector file that contains an F330 scan
+				setup into a binary vector file where the scan setup is realized by multiple
+			ports.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>The ASCII Interface must be installed.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>The working directory is the <span class="filepath">waste</span> directory of the current
+					device.</span>
+				<div><p>Create two subdirectories <span class="filepath">tmf_files</span> and
+							<span class="filepath">avc_files</span>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Define a <strong>b2a</strong> configuration file <span class="filepath">MIDAS.bcf</span> as follows:</span>
+				<div>
+					<p> <code>B2A_DIR_FILE</code></p>
+					<p> <code>tmf_dir ./tmf_files</code></p>
+					<p> <code>avc_dir ./avc_files</code></p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Call <strong>b2a</strong> as follows:</span>
+				<div>
+					<p><kbd class="userinput">/opt/93000/aif/b2a/bin/b2a -It -b MIDAS.bcf -o MIDAS -f
+							../testflow/l6b0394pkg</kbd></p>
+					
+					<p>This is the default location. The path may different on your system.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span><strong>b2a</strong> modifies the configuration file <span class="filepath">MIDAS.bcf</span>. Edit this file
+					in order to restrict the vector retranslation to the patterns containing scan
+					instructions.</span>
+			</li><li class="stepexpand">
+				<span>Call <strong>b2a</strong> as follows:</span>
+				<div>
+					<p><kbd class="userinput">/opt/93000/aif/b2a/bin/b2a -Iv -b MIDAS.bcf -o MIDAS</kbd></p>
+					
+					<p>This is the default location. The path may be different on your system.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Create a new pin configuration file <span class="filepath">MIDAS.pin_mport</span>, where all scan
+					pins are included in the port <kbd class="userinput">SCAN</kbd>, and all parallel pins in the port
+						<kbd class="userinput">PARA</kbd>.</span>
+			</li><li class="stepexpand">
+				<span>Copy the global configuration file <span class="filepath">MIDAS.aic</span> created by <strong>b2a</strong> to
+						<span class="filepath">init.aic</span>.</span>
+			</li><li class="stepexpand">
+				<span>Prepare <span class="filepath">init.aic</span> for a multi-port setup. This includes:</span>
+				<div><ul>
+						<li>Add the <span class="keyword">AI_DIR_FILE</span> section to the file as
+									follows:<p><code>AI_DIR_FILE</code></p>
+							<p><code>tmp_dir ./tmp</code></p>
+							<p> <code>tmf_dir ./tmf_files/</code></p>
+							<p> <code>avc_dir ./avc_files/</code></p>
+							<p> <code>pinconfig_file ../configuration/MIDAS.pin_mport</code></p>
+							<p> <code>single_binary_pattern_dir ./vectors</code></p>
+							<p> <code>pmf_file ./vectors/MIDAS</code></p>
+							<p> <code>pmf_path ../vectors</code></p></li>
+						<li>Add the <span class="keyword">AI_V2B_OPTIONS</span> line to the file as
+									follows:<p><code>AI_V2B_OPTIONS -ALCET -imp -Y 32x60000 -xpi -z C400</code></p></li>
+						<li>Create separate patterns &lt;<span class="keyword">name</span>&gt;<kbd class="userinput">_scan</kbd> and
+								&lt;<kbd class="userinput">name</kbd>&gt;_<kbd class="userinput">para</kbd> for the
+								<kbd class="userinput">SCAN</kbd> and the <kbd class="userinput">PARA</kbd> port for all source patterns
+								&lt;<span class="keyword">name</span>&gt; that contain <span class="keyword">SCAN</span> instructions.</li>
+						<li>Specify the &lt;<span class="keyword">name</span>&gt;.avc file created by <strong>b2a</strong> as the ASCII
+							vector file for both patterns.</li>
+						<li>Add the definition of the multi-port burst for ports <kbd class="userinput">SCAN</kbd> and
+								<kbd class="userinput">PARA</kbd>.</li>
+						<li></li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Run <strong>ait</strong> as follows:</span>
+				<div>
+					<p><code>ait -FPU -Mwet -z C400 -c init.aic -b MIDAS</code></p>
+					
+					<p>If the conversion fails and you have to rerun <strong>ait</strong>, be sure to remove all
+							<span class="filepath">*.vbc</span> files, <span class="filepath">*.tmf</span> files, as well as
+							<span class="filepath">MIDAS.tim</span>, <span class="filepath">MIDAS.aiv</span>,
+							<span class="filepath">MIDAS.aic</span>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Run aiv as follows:</span>
+				<div>
+					<p><code>aiv -c MIDAS.aiv 2&gt;&amp;1 | tee aivlog</code></p>
+				</div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>A multi-port setup that is equivalent to the original F330 scan setup. </p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="37598.htm" title="The following figure shows how an ASCII vector file for a scan test is translated:">Translating the Scan Setup</a></div><div><a href="86042.htm" title="The vector translation can convert a scan setup within an ASCII vector file into a binary multi-port setup where the scan vectors are generated with GENV and RPTV instructions. In this binary setup, the scan pins and the parallel pins are put into to different ports, each of which has its own sequencer program. This makes it possible to retain the advantage that the repeat vectors for the parallel pins are stored only once, since they can now be repeated with an RPTV instruction in the parallel port.">Converting an ASCII Scan Setup Into a Binary Multi-Port Setup</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123808</span><script type="text/javascript">var ti='123808';var tt='Converting a binary scan setup into a binary multi-port setup'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

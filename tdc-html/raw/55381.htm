@@ -1,0 +1,53 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="By default, the primary sets are activated at the start of each functional test. This activation requires a CTOF (Change Timing On the Fly) sequence during which the tester sequencer is inactive. But when testing a PLL device, the clock must be running continuously during the whole test flow. The FTCG (Functional Test ConfiGure) command allows you to suppress the (re)activation of the primary sets for the clock pins of such a device. For general information on FTCG, see the Command Reference manual."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Suppressing Reactivation of Primary Sets with FTCG</title></head><body id="_55381"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 55381</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Suppressing Reactivation of Primary Sets with FTCG</h1>
+	
+	
+	<div><p>By default, the primary sets are activated at the start of each functional test. This
+		activation requires a CTOF (Change Timing On the Fly) sequence during which the tester
+		sequencer is inactive. But when testing a PLL device, the clock must be running continuously
+		during the whole test flow. The FTCG (Functional Test ConfiGure) command allows you to
+		suppress the (re)activation of the primary sets for the clock pins of such a device. For
+		general information on FTCG, see the <a href="103977.htm">Command Reference</a> manual. </p>
+		
+		
+		<p>FTCG suppresses (with the option ON) and allows (with the option OFF) activation of the primary
+			sets for ports, but these ports are treated as representatives of the sequencing groups to which
+			they belong in the current timing specification (defined by SPRM) or start label (defined with
+			SQSL). This means that SmarTest will suppress activation for all ports of the respective
+			sequencing group. You insert the FTCG command in the testflow with the FW-Escape testmethod.</p>
+		<p>The settings defined with FTCG remain valid until they are modified by another application of
+			FTCG, or the system is reset, or the device is changed.</p>
+		<p>As an example, suppose that you have two ports port_1 and port_2 that are contained in two
+			different sequencing groups. Then issue</p>
+		<p><code>FTCG SKPR,ON,(port_1)</code></p>
+		<p>at the start of the testflow before the first functional test. This will have the effect that
+			activation of the primary sets is suppressed at the start of every following functional test for
+			all ports of the sequencing group to which port_1 belongs. Note that the sequencing groups to
+			which port_1 belongs may change from one test to another if the specification or the multi-port
+			burst is changed.</p>
+		<p>FTCG can be used to suppress the CTOF sequences while the tester sequencer is inactive. CTOF
+			sequences executed during vector label execution are controlled by the sequencing groups defined
+			in the multi-port burst label.</p>
+		<p>In order to suppress CTOF sequences altogether for the clock ports of a continuous clock setup,
+			the following conditions must be satisfied:</p>
+		<ul>
+			<li>The clock ports must have their own sequencing group.</li>
+			<li>The port bursts of the clock ports must not contain any <kbd class="userinput">CTIM</kbd> or
+					<kbd class="userinput">CLEV</kbd> instructions.</li>
+			<li>The settings for the clock ports must not be changed.<p>This implies that. if the period
+					resolution is calculated by SmarTest, the period must not be changed in the
+					settings for <em>any</em> port (for example, by changing the value of a spec
+					variable with <kbd class="userinput">SVLR</kbd>). This holds even for those ports that
+					do not belong to the sequencing group in question. For any such change would
+					lead to a recalculation of the period resolution. </p><p>To avoid recalculation,
+					the period resolution can be explicitly defined in the timing port's equation
+					set.</p></li>
+			<li>Activation of the primary sets at test start must be suppressed for the sequencing group by
+				setting <kbd class="userinput">FTCG</kbd> to <kbd class="userinput">ON</kbd> for at least one port of the
+				group.</li>
+		</ul>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98606.htm" title="The FTCG command serves to change the system behavior with respect to the activation of primary sets.">FTCG, FTCG? - (Functional Test ConfiGure)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 55381</span><script type="text/javascript">var ti='55381';var tt='Suppressing Reactivation of Primary Sets with FTCG'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

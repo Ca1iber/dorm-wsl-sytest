@@ -1,0 +1,37 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The input signal for the event discarding block represents every DUT event that was not suppressed by the prescaler by a short positive pulse. The width of this pulse depends on the primary timing, in particular on the clock resolution and the master clock (for which see Period resolution, clock resolution, and master clock period). Its range is between 5.5 ns and 6.75 ns."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Dealing with very high data rates</title></head><body id="_129473"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 129473</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Dealing with very high data rates</h1>
+	
+	
+	<div><p>The input signal for the event discarding block represents every DUT event that was not
+		suppressed by the prescaler by a short positive pulse. The width of this pulse depends on the
+		primary timing, in particular on the clock resolution and the master clock (for which see <a href="98412.htm" title="From the period resolution, SmarTest derives two other time spans which it needs internally. These are the clock resolution and the master clock period. Both of them are usually of interest only for debugging purposes.">Period resolution, clock resolution, and master clock period</a>). Its range is between 5.5 ns and 6.75 ns.</p>
+		<p>Now with very high data rates, it is possible that the distance between two events as selected
+			by the prescaler is still smaller than the width of the pulse representing the first event. In
+			this case, the second event will not be passed on to the event discarding block, which will
+			invalidate the measurement. The following figure illustrates this for a period measurement:</p>
+		<div class="p"><figure class="fignone">
+				<img src="130477.png" alt="Consistency problem of timing setup with TMU set">
+			</figure></div>
+		<p>With specification 101, the distance between two selected events (at t1 and t2) is greater than
+			the pulse width of the input signal for the event discarding block, but with specification 102,
+			it is too small, and therefore the second selected event (at t2) will not be passed on to the
+			event discarding block.</p>
+		<p>To summarize, the event discarding block requires that the distance between two events as
+			selected by the prescaler is at least greater than 5.5 ns; and you can be sure that the described
+			effect will not occur only if this distance is greater than 6.75 ns.</p>
+		<section class="section"><h2>Possible measures </h2><p>As long as the prescaler is not set to its maximum
+				value of 16 (17 for event types <span class="keyword">RISE</span> and <span class="keyword">FALL</span>), you can
+				try to avoid this problem by increasing the prescaler value (<span class="keyword">PRESCALER</span>
+				parameter of the <span class="keyword">TSCF</span> command or <span class="keyword">setPrescaler()</span> member
+				function of the <span class="keyword">TMU_PINS</span> test method API). However, if the prescaler is
+				already set to 17 (as in the figure above), the only option is to reduce the data rate, which is
+				defined with the <span class="keyword">DATA_RATE</span> parameter of <span class="keyword">TSCF</span> or the
+					<span class="keyword">setdatarate()</span> member function of <span class="keyword">TMU_PINS</span>. </p><p>You can
+				use the firmware query <span class="keyword">TSVD?</span> to check if your primary timing and primary TMU
+				set will cause the described problem. If so, <span class="keyword">TSVD?</span> will return
+					<span class="keyword">ERROR</span>; otherwise, it will return <span class="keyword">VALID</span>.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.3</li><li>SmarTest 7.3.4: For Pin Scale SL and 1600 ME, input signal for the event discarding block has a
+					different valid range 5.5 to 6.75ns instead of 3.6 to 4.4ns</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 129473</span><script type="text/javascript">var ti='129473';var tt='Dealing with very high data rates'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

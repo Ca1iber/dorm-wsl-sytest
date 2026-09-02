@@ -1,0 +1,67 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Compiling test program source code with SmarTest running on the Red Hat Enterprise Linux (RHEL) 7 operating system that were originally developed on Red Hat 5 might require some minor changes."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Converting test programs created in RHEL 5 to RHEL 7</title><meta name="keywords" content="testprogram"></head><body id="_350668"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 350668</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Converting test programs created in RHEL 5 to RHEL 7</h1>
+	
+	
+	<div><p>Compiling test program source code with SmarTest running on the Red Hat Enterprise Linux
+		(RHEL) 7 operating system that were originally developed on Red Hat 5 might require some minor
+		changes.</p>
+		<section class="section"><h2>Conflict between SI-units from MapiUnit.h and boost headers</h2>
+			
+			<p>Variables defined in test methods must not have the same name as these unit identifiers. </p>
+			<p>By including boost headers after <span class="keyword">MapiUnit.h</span> variables and template
+				parameter names that have been given the same names as these unit identifiers might become part
+				of your code and the code will fail to compile.</p>
+			<p>To fix the problem make sure that <span class="keyword">MapiUnit.h</span> is always included after all
+				other #include statements.</p>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> <span class="keyword">MapiUnit.h</span> might be included indirectly by other header
+					files - commonly <span class="keyword">mapi.hpp</span> and <span class="keyword">testmethod.hpp</span> and also
+					your own header files.</div>
+			</div>
+			<p>Most common are conflicts for s(econds), A(mpere), S(iemens), and V(olt).</p>
+			<p>You can find examples for these with the following command:</p>
+			<p><kbd class="userinput">grep -rl " [ASV]," /usr/include/boost/</kbd>
+			</p>
+			
+
+			<p>Example:</p><p><span class="keyword">boost/lexical_cast.hpp</span> uses <span class="keyword">s</span> as variable name. </p><p>In the <span class="keyword">MapiUnit.h</span> API, <span class="keyword">s</span> is also defined as a macro:</p>
+			<p><kbd class="userinput">#define s</kbd>
+			</p><p>If the <span class="keyword">MapiUnit.h</span> API is included before
+					<span class="keyword">boost/lexical_cast.hpp</span>, the result is a compiler error. </p><div class="p">Change the order of includes to make sure that <span class="keyword">boost/lexical_cast.hpp</span> is
+				included before <span class="keyword">MapiUnit.h</span>.<dl>
+					
+						<dt class="dlterm">Failing example</dt>
+						<dd>
+							<div></div><pre class="prettyprint linenums copyable">#include &lt;mapi.hpp&gt; // includes MapiUnit.h
+#include &lt;testmethod.hpp&gt; // includes MapiUnit.h
+
+#include &lt;boost/lexical_cast.hpp&gt; // defines from MapiUnit.h cause compilation errors</pre><div></div>
+						</dd>
+					
+					
+						<dt class="dlterm">Corrected example</dt>
+						<dd>
+							<div></div><pre class="prettyprint linenums copyable">#include &lt;boost/lexical_cast.hpp&gt;
+
+#include &lt;mapi.hpp&gt; // includes MapiUnit.h
+#include &lt;testmethod.hpp&gt; // includes MapiUnit.h</pre><div></div>
+						</dd>
+					
+					
+						<dt class="dlterm">Alternative</dt>
+						<dd>Another option is to undefine (<kbd class="userinput">#undef</kbd>) the conflicting units before
+							including boost headers and defining them again afterwards.
+							<div></div><pre class="prettyprint linenums copyable">#undef s
+#include boost/lexical_cast.hpp
+#define s</pre><div></div>This might be
+							necessary if the include statements are deeply nested  and it is not possible to move
+								<span class="keyword">MapiUnit.h</span> after all include statements.</dd>
+					
+				</dl></div>
+			
+			</section>
+		
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 350668</span><script type="text/javascript">var ti='350668';var tt='Converting test programs created in RHEL 5 to RHEL 7'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

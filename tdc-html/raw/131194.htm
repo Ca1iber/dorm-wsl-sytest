@@ -1,0 +1,41 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Downloads measurement conditions defined by the member functions of SPMU_TASK to the hardware."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SPMU_TASK.setup()</title><meta name="keywords" content="parametric measurement unit"></head><body id="_131194"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 131194</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SPMU_TASK.setup()</h1>
+	
+	
+	<div><p>Downloads measurement conditions defined by the member functions of <a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a> to the hardware.</p>
+		<section class="section"><p>Use this function only if the measurement setup changes per
+				test flow run.</p><p>Do not use this function with standard cases where the measurement setup
+				will not change per test flow run.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void setup();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		<h2>Example</h2><div class="example"><p>The following example performs two measurements, <span class="keyword">spmuVMeas</span> and
+					<span class="keyword">spmuIMeasa</span>. The <span class="keyword">spmuVMeas</span> is setup and executed on all
+				sites first. Then <span class="keyword">spmuIMeasa</span> is defined and downloaded to the HW using
+					<code>SPMU_TASK.setup()</code>. The per site value of the voltage measured is set as
+				parameter of <a href="131353.htm" title="Sets the value of the voltage to be forced and the measurement mode to &#34;VFIM&#34;.">SPMU_PIN_TASK.vForce()</a> before the <span class="keyword">spmuIMeasa</span> measurement is
+				performed on all sites.</p><pre class="prettyprint linenums copyable">SPMU_TASK spmuVMeas, spmuIMeas;
+
+ON_FIRST_INVOCATION_BEGIN();
+   // Measure Voltage
+   spmuVMeas.pin("dc_pin").iForce(1 mA).min(1 V).max(2 V).mode("IFVM").relay("NTMBB");
+   spmuVMeas.execMode("PVAL").execute();
+
+   // Define measurement placeholder
+   spmuIMeas.pin("dc_pin").vForce(1 V).min(-1 mA).max(1 mA).mode("VFIM").relay("NTMBB");
+   spmuIMeas.execMode(TM::FORCE_ON);
+   // write measurement definition to HW
+   spmuIMeas.setup();
+
+   // setup force voltage per site
+   FOR_EACH_SITE_BEGIN();
+     spmuIMeas.pin("dc_pin").vForce(spmuVMeas.getValue("dc_pin"));
+   FOR_EACH_SITE_END();
+
+   // force voltage per site
+   spmuIMeas.execute();
+
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="65624.htm" title="To create a DC test program, first, set up the DC resources using the following APIs, depending on the DC resource type and your purpose.">DC Test Programming</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 131194</span><script type="text/javascript">var ti='131194';var tt='SPMU_TASK.setup()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

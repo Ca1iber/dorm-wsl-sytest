@@ -1,0 +1,79 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies an existing burst label to be executed in a functional test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>rdi.func().burst()</title></head><body id="_143122"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 143122</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">rdi.func().burst()</h1>
+	
+	
+	<div><p>Specifies an existing burst label to be executed in a functional test.</p>
+		<section class="section">
+			<p>In the pattern‑based mode (dynamic mode), this function also supports combining an existing
+					<a href="96984.htm" title="A burst label differs from a sequence of independent MAIN labels in two respects:">burst label</a> with several port() actions labels together to form a
+				new multi-port burst label. To retrieve the results from the <a href="105164.htm" title="Multi-port burst labels serve to start the execution of bursts for different ports in parallel. They consist of one or more user port bursts. The only difference between a user port burst and a normal single-port burst is that the user port burst is associated with a port that is defined by the user and will usually contain only a proper subset of the configured pins, whereas a single-port burst is defined for the default port @.">multi-port
+					burst label</a>, use <a href="348894.htm" title="Retrieves per-label pass/fail results from all patterns in the burst.">ARRAY_I&amp; getMultiPassFail(string
+					sPort=="@");</a>. If <span class="keyword">1</span> is returned, the result is pass; if
+					<span class="keyword">0</span> is returned, the result is fail. See the examples in the Example section
+				below.</p>
+			<p>In the pattern‑based mode (dynamic mode), do not use <a href="348961.htm" title="Enables the retrieval of per label pass/fail results from the burst in the static mode.">rdi.func().perLabelPassFail()</a>. <a href="348961.htm" title="Enables the retrieval of per label pass/fail results from the burst in the static mode.">rdi.func().perLabelPassFail()</a> is only required in the code‑based mode (static mode).</p>
+		</section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">rdi.func().burst(const string&amp; sLabelName);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_143122__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_143122__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_143122__entry__1"><p><span class="keyword">sLabelName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_143122__entry__2"><p>The burst pattern name</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			
+			<p>Specifying an existing burst label to be executed in the functional test</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("dig").vForce(1 V).execute();
+  rdi.func().burst("ExistBurst").execute();
+  rdi.digCap().pin("dig2").samples(8).execute();
+RDI_END();</pre></div>
+		<div class="example"><h3>Example 2 Working together with port() actions</h3>
+			
+			<p>Combining an existing burst label with other port actions, such as dc, digCap, and emap
+				actions.</p>
+			<div class="p">One
+				port:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("pt1")
+  rdi.port("pt1").func().burst("ExistBurst").execute();
+  rdi.port("pt1")....
+RDI_END();</pre></div>
+			<div class="p">Multiple
+				ports:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("pt1").dc().pin("dig").vForce(1 V).execute();
+  rdi.port("pt1").func().burst("ExistBurst").execute();
+  rdi.portSync();
+  rdi.port("pt2").func().burst("ExistBurst").execute();
+  rdi.port("pt2").digCap().pin("dig2").samples(8).execute();
+RDI_END();</pre></div>
+		</div>
+		<div class="example"><h3>Retrieving the pass/fail results</h3>
+			
+			<div class="p">Use <span class="keyword">ARRAY_I&amp; getMultiPassFail(string sPort=="@");</span> to get all pass/fail
+				results for each main label from the burst label on different
+				ports.<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+...
+rdi.port("pt1").func("id1").burst("MPBurst1").execute();
+...
+rdi.port("pt2").func("id2").burst("MPBurst2").execute();
+...
+RDI_END();
+
+int pf = rdi.id("id1").getPassFail(); // returns 0
+ARRAY_I ary2 = rdi.id("id1").getMultiPassFail();  // returns { 0,1,0 } ,1st and 3rd label failed
+
+int pf = rdi.id("id1").getPassFail(); // returns 1
+ARRAY_I ary3 = rdi.id("id2").getMultiPassFail();  // returns { 1,1,1 }, all 3 labels passed</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="348894.htm" title="Retrieves per-label pass/fail results from all patterns in the burst.">rdi.id().getMultiPassFail()</a></div><div><a href="353728.htm" title="This function allows multi-port labels to be combined to form a new burst. It is used for dynamic mode in the func() class only.">rdi.port(TA::MULTI_PORT).func()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li><li>SmartRDI 7.10.0: Multi-port burst labels are supported in dynamic mode.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 143122</span><script type="text/javascript">var ti='143122';var tt='rdi.func().burst()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

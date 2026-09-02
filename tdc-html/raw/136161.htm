@@ -1,0 +1,42 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartCalc automatically determines the package size of data to be uploaded to the test system controller. It performs an optimized upload behind a currently running test (sequencer execution)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Hidden upload</title></head><body id="_136161"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136161</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Hidden upload</h1>
+	
+	
+	<div><p>SmartCalc automatically determines the package size of data to be uploaded to the
+		test system controller. It performs an optimized upload behind a currently running test
+		(sequencer execution).</p>
+		<p>Uploading the packages are done by SmartCalc APIs, which know start and end times of
+			sequencer executions. These are required in order to upload data during the currently
+			running test. This technique is called hidden upload, as the upload is hidden behind the
+			sequencer execution of the next test.</p>
+		<p>For this, the upload task has to be part of the SmartCalc (SMC) section of a test method.
+			SMC then manages the uploads automatically whenever it does not effect the throughput of
+			the main test flow.</p>
+		<p>The size of a package depends on the estimated sequencer run time of the next test. It is
+			calculated with the goal to use 100% of the sequencer run time. Therefore SMC can bundle
+			smaller or split bigger packages automatically.</p>
+		<p>While executing a test flow, SmartCalc automatically measures and caches the sequencer
+			execution time for each test execution. The cached value is dynamically compensated for
+			one subsequent execution of the same sequencer run. The optimal upload package size
+			depends on the predicted sequencer execution time. After the upload is completed, the
+			system returns to the default packet size or to the user package size, if specified.</p>
+		<p>The SMC predicted sequencer execution time can be overwritten by <a href="132675.htm" title="Sets the execution time to a user defined value, which reflects the estimated sequencer run time of the next test for customizing hidden upload.">SMC_SET_TEST_EXECUTION_TIME()</a>.
+			It allows to set the sequencer execution time of the next test to a user defined value
+			and to control whether the upload should continue after the predicted execution time has
+			elapsed, but the sequencer is still running. This function can be used if the automatic
+			algorithm cannot calculate the execution time precise enough, for instance if <a href="42694.htm">Match Loops</a> are used.</p>
+		<div class="note"><span class="title">Note</span> For FPGA compatibility refer to service note E8001-140611A when using
+			hidden upload with MBAV8+</div>
+		<div class="note"><span class="title">Note</span> <p><a href="136161.htm" title="SmartCalc automatically determines the package size of data to be uploaded to the test system controller. It performs an optimized upload behind a currently running test (sequencer execution).">Hidden uploads</a>, controlled and started by <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> must be finished before a <a href="10652.htm" title="After a digital pin has been defined with DFPN, its type (input or output or both) and operating mode must be configured. This is done with the CONF command. The following table lists which operation modes are supported on the various systems:">Mode context</a> is changed.</p>
+							<p>For changes of the Mode context within a test suite, we recommend calling the API
+								<a href="151642.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM().">SMC_SYNCHRONIZE_WITHOUT_BINNING()</a> before the Mode context is changed.</p>
+							<p>For changes of the Mode context over several test suites, we recommend inserting a
+							new test suite with no level-, timing-, or pattern-information defined and assigning the system-prepared test method
+								<span class="keyword">smartCalc.SMC__SYNCHRONIZE</span>.</p>
+						</div>
+		
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.2.0:  Default behavior of SMC changed to automatically determined
+					optimized package sizes.</li><li>SmarTest 7.2.1: FPGA compatibility needs to be ensured.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136161</span><script type="text/javascript">var ti='136161';var tt='Hidden upload'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

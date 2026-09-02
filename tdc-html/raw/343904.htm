@@ -1,0 +1,100 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI has a CCTestMethod_ISR class to support the independent sequencer running (ISR) in the testflow level. The class is an extension to the existing concurrent test framework (CCT) in SmarTest 7."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CCTestMethod_ISR</title></head><body id="_343904"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343904</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CCTestMethod_ISR</h1>
+	
+	
+	<div><p>SmartRDI has a CCTestMethod_ISR class to support the independent sequencer running (ISR)
+		in the testflow level. The class is an extension to the existing concurrent test framework (CCT)
+		in SmarTest 7.</p>
+		<section class="section">
+			<p>The <span class="keyword">CCTestMethod_ISR</span> class is defined in the header file
+					<span class="filepath">rdi.hpp</span>.</p>
+			<p>The following image illustrates the CCTestMethod_ISR class workflow.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="343924.png" alt="CCTestMethod_ISR workflow">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Code template</h2>
+			
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">#include "rdi.hpp"
+
+class UserClassName: public CCTestMethod_ISR {
+protected:
+  virtual void addParameters()
+  {
+   // Add your code
+  }
+  virtual void <span class="uicontrol">isrRun()</span>
+  {
+   // The code as in run() in conventional TestMethod
+  }
+  virtual void postParameterChange(const std::string&amp; parameterIdentifier)
+  {
+   // Add your code
+  }
+  };
+REGISTER_TESTMETHOD("UserClassName", UserClassName);</pre><div></div>
+			</div>
+		</section>
+		<section class="section"><h2>Migration from TestMethod to CCTestMethod_ISR</h2>
+			
+		</section>
+		<section class="section">
+			<p>In the CCTestMethod_ISR code, you do not need to use <span class="keyword">RDI_INIT()</span>. The
+					<span class="keyword">RDI_CCT_BEGIN()</span> and <span class="keyword">RDI_CCT_END()</span> block is equal to an
+					<span class="keyword">RDI_BEGIN()</span> and <span class="keyword">RDI_END</span> block.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="344039.png" alt="Migration to CCTestMethod_ISR">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Test suite parameters</h2>
+			
+			<div class="p">To enable concurrent tests with multiport burst and ISR, you must specify the following test
+				suit parameters: <ul>
+					<li><span class="keyword">CCF_ContextType</span>: Specify this parameter to
+							<span class="keyword">Independent</span> for CCTestMethod_ISR cases.</li>
+					<li><span class="keyword">CCF_FocusedPins</span>: Specify this parameter to all the ports defined in
+							<span class="keyword">port()</span> and <span class="keyword">isrRun()</span>.</li>
+					<li><span class="keyword">CCF_AnalogRFSetNa</span>: Do not specify this parameter and leave it
+						empty.</li>
+				</ul></div>
+			<p>For example,</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="343925.png" alt="Test suite parameters for CCTestMethod_ISR">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Hidden upload in CCTestMethod_ISR</h2>The code example below describes how to
+			use the hidden upload feature in <span class="keyword">CCTestMethod_ISR</span>.<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">isrRun()
+{ // Do not need RDI_INIT();
+ON_FIRST_INVOCATION_BEGIN();
+<span class="uicontrol">rdi.hiddenUpload(TA::ALL);</span>
+<span class="uicontrol">RDI_CCT_BEGIN()</span>;
+   rdi.dgt("dgr").pin("B").sample(1024).Fs(10M).execute();
+   rdi.dc("idd").pin("vdd").iMeas().execute();
+   rdi.digCap("cap").pin("GPO").sample(1000).execute();
+<span class="uicontrol">RDI_CCT_END()</span>;
+ON_FIRST_INVOCATION_END();
+
+SMC_ARM();
+}
+SMC_BackgroundProcessing()
+{
+rdi.id("cap").getVector();
+rdi.id("idd").getValue();
+rdi.id("dgr").getWaveform();
+}</pre><div></div>
+			</div></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343904</span><script type="text/javascript">var ti='343904';var tt='CCTestMethod_ISR'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

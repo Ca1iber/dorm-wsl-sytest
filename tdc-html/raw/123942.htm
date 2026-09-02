@@ -1,0 +1,108 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The d2s expectValue method uses the read-template to compare read values to a expected value resulting in a pass or fail."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>d2s expectValue</title><meta name="keywords" content="expect, Value, d, 2, s"></head><body id="_123942"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123942</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">d2s expectValue</h1>
+	
+	
+	<div><p>The d2s expectValue method uses the read-template to compare read values to a expected
+		value resulting in a pass or fail.</p>
+		<section class="section"><p>This is done by comparing the read value with expected value without using the error
+				map.</p><p>Thus the <span class="keyword">expectValue</span> method cannot be combined with a regular read on the same
+				port.</p><div class="note"><span class="title">Note</span> In order to get pass/fail results it has to be enabled per port by using
+					.<span class="keyword">enablePassFailCheckForNextExecution()</span> before the
+					<span class="keyword">LABEL_BEGIN-LABEL_END</span> block.</div><p>The results per port are queried using the <span class="keyword">hasPassed()</span> method outside of the
+					<span class="keyword">ON_FIRST_INVOCATION</span> block.</p><div class="note"><span class="title">Note</span> All labels of the port are considered for the final pass/fail
+				judgment!</div></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">void expectValue(long long address, long long value, long long mask=0LL);
+void enablePassFailCheckForNextExecution();
+bool hasPassed(std::string id);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_123942__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123942__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123942__entry__3"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__2"><p><span class="keyword">address</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__3"><p>Defines the register's read address.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__2"><p><span class="keyword">value</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__3"><p>Defines the value the read date is compared to.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__2"><p><span class="keyword">mask</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__3"><p>Optional. Default = 0LL.</p>
+								<p>The expect value can be masked using a bit mask.</p> <div class="note"><span class="title">Note</span> 1 is considered to be
+										"do not care".</div>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__2"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123942__entry__3"><p>Name of the d2s_LABEL-block that is used for pass/fail judgment.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Explaining the expectValue method</h3>
+			
+			<p>Consider the method <code>jtag.expectValue(0xdead, 0xb, 0xfff0);</code></p>
+			<p>Here the read address is <span class="keyword">0xdead</span>. The expected value is
+					<span class="keyword">0xb</span>, which in binary is <span class="keyword">0000 0000 0000 1011</span>.</p>
+			<p>The applied mask is <span class="keyword">0xfff0</span>, which in binary is <span class="keyword">1111 1111 1111
+					0000</span>.  As a binary 1 is considered "do not care", applying this mask means, that you
+				are interested in the lower 4 bits only.</p>
+		</div>
+		<div class="example"><h3>Example code</h3>
+			<p>The following excerpt illustrates how the <span class="keyword">expectValue</span> method is used to create
+				static pattern that reads from the corresponding address and compares the read with the expected
+				value.</p><p>In learning mode it will generate a expect value label, add it to the burst label
+					<span class="keyword">MyBurstLabelName</span> and execute the pattern at
+					<span class="keyword">d2s_LABEL_END()</span>.</p><p>In production mode only the <span class="keyword">MyBurstLabelName</span> pattern will be executed at
+					<span class="keyword">d2s_LABEL_END()</span>.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+   d2sFramework fr;
+   d2sJTAG&amp; jtag = d2sJTAG::Instance();
+
+   // Register your protocol with the framework
+   fr.registerTransactionPort(jtag);
+
+   ON_FIRST_INVOCATION_BEGIN();
+      jtag.enablePassFailCheckForNextExecution();
+      fr.d2s_LABEL_BEGIN("MyBurstLabelName", d2sFrameWorkModeType::LearningMode);
+         jtag.write(0xdead, 0xbeaf);
+         jtag.expectValue(0xdead, 0xbeaf);
+         // masking the expect value
+         jtag.expectValue(0xdead, 0xb, 0xfff0);
+      fr.d2s_LABEL_END();
+
+      // do your measurement here
+
+   ON_FIRST_INVOCATION_END();
+
+   if(jtag.hasPassed("MyBurstLabelName"))
+      cerr &lt;&lt; "Test has PASSED!";
+
+}</pre><p>The
+				static patterns created by the code above for a single port setup would be saved into the device
+				vector directory as:</p><p><span class="keyword">d2s_jtag_AT_W_0xdead_0xbeaf</span>, <span class="keyword">d2s_jtag_AT_EV_0xdead_0xbeaf</span>
+				and <span class="keyword">d2s_jtag_AT_EV_0xdead_0xb_0xfff0</span></p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="123940.htm" title="The d2s read method allows to read from a register.">d2s read</a></div><div><a href="123841.htm">Configuring read parameters</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123942</span><script type="text/javascript">var ti='123942';var tt='d2s expectValue'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

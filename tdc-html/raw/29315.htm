@@ -1,0 +1,190 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>EXECUTE_TEST</title></head><body id="_29315"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29315</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">EXECUTE_TEST</h1>
+	
+	
+	<div><p>This API starts the digital sequencer from the specified start label, then changes the
+		state of the digital sequencer from "BRK" to "RUN". Program execution waits until the digital and
+		analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can
+		also detect whether digitizers and samplers have received one or more trigger input or not during
+		the execution of this API. For details of this functionality, see <a href="20932.htm" title="If many devices are tested such as in a production test, the data captured by analog measurement modules (digitizers and samplers) in the previous device test is kept in the waveform memory of the modules until the next device test captures then stores new data into different memory areas. If a module has not received any trigger in a device test owing to some unexpected trouble, the measurement by the module is not performed. But, the test program reads the captured data of the previous device test from the module then judges the result from the data as if the measurement is really performed.">Error Handling on Missing Trigger Input</a>.</p>
+		<section class="section"><p>In order for this API (or an API that internally executes the
+					<kbd class="userinput">FLUSH</kbd> API) to reflect the changes that are specified by
+					<kbd class="userinput">ROUTING_STATUS</kbd>/<kbd class="userinput">ANALOG_STATUS</kbd> to an <em>analog
+					module hardware</em>, the sequencers in all analog modules must be halted. For more information,
+				see the <a href="29338.htm" title="This topic contains:">FLUSH</a> API.</p><p>Instead of the <kbd class="userinput">EXECUTE_TEST</kbd>
+				API, use the <kbd class="userinput">DIGITAL_CAPTURE_TEST</kbd> API when executing the test which
+				contains the digital capturing. If you attempt to execute the test containing the digital
+				capturing with the normal <kbd class="userinput">EXECUTE_TEST</kbd>, the test cannot done. For
+				details, see the <a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST</a>.</p><p>The test time is compared to a timeout value.
+				This value can be defined with the <span class="keyword">timeout</span> parameter. If this parameter is
+				omitted, the default or the value that was last set is used. If the
+					<span class="keyword">timeout_info</span> parameter is omitted and the test exceeds the timeout value,
+				the test will be aborted and the testsuite will be judged as FAILED. If the
+					<span class="keyword">timeout_info</span> parameter is set, <span class="keyword">EXECUTE_TEST()</span> will return
+				timeout information, and the test will continue with the next statement.</p><p>In a multi-site
+				test, the reply of the <span class="keyword">timeout_info</span> parameter depends on whether it is used
+				in combination with the <span class="keyword">trigger_info</span> parameter. If it is used alone, it will
+				return global timeout information, that is, it will return 1 if a timeout occurred on any site,
+				and 0 otherwise. If both parameters are specified, it will return site specific timeout
+				information.</p><p>For the AWG, the <span class="keyword">timeout</span> time has no effect. If an
+				infinite loop sequence, LOOPI or RPTI, is used for AWG, you can use the ABORT_TEST API to stop
+				the infinite loop of the AWG.</p><p>After starting test execution, the
+					<kbd class="userinput">EXECUTE_TEST</kbd> API executes the <a href="29338.htm" title="This topic contains:">FLUSH</a> API internally for
+				reflecting the changes of the setting data by the following APIs to the setup data or
+				hardware:</p><ul>
+				<li><kbd class="userinput">ANALOG</kbd></li>
+				<li><kbd class="userinput">ANALOG_STATUS</kbd></li>
+				<li><kbd class="userinput">PRIMARY_STATUS </kbd></li>
+				<li><kbd class="userinput">TIMING_SPEC / LEVEL_SPEC / SPECIFICATION</kbd></li>
+				<li><kbd class="userinput">ROUTING_STATUS</kbd></li>
+			</ul><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Execute.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">EXECUTE_TEST(DOUBLE timeout = 360000);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, INT *trigger_info);
+EXECUTE_TEST(const TM::WAIT_ACTION&amp; wait_action);
+EXECUTE_TEST(DOUBLE timeout, const TM::WAIT_ACTION&amp; wait_action);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, const TM::WAIT_ACTION&amp; wait_action);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, INT *trigger_info, const TM::WAIT_ACTION&amp; wait_action);
+EXECUTE_TEST(DOUBLE timeout = 360000, const STRING &amp; context);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, const STRING &amp; context);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, INT *trigger_info, const STRING &amp; context);
+EXECUTE_TEST(const TM::WAIT_ACTION&amp; wait_action, const STRING &amp; context);
+EXECUTE_TEST(DOUBLE timeout, const TM::WAIT_ACTION&amp; wait_action, const STRING &amp; context);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, const TM::WAIT_ACTION&amp; wait_action, const STRING &amp; context);
+EXECUTE_TEST(DOUBLE timeout, INT *timeout_info, INT *trigger_info, const TM::WAIT_ACTION&amp; wait_action, const STRING &amp; context);
+EXECUTE_TEST(DOUBLE timeout, ARRAY_I &amp; timeout_sites, INT* trigger_flag); // For 32+ sites
+EXECUTE_TEST(DOUBLE timeout, ARRAY_I &amp; timeout_sites, INT* trigger_flag, const STRING&amp; context); // For 32+ sites</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29315__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29315__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29315__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__2"><p><span class="keyword">timeout</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__3"><p>Timeout time of the measurement (test) in sec. The default is 360000 s.</p>
+								<p>This cannot detect a timeout for the AWGs. Operations when timeout occurs depend on
+									whether the <span class="keyword">timeout_info</span> or <span class="keyword">trigger_info</span> parameter is
+									set or omitted.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__2"><p><span class="keyword">timeout_info</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__3"><p>This parameter returns timeout information. It can only be used in combination with
+									the <span class="keyword">timeout</span> parameter.</p>
+								<p>The reply of <span class="keyword">timeout_info</span> depends on whether it is used with or
+									without the <span class="keyword">trigger_info</span> parameter.</p>
+								<p>If <span class="keyword">trigger_info</span> is not specified, <span class="keyword">timeout_info</span>
+									returns <em>global</em> timeout information. Possible return values are:</p>
+								<p>0: No timeout occurred on any site.</p>
+								<p>1: A timeout occurred on one site at least.</p>
+								<p>If <span class="keyword">trigger_info</span> is also specified, <span class="keyword">timeout_info</span>
+									returns <em>site specific</em> timeout information.</p>
+								<p>In this case, the returned integer must be converted into binary format. Every bit
+									returns the timeout status of one site. Site 1 is represented by the LSB.</p>
+								<p>For example, if 13 is returned to this parameter, this corresponds to binary number 1101.
+									This indicates that a timeout occurred on sites 1, 3, and 4.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__2"><p><span class="keyword">trigger_info</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__3"><p>This parameter returns site specific information on the trigger status of the
+									digitizers. It can only be used in combination with the <span class="keyword">timeout_info</span>
+									parameter.</p>
+								<p>The reply refers to the following digitizers: MCA-ADGT/VDGT, MCB LF/VHF-DGT, and MCC. The
+									state of the module (or MCA/MCB/MCC unit) is checked if a pin is defined and connected to
+									the core.</p>
+								<p>The parameter informs about which of these digitizers have <em>not</em> been triggered
+									during execution of this API. For more details of this functionality, see <a href="20932.htm" title="If many devices are tested such as in a production test, the data captured by analog measurement modules (digitizers and samplers) in the previous device test is kept in the waveform memory of the modules until the next device test captures then stores new data into different memory areas. If a module has not received any trigger in a device test owing to some unexpected trouble, the measurement by the module is not performed. But, the test program reads the captured data of the previous device test from the module then judges the result from the data as if the measurement is really performed.">Error Handling on Missing Trigger Input</a>. </p>
+								<p>The returned integer must be converted into binary format. Every bit returns the trigger
+									status of one site. Site 1 is represented by the LSB. The bit states have the following
+									meaning:</p>
+								<p>0: All the digitizer/sampler modules (and all the MCA/MCB/MCC measure units) on the site
+									have been triggered at least once.</p>
+								<p>1: At least one digitizer/sampler module (or one MCA/MCB/MCC measure unit) on the site
+									has <em>never</em> been triggered (missed a trigger).</p>
+								<p>In offline mode, this flag indicates whether the trigger signal input is enabled for all
+									modules (and all the MCA/MCB/MCC units) (0) or not (1).</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__2"><p><span class="keyword">wait_action</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__3"><p>This parameter allows you to select which sequencer's completion the API waits for,
+									from the following hardware categories that are represented by the constant variables. It
+									is also valid for combination of them by using "<kbd class="userinput">|</kbd>" (use bitwise OR
+									to select multiple ones).</p>
+								<p>For example, if you make this API waited until AWGs and digitizers/samplers complete the
+									current sequencer programs, specify <kbd class="userinput">TM::WAIT_AWG|TM::WAIT_DGT</kbd> to
+									this parameter.</p>
+								<p>Default:</p>
+								<p><kbd class="userinput">TM::WAIT_DIGITAL| TM::WAIT_DGT| TM::WAIT_TIA</kbd></p>
+								<ul>
+									<li><kbd class="userinput">TM::WAIT_ALL</kbd>:<p>waits until all used digital channels, AWGs,
+											digitizers/samplers, and TIAs complete their tasks.</p></li>
+									<li><kbd class="userinput">TM::WAIT_DIGITAL</kbd>:<p>waits until all used digital channels
+											complete the current sequencer program.</p></li>
+									<li><kbd class="userinput">TM::WAIT_AWG</kbd>:<p>waits until all used AWGs complete the current
+											sequencer programs.</p></li>
+									<li><kbd class="userinput">TM::WAIT_DGT</kbd>:<p>waits until all used digitizers and samplers
+											complete the current sequencer programs.</p></li>
+									<li><kbd class="userinput">TM::WAIT_TIA</kbd>:<p>waits until all used TIAs complete the current
+											measurements.</p></li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__2"><p><span class="keyword">context</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29315__entry__3"><p>Name of an execution context. The ports of the context must be included in the
+									current start label (which must be a multiport burst). For more information on execution
+									contexts see <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a> .</p>
+								<p>The context must have been defined on the firmware level (with the
+										<span class="keyword">SQEC</span> command), or as a <span class="keyword">SEQUENCER_CONTEXT_ITEM</span>
+									object. In the latter case this object must have been included in a
+										<span class="keyword">SEQUENCER_CONTEXT</span> object, and must also have been activated on the
+									firmware level with the <span class="keyword">apply()</span> function of this
+										<span class="keyword">SEQUENCER_CONTEXT</span> object. If the context has been defined as a
+										<span class="keyword">SEQUENCER_CONTEXT_ITEM</span> object, you must use the name specified for its
+										<span class="keyword">name</span> parameter.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Execute test</h3><pre class="prettyprint copyable singleline">EXECUTE_TEST();</pre><p>The
+					<kbd class="userinput">EXECUTE_TEST</kbd> API starts test execution. Here, the timeout value that was
+				last set is used because the <span class="keyword">timeout</span> parameter is omitted.</p></div>
+		<div class="example"><h3>Execute test with timeout and timeout information parameters
+				specified</h3><pre class="prettyprint copyable singleline">EXECUTE_TEST(0.1 sec, &amp;timeout);</pre><p>The timeout time
+				is set to 0.1 sec, and timeout information requested . The timeout time is compared to the time
+				from when the test started. If the test time exceeds the timeout time on any site,
+					<span class="keyword">EXECUTE_TEST()</span> returns this information to the <span class="keyword">timeout</span>
+				parameter, then the next statement is
+			performed.</p></div>
+		<div class="example"><h3>Execute test with timeout, timeout information and trigger information parameters
+				specified</h3><pre class="prettyprint copyable singleline">EXECUTE_TEST(0.1 sec, &amp;timeout_s, &amp;mis_trg_s);</pre><div></div>
+			<p>The <span class="keyword">timeout</span> parameter is set to <span class="keyword">0.1</span> sec. The timeout is compared from the start time of the test.
+					<code>timeout_s</code> receives timeout information for every active
+				site. <span class="keyword">mis_trg_s</span> receives whether all the connected
+				digitizers except for WDA have been triggered for every site.</p>
+			<p>See examples in <a href="20932.htm" title="If many devices are tested such as in a production test, the data captured by analog measurement modules (digitizers and samplers) in the previous device test is kept in the waveform memory of the modules until the next device test captures then stores new data into different memory areas. If a module has not received any trigger in a device test owing to some unexpected trouble, the measurement by the module is not performed. But, the test program reads the captured data of the previous device test from the module then judges the result from the data as if the measurement is really performed.">Error Handling on Missing Trigger Input</a> as a reference for using the
+					<span class="keyword">trigger_info</span> parameter of this API.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29315</span><script type="text/javascript">var ti='29315';var tt='EXECUTE_TEST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

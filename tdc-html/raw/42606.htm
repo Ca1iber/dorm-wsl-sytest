@@ -1,0 +1,96 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Using bins with multisite tests is basically the same as with single-site tests. You can use stop bins (good or bad bins) and otherwise bins, see Bins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Use of bins with multisite tests</title><meta name="keywords" content="multi-site"></head><body id="_42606"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42606</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Use of bins with multisite tests</h1>
+	
+	
+	<div><p>Using bins with multisite tests is basically the same as with single-site tests. You
+		can use stop bins (good or bad bins) and otherwise bins, see <a href="20229.htm" title="During a test, the tested devices normally need to be sorted according to their test results.">Bins</a>.</p>
+		
+		<p>Each bin has its own out of control (OOC) rules. These rules are identical for all sites,
+			but in a multisite environment they are evaluated for each site individually.</p>
+		<section class="section"><h2>General rules</h2><ul>
+				<li>Never define one bin with the same number but different properties, for example,
+					reprobe (for more information, see Reprobing section below), bin_description,
+					overon.</li>
+				<li>Select one of the following bin configurations for your binning strategy in one flow:<ul>
+						<li>Testflow bins</li>
+						<li>Test table bins.<p>Do not mix both solutions in one flow. If you mix
+								them, the testflow bin overwrites test table bins, which are set by
+								the <a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a> API.</p></li>
+					</ul></li>
+				<li>The <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN()</a> API requires a stop bin or
+					floating bin in the testflow.<p>For details on specific binning rules for
+						multibins, see <a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a>.</p></li>
+				<li>For SmartCalc applications:<p>Use the <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> API for
+						binning.</p><p>We recommend using the <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> API with test
+						tables.</p><p>If you use the <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> API with the limit
+						object instead of the test table limit, you must define the limit.</p><p>For
+						more information, see:</p><ul>
+						<li><a href="118859.htm" title="Test tables store limits, test numbers, and optionally any additional information you want to associate with a test.">Working with test tables</a></li>
+						<li><a href="118940.htm" title="TMLimits is a high-level implementation of test tables that can be accessed both through the SmarTest Work Center and programmatically through test methods.">Working with TMLimits</a></li>
+						<li><a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a></li>
+					</ul></li>
+			</ul></section>
+		<section class="section"><h2>Reprobing</h2><p>Each bin can carry an overon flag or a reprobe flag.</p><ul>
+				<li>If the overon flag is set, the testflow continues even if a device falls into a
+					stop bin.</li>
+				<li>If the reprobe flag is set, the device will be tested again after it has been
+					binned.</li>
+				<li>If specified within the application model, a reprobe action can be performed
+					(reconnecting the device, for example).</li>
+			</ul><p>In a multisite test, reprobing is not done before all sites have been binned.
+				The system automatically reprobes all sites. So, it might happen that sites that
+				previously passed, now fail or even get damaged.</p><p>You should consider carefully
+				whether reprobing is worth the time (for example, you might specify within the
+				application model that reprobing only is done if more than half of all sites
+				fail).</p><div class="note"><span class="title">Note</span> When one site gets binned, the sequencers are switched
+				off for all sites (all test system channels). So all channels (drive) go to
+				tri-state. This is one more reason for using self-contained test suites. You can
+				also avoid early binning by implementing a "soft-binning strategy"; see <a href="42687.htm" title="If you activate the Overon flag in the relevant bin, any failing devices are assigned bin details (bin code, bad part, bin number, and so on) but are not switched off (that is, no SQST OFF command is given) until a failing device enters a bin that does not have the Overon flag activated, later in the flow.">Solution I - Overon Enable</a> and <a href="42689.htm" title="This strategy also ensures a failing site will stay alive through the flow; the figure below shows schematically the solution. If a device fails a testsuite, that site is assigned a variable. The testflow then continues - including as many similar constructs as necessary - until the point is reached where binning can take place. Here, if ... then constructs are used to bin the variables.">Solution II - Assign Variables to Failing Parts</a> for examples of this
+				strategy. A user procedure can disable the site to be binned, store the result and
+				move the binning process to the end of the testflow.</div>
+		</section>
+		<section class="section"><h2>Using the RLYC command</h2>
+			
+			<div>
+			<div class="caution"><span class="title">CAUTION</span> When using this command in a multisite configuration, you must be
+				careful as it can lead to incorrect binning and possible corruption of
+				devices.</div><p>A <a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> command that is issued after
+				the testflow already binned one device does not only affect the still enabled
+				device, but all devices.</p>
+			<p>At the end of the testflow, the still enabled device is disconnected and the relays
+				are opened. But the already binned device is marked as disconnected in the shared
+				memory already and is thus not disconnected again and the relays stay closed! This
+				can lead to incorrect binning and possibly corruption of devices due to insertion
+				with active levels as the relays are in a different state than expected.</p>
+			<p><strong>Example</strong></p>
+			<div></div><pre class="msgblock">   site#1     site#2
+     |          |
+   test1      test1
+     |          |
+   test2      test2
+   (PASS)     (FAIL) -&gt; binned
+     |        site#2 stops here
+   test3      UI status is "disconnected"
+   (PASS)
+     |
+   test4
+   (PASS)
+     |
+   RLYC ON   &lt;- this RLYC commands affect both site#1 and site#2(disabled site)</pre><div></div>
+			<p>After execution of the RLYC command for site#2, the user interface still recognizes
+				site#2 is disconnected because direct execution of the firmware does
+				not update the user interface status. But the actual relay setting has changed to
+				"connect" status. The relays of site#2 which are directly controlled by the firmware
+				command are never disconnected by SmarTest at the end of the flow because the user
+				interface status considers them to be disconnected.</p>
+			<p>Programming tip: Replace the FW_escape commands by a user procedure or test method
+				doing a PSFC (see <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC, PSFC? - (Parallel Setup
+						FoCus) (Jump Template)</a> ) to the enabled sites only before doing
+				RLYC and then switching back to PSFC ALL.</p>
+		</div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99267.htm" title="The Bins page displays three types of bins:">Bins page</a></div><div><a href="20229.htm" title="During a test, the tested devices normally need to be sorted according to their test results.">Bins</a></div><div><a href="70340.htm" title="Setting the Overon flag to ON allows you to continue the test flow after a stop bin was reached. The Overon flag can determine how summary statistics are calculated in some of the STDF record fields. The Overon flag is a select button, accessed from either the Testflow Flags dialog or the Bin Dialog window, that switches the Overon flag on or off.">Overon flag</a></div><div><a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: New API tmLimits</li><li>SmarTest 6.5.0: New function TestTable</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42606</span><script type="text/javascript">var ti='42606';var tt='Use of bins with multisite tests'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

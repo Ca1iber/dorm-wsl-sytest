@@ -1,0 +1,122 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API is used to set the multi-bin information of the testflow."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SET_MULTIBIN</title><meta name="keywords" content="multi bin"></head><body id="_100114"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 100114</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SET_MULTIBIN</h1>
+	
+	
+	<div><p>This API is used to set the multi-bin information of the testflow.</p>
+		<section class="section">
+			<p>The last SET_MULTIBIN call with passed = false
+				overwrites the results of previous ones in the same test method, see last example in
+				the Example &gt; Behavior section.</p><div class="note"><span class="title">Note</span> Do not use the API in the
+				SmartCalc framework.</div></section>
+		<section class="section"><h2>Requirements</h2><ul>
+				<li>A multibin icon inserted in the fail branch of the test suite, see the Multibin
+					section in <a href="42946.htm">Inserting a bin into the testflow</a>.</li>
+				<li>The bin used in SET_MULTIBIN() is a normal or a floating bin in the
+					testflow.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">void SET_MULTIBIN(const char* <span class="keyword">softbin</span>, int <span class="keyword">hardbin</span>);
+void SET_MULTIBIN(const STRING&amp; <span class="keyword">softbin</span>, int <span class="keyword">hardbin</span>);
+void SET_MULTIBIN(const char *<span class="keyword">softbin</span>); 
+void SET_MULTIBIN(const STRING&amp; <span class="keyword">softbin</span>);
+void SET_MULTIBIN(const int <span class="keyword">softbin</span>);</pre><div></div>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/TestControl.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd><table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_100114__entry__1">I/O</th>
+										<th class="colsep-0 rowsep-1" id="_100114__entry__2">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_100114__entry__3">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_100114__entry__1">I</td>
+										<td class="colsep-0 rowsep-1" headers="_100114__entry__2"><var class="varname">softbin</var></td>
+										<td class="colsep-0 rowsep-1" headers="_100114__entry__3"><p>The software bin number of the multibin.</p>
+											<p>To be compatible with STDF, the number must be
+												between 0 and 32767.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_100114__entry__1">I</td>
+										<td class="colsep-0 rowsep-1" headers="_100114__entry__2"><var class="varname">hardbin</var></td>
+										<td class="colsep-0 rowsep-1" headers="_100114__entry__3">The hardware bin number of the multibin.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1: General usage</h3><pre class="prettyprint linenums copyable">bool passed=true;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    CONNECT();
+
+    FUNCTIONAL_TEST();
+
+ON_FIRST_INVOCATION_END();
+
+//Functional results are cached for each site by the API
+if (!TESTSET().cont(true).judgeAndLog_FunctionalTest())
+{
+    SET_MULTIBIN("22", 12);
+
+    //The devices which fail at the first functional test fall in bin 12.
+    passed = false;
+}</pre><p>The
+				devices, which fail at the first functional test fall in bin 12.</p></div>
+		<div class="example"><h3>Example 2: Behavior</h3><pre class="prettyprint linenums copyable">if (!TESTSET().cont(true).judgeAndLog_ParametricTest(pin,"param1",limit,value1))
+{
+    SET_MULTIBIN("22", 2);
+}
+
+if (!TESTSET().cont(true).judgeAndLog_ParametricTest(pin,"param2",limit,value2))
+{
+    SET_MULTIBIN("33", 3);
+}</pre><p>Final
+				bin depending on the parameters results:</p><table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_100114__entry__10"><p>param1 result</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_100114__entry__11"><p>param2 result</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_100114__entry__12"><p>Final bin (software / hardware bin)</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__10"><p>Pass</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__11"><p>Fail</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__12"><p>33/3</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__10"><p>Fail</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__11"><p>Pass</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__12"><p>22/2</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__10"><p>Fail</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__11"><p>Fail</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_100114__entry__12"><p>33/3</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a></div><div><a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a></div><div><a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a></div><div><a href="342556.htm" title="The testflow tool provides access to a range of flags that control numerous aspects of testflow execution.">Alphabetical list of flags</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.3: The function which only uses the parameter of software bin number is
+					added.</li><li>SmarTest 7.2.2: Patch1 - New testflow flag multibin_mode</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 100114</span><script type="text/javascript">var ti='100114';var tt='SET_MULTIBIN'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

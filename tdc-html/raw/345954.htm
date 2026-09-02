@@ -1,0 +1,190 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Troubleshooting FlexNet Embedded licensing</title><meta name="keywords" content="Flex, Net"></head><body id="_345954"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 345954</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+ <h1 class="topictitle1" id="ariaid-title1">Troubleshooting FlexNet Embedded licensing</h1>
+ 
+	
+	<div><p></p>
+		
+		<section class="section"><h2>Supported web browsers</h2>
+			<p>The Licensing Portal is supported on the following web browsers:</p>
+			<ul>
+				<li>Google Chrome</li>
+				<li>Mozilla Firefox</li>
+		</ul>
+			<div class="note"><span class="title">Note</span>  Microsoft Internet Explorer is not supported.</div>
+		</section>	
+		
+		<section class="section"><h2>FlexNet log files</h2>
+				<p>FNE license server log file directory:</p>
+				<p><span class="filepath">/var/opt/flexnetls/socbu/logs</span></p>
+			<p>Installation log file:</p>
+			<p><span class="filepath">/tmp/install-fne-&lt;date and version information&gt;.sh.root.log</span></p>
+		</section>	
+
+  <section class="section"><h2>FNE server does not start</h2>
+  	
+  	<p>The FNE server is installed but cannot be started.</p>
+  	<p>The following error is displayed in the log file:
+					<span class="filepath">/var/opt/flexnetls/socbu/logs/flexnetls.log</span>:</p>
+  	<div class="p"><pre class="prettyprint linenums copyable">00:02:49,408 advantest-fne-server start
+...
+00:03:02,575 ERROR main Native code loading error
+java.lang.UnsatisfiedLinkError: /tmp/llsnc-2019.07.1.0-256892-amd64-libconnector.so3 
+(/tmp/llsnc-2019.07.1.0-256892-amd64-libconnector.so4:
+failed to map segment from shared object: Operation not permitted)
+...</pre></div>
+  	<p>The server attempts to use or execute a shared library located in the
+					<span class="filepath">/tmp</span> directory, but execute permissions for executables located in
+					<span class="filepath">/tmp</span> is has not been granted by the noexec option in the mount flags.</p>
+			<p>Check the <span class="filepath">/etc/fstab</span> entry and it should include  the
+					<span class="keyword">noexec</span> option:</p>
+  	<div class="p">
+  		<div></div><pre class="prettyprint linenums copyable">/dev/mapper/vg00-tmp        tmp                ext4
+defaults,nodev,nosuid,noexec         1 2
+  </pre><div></div>
+  	</div>
+  	<p>To correct this situation, ask your IT department to remount the <span class="filepath">/tmp</span>
+				directory without the <span class="keyword">noexec</span> option on all affected FNE license servers.</p>
+
+  </section>
+
+
+			
+		<section class="section"><h2>Check license on license server</h2>
+			
+			<p>For checking licenses on a license server, us the FNE Server Viewer. For details see <a href="348419.htm" title="The FNE Server Viewer is a web-based application that can be used to monitor Advantest license servers.">Monitoring license servers using the FNE Server Viewer</a>.</p>
+			<p>To verify the installation and license server configuration enter the command:</p>
+			<p><kbd class="userinput">fne-list-licenses</kbd>
+			</p>
+			<p>The tool iterates through the FlexNet Embedded servers defined in
+					<span class="filepath">/etc/fne/client.conf</span> and lists all licenses (used and available).  </p>
+			<p>It also provides detailed information about the available licenses including:  </p>
+			<p>Content of the AssetScale tokens </p>
+			<p>Locking of licenses </p>
+			<p>Expiry information  </p>
+			<div class="note"><span class="title">Note</span> The <span class="keyword">fne-list-licenses</span> tool does not show details from cloud
+				license servers.</div>
+		</section>
+		
+
+		<section class="section"><h2>Check for installed version of the FNE software</h2>
+			 
+			<p>To check the version of the installed FNE software:</p>
+			<p><kbd class="userinput">yum info advantest-fne-server</kbd></p>
+			<p>Output example:</p>
+			<div></div><pre class="prettyprint linenums copyable">Loaded plugins: langpacks, search-disabled-repos
+Installed Packages
+Name        : advantest-fne-server
+Arch        : x86_64
+Version     : 2017.02.0.0
+Release     : 17055.el7
+Size        : 75 M
+Repo        : installed
+From repo   : /advantest-fne-server-2017.02.0.0-17055.el7.x86_64
+Summary     : FlexNet Embedded Server 2017.02.0.0 for socbu
+License     : Advantest Corporation, 2017
+Description : This rpm package provides complete installation of the FlexNet 
+              Embedded server version 2017.02.0.0 and startup/shutdown scripts.
+            :
+            : Original packages: flexnetls-x64_linux-2017.02.0.tar.gz
+Golden_socbu_IdentityClientServerMVEL_ENUM.bin</pre><div></div> 
+		</section>
+			
+			
+			
+			<section class="section"><h2>Command line tool for server administrators</h2>
+			
+				<p>The following commands are available for FNE license server administrators, located in the
+				directory:</p>
+				<p><kbd class="userinput">/opt/flexnetls/socbu</kbd></p>
+			<div class="p">
+				<dl>
+					
+						<dt class="dlterm">showconfig-fne-server [options]</dt>
+						<dd>Displays the configuration of the server.<p>-v option provides more details.</p></dd>
+					
+					
+						<dt class="dlterm">reset-fne-server [options]</dt>
+						<dd>Removes the FNE license database from your system.<div class="warning"><span class="title">WARNING</span> There is no local
+								backup from which to recover deleted data.</div><p>To repopulate the FNE license server
+								database with licenses, resynchronize with the Advantest back
+									office.</p><p>Options:</p><p><kbd class="userinput">-force</kbd> - Forces a full
+									reset.</p><p><kbd class="userinput">-help</kbd> - Displays the help information.</p></dd>
+					
+				</dl>
+			</div>
+				<div class="note"><span class="title">Note</span> After running the <span class="keyword">reset-fne-server</span> tool, the server is shut
+				down. It must be restarted.</div>
+				<p>The <kbd class="userinput">reset-fne-server</kbd> command can be used to recover from the following
+				type of errors:</p>
+					
+					<div></div><pre class="prettyprint linenums copyable">ERROR: FNE code 7000001c - Server was not able to process request correctly.
+ERROR: FNE servercode 33 - Trusted Storage broken, backup/restore exploit detected</pre><div></div>
+					
+					<p>If the server is not online, after performing the reset, you must download the license
+				container file from the license portal and install it on the server. For details, see <a href="348430.htm" title="If the FNE license server is not connected to the internet you must manually download the license container from the Advantest License Portal and upload it to the FNE license server.">Downloading licenses</a>.</p>
+
+			</section>	
+				
+			<section class="section"><h2>Accessing the Advantest License Back Office from online license servers</h2>	
+				
+				<p>To validate that the online FNE license server can reach the Advantest License Portal, from
+				the FNE license server host system, enter the following URL in a web browser:</p>
+			<p><a href="https://license.advantest.com/" target="_blank" rel="external noopener" class="ex">https://license.advantest.com/</a></p>
+
+			<div class="note"><span class="title">Note</span> Check the <kbd class="userinput">https</kbd> connection using port 443.</div>
+			</section>	
+				
+		<section class="section"><h2>Accessing the Advantest License Back Office using a proxy</h2>
+			
+			<p>The FNE server supports communication between the server and the Advantest License Back Office using an http-proxy if required.</p>
+			<p>If you need to access the Advantest License Back Office using a proxy:</p>
+			<ol>
+				<li>Open the
+						<span class="filepath">/etc/systemd/system/advantest-fne-server.service.d/flexnetls-socbu.conf</span>
+					file for editing.</li>
+				<li>Add a line using the following syntax, substituting the hostname/IP address and port of the
+					proxy server:
+						<p><kbd class="userinput">Environment=HTTPS_PROXY=http://&lt;host&gt;:&lt;port&gt;</kbd></p><p>For
+						example:</p><p><code>Environment=HTTPS_PROXY=http://myproxyserver.mycom.com:1234</code></p></li>
+				<li>Save and close the file.</li>
+				<li>Restart the FNE server: <p><kbd class="userinput">sudo systemctl restart
+					advantest-fne-server</kbd></p></li>
+			</ol>
+		</section>
+		
+		
+		
+	  <section class="section"><h2>Firewall open for Advantest FNE Cloud License Server</h2>	
+				
+	  	<p>To validate if the firewall and the connection to the Advantest FNE Cloud License Server,
+				from the FNE license server host system, enter the following URL in a web browser::</p>
+			<p><kbd class="userinput">http://&lt;ACLS-servername&gt;:7070/api/1.0/health</kbd></p>
+			<p>The output would look like this:</p>
+			<div></div><pre class="prettyprint linenums copyable">{
+ "LLS" : {
+   "version" : "2018.02",
+   "buildDate" : "2018-01-30T18:39:07Z",
+   "buildVersion" : "222955",
+   "branch" : "FlexnetLS-2018.02",
+   "patch" : "0",
+   "fneBuildVersion" : "220112",
+   "serverInstanceID" : "05RBLMU6XLGW",
+   "database" : {
+     "connectionCheck" : "success"
+   },
+   "security" : "enabled",
+   "httpAuth" : "enabled",
+   "licensingSecurityJSON" : "enabled"
+ }
+}</pre><div></div>
+	  </section>	
+	  	  
+	  <section class="section"><h2>Uninstall the License Server and Server Viewer</h2>
+	  	<p>To uninstall the FNE License Server and FNE Server
+					Viewer:</p>
+	  	<p><kbd class="userinput">sudo yum remove advantest-fne-server advantest-fne-server-viewer</kbd></p>
+	 </section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 8.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 345954</span><script type="text/javascript">var ti='345954';var tt='Troubleshooting FlexNet Embedded licensing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

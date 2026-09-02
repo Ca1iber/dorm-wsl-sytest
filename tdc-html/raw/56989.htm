@@ -1,0 +1,56 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Every equation set that contains edge delay definitions for fast pins must be associated with a mode context. This mode context is specified with the keyword MODECONTEXT immediately below the EQNSET statement. For more information on mode contexts see Mode contexts."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining the edge delays for Pin Scale 3600 fast pins</title><meta name="keywords" content="PinScale PS3600"></head><body id="_56989"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 56989</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining the edge delays for Pin Scale 3600 fast pins</h1>
+	
+	
+	<div><p>Every equation set that contains edge delay definitions for fast pins must be associated
+		with a mode context. This mode context is specified with the keyword
+			<span class="keyword">MODECONTEXT</span> immediately below the <span class="keyword">EQNSET</span> statement. For
+		more information on mode contexts see <em><a href="10633.htm" title="A mode context specifies, for every defined pin, the type (input or output or both) and operating mode. Every test is associated with a mode context, and every execution of the CONF command applies to exactly one mode context.">Mode contexts</a></em>.</p>
+		<p>By default, the edge delays for fast pins are calculated by SmarTest from </p>
+		<ul>
+			<li>the period length, </li>
+			<li>the number of edges, and </li>
+			<li>an initial delay which is specified by the user for the edge <span class="keyword">d1</span> or
+					<span class="keyword">r1</span>. </li>
+		</ul>
+		<p>The number of edges is specified with the <span class="keyword">period_div</span> statement; you can
+			specify a different number for every pin within one timing set. However, this number must be the
+			same for the same pin in every timing set of the same equation set (this is required for
+				<span class="keyword">CTIM</span> instructions where the timing set is changed, but the wavetable remains
+			the same). The number of edges can be queried for individual pins with
+			<span class="keyword">PDIV?</span>.</p>
+		<p>When you connect an equation set with a wavetable in a specification, the
+				<span class="keyword">period_div</span> statement in the timing set must equal the length of the action
+			sequences in the wavetable.</p>
+		<p>The edges are placed equidistantly at an interval which is calculated as the period length
+			divided by the number of edges. A delay can be specified for the position of the first edge. All
+			the other edges will then be delayed accordingly.</p>
+		<p>For drive edges other than <span class="keyword">d1</span> (<em>not</em> for receive edges) you can define
+			an offset from the calculated position, which can also be negative. This is indicated by a
+				<span class="keyword">+</span> sign between the edge and the <span class="keyword">=</span> sign.</p>
+		<section class="section"><h2>Related firmware commands</h2><p>You can use the <span class="keyword">ETDS</span>
+				command to retrieve and change the delays. However, this is only a temporary change of the
+				runtime values, which does <em>not</em> modify the values in the timing set.</p></section>
+		<h2>Example</h2><div class="example"><p>Consider the following example:</p><p><kbd class="userinput">EQNSET 4
+					"fast"</kbd></p><p><kbd class="userinput">MODECONTEXT
+					"F"</kbd></p><p><kbd class="userinput">TIMINGSET 1 "eq 4 ts 1"</kbd></p><p><kbd class="userinput">
+					period=20</kbd></p><p><kbd class="userinput">PINS I1</kbd></p><p><kbd class="userinput">
+					period_div=6</kbd></p><p> <kbd class="userinput">d1=3</kbd></p><p><kbd class="userinput">
+					d3+=-0.166</kbd></p><p><kbd class="userinput">PINS O1</kbd></p><p><kbd class="userinput">
+					period_div=4</kbd></p><p> <kbd class="userinput">r1=16</kbd></p><p>If you query the edge
+				positions resulting from this equation set fragment with</p><p><kbd class="userinput">ETDS?
+					401,1,,(I1,O1)</kbd></p><p>the reply will be:</p><p><kbd class="userinput">ETDS 401,1,,"pdiv:6 d1:3
+					d2:6.333 d3:9.5 d4:12.999 d5:16.332 d6:19.665",(I1)</kbd></p><p><kbd class="userinput">ETDS
+					401,1,,"pdiv:4 r1:16 r2:21 r3:26 r4:31",(O1)</kbd></p><p>Note that due to the delay of 16
+				ns, <span class="keyword">r3</span> and <span class="keyword">r4</span> are placed outside the period (cycle
+				boundary crossing).</p><p>Note also the format of the definition string, which contains the
+				period divider at the start. You could change the runtime delays for all six edges of
+					<code>I1</code> by issuing</p><p><kbd class="userinput">ETDS 401,1,,"pdiv:6
+				d1:0",(I1),</kbd></p><p>which would result in</p><p><kbd class="userinput">ETDS?
+					401,1,,(I1)</kbd></p><p><kbd class="userinput">ETDS 401,1,,"pdiv:6 d1:0 d2:3.333 d3:6.667 d4:10
+					d5:13.333 d6:16.667",(I1)</kbd></p><p>Note that the offset for <span class="keyword">d3</span> is
+				no longer valid.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 56989</span><script type="text/javascript">var ti='56989';var tt='Defining the edge delays for Pin Scale 3600 fast pins'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>High-Speed DDR Interfaces on Complex SOC with V93000</title><meta name="keywords" content="93k V93000 V93k 93k 93000, V, 93000"></head><body id="_107230"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 107230</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">High-Speed DDR Interfaces on Complex SOC with V93000</h1>
+	
+	<div>
+		<p>Stefan Walther, Verigy</p>
+		<p>Paper ID: 107230</p>
+		<section class="section"><h2>Abstract</h2><p>The integration of high-speed DDR interfaces in today's complex
+				SOC to address the ever-increasing bandwidth requirements of mainstream computing and consumer
+				products introduces several new test challenges. Test engineers needs to decide on:</p><ul>
+				<li>The optimum bidirectional signaling topology for the test setup, that is, whether to use a
+					single I/O pin or a dual-transmission line approach for the DUT board</li>
+				<li>The right termination of I/O pins to correctly emulate DDR DUT behaviour</li>
+				<li>How to correctly measure the relative timing between clock and data while dealing with DDR
+					timing effects such as variable output phase, long-term drift and jitter</li>
+			</ul><p>Furthermore, these measurements should ideally be done on standard digital pin
+				electronics for lowest capital cost and largest application flexibility and coverage.</p><p>This
+				paper discusses in detail how to efficiently address these test challenges and find answers to
+				questions which inevitably arise in the context of high-speed DDR interface testing on complex
+				SOC. In particular, it explains how Pin Scale's flexible third-level signaling scheme enables
+				proper DUT termination. Moreover, it discusses in detail how Pin Scale's source-synchronous test
+				capability reliably detects timing violations even under conditions where the common phase of
+				clock and data shows dynamic variations in terms of drift and jitter.</p></section>
+		<section class="section"><h2>Introduction</h2><p>DDR is a very generic expression that stands for Double
+				Data Rate. It is a clocking scheme rather than a dedicated interface. DDR interfaces transmit
+				data on both edges of the clock. This paper focuses on DDR memory interfaces and in particular
+				DDR SDRAM interfaces.</p><p>DRAM in general is used as main memory for any kind of processors. A
+				native application for DRAM is the data processing application space like PC or Server. As more
+				and more functionality is embedded into consumer devices the need for high bandwidth memories is
+				significantly increasing in the digital consumer electronics as well as in the cellular phone
+				application space.</p><div class="p"><figure class="fignone">
+					
+					<img src="107231.png" alt="DDR SDRAM migration (Source: Samsung)">
+				</figure></div><p>DDR is an evolutionary memory technology based on SDR SDRAM. DDR SDRAM access is
+				twice as fast as SDR SDRAM because DDR data transfer occur on both edges of the clock compared
+				to SDR SDRAM which transfers data only on the rising edge of the clock.</p><div class="p"><figure class="fignone">
+					
+					<img src="107232.png" alt="Key features of DDR and DDR2 (Source: Samsung)">
+				</figure></div><p>DDR2 is the second generation of DDR memory. Compared to DDR memory, DDR2 memory
+				provides higher performance at lower power consumption and better signal integrity.</p><div class="p"><figure class="fignone">
+					
+					<img src="107233.png" alt="Key features of DDR2 and DDR3 (Source: Samsung)">
+				</figure></div><p>DDR3 is the third generation of DDR memory. Compared to DDR2 memory, DDR3 memory
+				provides even higher performance at even lower power consumption and highly sophisticated signal
+				integrity features.</p><p>The challenges arising when it comes to testing of high-speed DDR
+				memory interfaces on standard ATE will be discussed in this paper.</p></section>
+		<section class="section"><h2>Background</h2><p>A DDR memory interface (figure 4) includes both an
+				address/control interface and a data interface. Data transfers for reads and writes are
+				happening on both edges of the clock, which is in this context called strobe (DQS). The address
+				and control signals change with half the frequency of the data and latch on the rising edge of
+				the clock signal (CK).</p><div class="p"><figure class="fignone">
+					
+					<img src="107234.png" alt="Physical layer of a DDR memory interface">
+				</figure></div><p>A DDR memory interface is a source-synchronous interface. This means that the data
+				lines (DQ) between transmitter and receiver are accompanied by a dedicated strobe signal (DQS)
+				which is used by the receiver to latch the data. The DQ data lines are single-ended
+				bidirectional while the DQS strobe line is differential bidirectional (from DDR2 on, DDR1 uses a
+				single-ended bidirectional DQS strobe). The DQS strobe maintains the phase with DQ data on read
+				and write, but the phase of the DQS strobe relative to DQ data depends on direction of data
+				flow.</p><div class="p"><figure class="fignone">
+					
+					<img src="107235.png" alt="DDR memory write timing">
+				</figure></div><p>For DDR memory write (figure 5), the DQS strobe is center-aligned to DQ data. The
+				timing relationship of DQS and DQ is mainly described via setup time (tDS) and hold time (tDH).
+				The write cycles are especially interesting for testing DDR memory interfaces because
+				source-synchronous test capabilities might be required. As the timing of the DQ data lines is
+				related to the DQS strobe edges, DQ/DQS are allowed to vary within the specification of the
+				tDQSH/tDQSL pulse width (+/-0.35*tCK). Especially low frequency drift could close the data eye
+				and make functional testing impossible.</p><div class="p"><figure class="fignone">
+					
+					<img src="107236.png" alt="DDR memory read timing">
+				</figure></div><p>For DDR memory read (figure 6), the DQS strobe is edge aligned to DQ data. The
+				timing relationship of DQS and DQ is mainly described via DQ/DQS skew (tDQSQmax) and hold time
+				(tQH). CK is the (unidirectional) differential clock of constant frequency provided by the DDR
+				memory interface controller from which the memory device derives its signals. The tables 1 and 2
+				summarize some key parameters for various data rates of DDR memories.</p><div class="p"><figure class="fignone">
+					
+					<img src="107237.png" alt="Selected DDR memory write key specs for different data rates">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107238.png" alt="Selected DDR memory read key specs for different data rates">
+				</figure></div><p>For testing DDR interfaces the ATE accuracy is critical for the yield. The ATE
+				needs to drive data into the device with the DDR memory interface (DUT). In order to test the
+				sensitivity of the interface for DQS-DQ skew the data need to be "de-skewed" in a very
+				controlled fashion. For example, for the test of a DDR2-800Mbps interface the EPA must be
+				significantly better than the specified skew of 200ps.</p><p>DDR memory interface are typically
+				split in several source-synchronous "sub-interfaces", called source-synchronous clock domains or
+				source-synchronous groups. Each group contains a certain amount of data lines (typically 4 to 8)
+				and an associated DQS strobe. A DDR memory interface is typically between 8 and 256 bits wide,
+				witch corresponds to 1 to 8 source-synchronous groups per DDR memory interface.</p><p>For
+				testing of devices with DDR memory interface the ATE needs to emulate the memory device in terms
+				of data rate and signal conditioning. The "Test-Processor-Per-Pin" architecture of the Verigy's
+				V93000 platform substantially eases the generation of a highly flexible memory
+			timing.</p></section>
+		<section class="section"><h2>DDR interface test challenges</h2><p>DDR interface testing introduces some test
+				challenges which need to be addressed by an ATE:</p><ol>
+				<li>A first challenge for an ATE is the increasing data rate that goes with DDR2 up to 800Mbps
+					and with DDR3 up to 1600Mbps (and certainly beyond in future). The test of many mainstream
+					computation and consumer devices is constrained by tight cost requirements.</li>
+				<li>Along with the evolution of the DDR interface data rate the requirements on accuracy are
+					also increasing. The smaller the data eye gets the tighter the margins are. Test at higher
+					speeds requires adequate accuracy for reasonable yield. And again, test costs are an important
+					element.</li>
+				<li>The execution of tests involving short bus turn around times on bidirectional DUT pins
+					according to device specification presents a challenge to most ATE. The typically long
+					ATE-to-DUT interconnections cause big round trip delays which are in contradiction to fast
+					cycle times required for short bus turn around time testing.</li>
+				<li>DDR memory interface applications require a mid-level termination on certain interface
+					lines. A proper mid-level termination on bidirectional DQS and DQ lines is key for successful
+					DDR interface testing and might introduce a challenge for an ATE since it requires
+					sophisticated 3-level signaling techniques.</li>
+				<li>As discussed before, DDR interfaces are source-synchronous interfaces and especially the
+					device output test can be a challenge for an ATE. Source-synchronous effects can reduce the
+					yield when tested without source-synchronous methods. A more detailed discussion of
+					source-synchronous testing will follow in a later section of this paper.</li>
+				<li>In order to improve the timing margin for higher speed DDR interfaces, a differential
+					signaling of the DQS strobe signal has been defined with the introduction of DDR2. An ATE needs
+					to be capable to handle this with true differential pin electronic in order to maintain the
+					margin and yield.</li>
+				<li>The cost of an ATE for testing high-speed DDR interfaces on mainstream devices need to be
+					adequate and can be a challenging task for ATE vendors.</li>
+			</ol><p>The test requirements for an DDR interface depend on the device type: a complex high-end
+				device certainly needs a different test strategy than an main stream low-cost device. The test
+				requirements also depend on the device cycle stage. For instance, in engineering normally more
+				complex and detailed tests are required to evaluate design margins than in production where just
+				certain corner cases are tested. Finally, there are different test methodologies that get
+				applied by the various silicon manufacturers. Especially for high-speed interfaces there is the
+				question whether at-speed functional test is really required or alternative structural test
+				approaches alone are sufficient.</p><div class="p"><figure class="fignone">
+					
+					<img src="107241.png" alt="Typical AC test list of a DDR memory interface">
+				</figure></div><p>Table 3 shows a typical test list for a DDR interface test which differentiates
+				between characterization and production tests. The conclusion for the required ATE equipment is
+				as follows:</p><ul>
+				<li>ATE pins need to be able to cover the respective data rate of the DDR interface under test
+					and should have some head room for further designs.</li>
+				<li>If AC tests other than functional tests are required for example, skew tests), the ATE needs to
+					provide the appropriate accuracy in order to achieve an appropriate yield. For DDR interface
+					test at 800Mbps this means in most cases an EPA of less than 100ps and for tests at 1600Mbps of
+					less than 50ps.</li>
+			</ul><div class="p"><figure class="fignone">
+					
+					<img src="107242.png" alt="Selected performance data of Pin Scale card family">
+				</figure></div><p>As discussed before, accuracy is very important for AC measurements. Table 4 shows
+				selected performance data of Verigy's Pin Scale card family. The Pin Scale 3600 card provides
+				excellent EPA values of 100ps in Std-mode 50ps in Fast-mode. Looking at DDR interfaces, one DQS
+				pin is associated with maximal 8 DQ pins. For instance, the skew within such source-synchronous
+				group is a critical specification value which needs to be measured precisely during test.
+				Another important parameter of an ATE channel for AC measurements is the transition time and the
+				minimum detectable pulse width. It can clearly be seen that the Pin Scale 3600 card has an
+				appropriate bandwidth especially required for characterization of highest speed classes of DDR
+				interfaces. With DDR2 the DQS strobe signal is differential. All Pin Scale cards have
+				differential receiver for most accurate measurements.</p></section>
+		<section class="section"><h2>Bidirectional signalling</h2><p>The DQS and DQ lines on a DDR memory interface
+				are bidirectional (but non-simultaneous) signal lines. The test of these lines might impose a
+				challenge for ATE because of much longer signal traces between ATE pin electronics and DUT
+				compared to the typical end-application. An important factor to consider is the round trip delay
+				(RTD) which scales with the length of the interconnection between ATE and DUT. The round trip
+				delay defines the time it takes for a signal to travel the signal path back and forth. As DDR
+				memory interface specifications are derived from short round trip delays the test of certain
+				parameters in an ATE environment with typically much longer round trip delays might become
+				difficult. The long round trip delay causes problems when a bidirectional DUT pin turns its
+				signal direction from drive to receive, or from a DDR memory interface testing point of view
+				from write to read. In order to compensate the time it takes for a signal to travel on the
+				connection traces, the ATE driver launches its drive signal earlier by this travel time. For the
+				bus turn around direction from DUT drive ("memory write") to DUT receive ("memory read") that
+				means that the signals sent by the ATE driver will collide on the bidirectional trace if the DUT
+				bus turn around time is shorter than the round trip delay on the connection trace (figure
+				7).</p><div class="p"><figure class="fignone">
+					
+					<img src="107243.png" alt="Illustration of data contention during I_O switching">
+				</figure></div><p>For high-speed DDR interface testing this behaviour might prevent at-speed
+				back-to-back write-read operations with the minimum bus turn around time as specified in the
+				data sheet if a bidirectional connection is designed as a single transmission line
+				(STL).</p><p>The following figure 8 provides an example how to calculate the bus turn around
+				time and compare it against the anticipated round trip delay of the test setup in order to
+				decide whether a single transmission line is sufficient to perform the required at-speed
+				back-to-back write-read operations with the minimum bus turn around time from the
+				specification.</p><div class="p"><figure class="fignone">
+					
+					<img src="107244.png" alt="Calculation of bus turn around time and consequences on connection topology depending on round trip delay">
+				</figure></div><p>Nevertheless, Pin Scale 3600 Fast-mode normally requires a dual transmission line
+				setup for testing DUT I/O pins due to its nature of providing dedicated Fast-i and Fast-o
+				resources. Consequently, round trip delay is not of importance but reduced drive levels due to
+				different trace loading might become an issue. The following figures demonstrate single and dual
+				transmission line topologies for testing of bidirectional DUT pins. The table 5 summarizes the
+				available options and their pros and cons.</p><div class="p"><figure class="fignone">
+					
+					<img src="107245.png" alt="Std-mode single transmission line setup">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107261.png" alt="Std-mode dual transmission line setup">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107262.png" alt="Fast-mode dual transmission line setup with resistor network">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107263.png" alt="Fast-mode dual transmission line setup">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107264.png" alt="Summary of bidirectional signalling topologies">
+				</figure></div><p>For an in-depth analysis of problems and their solutions when it comes to testing
+				of bidirectional in an ATE environment, please refer to [3].</p></section>
+		<section class="section"><h2>Mid-level termination</h2><p>As mentioned earlier, DDR memory interface test
+				requires the ATE to "emulate" the memory device. When the DUT sends data to the ATE emulating
+				the memory device (memory write), the DQS and DQ lines (as well as data mask (DM) - not
+				considered here) have to be correctly terminated by the ATE. On a real memory device this is
+				accomplished by the on-die termination circuitry, called ODT.</p><p>This kind of 3-level
+				signaling might impose a challenge for an ATE. Verigy's Pin Scale 3600 (as well as Pin Scale 800
+				- not considered here) pin electronics implements a true 3-level driver where the third level
+				can be independently specified from the low and high level voltage of the driver. The mid-level
+				termination will therefore be accomplished via the third level of the pin electronics' AB driver
+				either activated by drive action "Z", available in Std-mode, or via the dynamic driver high
+				level shift concept (v3h-feature, drive action "i") available in Fast-mode.</p><p>Nevertheless,
+				the generation of such mid-level termination voltages and the transition from regular drive
+				levels into mid-level and from mid-level into regular drive levels requires some
+				precautions.</p></section>
+		<section class="section"><h2>Mid-level generation in Pin Scale 3600 Fast-mode</h2><p>Figure 13 shows typical
+				DDR test vectors in Pin Scale 3600 Fast-mode. The drive action "i" represents the mid-level.</p><div class="p"><figure class="fignone">
+					
+					<img src="107265.png" alt="Typical DDR vectors in PS3600 Fast-mode">
+				</figure></div><p>Figure 14 shows the desired waveform one might expect from the pattern shown in
+				figure 13. Figure 15 shows the observed waveform.</p><div class="p"><figure class="fignone">
+					
+					<img src="107266.png" alt="Desired waveform expected from pattern shown in figure 13">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107268.png" alt="Observed waveform from pattern shown in figure 13">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="107270.png" alt="Comparison of desired and observed waveform from pattern shown in figure 13">
+				</figure></div><p>Figure 16 summarizes the deviations between the desired and observed waveforms
+				which can be explained as follows:</p><p>When using the v3h-feature of Pin Scale 3600 Fast-mode
+				for mid-level termination, the generated waveform may deviate substantially from the intended
+				waveform. The reason for that is that the switching from regular drive levels to v3h levels and
+				vice versa has an intrinsic delay in the order of 2 to 3 ns. This is a direct result of the fact
+				that the tri-state switch of the AB-driver is used for switching levels (vih &lt;-&gt; v3h). For
+				some "bits" the actual levels of the generated waveform may differ from the intended levels by a
+				"digital undershoot/overshoot"-behaviour as summarized in table 6 which is a direct result of
+				the fact that in Fast-mode typically both level (tri-state) and data parameters always switch at
+				the same time, that is, with the same drive edge (please refer to Fast-mode drive actions "0"
+				(F00), "1" (F10), "o" (F0Z), and "i" (F1Z)).</p><div class="p"><figure class="fignone">
+					
+					<img src="107271.png" alt="Summary of &#34;digital undershoot/overshoot&#34;-behaviour">
+				</figure></div><p>In order to avoid this "digital undershoot/overshoot"-behaviour it would be
+				necessary to separate level drive actions from data drive actions. In addition to the existing
+				Fast-mode drive actions F00 ("0"), F10 ("1"), F0Z ("o"), F1Z ("i"), where data drive actions and
+				level drive actions are always combined, new drive actions have been introduced (starting with
+				SmarTest 5.2.5) to control data drive actions and level drive actions in Fast-mode
+				independently. The new drive actions are the (pure) data drive actions F0N ("O") and F1N ("I")
+				as well as the (pure) level drive actions FN0 ("A") and FNZ ("z"). The switching between regular
+				drive levels and mid-level termination is controlled by the level (v3h) switch (the tri-state
+				switch of the AB-driver), which happens with an intrinsic delay associated with the level
+				switch. But now the level drive edges can be advanced in time compared to the data drive edges
+				by an amount which is determined by the level switching time of the Fast-driver. As a result,
+				the problem of "digital undershoot/overshoot"-behaviour as shown in figure 15 is
+				gone.</p><p>Although the level switching time of the Fast-driver is not specified, it represents
+				a typical characteristic of the pin, which can and should be accurately measured once for
+				precise compensation. Verigy provides a test method which performs propagation delay
+				measurements between Fast-i and Fast-o pins via a cross-connect DUT board to determine the v3h
+				&lt;-&gt; vih level switching time of the Fast-driver and stores the corresponding values for
+				each Fast-i pin and for each dedicated level drive edge in the pin attributes
+			file.</p></section>
+		<section class="section"><h2>Mid-level generation in Pin Scale 3600 Std-mode</h2><p>The mid-level is also
+				generated via the tri-state switch of the pin electronics' AB driver. Transitions into mid-level
+				are delayed by the amount of time it takes to switch the AB driver into tri-state. Transitions
+				from tri-state back to active drive levels (vih, vil) are also delayed by a similar amount of
+				time it takes to switch the AB driver back from tri-state. There is no "digital
+				undershoot/overshoot"-behaviour as described for Fast-mode, but the tri-state switching time
+				needs to be compensated as well. The tri-state switching time of the AB driver is not specified
+				but represents a characteristic of the pin. It can be measured in a similar way to Fast-mode and
+				compensated via corresponding entries in the pin attributes file. For further information please
+				refer to [4], which explains the methodology in detail for generating 3-level signals required
+				for MIPI-testing.</p><div class="p"><figure class="fignone">
+					
+					<img src="107272.png" alt="Typical Std-mode tri-state switching times">
+				</figure></div></section>
+		<section class="section"><h2>Introduction to source-synchronous interfaces</h2><p>Source-synchronous
+				interfaces are typically split into several clock domains formed by a group of four to eight
+				data lines and an associated source-synchronous clock. The data and the clock are driven from
+				identical I/O drivers to ensure that the relative skew and relative jitter between clock and
+				data is minimal. On the receive side the data are latched with the source-synchronous clock.
+				During the regular operation mode, the interface is able to handle common phase jitter
+				variations up to a certain bandwidth. The purpose of such source-synchronous I/O technology is
+				to increase setup and hold time margins and to enable high-speed synchronous traffic between
+				devices while eliminating the need for precise clock/signal distribution.</p><p>When the phase
+				of a source-synchronous interface running at data rates typically less than 1 Gbps is analyzed
+				over a certain length of transmitted data, the phase of clock and data is typically constant. In
+				case of a DDR interface, data are transmitted with both edges of a clock (as indicated in the
+				upper timing diagram in Figure 17) and therefore the phase difference between clock and data is
+				90°. The phase difference between the source-synchronous clock and the reference clock may vary
+				significantly from device to device, depending on manufacturing process variations or the static
+				lock behaviour of phase regulation circuitry deriving the source synchronous clock from the
+				reference clock. Assuming a local reference clock with a reference phase at 0 degrees, the phase
+				of clock and data transitions on one side of the interface can be depicted versus the cycles in
+				a data pattern (Figure 17).</p><div class="p"><figure class="fignone">
+					
+					<img src="107273.png" alt="Source-synchronous timing in presence of purely static common phase skew">
+				</figure></div><p>Under such conditions an ATE has no difficulty to determine the phase of clock and
+				data during a first test step. It then assigns an appropriate timing to validate the data
+				content during the following functional test. Any type of additional parametric test such as
+				setup or hold time can be implemented with this test methodology in a similar way. The
+				prerequisite, however, is that once the timing is assigned, the phase of the transitions should
+				be stable and should not be exposed to exhaustive drift or jitter.</p><p>For today's designs
+				which feature increasing data rates combined with greater levels of integration, there is an
+				increasing risk that the phase of both clock and data no longer remains constant during the
+				transmission of a data pattern. In addition to a static common phase skew, a certain common
+				phase drift and/or a common phase jitter may become relevant (Figure 18). Since data and clock
+				are both output with the same clock, the phase variations simply lead to a common phase jitter
+				that does not affect the data transmission. However, during a test on an ATE with its own fixed
+				timing reference, the common phase jitter or drift may cause a data eye to close more than in
+				the real application. It is therefore no longer possible to determine parametric data that are
+				related to the dynamically changing phase of the source-synchronous clock such as setup or hold
+				time.</p><div class="p"><figure class="fignone">
+					
+					<img src="107274.png" alt="Source-synchronous timing in presence of common phase skew, drift and jitter">
+				</figure></div><p>To address this challenge, a specific test methodology is required for testing
+				source-synchronous interfaces even under conditions where the common phase shows dynamic
+				variations in terms of drift and jitter. In order to ensure accurate testing of
+				source-synchronous interfaces beyond 1 Gbps, the ATE has to be able to perform timing-related
+				tests relative to the source-synchronous clock, regardless of the static or dynamic properties
+				of the common phase. The method shall be usable for thorough device characterization, to gather
+				data such as per-bit setup and hold time, common phase jitter waveform shape, and
+			amplitude.</p></section>
+		<section class="section"><h2>Introduction to source-synchronous testing on V93000</h2><p>The
+				source-synchronous testing approach on V93000 uses a software approach (test method) to emulate
+				a source-synchronous receiver on standard digital pin electronics. The test method performs a
+				series of functional tests on clock and data pins at different receiver strobe positions
+				(multiple-shot sweeping) and uses the pass/fail information (error map) to evaluate the correct
+				output timing of clock and data pins described by setup and hold time. The post-processing of
+				the pass/fail information which incorporates a logical combination of the error maps of each
+				individual functional test can either be performed by the test method on the ATE workstation
+				(conventional source-synchronous test (CSS)) or directly in the ATE hardware by using special
+				firmware commands (rapid source-synchronous test (RSS)). The test method code is free of charge
+				(that is, the standard source-synchronous test is free), but the firmware commands needed for
+				RSS require a special license.</p><div class="p"><figure class="fignone">
+					
+					<img src="107275.png" alt="CSS/RSS software approach: Multiple-shot sweeping">
+				</figure></div><p>Another option of performing a source-synchronous test is the emulation of a
+				source-synchronous receiver by using dedicated ATE hardware. In this case, referred to as native
+				source-synchronous test, the ATE represents the receiving part of a source-synchronous interface
+				and uses the DUT clock for latching the data. The advantage of such a concept is that the DUT
+				can be tested in a similar way as it is finally operated in the target system. The disadvantage,
+				however, is that it is fairly difficult to provide enough flexibility with respect to the
+				various types of interfaces, for example, the number of data pins per clock pin or the type of clocking
+				scheme (single, double, or quad data rate clock). Another difficulty is the distribution of the
+				received DUT clock in the test system. It requires a high implementation effort and causes
+				additional costs to ensure that a certain clock edge is seen at the same point in time by all
+				the data and clock comparators in the ATE.</p><div class="p"><figure class="fignone">
+					
+					<img src="107276.png" alt="Dedicated hardware approach: Native source-synchronous testing">
+				</figure></div><p>As opposed to native source-synchronous test, the software-based source-synchronous
+				test has the consequence that the measurement conditions are different compared to those in the
+				real application. On the other hand, additional insights such as per bit setup and hold time,
+				common phase jitter waveform shape, and amplitude for thorough characterization can be obtained.
+				This paper focuses on the software-based implementation of the source-synchronous test on
+				V93000. This ATE synchronous methodology is a very promising approach for DDR interface testing
+				because of its flexibility and expandability.</p><p>There are several failure modes to
+				distinguish which must be covered by the source-synchronous test method:</p><ul>
+				<li>Static offset variations<p>The timing of the data strobe versus the reference clock can vary
+						from device to device</p></li>
+				<li>Common mode drift (dynamic)<p>In source-synchronous devices, the phase of the output clock
+						and the output data can show a common dynamic distortion within a data pattern, transferred
+						over the interface, with respect to the system wide reference clock.</p></li>
+				<li>Relative timing variations <p>The relative timing of the output clock (the data strobe) and
+						the data signal can vary dynamically. This can be tolerated if this timing still satisfies the
+						specification for example, setup time, hold time).</p>
+					<div class="p"><figure class="fignone">
+							
+							<img src="107277.png" alt="Illustration of source-synchronous timing effects">
+						</figure></div></li>
+			</ul><p>Figure 21 illustrates the different source-synchronous timing effects. For a DDR
+				interface, the phase of DQS strobe and DQ data signals cannot only show a static offset
+				relative to the reference clock (which varies from device to device), but also a common dynamic
+				distortion during execution of a pattern. This distortion can be the same for each pattern
+				execution on the same device (deterministic distortion), but it can also vary from one pattern
+				execution to the next (non-deterministic distortion).</p><p>Both these cases are to be tolerated
+				if the relative timing of DQS strobe and the DQ data signals still satisfies certain
+				requirements (setup time, hold time). Therefore the task for testing DDR interfaces is to
+				distinguish reliably between such common phase variations and genuine violations of the relative
+				timing requirements.</p><p>Figure 22 shows the compressed report log file from intermediate data
+				when performing the previously described algorithm for the case of repeatable sinusoidal common
+				phase jitter and a relative timing error injected at cycle 134. The setup time specification was
+				set to zero (the compare strobes for clock and data are aligned to each other), therefore the
+				width of the pass band is representing the actual setup time. The first number in every line
+				shows the pattern cycle number. The following characters indicate the Boolean OR result of the
+				data strobe results and the clock strobe results. An "F" indicates an error on either clock or
+				data or both. A dot (.) indicates that the result from both data and clock strobes passed in
+				that cycle for the respective phase step.</p><div class="p"><figure class="fignone">
+					
+					<img src="107278.png" alt="Report log for a deterministic sinusoidal common phase jitter">
+				</figure></div><p>A very interesting case is the one shown in Figure 23. While the pattern is
+				repetitively executed for each phase step the momentary common phase offset is different for
+				each phase step resulting in a scrambling of the pass region. However, it becomes evident that
+				in the case of the failure in cycle 134 none of the phase steps led to a pass, whereas for all
+				the other cycles at least one or more pass conditions occur. This means that despite the missing
+				repeatability in the common phase jitter, the test methodology still determines the failures
+				correctly.</p><div class="p"><figure class="fignone">
+					
+					<img src="107279.png" alt="Report log for a non-deterministic common phase jitter">
+				</figure></div><p>For further information on this source-synchronous testing methodology for
+				high-speed DDR interface test please refer to [5].</p></section>
+		<section class="section"><h2>Conclusion</h2><p>High-speed DDR interface testing creates several test
+				challenges which need to be resolved for successful testing of these interfaces. It has been
+				shown how these test challenges can be addressed on Verigy's V93000. The right choice of testing
+				hardware depending on desired accuracy, the right choice of bidirectional signalling topology
+				and the correct implementation of mid-level termination are keys to a successful
+				test.</p><p>Moreover, Verigy provides a highly flexible test methodology based on traditional
+				capture and compare pin electronic for testing high-speed DDR interfaces even under conditions
+				where the common phase of DQS strobe and DQ data signals shows dynamic variations in terms of
+				drift and jitter.</p></section>
+		<section class="section"><h2>Acknowledgements</h2><p>The author would like to thank Guido Schulze and
+				Joerg-Walter Mohr for their contribution to this paper as well as their support over several
+				years.</p></section>
+		<section class="section"><h2>References</h2><ol>
+				<li>Collins, H.A. Nikel, R.E.; DDR-SDRAM, high-speed, source-synchronous interfaces create
+					design challenges; EDN Magazine, September 2, 1999.</li>
+				<li>Lattice Semiconductor; DDR Interface Design Implementation - A Lattice Semiconductor White
+					Paper; December 2004.</li>
+				<li>Moreira, J. Barnes, H. Werkmann, H.; DUT Loadboard Layout for Multi-Gigabit Bidirectional
+					Interfaces; VOICE Verigy User Group, 2007.</li>
+				<li>Hu, Y. Simoncelli, D. Walther, S. Lau, R.; Solving MIPI D-PHY Test Challenges with V93000
+					SOC Test System; VOICE Verigy User Group, 2007.</li>
+				<li>Walther, S.; A Flexible and Scalable Methodology for Testing High Speed Source Synchronous
+					Interfaces on ATE with Multiple Fixed Phase Capture and Compare; VOICE Verigy User Group,
+					2006.</li>
+			</ol></section>
+		<section class="section"><h2>Author's Biography</h2><ul>
+				<li>holds a diploma degree in electrical engineering</li>
+				<li>joined Hewlett-Packard in 1992 as R&amp;D Engineer</li>
+				<li>13 years of experience as R&amp;D Project Engineer and Technical Team Lead in various
+					development projects in the Computer Systems and Fiber Optic Test &amp; Measurement Business of
+					Hewlett-Packard and Agilent Technologies</li>
+				<li>since 2005: Senior Application Consultant for Semiconductor Test Solutions at
+					Agilent's/Verigy's High-Speed Digital &amp; Structural Center of Expertise</li>
+			</ul></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 107230</span><script type="text/javascript">var ti='107230';var tt='High-Speed DDR Interfaces on Complex SOC with V93000'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

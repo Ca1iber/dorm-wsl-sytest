@@ -1,0 +1,69 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Register operations can be performed in test methods through the RA library. The register operation commands must be put in an RDI_BEGIN/RDI_END block."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Usage of register operations in test method</title><meta name="keywords" content="testmethod"></head><body id="_351491"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351491</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Usage of register operations in test method</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="351489.htm" title="Bit field operations, also called Read-Modify-Write (RMW) operations, are used to change part of a register value while other parts of the value remain unchanged. These RMW operations can be executed in two modes: learning mode and production mode.">Register access execution mode</a></li><li><a href="351450.htm" title="These static configurations have global behaviors. All of them are optional and have default values if not specified in test suites.">Static configurations</a></li><li><a href="351509.htm" title="Protocol speed is specified by getClockSpeed() in the protocol class. When the protocol speed is slower than the primary timing period, it is automatically adapted to the primary timing.">Automatic speed adaptation</a></li><li><a href="351500.htm" title="Read register is to read a complete register or multiple registers.">Register read</a></li><li><a href="351501.htm" title="Register operation is to read a complete register and compare to an expected value with or without a mask.">Register compare</a></li><li><a href="351492.htm" title="Register write is to write data to a register or dynamically write data to registers.">Register write</a></li><li><a href="351502.htm" title="Protocols can support burst write and read. The write array operation is performed through the RA_WRITE_ARRAY() command. The command needs a start address on which the first array data is written. The address is automatically incremented.">Write array</a></li><li><a href="351490.htm" title="The RA library provides register dump, register tracking, and register cache memory print for debugging purposes.">RA debugging</a></li></ol></div></nav>
+	
+	
+	<div><p>Register operations can be performed in test methods through the RA library. The
+		register operation commands must be put in an RDI_BEGIN/RDI_END block. </p>
+		<section class="section">
+			<p>Register operations can be done even when no register structure definitions exist. But without
+				the help of register structure definitions, RMW operations cannot be performed. </p>
+			<p>The RA library supports the structure of a register to be represented in the code. For
+				example, <span class="keyword">PERIPHERAL0</span> stands for a peripheral, <span class="keyword">REGISTER0</span>
+				stands for a register under the peripheral. Therefore the <span class="keyword">WRITE</span> command for
+				the <span class="keyword">REGISTER0</span> in test methods can be
+					<code>reg.PERIPHERAL0().REGISTER0().setValue(0x55).write();</code>. </p>
+			<p>In the <span class="keyword">WRITE</span> command example above, <span class="keyword">reg</span> is a
+				user-defined macro and must be already defined at the beginning of your test methods, for
+				example, <code>#define reg RA::&lt;className in your
+				xxx_AllDevices.h&gt;::getInstance()</code>. You can name the macro any name that is suitable.</p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>Register operations without register structure definitions</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+
+  // Write register
+  RA_WRITE(0x1234, 0x55);
+  // Read a register under ID : READ_ID_1
+  RA_READ("READ_ID_1", 0x1234);
+  // Read a register and compare against an expected value without a mask
+  RA_COMPARE(0x1234, 0x55);
+  // Read a register and compare against an expected value with a mask
+  RA_COMPARE(0x1234, 0x55, 0xFE);
+  // Write runtime value per site data
+  RA_WRITE_DYNAMIC("DYN_ID_1", 0x1234);
+  // Read a register again
+  RA_READ("READ_ID_2", ADDR1);
+  // Compare by reading register 
+  RA_COMPARE("COMP_ID_1", ADDR1, DATA1);
+
+  rdi.wait(10 ms);
+
+RDI_END();</pre></div><div class="example"><h3>Example 2</h3>
+			
+			<p>Register operations with register structure definitions</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">
+RDI_BEGIN();
+
+  // Register Write
+  reg.PERIPHERAL0().REGISTER0().setValue(0x55).write();
+  // Field Write [3:2]
+  reg.PERIPHERAL0().REGISTER0().setField_MIOF_CNT(1).write();
+  // Write Dynamic
+  reg.PERIPHERAL0().REGISTER0().writeDynamic("DYN_ID");
+  // Read Back
+  reg.PERIPHERAL0().REGISTER0().read("READ_ID");
+  // Compare value (PF)
+  reg.PERIPHERAL0().REGISTER0().setValue(0x55).compare();
+  // Compare field (PF)
+  reg.PERIPHERAL0().REGISTER0().setField_MIF_CNT(1).compare();
+  // Compare with ID 
+  reg.PERIPHERAL0().REGISTER0().setValue(0x55).compare("COMP_ID_1");
+  reg.PERIPHERAL0().REGISTER0().setField_CNT(1).compare("COMP_ID_2");
+
+RDI_END();</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="351430.htm" title="Before using the RA library, if you intend to use a register structure, the SVD file for your device must be converted first. Then the converted register structure must be imported to a test method program.">Importing a C++ register structure</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351491</span><script type="text/javascript">var ti='351491';var tt='Usage of register operations in test method'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

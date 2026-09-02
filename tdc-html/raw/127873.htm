@@ -1,0 +1,90 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This member function of TESTSET performs a pass/fail judgment of the scan test results specified by a SCAN_TEST_RESULT object and logs the results."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>TESTSET().judgeAndLog_ScanTest()</title><meta name="keywords" content="stdf hex"></head><body id="_127873"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 127873</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">TESTSET().judgeAndLog_ScanTest()</h1>
+	
+	
+	<div><p>This member function of <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a> performs a pass/fail judgment of the scan
+		test results specified by a SCAN_TEST_RESULT object and logs the results.</p>
+		<section class="section"><p>Optional values for this function can be set by prior methods, for example, <a href="127776.htm" title="This member function of TESTSET applies only to multiport testing. The port name specified by the name parameter is judged and logged into the event data log stream.">port()</a>, <a href="127763.htm" title="This member function of TESTSET is used to decide whether or not the test should continue after a test result fails. See parameters in the table below.">cont()</a>, <a href="127778.htm" title="This member function of TESTSET is used to indicate the reliability of a test result.">reliability()</a>, or <a href="127794.htm" title="This member function of TESTSET sets a test name for a test result that is specified by the name parameter directly, which is then stored in the EDL as a TestName attribute.">testname()</a>.</p><p>This function creates entries in the data log only if some
+				requirements are met:</p><ul>
+				<li>SmarTest must be set to create STDF V4/2007 or V4/2007.1 by specifying
+						<code>stdfVersion="V4/2007"</code> or <code>stdfVersion="V4/2007.1"</code> in the
+						<a href="70623.htm" title="If you wish to change the STDF format settings you may edit the configuration file called formatter.stdf.main.conf located in the /etc/opt/hp93000/soc_common/datalog directory. If you delete the file or delete an option, the formatter will use default values."><span class="filepath">formatter.stdf.main.conf</span></a> file.</li>
+				<li>An error must have occurred.<p>If no errors occur, no STR records are created.</p></li>
+				<li>For pattern‑based logging, the test pattern must include the <a href="100378.htm" title="The VCAT command defines attachments to a label (pattern). Currently the following attachment types are supported:">VCAT</a> firmware command.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">bool judgeAndLog_ScanTest(const SCAN_TEST_RESULT&amp; scanTest);</pre><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_127873__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_127873__entry__2"><p>Description </p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_127873__entry__1"><p><span class="keyword">scanTest</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_127873__entry__2"><p>The <a href="117961.htm" title="This class holds the result data of a scan test. SCAN_TEST_RESULT and SCAN_TEST_PIN_RESULT are used to send data to the datalog that will show up as STR (Scan Test Record). An instance of the class SCAN_TEST_RESULT can be sent to datalog by calling judgeAndLog_ScanTest() of TESTSET API.">SCAN_TEST_RESULT</a> object from which the scan test result is taken.</p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> Only the first six digits of values are ensured to be logged to the
+				STDF file correctly.</div></div><div class="syntax"><h2>Return Value</h2><p>The pass/fail result of the judgment, where true is returned
+				for pass and false for fail.</p></div>
+		
+		<h2>Example</h2><div class="example"><p>In the following example, scanPins, maxFailsPerPin, cycleBased, includeExpectedData
+				and testerCycleMode are input parameters defined for the test
+			method.</p><pre class="prettyprint linenums copyable">ERROR_MAP_TEST emap(testerCycleMode ? TM::TESTER_CYCLES : TM::XMODE_CYCLES);
+SCAN_TEST_RESULT log(cycleBased ? TM::CYCLE_BASED_LOGGING : TM::PATTERN_BASED_LOGGING);
+  
+ON_FIRST_INVOCATION_BEGIN();
+/* Setup the error map */
+  emap.pin(scanPins).setLocation(TM::RAM)
+      .setRecordingMode(TM::PF).setStartCycle(0);
+  /* Execute functional test */
+  CONNECT();
+  FUNCTIONAL_TEST();
+ON_FIRST_INVOCATION_END();
+  
+/* If functional test has passed, no further processing has to be done */
+if(GET_FUNCTIONAL_RESULT())
+{
+  return S_OK;
+}
+  
+/* Retrieve the overall failures for this site */
+log.totalFailures(emap.getErrorCount());
+log.totalCyclesExecuted(emap.getLastCycleExecuted());
+  
+STRING_VECTOR pins =
+PIN_UTILITY::getDigitalPinNamesFromPinList(scanPins,TM::O_PIN | TM::IO_PIN);
+
+/* Retrieve the failing cycles per pin for this site */
+for(int i=0; i&lt;pins.size(); i++)
+{
+  INT failsToUpload = 1;
+  if(-1 == maxFailsPerPin)
+  {
+    failsToUpload = emap.pin(pins[i]).getErrorCount();
+  }
+  else {
+    failsToUpload = maxFailsPerPin;
+  }
+    
+  ARRAY_LL cycles;
+  emap.pin(pins[i]).getFirstFailingCycles(0, failsToUpload, cycles); 
+  log.pin(pins[i]).failingCycles(cycles);
+    
+  if(includeExpectedData)
+  {
+    ARRAY_CHAR expected;
+    emap.pin(pins[i]).getExpectedDataForCycles(cycles, expected);
+    log.pin(pins[i]).expectedData(expected);
+  }
+}
+/* Push the failures to datalog */
+TESTSET().cont(true).judgeAndLog_ScanTest(log);</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a></div><div><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li><li>SmarTest 7.2.2:  Enhanced judgeAndLog_ScanTest() function can be used within the SMC
+					framework.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 127873</span><script type="text/javascript">var ti='127873';var tt='TESTSET().judgeAndLog_ScanTest()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

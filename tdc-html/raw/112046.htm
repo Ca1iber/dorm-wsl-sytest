@@ -1,0 +1,110 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This topic introduces how to handle the event from SmarTest in a HVM API client."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to get notified with a SmarTest event</title><meta name="keywords" content="Smar, Test"></head><body id="_112046"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 112046</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to get notified with a SmarTest event</h1>
+	
+	
+	<div><p>This topic introduces how to handle the event from SmarTest in a HVM API
+		client.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Handling the event in the client includes creating and registering an event handler
+				for a particular event and starting an HVMAPI internal event loop. The event loop will execute
+				the particular event handler when the corresponding event occurs.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 6.2 or later.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Define the event handler function to handle a particular event. In this function, define
+					the actions that need to be taken when the particular event occurs. You can use the code
+					template below as a reference.</span>
+				<div><pre class="prettyprint linenums copyable">using namespace std;
+using namespace ::xoc::hvmapi;
+void handlerforEvent1(const string &amp;evName, const ParamList &amp;evParams, 
+                       unsigned long sec, long usec, const string &amp;sessionId)
+{
+  if ( evName == "event_category" ) //event_category can be EXECUTION or SESSION.
+  {
+    const string &amp;execState = params["param1"];
+    if ( execState == "state_1" ) 
+    {
+      const string &amp; testflowName = params["param2"];
+      
+      //other normal operation here
+      ...
+    } 
+    else 
+
+    {
+      cout&lt;&lt; "Internal Error, the execution state should be state_1" &lt;&lt;endl;
+    }
+  } 
+  else 
+  {
+    cout&lt;&lt; "Internal Error, the event name should be event_category" &lt;&lt;endl;
+  }
+}</pre></div>
+			</li><li class="stepexpand">
+				<span>Register the event handler in the <code>main()</code> function with the signature <a href="97227.htm" title="This signature is to register an event listener which will be executed by HVMAPI internal execution thread upon a particular event.">addEventhandler</a>. You can use the following code template as a
+					reference.</span>
+				<div><pre class="prettyprint linenums copyable">ParamList evProperty;  //the variable holding the event parameters.
+string sid;
+evProperty["param1"] = "value_for_param1";
+sid = sSessionId; //sSessionId is the variable containing the exact session ID to work with
+addEventListener(handlerforEvent1, "EXECUTION", evProperty, sid);</pre></div>
+			</li><li class="stepexpand">
+				<span>In the <code>main()</code> function, start the event loop to execute the event handler
+					as below:</span>
+				<div><pre class="prettyprint copyable singleline">xoc::hvmapi::eventLoop();</pre></div>
+			</li><li class="stepexpand">
+				<span>Exit the event loop when necessary. You can refer to the code template below.</span>
+				<div><pre class="prettyprint linenums copyable">void myGlobalHandler (const string &amp;evName, 
+                      const ParamList &amp;evParams, 
+                      unsigned long sec, long usec, 
+                      const string &amp;sessionId)
+{
+  if ( evName == "SESSION" ) 
+  {
+    const string &amp;ssnState = evParams["SESSION_STATE"];
+    if ( ssnState == "SMARTEST_SESSION_TERMINATED" ) 
+    {
+      eventLoopExit(); 
+      //this will terminate the HVMAPI internal execution thread
+    }
+  }
+}</pre></div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The event handler is registered and will be executed when the specified event
+				occurs.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following example defines the event handler for the event <a href="96461.htm" title="This asynchronous event indicates the execution of a test flow is completed.">TESTFLOW_EXEC_COMPLETED</a>.</p><pre class="prettyprint linenums copyable">using namespace std;
+using namespace ::xoc::hvmapi;
+void handlerTestflowExecCompleted(const string &amp;evName, 
+                                  const ParamList &amp;evParams, 
+                                  unsigned long sec, 
+                                  long usec, 
+                                  const string &amp;sessionId)
+{
+  if ( evName == "EXECUTION" )
+  {
+    const string &amp;execState = evParams["EXECUTION_STATE"];
+    if ( execState == "TESTFLOW_EXEC_COMPLETED" )
+    {
+      
+      //other normal operations here
+      ...
+    }
+    else
+
+    {
+      cout &lt;&lt;"Internal Error, the execution state should be TESTFLOW_EXEC_COMPLETED" &lt;&lt;endl;
+    }
+  }
+  else
+  {
+    cout &lt;&lt;"Internal Error, the event name should be EXECUTION" &lt;&lt;endl;
+  }
+}</pre><p>In
+				the main() function, you need to register the event handler as
+			below:</p><pre class="prettyprint linenums copyable">ParamList evProperty;
+string sid = "sessionId"; // the exact session ID to work with, such as ":13"
+evProperty["EXECUTION_STATE"] = "TESTFLOW_EXEC_COMPLETED";
+addEventListener(handlerTestflowExecCompleted,
+                 "EXECUTION", evProperty, sid);</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 112046</span><script type="text/javascript">var ti='112046';var tt='How to get notified with a SmarTest event'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

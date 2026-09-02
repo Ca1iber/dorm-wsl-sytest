@@ -1,0 +1,212 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This test method performs spec search based on the pre-calculated level/timing set and burst label."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SetBasedSpecSearch</title><meta name="keywords" content="Set, Based, Spec, Search"></head><body id="_122200"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122200</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SetBasedSpecSearch</h1>
+	
+	
+	<div><p>This test method performs spec search based on the pre-calculated level/timing set and
+		burst label.</p>
+		<section class="section"><p>Before running spec search, the spec value is calculated
+				with the specified start, stop and resolution of the search. Then a level/timing set is defined
+				for each calculated spec value. After that a label is created for each level/timing set with
+				CLEV/CTIM. Then a burst label is created with the labels.</p><div class="p"><figure class="fignone">
+					
+					<img src="123394.png" alt="Concept of set-based search">
+				</figure></div><p>The last step is to execute the burst label, query out the failure labels, find out
+				the pass/fail transition point and derive the spec value at the P/F point.</p><p>Two algorithms
+				are used in this test method to calculate the spec value, linear search and fast linear
+				search.</p><p>In the fast linear algorithm, a linear search with a coarse step width is done to
+				find out the transition point of the spec value. Then linear searches with fine step width are
+				done in the transition range for each site with proper sub-burst pattern. The transition spec
+				values are retrieved.</p><div class="p"><figure class="fignone">
+					
+					<img src="123205.png" alt="Algorithm of fast linear search">
+				</figure></div><p>There are three modes in the test method, training mode, evaluation mode and
+				production mode.</p><p>The training mode is used to generate level/timing and pattern setup
+				files for spec search. You can try different setup and search conditions to tune on the
+				performance.</p><p>The evaluation mode is used to evaluate the performance of the specified
+				training conditions. The level/timing sets and labels have been generated in training mode and
+				not saved yet. But the burst pattern is dynamically downloaded once during execution. You can
+				not specify the search conditions in this mode.</p><p>The production mode is used do spec search
+				in production with the trained conditions. All setup files need to be saved before executing the
+				test method in production mode. You cannot specify the search conditions in this mode.</p><p>To
+				use this test method, you need first specify the search conditions and run the test method in
+					<strong>training </strong>mode to get the trained setup files. To evaluate the performance of the trained
+				setups, execute the test method in <strong>evaluation</strong> mode. If you are satisfied with the
+				performance, save the setup files and execute the test method in <strong>production </strong>mode. If the
+				performance is not good, you can reload the setup files, change the search conditions and
+				execute the test method in training mode and evaluation mode again.</p><p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p></section>
+		<section class="section"><h2>Limitations</h2><ul>
+				<li>All limitations of CTIM/CLEV apply for this test method.</li>
+				<li>In evaluation mode, burst pattern is downloaded during the test method execution. But this
+					is avoided in the production mode. Use production mode for final test method execution.</li>
+				<li>In multi-site test with <kbd class="userinput">fast_linear</kbd> algorithm, set test suite flag
+						<span class="uicontrol">Site match</span> to on and flag <span class="uicontrol">Fail per label</span> to
+					off.</li>
+				<li>This test method does not support DPS related specs. You can use <a href="91084.htm" title="The Spec Search test method shifts specs defined in the equation-based test setup. These specs can be related to level or timing resources.">SpecSearch</a>.</li>
+				<li>This test method does not support multi-port level spec search. You can use <a href="91084.htm" title="The Spec Search test method shifts specs defined in the equation-based test setup. These specs can be related to level or timing resources.">SpecSearch</a>.</li>
+				<li>If the search pattern is long, use <a href="91084.htm" title="The Spec Search test method shifts specs defined in the equation-based test setup. These specs can be related to level or timing resources.">SpecSearch</a> for the test.</li>
+				<li>Mask the pins which do not contribute to the test result in pattern tool.</li>
+			</ul></section>
+		<section class="section"><h2>Parameters</h2><table><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_122200__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_122200__entry__2"><p>Type</p>
+							</th>
+							<th class="colsep-1" id="_122200__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>specVar</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>SpecVariable</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>The spec variables to be shifted</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>algorithm</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>Algorithm to shift the spec variable. It can be:</p>
+								<p><kbd class="userinput">linear</kbd>: linear search</p>
+								<p><kbd class="userinput">fast_linear</kbd>: fast linear search</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>start</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>Start point of the search</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>stop</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>Stop point of the search</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>resolution</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>Resolution of the search</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>workMode</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>The test method working mode. It can be:</p>
+								<p>training: used to generate test setups</p>
+								<p>evaluation: used to evaluate the test performance</p>
+								<p>production: used for high throughput test with trained setup</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>workMode.CTIM/CLEV_Pattern_Template</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>Template pattern of calling CTIM/CLEV command. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>workMode.newBurstPatternName</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>(optional) the burst pattern to be created for set-based search. It combines
+									CLEV/CTIM pattern and normal search pattern.</p>
+								<p>if not specified, the test suite name is used to create the new pattern name, formatted
+									as "_testsuitename_SpecSearch".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>output</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>Print message on UI report window or not. It can be:</p>
+								<p>NONE: do not output to UI report window</p>
+								<p>ReportUI: output message to UI report window</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_122200__entry__1"><p>testName</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_122200__entry__3"><p>The test names to be used as limits. Default is
+										<kbd class="userinput">SpecSearch_Test</kbd>. </p>
+								<p>If you want to use the test names defined in the test table or testflow limits, type in
+			the test names manually. Make sure the test names are in the <span class="uicontrol">Test name
+			</span>column of the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in the <span class="uicontrol">Test
+				Name</span> column of Tests page of Flow Data Editor.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Limits</h2><table><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>SpecSearch_Test</p>
+							</td>
+							<td class="colsep-1"><p>This limit is only used to enter the test number.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Implementation pseudo
+			code</h2><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN
+  //Process parameter
+  Validate all parameters
+  Process search conditions
+  IF training THEN
+    Parse current equation setup
+    define new level/timing sets
+    create new pattern of CLEV/CTIM based on input template pattern
+    create burst pattern combing CLEV/CTIM pattern and search pattern
+    download new equation setup
+    activate new burst pattern
+  ELSEIF evaluation THEN
+    activate the target burst pattern
+  ENDIF
+ON_FIRST_INOVATION_END
+//do measurement
+ON_FIRST_INVOCATION_BEGIN
+  Clear search result cache
+  Define error map record mode with DCRM
+  Run functional test with FTST
+  FOR_EACH_SITE_BEGIN
+    Query pattern result in burst with ERMP
+    Parse and record result for each site
+  FOR_EACH_SITE_END
+  IF further search is required THEN
+    Set default pattern with SQSL for all sites
+    FOR_EACH_SITE_BEGIN
+      Set pattern for site with SQSL
+    FOR_EACH_SITE_END
+    Activate pattern per site with APRM
+    Run functional test with FTST
+    Set default pattern with SQSL for all sites
+    FOR_EACH_SITE_BEGIN
+      Query pattern result in burst with ERMP
+      Parse and record result for each site
+    FOR_EACH_SITE_END
+  ENDIF
+  Restore back error map record mode to default with DCRM 
+ON_FIRST_INOVATION_END
+datalog the test result
+report result to UI</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li><li>SmarTest 7.1.0:  The parameter workMode.searchPatternOnPort is removed.</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is supported in
+					TML 2.1.1.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122200</span><script type="text/javascript">var ti='122200';var tt='SetBasedSpecSearch'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

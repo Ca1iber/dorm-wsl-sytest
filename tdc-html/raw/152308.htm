@@ -1,0 +1,34 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Since 2.4.4, SmartRDI supports DCS waveform() ans samples() in the same execute()."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Forcing waveform on a pin and sampling on another pin</title><meta name="keywords" content="wave form waveform table"></head><body id="_152308"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 152308</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Forcing waveform on a pin and sampling on another pin</h1>
+	
+	
+	<div><p>Since 2.4.4, SmartRDI supports DCS <code>waveform()</code> ans
+			<code>samples()</code> in the same <code>execute()</code>. </p>
+		<section class="section"><p>Before SmartRDI 2.4.4, parallel forcing and sampling a waveform on two different pins
+				can be realized by a multiport setup
+				only.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("portA").dc().pin("A").waveform(sine).FS(100 KHz).execute();
+  rdi.port("portB").dc().pin("B").samples(1024).FS(100 KHz).execute();
+RDI_END();</pre><p>In
+				SmartRDI 2.4.4, it is possible within one <code>execute()</code> on a common port. SmartRDI
+				will create one label for forcing and sampling a waveform in parallel on two different pins. The
+					<span class="keyword">FS</span> should be the same. <code>measWait()</code> is supported to add a
+				delay between the force and measure
+				events.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("portC").dc().pin("A").vForce().waveform(sine).FS(100 KHz)
+                        .pin("B").vMeas().samples(1024).FS(100 KHz)
+                        .execute(); 
+RDI_END();</pre><div></div>
+			<div class="p">Using
+				<code>measWait()</code>:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("portC").dc().pin("A").vForce().waveform(sine).FS(100 KHz)
+                        .pin("B").vMeas().samples(1024).FS(100 KHz).measWait(10 us)
+                        .execute(); 
+RDI_END();</pre></div><p>The
+				following figure gives an intuitive view of this change in codes:</p><div class="p"><figure class="fignone">
+					<img src="152410.png" alt="Parallel forcing and sampling a waveform on two different pins: example">
+				</figure></div></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 152308</span><script type="text/javascript">var ti='152308';var tt='Forcing waveform on a pin and sampling on another pin'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

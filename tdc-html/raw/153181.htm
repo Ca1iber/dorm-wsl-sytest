@@ -1,0 +1,89 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If you have multiple digCap() results to upload for the same pin, this function can help reduce the result uploading time. The results of multiple digital capture results to upload within one burstUpload().begin()/burstUpload().end() block will be combined and uploaded together. Individual results can still be separated."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>burstUpload()</title><meta name="keywords" content="burst, Upload"></head><body id="_153181"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 153181</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">burstUpload()</h1>
+	
+	
+	<div><p>If you have multiple digCap() results to upload for the same pin, this function can help
+		reduce the result uploading time. The results of multiple digital capture results to upload within
+		one <span class="keyword">burstUpload().begin()/burstUpload().end()</span> block will be combined and
+		uploaded together. Individual results can still be separated. </p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">burstUpload();</pre></div>
+		<section class="section"><h2>Limitations and Checks for digital capture</h2>
+			
+			<p>In one
+					<code>digCap().burstUpload().begin()</code>/<code>digCap().burstUpload().end()</code>
+				block:</p>
+			<ul>
+				<li>One pin cannot <ul>
+						<li>be set to both modes "SER" and "PAR"</li>
+						<li>have different values for <code>bitPerWord()</code></li>
+						<li>join different "PAR" pin combinations</li>
+						<li>have <code>initDiscard()</code> or <code>InterSkip()</code> if
+								<code>digCap()</code> is inserted in an existing label</li>
+					</ul></li>
+				<li>In one <code>execute()</code> with multiple pins, parameters of
+						<code>samples()</code>, <code>initDiscard()</code> and <code>interSkip()</code>
+					should be equal for all pins.</li>
+			</ul>
+			<div class="note"><span class="title">Note</span> 
+				<p>Do not use <span class="keyword">rdi.digCap()</span> and <span class="keyword">rdi.smartVec()</span> commands for
+					the same pin in the same <span class="keyword">rdi.digCap().burstUpload()</span> block. For example,</p>
+				<div class="p">
+					<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+   ...
+   rdi.digCap().burstUpload().begin();
+      ...
+      rdi.digCap().pin(A)....;
+      rdi.smartVec().pin(A).readXxx()....; // Read with the DIG_CAP mode
+      ...
+   rdi.digCap().burstUpload().end();
+   ...
+RDI_END();</pre><div></div>
+				</div>
+				<p>In this example, <span class="keyword">rdi.smartVec()</span> will read bits or data with the digital
+					capture mode for the same pin "A" as in the <span class="keyword">rdi.digCap()</span> command. This is
+					NOT allowed and will not work. </p>
+			</div>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Common upload with separated results retrieval</h3><p>This example uses
+					<code>burstUpload()</code> to combine multiple results into a common upload, and retrieves
+				results one by one through individual result
+			ID.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+ ...
+   rdi.digCap().burstUpload().begin();
+      rdi.smartVec();             // register setting 1
+      rdi.digCap("10M").pin(A).samples(1000).execute();
+      rdi.smartVec();            // register setting 2
+      rdi.digCap("20M").pin(A).samples(2000).execute(); 
+      rdi.smartVec();            // register setting 3
+      rdi.digCap("30M").pin(A).samples(4000).execute();     
+   rdi.digCap().burstUpload().end();
+ ...
+RDI_END();
+
+ARRAY_I vec1,vec2,vec3;
+vec1=rdi.id("10M").getVectorBit();
+vec2=rdi.id("20M").getVectorBit();
+vec3=rdi.id("30M").getVectorBit();</pre></div>
+		<div class="example"><h3>Common upload with combined results retrieval</h3><p>This example uses
+					<code>burstUpload()</code> to combine multiple results into a common upload, and retrieves
+				combined results through a common result
+			ID.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+ ...
+   rdi.digCap("bid").burstUpload().begin();
+      rdi...
+      rdi.digCap().pin(A).samples(1000).execute();
+      rdi...
+      rdi.digCap().pin(A).samples(2000).execute(); 
+      rdi...
+      rdi.digCap().pin(A).samples(4000).execute();     
+   rdi.digCap().burstUpload().end();
+ ...
+RDI_END();
+
+rdi.id("bid").getVector();
+rdi.id("bid").getVectorBit();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="141504.htm" title="SmartRDI provides the class digCap() and the following functions to set up digital capture tests.">SmartRDI: Digital capture test setup</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 153181</span><script type="text/javascript">var ti='153181';var tt='burstUpload()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

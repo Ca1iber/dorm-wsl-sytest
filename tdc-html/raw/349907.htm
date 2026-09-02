@@ -1,0 +1,99 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmarTest licenses are managed by a license server, which can be installed locally on the SmarTest system controller workstation."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Local license server installation for bare-metal RHEL7 SmarTest system controllers</title><meta name="keywords" content="PC workstation, Smar, Test, RHEL, 7"></head><body id="_349907"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 349907</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Local license server installation for bare-metal RHEL7 SmarTest system controllers</h1>
+	
+	
+	<div><p>SmarTest licenses are managed by a license server, which can be installed locally on the
+		SmarTest system controller workstation. </p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div>
+			<p>There are two possible arrangements for the local license server installation: </p>
+			<ul>
+				<li>The SmarTest client only accesses the local license server.</li>
+				<li>The SmarTest client accesses both the local license server and other license servers to get
+					all licenses.</li>
+			</ul>
+			<p>An important part of this process involves your identification of a computer that can function
+				effectively as a license server. For an overview of considerations that may affect your choice
+				of a license server that fits your specific test setup, refer to <em>FLEXlm Floating License Server
+					Selection Guide</em> in the <em>LTH/STH Site Planning and Preparation Guide</em>.</p>
+		</section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div>
+			<p>A license server can be installed and configured directly (bare-metal) on the following types
+				of system controller workstations:</p>
+			<ul>
+				
+				
+				<li>Z4G4 workstations running a supported RHEL 7.x operating system.</li>
+			</ul>
+			<p>The supported SmarTest versions and system controllers are detailed in the topic: <a href="152086.htm" title="SmarTest running on a RHEL system controller is used to run test programs on V93000 test systems. Suitable workstation hardware, RAM and BIOS versions are detailed for the supported SmarTest versions in the following tables. Some workstations can also be used to install a supported version of both SmarTest 7 and SmarTest 8, should you need to run both versions from the same system controller.">SmarTest Prerequisites</a>.</p>
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Install the license server software on the workstationas described in 
+					<a href="76930.htm" title="An important part of this process involves your identification of a computer that can function effectively as a license server. For an overview of considerations that may affect your choice of a license server that fits your specific test setup, refer to FLEXlm Floating License Server Selection Guide in the LTH/STH Site Planning and Preparation Guide.">Create a SmarTest license server</a>.
+				</span>
+			</li><li class="stepexpand">
+				<span>Configure the license servers to be used: either the local license server only or both the
+					local license and central license servers.</span>
+				<div>
+					<ul>
+						<li>
+							<p><strong>Using local license server only:</strong></p>
+							<ol type="a">
+								<li>Place the license file in the <span class="filepath">/opt/flexlm/license</span> directory. (If
+									the license directory does not exist, create it).</li>
+								<li>From the directory <span class="filepath">/opt/flexlm/license</span>, open the license file for
+									editing.</li>
+								<li>Without changing any other content in the license file, in the first line:
+										<code>SERVER this_host</code>, replace <code>this_host</code> with the hostname of
+									the workstation.</li>
+							</ol>
+						</li>
+						<li>
+							<p><strong>Using local and central license servers:</strong></p>
+							<ol type="a">
+								<li>Create the directory <span class="filepath">/opt/flexlm/local_license</span>. </li>
+								<li>Place the local license file (with the <span class="keyword">INCREMENT</span> lines) in the
+										<span class="filepath">/opt/flexlm/local_license</span> directory.</li>
+								<li>Place the pointer files to the central license servers in the directory:
+										<span class="filepath">/opt/flexlm/license</span>.</li>
+								<li>Also in the <span class="filepath">/opt/flexlm/license</span> directory, create a pointer file to
+									the local license server with the following content: <div class="p">
+										<div></div><pre class="prettyprint linenums copyable">SERVER this_host &lt;host ID&gt;
+VENDOR socbu
+USE_SERVER</pre><div></div>
+									</div>
+									<div class="note"><span class="title">Note</span> Do NOT include <code>INCREMENT LINES</code>, but include the
+											<code>USE_SERVER</code> line.<p>The <span class="filepath">/opt/flexlm/license</span>
+											directory is used by SmarTest to check which license servers to contact. Therefore, only
+											pointer files are needed.</p><p>The <span class="filepath">/opt/flexlm/local_license</span>
+											directory is used by the local license server to read the actual license file with
+												<code>INCREMENT</code> lines to know which licenses to serve.</p></div></li>
+							</ol>
+						</li>
+					</ul>
+				</div>
+			</li><li class="stepexpand">
+				<span>Start the license server: log in as <span class="keyword">root</span> user and enter the command
+					appropriate for your operating system:</span>
+				<div>
+					<p><span class="keyword">RHEL7:</span>
+						<kbd class="userinput">systemctl start v93-license</kbd></p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Check if the local license server is running:</span>
+				<div>
+					<p><kbd class="userinput">/opt/flexlm/bin/lmutil lmstat -a -c /opt/flexlm/license</kbd></p>
+					<p>A message stating that the license server is UP confirms that the license server is running.
+						If the license server is not running start it. For details see 
+						<a href="76932.htm" title="The license server is implemented as a system service. If licenses are available, the license server starts automatically on system start.">SmarTest License server basic operations</a>. </p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Start SmarTest and check if the license checkout is working.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div>
+			<p>You have installed and configured a license server locally on your SmarTest system
+				controller.</p>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 8.3.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 349907</span><script type="text/javascript">var ti='349907';var tt='Local license server installation for bare-metal RHEL7 SmarTest system controllers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

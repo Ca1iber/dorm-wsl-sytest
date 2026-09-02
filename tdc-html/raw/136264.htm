@@ -1,0 +1,113 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="With the PPMU of Smart Scale PS1600 channel card, you can generate analog waveforms."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to use PPMU as Arbitrary Waveform Generator (AWG)</title><meta name="keywords" content="parametric measurement unit per-pin PMU wave form waveform table"></head><body id="_136264"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136264</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to use PPMU as Arbitrary Waveform Generator (AWG)</h1>
+	
+	
+	<div><p>With the PPMU of Smart Scale PS1600 channel card, you can generate analog
+		waveforms.</p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>You have an ADC device, and it consists of pin configuration, level, timing and pattern
+				setup files. </p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Step1: prepare the pin configuration file</h3><ol>
+				<li>In the <span class="uicontrol">Pin Settings</span> editor, click <span class="uicontrol">Digital Pins</span>
+					editor to define your digital pin used as AWG.<div class="p"><figure class="fignone">
+							
+							<img src="136302.png" alt="Pins for PPMU port">
+						</figure></div></li>
+				<li>In the <span class="uicontrol">Ports </span>editor, define a new port for PPMU containing the
+					digital pin connected to the ADC.<div class="p"><figure class="fignone">
+							
+							<img src="136303.png" alt="PPMU port">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>Step2: prepare the timing and level setup files</h3><ol>
+				<li>Refer to <a href="124926.htm" title="The PS1600 card can have eight calibrated timing tri-state edges and, hence, uses the new edge definition syntax.">PS1600 timing and vector setup</a> to set up your timing
+					configuration.</li>
+				<li>Refer to <a href="124925.htm">PS1600 level setup</a> to set up your level configuration.</li>
+			</ol></section>
+		<section class="section"><h3>Step3: prepare the patterns</h3><ol>
+				<li>In the <span class="uicontrol">Pattern Explorer</span>, create a main label for your PPMU port. The
+					label needs to call a subroutine containing your desired waveform. The ramp waveform is used as
+					an example.<div class="p"><figure class="fignone">
+							
+							<img src="136304.png" alt="the PPMU main label">
+						</figure></div></li>
+				<li>Create an empty sub-label for your main PPMU port.<div class="p"><figure class="fignone">
+							
+							<img src="136305.png" alt="the PPMU sub-label">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>Step4: create test methods for using PPMU as AWG</h3><ol>
+				<li>To add a PPMU waveform to the PPMU sub-label, write your test method code with three APIs:
+					ANALOG_WAVEFORM, DC_WAVEFORM and PATTERN_CONTROLLER. Here is an
+					example.<div></div><pre class="prettyprint linenums copyable">
+  virtual void connectInstruments()
+  {
+    PPMU_SETTING ppmuSetup;
+    FLEX_RELAY   connect;
+    TASK_LIST    taskList;
+      ppmuSetup.pin("p1").vForce(-1 V).iRange(1 mA).min(0 mA).max(100 uA);
+
+      connect.pin("p1").set("PPMU");
+      connect.wait(2 ms);
+
+    taskList.add(ppmuSetup).add(connect).execute();
+  }
+  virtual void createPpmuRamp()
+  {
+    ANALOG_WAVEFORM ramp("ramp");
+      ramp.definition(TM::RAMP).direction(TM::POS)
+          .min(-1 V).max(5.5 V).samples(2048);
+
+    DC_WAVEFORM dcWaveform;
+      dcWaveform.vForce(ramp)
+                .vRange(6 V).iRange(1 mA).sampleVectorDistance(1024);
+
+    PATTERN_CONTROLLER patternControllerDcWaveForm;
+      patternControllerDcWaveForm.label("ppmuSubRamp","portPpmu").add(dcWaveform);
+      patternControllerDcWaveForm.setup();
+  }
+  virtual void disconnectInstruments()
+  {
+    FLEX_RELAY disconnectPpmu;
+      disconnectPpmu.pin("p1").set("IDLE","OFF");
+      disconnectPpmu.execute();
+  }
+  virtual void run()
+  {
+   /*** 1) Waveform generation ***/
+    if ( firstRun ) {  
+      createPpmuRamp();
+      firstRun = false;
+    }
+   /*** 2) Test execution ***/
+    ON_FIRST_INVOCATION_BEGIN();
+      connectInstruments();
+      FUNCTIONAL_TEST();
+      disconnectInstruments();
+    ON_FIRST_INVOCATION_END();
+
+return; 
+  }
+</pre></li>
+				<li>The DC waveform container needs additional parameters:<p>vRange and iRange are used for
+						compensating the waveform values.</p>
+					<div class="note"><span class="title">Note</span> These ranges are not applied to the PMU hardware. This must have been done
+						previously by the user when he prepares the system for waveform generation with the
+						PPMU.</div><p>sampleVectorDistance specifies the distance between waveform points</p>
+					<p>The waveform will be added via PATTERN_CONTROLLER API.</p></li>
+			</ol></section>
+		<section class="section"><h3>Step5: create test suites to call the UTM </h3><ol>
+				<li>Generate a testflow and insert some test suites, which will use your prepared UTM codes from
+					step 4. </li>
+				<li>After running the previous code example, you can see the sub-label looks like below:<div class="p"><figure class="fignone">
+							
+							<img src="136943.png" alt="the PPMU sub-label after running UTM">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You have used PPMU of the PS1600 card to generate an analog waveform. </p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p><a href="136311.htm" title="A PS1600 card can be used to generate analog waveforms and digitize them. You can use a digital pin as AWG and another digital pin as digitizer.">How to use PPMU as AWG and BADC as digitizer together</a></p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136310.htm">How to use the BADC as digitizer</a></div><div><a href="136311.htm" title="A PS1600 card can be used to generate analog waveforms and digitize them. You can use a digital pin as AWG and another digital pin as digitizer.">How to use PPMU as AWG and BADC as digitizer together</a></div><div><a href="136314.htm" title="The DC instruments use the DC_WAVEFORM class to create voltage and current waveforms, and the waveforms are derived from analog waveforms.">DC_WAVEFORM</a></div><div><a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a></div><div><a href="122932.htm">PS1600 specifications</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136264</span><script type="text/javascript">var ti='136264';var tt='How to use PPMU as Arbitrary Waveform Generator (AWG)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

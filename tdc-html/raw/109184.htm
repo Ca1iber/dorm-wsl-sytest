@@ -1,0 +1,109 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="After all the digital setup and analog setup are finished, you need develop a test method to control the ADC test process."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Test method for ADC test</title><meta name="keywords" content="testmethod"></head><body id="_109184"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 109184</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Test method for ADC test</h1>
+	
+	
+	<div><p>After all the digital setup and analog setup are finished, you need develop a test
+		method to control the ADC test process. </p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="20837.png" alt="Test method program and related APIs">
+			</figure></div>
+		<p>Shown as the above figure, the typical testing flow in a test method program consists of the
+			following five steps.</p>
+		<section class="section"><h2>Changing existing setup data (or setting up new setup data)</h2><p>You can create new setup data
+			.</p><p>You can also change the existing setup data in case that multiple measurements are performed with
+				different conditions in a test method program. APIs for setting up the measurement conditions,
+				which are called <strong>Setup APIs</strong>.</p></section>
+		<section class="section"><h2>Executing test</h2><p>After conditioning the setup data, you can start test
+				execution by using one of <strong>Execution APIs</strong>, which correspond to the types of
+				tests.</p><p>For ADC test which contains digital capture, <em><a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST</a></em> API is
+				used.</p></section>
+		<section class="section"><h2>Retrieving raw measurement data</h2><p>After measurement, you can retrieve the
+				raw measurement data (for example, analog waveform data, single value, and so on). APIs for
+				retrieving measurement data are called <strong>Result APIs</strong>. </p><p>For ADC test, the member
+				function <kbd class="userinput">getVectors</kbd> of <em><a href="29830.htm" title="The VECTOR API accesses a data container holding the settings of a vector variable. The class functions are used to either get, or set, vector variable data which will indirectly retrieve or change vector memory.">VECTOR</a></em> API is
+			used.</p></section>
+		<section class="section"><h2>Computing data</h2><p>You can compute the measurement data to obtain the
+				desired parameters. All calculations are performed on the workstation. APIs for computing data
+				are called <strong>Computation APIs</strong>. They support dozens of computation functions. </p><p>For ADC
+				linearity test, <em><a href="29006.htm" title="For the specified array, this API sets up bins, and sort the elements of the specified array into the bins, then returns the results in histogram format.">DSP_HISTOGRAM</a>, <a href="28801.htm" title="This API computes the differential linearity error (DLE) and integral linearity error (ILE) for an A/D converter from the results of a static histogram test using ramp input signal.">DSP_ADC_HISTOGRAM</a></em> and <em><a href="29025.htm" title="This API computes the differential linearity error (DLE) and integral linearity error (ILE) for a D/A converter or A/D converter.">DSP_LINEAR</a></em><em> </em>APIs can be used to calculate DNL and INL.</p><p>For ADC
+				distortion test, <em><a href="29259.htm" title="For the specified signal frequency (determined by rel_freq) in src, this API computes the total harmonic distortion (THD), power of the second harmonic (H2), power of the third harmonic (H3), signal to noise plus distortion (SND), signal-to-noise ratio (SNR), spurious free dynamic range (SFDR), and signal power in decibels or percent.">DSP_THD</a></em> API can be used to compute SNR and
+			THD.</p></section>
+		<section class="section"><h2>Judging result to pass or fail</h2><p>Comparing the result values against the
+				specified limits, you can judge whether the obtained result has passed or failed in order to
+				determine the pass/fail of the test suite.</p><p>APIs for judging the result are called
+					<strong>Judgment APIs</strong>, such as <em><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></em>. In addition to judgment, these
+				APIs can be used for data logging. </p></section>
+		<h2>Example</h2><div class="example"><p>The following is an example of test method for ADC linearity which includes the above
+				five steps. Notice that in this example, the integer array "miss_code" has size 1024 because a
+				10 bit ADC is
+			assumed.</p><pre class="prettyprint linenums copyable">    INT       GlobalOverOn = 1;
+    INT       Offline_flag = 0;
+    INT       i, num_pts;
+    ARRAY_D   dgtz_waveform;
+    ARRAY_I   dgtz_waveformI;
+    ARRAY_I   histogram;
+
+    LINEARtype    linear_result;
+    ARRAY_D     dle, ile;
+    INT         miss_number;
+    INT miss_code[1024];
+    DOUBLE      min_code_size = 0;
+
+/* Step 1: Change existing setup data */
+  ON_FIRST_INVOCATION_BEGIN();
+    CONNECT();
+
+    GET_TESTFLOW_FLAG("global_overon", &amp;GlobalOverOn);
+    GET_SYSTEM_FLAG("offline", &amp;Offline_flag);
+       
+    Routing.pin(AWG_pin_name).connect(TM::SINGLE);
+    FLUSH();
+    AWG(AWG_pin_name).enable();
+
+  
+/* Step 2: execute test */
+  
+    DIGITAL_CAPTURE_TEST();
+   
+    AWG(AWG_pin_name).disable();
+    Routing.pin(AWG_pin_name).disconnect();
+    FLUSH();
+  ON_FIRST_INVOCATION_END();  
+ 
+/* Step 3: Retrieve raw measurement data */
+
+    dgtz_waveformI = VECTOR(cap_label).getVectors();
+
+     //  Adjust for Offset
+
+    num_pts=lin_smpl_pts;
+    if(!Offline_flag) {
+       dgtz_waveform.resize(lin_smpl_pts);
+       for(i=0;i&lt;num_pts;i++) {
+          dgtz_waveform[i]=(double)dgtz_waveformI[i+lin_offset_pts];
+          }
+         }
+   
+    PUT_DEBUG(adc_pin, "Source", dgtz_waveform);
+   
+
+/* Step 4: compute data */
+ 
+    DSP_HISTOGRAM ( dgtz_waveform, histogram, 1, 255, 256);   
+    PUT_DEBUG(adc_pin, "Histogram", histogram);
+    DSP_ADC_HISTOGRAM ( histogram, &amp;linear_result, dle, ile,
+     &amp;miss_number, miss_code, END_PT, min_code_size );
+   
+    PUT_DEBUG(adc_pin, "ILE", ile);
+    PUT_DEBUG(adc_pin, "DLE", dle);
+
+ 
+/* Step 5: judge result to pass or fail and log result */
+   
+    TEST( adc_pin, "INL", linear_result.iamax, GlobalOverOn );
+    TEST( adc_pin, "DNL", linear_result.damax, GlobalOverOn );</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 109184</span><script type="text/javascript">var ti='109184';var tt='Test method for ADC test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

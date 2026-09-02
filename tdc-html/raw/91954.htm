@@ -1,0 +1,56 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="-xpi and -xpe can be specified with integer parameters. These integers influence the number of padding vectors created by v2b. If such an integer is present, then the number of padding vectors will be such that the total number of ASCII vectors in the padded block is directly divisible by this integer (and not only by the x-mode factor of the respective pattern). The purpose of this is to allow synchronization of corresponding blocks in patterns that belong to different ports and run with different x-mode factors. In this section, this will be explained for subroutine calls."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Synchronizing Subroutine Calls in Different Ports</title></head><body id="_91954"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91954</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Synchronizing Subroutine Calls in Different Ports</h1>
+	
+	
+	<div><p><kbd class="userinput">-xpi</kbd> and <kbd class="userinput">-xpe</kbd> can be specified with
+		integer parameters. These integers influence the number of padding vectors created by <strong>v2b</strong>.
+		If such an integer is present, then the number of padding vectors will be such that the total
+		number of ASCII vectors in the padded block is directly divisible by this integer (and not only by
+		the x-mode factor of the respective pattern). The purpose of this is to allow synchronization of
+		corresponding blocks in patterns that belong to different ports and run with different x-mode
+		factors. In this section, this will be explained for subroutine calls.</p>
+		<p>We assume the following scenario:</p>
+		<p>There are two ports which belong to the same sequencing group (this is a necessary condition
+			for synchronization across ports). The main patterns of both ports have the same structure, that
+			is, they</p>
+		<ul>
+			<li>have the same number of ASCII vectors</li>
+			<li>use the same ASCII device cycle </li>
+			<li>have the same sequencer instructions at the same locations.</li>
+		</ul>
+		<p>This also holds for the two subroutines. The two ports are to run with different x-modes.
+			Nonetheless the start of the subroutine and the restart of the main pattern after the subroutine
+			are to be simultaneous in both ports.</p>
+		<p>The following figure shows how this can be accomplished.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="91988.png" alt="Synchronizing Subroutine Calls with Different X-Modes">
+			</figure></div>
+		<p>Observe the following points in this figure:</p>
+		<ul>
+			<li>The processing is only explained for the two subroutines. </li>
+			<li>The timing map file fragments show that the x-mode factor for the <kbd class="userinput">scan</kbd>
+				port is 2, and the x-mode factor for the <kbd class="userinput">para</kbd> port is 3. The x-mode
+				factor of the <kbd class="userinput">para</kbd> port is passed to <strong>v2b</strong> along with the
+					<kbd class="userinput">scan_sub</kbd> pattern as an additional parameter of the
+					<kbd class="userinput">-xpi</kbd> and <kbd class="userinput">-xpe</kbd> options. In the same way <strong>v2b</strong>
+				is informed of the x-mode factor of <kbd class="userinput">scan_sub</kbd> for the translation of the
+					<kbd class="userinput">par_sub</kbd> pattern. Each of the three sections is padded to 6 ASCII
+				vectors. </li>
+			<li>The example uses a common ASCII vector file for both subroutines. But the two main patterns
+				must each have their own ASCII vector file. The reason for this is that the subroutine names
+				must be different in the two main patterns because pattern names must be unique across
+				ports.</li>
+			<li>To give an explicit example of the calculation: The 5 ASCII vectors within the
+					<kbd class="userinput">RPTV</kbd>/<kbd class="userinput">PADDING</kbd> construct are padded to the next
+				common multiple of 3 and 2, which is 6. For <kbd class="userinput">par_sub</kbd> with its x-mode
+				factor of 3, this results in 2 binary vectors which are repeated 4 times. This corresponds to 24
+				ASCII vectors. For <kbd class="userinput">scan_sub</kbd>, which has an x-mode factor of 2, it results
+				in 3 binary vectors which are also repeated 4 times, and this also corresponds to 24 ASCII
+				vectors. The <kbd class="userinput">RPTV</kbd> blocks therefore have the same length in time in both
+				subroutines. </li>
+		</ul>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91954</span><script type="text/javascript">var ti='91954';var tt='Synchronizing Subroutine Calls in Different Ports'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

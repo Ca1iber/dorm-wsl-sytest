@@ -1,0 +1,317 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API computes the differential linearity error (DLE) and integral linearity error (ILE) for an A/D converter from the results of a static histogram test using ramp input signal."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_ADC_HISTOGRAM</title></head><body id="_28801"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 28801</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_ADC_HISTOGRAM</h1>
+	
+	
+	<div><p>This API computes the differential linearity error (DLE) and integral linearity error
+		(ILE) for an A/D converter from the results of a static histogram test using ramp input
+		signal.</p>
+		<section class="section"><p>To calculate the linearity errors of an A/D converter from the occurrences of output
+				digital codes that resulted in the corresponding analog input levels, you should sort the output
+				codes using the DSP_HISTOGRAM before using this function.</p><div class="note"><span class="title">Note</span> If the
+				DSP_ADC_HISTOGRAM API is run and the histogram contains only missing codes (that is, all values
+				between the first and the last bin of the histogram are zero), the DSP_ADC_HISTOGRAM API will
+				fail. This indicates that an error has occurred- either you have incorrectly chosen the minimum
+				and maximum boundaries of the histogram or the A/D converter under test is not working and
+				outputs, for instance, a flat line instead of a ramp waveform. You should handle this error, for
+				example, with a try/catch block as shown in the code example below (see the examples
+				section).</div><div class="p"><figure class="fignone">
+					
+					<img src="28805.png" alt="Histogram Format">
+				</figure></div><p><kbd class="userinput">DSP_ADC_HISTOGRAM</kbd> computes the DLE and ILE values as
+				follows:</p><div class="p"><figure class="fignone">
+					<img src="28806.png" alt="formula">
+				</figure></div><p>where</p><ul>
+				<li>END_PT:</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="30621.png" alt="formula">
+				</figure></div><ul>
+				<li>ZERO_PT:</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="30622.png" alt="formula">
+				</figure></div><ul>
+				<li>MIN_RMS:</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="30623.png" alt="formula">
+				</figure></div><p>If the code occurrence is less than a value specified by the
+					<kbd class="userinput">min_code_size</kbd> parameter, the code is defined as <em>missing
+				code.</em></p><p>Hence, if an element value of <kbd class="userinput">src</kbd> is less than
+					<kbd class="userinput">min_code_size</kbd>, the subscript is stored into
+					<kbd class="userinput">miss_codes</kbd> array, and <kbd class="userinput">miss_num</kbd> variable is
+				incremented.</p><p>For the <kbd class="userinput">miss_codes</kbd> array, declare an integer array
+				variable using the INT. Here, the array size should be equal to or greater than the code
+				size.</p><p>The components of <kbd class="userinput">result</kbd> declared by the LINEARtype data
+				type, are as follows:</p><table class="frame-topbot"><caption><span>Members of LINEARtype Data Type</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_28801__entry__1"><p>Member</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_28801__entry__2"><p>Type</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_28801__entry__3"><p>Returned Value</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.dmax</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Maximum DLE value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.dmin</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Minimum DLE value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.damax</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Absolute maximum DLE value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.imax</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Maximum ILE value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.imin</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Minimum ILE value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.iamax</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Absolute maximum ILE value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.dmax_index</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>INT</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Maximum DLE subscript</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.dmin_index</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>INT</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Minimum DLE subscript</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.damax_index</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>INT</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Absolute maximum DLE subscript</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.imax_index</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>INT</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Maximum ILE subscript</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.imin_index</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>INT</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Minimum ILE subscript</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__1"><p><em>result</em>.iamax_index</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__2"><p>INT</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__3"><p>Absolute maximum ILE subscript</p>
+							</td>
+						</tr>
+					</tbody></table><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_ADC_HISTOGRAM(ARRAY_I&amp; src, 
+ LINEARtype *result,
+ ARRAY_D&amp; dle, ARRAY_D&amp; ile, 
+ INT *miss_number, INT *miss_codes, 
+ INT ile_type, DOUBLE min_code_size);
+DSP_ADC_HISTOGRAM(INT *src, LINEARtype *result, 
+ DOUBLE *dle, DOUBLE *ile, 
+ INT *mis_number, INT *miss_codes, 
+ INT size, INT ile_type, 
+ DOUBLE min_code_size);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_28801__entry__40"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_28801__entry__41"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_28801__entry__42"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>src</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Source array. Each element of <kbd class="userinput">src</kbd> must contain the
+									occurrences of output digital codes that resulted in the corresponding input wave
+									points.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>result</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Results for DLE and ILE values</p>
+								<p>Unit: LSB</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>dle</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Result array in which differential linearity error values are stored</p>
+								<p>Unit: LSB</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>ile</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Result array in which integral linearity error values are stored</p>
+								<p>Unit: LSB</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>miss_number</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Number of missing code</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>miss_codes</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Result array for the missing codes</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>size</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Number of elements to be processed</p>
+								<p>2 ≤ <em>size</em> ≤ 2097152 (ile_type = END_PT)</p>
+								<p>4 ≤ <em>size</em> ≤ 2097152 (otherwise)</p>
+								<p><em>size</em> ≤ (size of <em>src</em>)</p>
+								<p><em>size</em> ≤ (size of <em>dle</em>)</p>
+								<p><em>size</em> ≤ (size of <em>ile</em>)</p>
+								<div class="note"><span class="title">Note</span> For sizes exceeding 2M samples, use the <a href="122907.htm" title="The template class &#34;Wave&#34; provides the complete functionality for digital signal processing including:">Wave</a>
+									APIs.</div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>ile_type</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Straight line type of ILE</p>
+								<p>END_PT: Connecting the terminal points</p>
+								<p>ZERO_PT: Approximated to minimize peak deviation</p>
+								<p>MIN_RMS: Approximated to minimize RMS</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__40"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__41"><p>min_code_size</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_28801__entry__42"><p>Limit value to determine <em>miss_codes</em></p>
+								<p>0.0 &lt; <em>min_code_size</em></p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><h3>Calculates a 8-bit ADC histogram</h3><p>This example performs an ADC linearity
+				test. DSP_ADC_HISTOGRAM calculates the ILE and DLE of the result data. AWG_pin,
+				capture_variable, min_code_size, miss_codes and miss_number are parameters defined in this test
+				method:</p><pre class="prettyprint linenums copyable">int GlobalOverOn,debug;
+int off_line    ;    
+ARRAY_I adc_wave;
+ARRAY_I histogram;
+ARRAY_D adc_dnla,adc_inla;
+LINEARtype  adc_lin ;
+ARRAY_I esites, csites;   // Enabled Sites array
+int nsites      ;   // max number of configured Sites
+# define ADC_resolution 8 // Assuming 8-BIT ADC, that is: 256 different codes
+INT miss_codes [(INT) pow (2,(DOUBLE)ADC_resolution)];
+
+ON_FIRST_INVOCATION_BEGIN() ;
+  GET_TESTFLOW_FLAG("debug_analog", &amp;debug);
+  GET_TESTFLOW_FLAG("global_overon", &amp;GlobalOverOn);
+  GET_SYSTEM_FLAG("offline",&amp;off_line);
+  GET_ENABLED_SITES(esites); 
+  GET_CONFIGURED_SITES(csites);
+  nsites = csites.size() ; 
+  CONNECT();
+  /*connect and activate analog module trigger line */ 
+  Routing.pin(AWG_pin).connect(TM::SINGLE);
+  AWG( AWG_pin ).enable() ;  
+  /* perform the test */
+  DIGITAL_CAPTURE_TEST( 1.0 ) ;
+  /* deactivate analog module trigger line and disconnect the analog pin */
+  AWG( AWG_pin ).disable() ;
+  Routing.pin(AWG_pin).disconnect();
+ON_FIRST_INVOCATION_END() ;
+
+/* retrieve measurement data */
+adc_wave = VECTOR (capture_variable).getVectors ();    
+
+/* perform computation */
+DSP_HISTOGRAM ( adc_wave, histogram, 1, 255, 256);    
+try {
+  DSP_ADC_HISTOGRAM ( histogram, &amp;adc_lin, adc_dnla, adc_inla, &amp;miss_number, miss_codes, END_PT, min_code_size );
+} catch (Error &amp;exc) {
+  // an error occurred; most likely because the captured waveform contains only missing codes/is a straight horizontal line
+  ERROR_EXIT(TM::RETURN_TO_FLOW);
+}if ( debug )
+{      
+  PUT_DEBUG ( AWG_pin,    "Lin_adc_wave",   adc_wave );
+  PUT_DEBUG ( AWG_pin,    "Histogram",      histogram);
+  PUT_DEBUG ( AWG_pin,    "Lin_adc_dnl",  adc_dnla );
+  PUT_DEBUG ( AWG_pin,    "Lin_adc_inl",  adc_inla );
+  cout &lt;&lt; endl ;
+}
+
+/* compare computed result with limits and set pass/fail */
+TEST( AWG_pin, "ADC_ILE", adc_lin.iamax);
+TEST( AWG_pin, "ADC_DLE", adc_lin.damax);
+</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 28801</span><script type="text/javascript">var ti='28801';var tt='DSP_ADC_HISTOGRAM'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

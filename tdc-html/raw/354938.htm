@@ -1,0 +1,447 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="With the PS5000 pin PMU and the board ADC, you can perform pattern-synchronous DC value measurements. Your options are:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Pin Scale 5000 DC value measurements</title><meta name="keywords" content="PinScale PS5000 PS 5000"></head><body id="_354938"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 354938</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Pin Scale 5000 DC value measurements</h1>
+	
+	
+	<div><p>With the PS5000 pin PMU and the board ADC, you can perform pattern-synchronous DC value
+		measurements. Your options are:</p>
+		<section class="section">
+			<ol>
+			<li><strong>Pattern-controlled true parallel DC value measurements with the pin PMU </strong><ul>
+					<li>Pin PMU value measurement using level comparator.</li>
+					<li>Resource per pin, full parallel capability. Single measurement typically takes more time
+						than (2) and (3) but all pin PMU channels settle in parallel and all A/D conversions are done
+						in parallel.</li>
+				</ul></li>
+			<li><strong>Pattern-controlled DC value measurements with the pin PMU and board ADC</strong><ul>
+					<li>Pin PMU value measurement using board ADC.</li>
+					<li>Resource per pin. All pin PMU channels settle in parallel, A/D conversion serialized
+						through AMUX on Board ADC.</li>
+				</ul></li>
+			<li><strong>Pattern-controlled DC value measurements with the board ADC</strong><ul>
+					<li>High-impedance board ADC value measurement.</li>
+					<li>Resource shared by 16 channels. Single measurement is typically faster than (1) and (2),
+						but one Board ADC is shared by 16 channels. Depending on load board design, this may require
+						switching of DC relays which makes it overall slower than (1) and (2).<p>Note that both the
+							speed and the accuracy of this measurement compared to (1) and (2) ultimately depends on the
+							number of samples taken: A high number of samples (for example, 1024) provides the highest
+							accuracy but will take typically longer than methods (1) or (2). Specifying fewer samples
+							(for example, 16) results in faster performance but does not provide the maximum
+							accuracy.</p></li>
+				</ul></li>
+			
+		</ol>
+			
+			<p>For further details and examples see the sections below. For specifications see <a href="351267.htm">Pin Scale 5000 parametric measurement unit</a> and <a href="351273.htm">Pin Scale 5000 precision voltage measure (board ADC)</a> in the <a href="345697.htm" title="Use the Pin Scale 5000 digital card to execute digital tests on EXA Scale test systems.">PS5000 specifications</a>.</p>
+		</section>
+		<section class="section"><h2>Pattern-controlled true parallel DC value measurements with the pin PMU</h2>
+			
+			<p>This relies on the successive approximation technique using the level comparator of the pin
+				PMU (PPMU).</p>
+			<p>The following figure gives an overview.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="354965.png" alt="PS5000 DC value measurements with the Pin PMU">
+				</figure>
+			</div>
+			<div class="note"><span class="title">Note</span> The AC relay shown in the Hardware view does not represent a real relay.
+			SmarTest uses here a generalized schematic diagram.</div>
+			<p>To set this up, test methods are used to achieve parallel DC value measurements on all
+				pins.</p>
+			<p>The implementation is similar to the Pin Scale 1600 card.</p>
+			<div class="p">The following test method APIs are used: <ul>
+					<li><a href="29618.htm" title="The PPMU_SETTING class is a data container holding the contents of the task for setting up measurement conditions of pin PMUs. This class can be used to call the PPMU_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for pin PPMU.">PPMU_SETTING</a> , <a href="29602.htm" title="The PPMU_RELAY class is a data container holding the contents of the task for setting up relay connections of pin PMUs. This class can be used to call the PPMU_PIN_RELAY class that is a subsidiary data container to specify the target relay type of the pin.">PPMU_RELAY</a>, <a href="55751.htm" title="The PPMU_CLAMP class is a data container holding the contents of the task for setting up the voltage clamp circuit of pin PMUs. This class can be used to call the PPMU_PIN_CLAMP class that is a subsidiary data container to specify the setup of the voltage circuit per pin.">PPMU_CLAMP</a>, <a href="29585.htm" title="The PPMU_MEASURE class is a data container holding the contents of the task for setting up measurement operations of pin PMUs.">PPMU_MEASURE</a></li>
+					<li><a href="29585.htm" title="The PPMU_MEASURE class is a data container holding the contents of the task for setting up measurement operations of pin PMUs.">PPMU_MEASURE</a> measurement type TM::VMUM to perform fast value determination on all
+						channels using Pin PMU comparators.</li>
+					<li><a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a> to perform measurement.</li>
+					<li><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a> to retrieve results. </li>
+				</ul></div>
+			<p>This method allows you to save time by performing
+				the measurements in parallel (see figure below).</p>
+			<div class="p">
+				<figure class="fignone">
+					<img src="126344.png" alt="PS1600 Measurement Times for DC Value Measurements with Pin PMU">
+				</figure>
+			</div>
+		</section>
+		<section class="section" id="_354938__section_PS5000_pattern_controlled"><h2>Pattern-controlled DC value measurements with the pin PMU and board ADC</h2>
+			
+			<p>Here, you have a better accuracy but, although the
+				settling time of the pin PMU is done in parallel for all pins, you measure serially.</p>
+			<p>The following figure gives an overview.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="354966.png" alt="PS5000 DC value measurements with Pin PMU and board ADC">
+				</figure>
+			</div>
+			<p>Pass/Fail results for these measurements are coming from
+				Pin PMU comparators; values are measured with the Board ADC.</p>
+			<p>The AMUX for the BADC can be set either before the
+				functional test is executed using the <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a> or the <a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a> API,
+				or the AMUX can be set during the functional test using the <a href="29602.htm" title="The PPMU_RELAY class is a data container holding the contents of the task for setting up relay connections of pin PMUs. This class can be used to call the PPMU_PIN_RELAY class that is a subsidiary data container to specify the target relay type of the pin.">PPMU_RELAY</a> API.</p>
+			<div class="p">The following test method APIs are used: <ul>
+					<li>Either <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a> or <a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a> for the AMUX and relay control
+						(before the functional test)</li>
+					<li><a href="29618.htm" title="The PPMU_SETTING class is a data container holding the contents of the task for setting up measurement conditions of pin PMUs. This class can be used to call the PPMU_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for pin PPMU.">PPMU_SETTING</a> to set up pins and limits</li>
+					<li><a href="29602.htm" title="The PPMU_RELAY class is a data container holding the contents of the task for setting up relay connections of pin PMUs. This class can be used to call the PPMU_PIN_RELAY class that is a subsidiary data container to specify the target relay type of the pin.">PPMU_RELAY</a> for the PPMU relay control (PPMU_ON) and the AMUX control
+						(MUX_PPMU_BADC_ON)</li>
+					<li><a href="144107.htm" title="The PPMU_BADC_MEASURE class is used to define DC-dynamic high accuracy board ADC (BADC) measurements. PPMU_BADC_MEASURE objects can be added to a PATTERN_CONTROLLER object.">PPMU_BADC_MEASURE</a> for DC-dynamic high accuracy board ADC measurements</li>
+					<li><a href="126248.htm" title="The BADC_MEASURE class is a data container holding the contents of the task for setting up measurement operations of BADCs. This class can be used to call the BADC_PIN_MEASURE class that is a subsidiary data container to set up per pin measurement mode for BADCs. This class also contains the member functions to retrieve test results.">BADC_MEASURE</a> to set up Board ADC measurement samples</li>
+					<li><a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a> to perform the measurement</li>
+					<li><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a> to retrieve results</li>
+				</ul>
+			</div>
+			<p>See also the <em>"Pattern controlled Pin PMU voltage
+					measurement using Board ADC and FLEX_RELAY path control"</em> example below<em>.</em></p>
+			<div class="note"><span class="title">Note</span> Selective capture and DC measurements: When using selective capture and
+			DC measurements (or any other sequencer instruction that generates break vectors such as (BRKV,
+			CTIM, CLEV, Matchloop, etc.) in a pattern, you have to observe certain preconditions with respect
+			to the capture block sizes. In principle, the blocks where data is captured must always be a
+			multiple of 8 cycles, otherwise unwanted samples will be recorded when entering the break cycle
+			generating part of the pattern.<span> This restriction does not apply to the <a href="351414.htm" title="The Pin Scale 5000 (PS5000) is the digital base card of EXA Scale. It can be used in EXA Scale test systems only.">Pin Scale 5000 card</a>. Hence, the data captured by the PS5000 may not be the same as the data
+				captured by the PS1600, if this condition is not followed.</span></div>
+		</section>
+		<section class="section"><h2>Pattern-controlled DC value measurements with the board ADC</h2>
+			
+			<p>The following figure shows this arrangement.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="354967.png" alt="PS5000 DC value measurements with the board ADC">
+				</figure>
+			</div>
+			<div class="note"><span class="title">Note</span> The AC relay shown in the Hardware view does not represent a real relay.
+			SmarTest uses here a generalized schematic diagram.</div>
+			<div class="p">This method gives you the following features:<ul>
+					<li>High-impedance voltage measurement with the board ADC</li>
+					<li>Accuracy of ±500uV, for example, for DC trimming applications</li>
+					<li>Resolution of 20bit to address low-end DAC test</li>
+				</ul></div>
+			<p>Note, however, that the board ADC is shared between 16 pins,
+				which may be necessary to consider in your DUT board design. </p>
+			<p>The DC relay and the BADC relay, including the AMUX are
+				sequencer‑controlled.</p>
+			<p>Pass/fail results are judged from values measured with the
+				board ADC and the specified limits.</p>
+			<div class="p">The following test method APIs are used: <ul>
+					<li>Either <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a> or <a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a> to switch the relays and control
+						the measurement path statically before the functional test,<p>or <a href="29602.htm" title="The PPMU_RELAY class is a data container holding the contents of the task for setting up relay connections of pin PMUs. This class can be used to call the PPMU_PIN_RELAY class that is a subsidiary data container to specify the target relay type of the pin.">PPMU_RELAY</a> for
+							the DC relay control and the BADC, including AMUX control (MUX_VM_HIZ_ON)</p></li>
+					<li><a href="126272.htm" title="The BADC_SETTING class is a data container holding the contents of the task for setting up measurement conditions of BADCs. This class can be used to call the BADC_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for the BADC.">BADC_SETTING</a> to set up pins and limits</li>
+					<li><a href="126248.htm" title="The BADC_MEASURE class is a data container holding the contents of the task for setting up measurement operations of BADCs. This class can be used to call the BADC_PIN_MEASURE class that is a subsidiary data container to set up per pin measurement mode for BADCs. This class also contains the member functions to retrieve test results.">BADC_MEASURE</a> to set up Board ADC measurement samples</li>
+					<li><a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a> to perform the measurement</li>
+					<li><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a> to retrieve results</li>
+				</ul>
+			</div>
+			<p>See also the<em> "Pattern controlled high impedance voltage measurement with SPMU_TASK path
+				control" </em>example below<em>.</em></p>
+		</section>
+		<section class="section"><h2>Special considerations for pattern-controlled DC value measurements with the board
+				ADC</h2>
+			
+			<p>Turn the Site Match Mode flag OFF (site_match_mode=OFF) for proper serialization of the
+				DC-dynamic high BADC measurements (measuring values dynamically by connecting the BADC serially
+				to the PPMUs) using the PPMU_BADC_Measure class. Turning ON the Site Match Mode flag
+				(site_match_mode=ON) may impact the proper serialization of measurements that use shared
+				resource such as the BADC and thus it could cause incorrect readings.</p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3><span>Pattern controlled high impedance voltage measurement with
+					FLEX_RELAY path control</span></h3>
+			
+			<div>
+				<p>This example forces a voltage with pin PMU on pin "pin_force". This pin is
+					cross-connected with pin "pin_meas". The "pin_meas" pin uses the high impedance
+					(HIZ) measurement path to measure the voltage of "pin_force". The measurement
+					path is configured with the <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a> API.</p>
+				<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    DC_RESULT_ACCESSOR result;
+    static STRING_VECTOR pinList;
+    static string measPins = "pin_meas";
+
+    if(firstRun)
+    {
+        PATTERN_CONTROLLER pc;
+        FLEX_RELAY badcConnect;
+        PPMU_SETTING ppmuForce;
+        PPMU_RELAY ppmuOn,ppmuOff;
+        BADC_SETTING badcSetting;
+        BADC_MEASURE badcMeasure;
+
+        ON_FIRST_INVOCATION_BEGIN();
+
+            badcConnect.pin(measPins).set("DC","PMU","MUX_VM_HIZ");
+            badcConnect.execute();
+
+            ppmuForce.pin("pin_force")
+                    .vForce(forceVoltage.getValueAsTargetUnit("V"))
+                    .iRange(1 uA).min(0 uA).max(2 uA);
+            ppmuForce.wait(1 ms);
+
+            ppmuOn.pin("pin_force").status("PPMU_ON");
+            ppmuOn.wait(1 ms);
+
+            ppmuOff.pin("pin_force").status("AC_ON");
+            ppmuOff.wait(1 ms);
+
+            badcSetting.pin(measPins).min(0 V).max(5 V);
+            badcSetting.wait(1 ms);
+
+            badcMeasure.pin(measPins).numberOfSamples(16);
+            badcMeasure.wait(100 us);
+
+            pc.label("MeasBADC","@").add(ppmuForce)
+                    .add(ppmuOn)
+                    .add(badcSetting)
+                    .add(badcMeasure)
+                    .add(ppmuOff);
+
+            pc.setup();
+
+        ON_FIRST_INVOCATION_END();
+
+        firstRun=false;
+    }
+
+    ON_FIRST_INVOCATION_BEGIN();
+
+        FUNCTIONAL_TEST();
+
+        result.uploadResult(measPins ,TM::RESULT_INDEX);
+
+        pinList = PinUtility.getDigitalPinNamesFromPinList(measPins,TM::ALL_DIGITAL);
+
+    ON_FIRST_INVOCATION_END();
+
+    //
+    // Results
+    //
+    int numberPins = pinList.size();
+
+    for(int i=0; i&lt;numberPins; i++)
+    {
+        ARRAY_D values      = result.getValues(pinList[i]);
+        int numberOfResults = values.size();
+
+        for (int j = 0; j&lt; numberOfResults; j++)
+        {
+            double value = values[j];
+
+            cout &lt;&lt; "PF: " &lt;&lt; result.getPassFail() &lt;&lt; endl;
+            cout &lt;&lt; "NumVal: " &lt;&lt; result.getNumberOfAvailableResults(pinList[i]) &lt;&lt; endl;
+            cout &lt;&lt; "FailInfo: " &lt;&lt; result.getFailInfo() &lt;&lt; endl;
+            cout &lt;&lt; "PPMU VMHIZ BADC Measurement result: " &lt;&lt; value &lt;&lt; endl;
+        }
+    }
+
+    return;
+}</pre></div>
+		</div>
+		<div class="example"><h3><span>Pattern-controlled high impedance voltage measurement with
+					voltage forced by pin PMU</span></h3>
+			
+			<div><p>This example shows a pattern-controlled high impedance voltage
+					measurement. A voltage is forced with pin PMU on <span class="keyword">pin_force</span>.
+					This pin is cross-connected with <span class="keyword">pin_meas</span>. The
+						<span class="keyword">pin_meas</span> uses the high impedance measurement path to
+					measure the voltage of <span class="keyword">pin_force</span>. The measurement path is
+					configured with <a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a>.</p>
+				<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+     DC_RESULT_ACCESSOR result;
+     PATTERN_CONTROLLER pc;
+     SPMU_TASK badcConnect;
+     static STRING_VECTOR pinList;
+     static STRING measPins = "pin_meas";
+
+     ON_FIRST_INVOCATION_BEGIN();
+
+        //
+        // Connect BADC
+        //
+        badcConnect.pin(measPins).mode("VM_HIZ").relay("NT").connect();
+        badcConnect.execute();
+
+        //
+        // Setup dynamic test, do it only one time
+        // first_run is a protected variable "Boolean first_run;"
+        // which is set to 'true' in initialize method
+        //
+        if (first_run)
+        { 
+            PPMU_SETTING ppmuForce;
+            PPMU_RELAY ppmuOn,ppmuOff;
+            BADC_SETTING badcSetting;
+            BADC_MEASURE badcMeasure;
+            ppmuForce.pin("pin_force")
+                 .vForce(forceVoltage.getValueAsTargetUnit("V"))
+                 .iRange(1 uA).min(0 uA).max(2 uA);
+            ppmuOn.pin("pin_force").status("PPMU_ON");
+            ppmuOff.pin("pin_force").status("AC_ON");
+            badcSetting.pin(measPins).min(0 V).max(5 V);
+            badcSetting.wait(1 ms);
+            badcMeasure.pin(measPins).numberOfSamples(16);
+            badcMeasure.wait(100 us);
+
+            pc.label("MeasBADC","@").add(ppmuForce)
+                                .add(ppmuOn)
+                                .add(badcSetting)
+                                .add(badcMeasure)
+                                .add(ppmuOff);
+            pc.setup();
+
+            first_run = false;
+        }
+
+        //
+        // Execute test
+        //
+        FUNCTIONAL_TEST();
+
+        result.uploadResult(measPins ,TM::RESULT_INDEX);
+
+        pinList = PinUtility.getDigitalPinNamesFromPinList(measPins,TM::ALL_DIGITAL);
+
+    ON_FIRST_INVOCATION_END();
+
+    //
+    // Results
+    //
+    int numberPins = pinList.size();
+    for(int i=0; i&lt;numberPins; i++)
+    {
+        ARRAY_D values = result.getValues(pinList[i]);
+        int numberOfResults = values.size();
+        for (int j = 0; j&lt; numberOfResults; j++)
+        {
+            double value = values[j];
+            cout &lt;&lt; "PF: " &lt;&lt; result.getPassFail() &lt;&lt; endl;
+            cout &lt;&lt; "NumVal: " &lt;&lt; result.getNumberOfAvailableResults(pinList[i]) &lt;&lt; endl;
+            cout &lt;&lt; "FailInfo: " &lt;&lt; result.getFailInfo() &lt;&lt; endl;
+            cout &lt;&lt; "PPMU VMHIZ BADC Measurement result: " &lt;&lt; value &lt;&lt; endl;
+        }
+    }
+
+    return;
+}</pre></div>
+		</div>
+		<div class="example"><h3><span>Pattern controlled Pin PMU voltage measurement using Board ADC
+					and FLEX_RELAY path control</span></h3>
+			
+			<div>
+				<p>This example does two value measurements with the Board ADC, connected to the Pin
+					PMU.</p><p>The measurements validate the voltage forced with Pin PMU on pin
+					"pin_force". This pin is cross connected with pin "pin_meas". The measurement
+					path is configured with the <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a> API.</p>
+				<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    DC_RESULT_ACCESSOR result;
+    static STRING_VECTOR pinList;
+    static string measPins = "pin_meas";
+  
+    if(firstRun)
+    {
+        PATTERN_CONTROLLER pc;
+        FLEX_RELAY badcConnect;
+        PPMU_SETTING ppmuSetMeasVolt, ppmuSetMeasVolt2;
+        PPMU_RELAY ppmuOn,ppmuOff;
+        BADC_MEASURE badcMeasure;
+
+        ON_FIRST_INVOCATION_BEGIN();
+
+            badcConnect.pin(measPins).set("PPMU","X","MUX_PPMU");
+            badcConnect.execute();
+
+            ppmuOn.pin("pin_force").status("PPMU_ON");
+            ppmuOn.wait(1 ms);
+
+            ppmuOff.pin("pin_force").status("AC_ON");
+            ppmuOff.wait(1 ms);
+
+            ppmuSetMeasVolt.pin("pin_force").vForce(3 V).iRange(10 uA).min(1 uA).max(2 uA);
+            ppmuSetMeasVolt.pin(measPins).iForce(1 uA).iRange(10 uA).min(2 V).max(4 V);
+            ppmuSetMeasVolt.wait(1 ms); // ppmu settling
+
+            badcMeasure.pin(measPins).numberOfSamples(16);
+            badcMeasure.wait(100 us); 
+
+            ppmuSetMeasVolt2.pin("pin_force").vForce(300 mV).iRange(1 mA).min(1 uA).max(2 uA);
+            ppmuSetMeasVolt2.pin(measPins).iForce(1 uA).iRange(1 mA).min(250 mV).max(350 mV);
+
+            ppmuSetMeasVolt2.wait(1 ms); //ppmu settling
+
+            pc.label("MeasPPMU_ADC","@").add(ppmuOn)
+                                .add(ppmuSetMeasVolt)
+                                .add(badcMeasure)
+                                .add(ppmuSetMeasVolt2)
+                                .add(badcMeasure)
+                                .add(ppmuOff);
+
+           pc.setup();
+
+        ON_FIRST_INVOCATION_END();
+
+        firstRun=false;
+    }
+
+    ON_FIRST_INVOCATION_BEGIN();
+
+        FUNCTIONAL_TEST();
+
+        result.uploadResult(measPins ,TM::RESULT_INDEX);
+
+        pinList = PinUtility.getDigitalPinNamesFromPinList(measPins,TM::ALL_DIGITAL);
+
+    ON_FIRST_INVOCATION_END();
+
+    //
+    // Results
+    //
+    int numberPins = pinList.size();
+
+    for(int i=0; i&lt;numberPins; i++)
+    {
+        ARRAY_D values      = result.getValues(pinList[i]);
+        int numberOfResults = values.size();
+
+        for (int j = 0; j&lt; numberOfResults; j++)
+        {
+            double value = values[j];
+
+            cout &lt;&lt; "PF: " &lt;&lt; result.getPassFail() &lt;&lt; endl;
+            cout &lt;&lt; "NumVal: " &lt;&lt; result.getNumberOfAvailableResults(pinList[i]) &lt;&lt; endl;
+            cout &lt;&lt; "FailInfo: " &lt;&lt; result.getFailInfo() &lt;&lt; endl;
+            cout &lt;&lt; "PPMU PPMU BADC Measurement result: " &lt;&lt; value &lt;&lt; endl;
+        }
+    }
+
+    return;
+}</pre></div>
+		</div>
+		<div class="example"><h3><span>Static high voltage measurement with board ADC</span></h3>
+			
+			<div><p>This code snippet demonstrates how to measure high
+					voltage (-6V ~ +13.4V) on HV-configured
+				pins.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+    // HV DC Voltage BADC direct measurement
+    HV_DC_TASK hvDcTask;
+
+    ON_FIRST_INVOCATION_BEGIN();
+
+        hvDcTask.pin("p1") .min(0 mV) .max(1 mV) .execMode("VM_HIZ") .samples(8) .settling(1.5 ms);
+        hvDcTask.execute();
+
+    ON_FIRST_INVOCATION_END();
+
+    DOUBLE measuredValue = hvDcTask.getValue("p1");
+
+    return;
+}</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a></div><div><a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a></div><div><a href="126272.htm" title="The BADC_SETTING class is a data container holding the contents of the task for setting up measurement conditions of BADCs. This class can be used to call the BADC_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for the BADC.">BADC_SETTING</a></div><div><a href="126248.htm" title="The BADC_MEASURE class is a data container holding the contents of the task for setting up measurement operations of BADCs. This class can be used to call the BADC_PIN_MEASURE class that is a subsidiary data container to set up per pin measurement mode for BADCs. This class also contains the member functions to retrieve test results.">BADC_MEASURE</a></div><div><a href="29618.htm" title="The PPMU_SETTING class is a data container holding the contents of the task for setting up measurement conditions of pin PMUs. This class can be used to call the PPMU_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for pin PPMU.">PPMU_SETTING</a></div><div><a href="29602.htm" title="The PPMU_RELAY class is a data container holding the contents of the task for setting up relay connections of pin PMUs. This class can be used to call the PPMU_PIN_RELAY class that is a subsidiary data container to specify the target relay type of the pin.">PPMU_RELAY</a></div><div><a href="55751.htm" title="The PPMU_CLAMP class is a data container holding the contents of the task for setting up the voltage clamp circuit of pin PMUs. This class can be used to call the PPMU_PIN_CLAMP class that is a subsidiary data container to specify the setup of the voltage circuit per pin.">PPMU_CLAMP</a></div><div><a href="29585.htm" title="The PPMU_MEASURE class is a data container holding the contents of the task for setting up measurement operations of pin PMUs.">PPMU_MEASURE</a></div><div><a href="144107.htm" title="The PPMU_BADC_MEASURE class is used to define DC-dynamic high accuracy board ADC (BADC) measurements. PPMU_BADC_MEASURE objects can be added to a PATTERN_CONTROLLER object.">PPMU_BADC_MEASURE</a></div><div><a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a></div><div><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></div><div><a href="141304.htm" title="Specifies a method for measuring voltage or current on the pins of PS1600 or PS5000 cards.">valueMode()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 354938</span><script type="text/javascript">var ti='354938';var tt='Pin Scale 5000 DC value measurements'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

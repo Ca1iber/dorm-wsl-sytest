@@ -1,0 +1,45 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC event example: DAC distortion &amp; noise test</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_117729"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117729</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC event example: DAC distortion &amp; noise test</h1>
+	<div>
+		<section class="section"><h2>Setup test
+			method</h2><pre class="prettyprint linenums copyable">virtual void run()
+{
+  // Define voltage measurement capture event
+  EVENT_WAVEFORM_VM event_DAC_capt("event_DAC_capt");
+  event_DAC_capt.samples(num_samples);
+  event_DAC_capt.sampleVectorDistance(32);
+  event_DAC_capt.averages(4);
+  event_DAC_capt.iClampChecks();
+
+  // Insert events on pin "Analog_out" in pattern "DAC_distortion"
+  PATTERN_CONTROLLER pc;
+  PATTERN &amp; pattern(pc.label("DAC_distortion"));
+  VEC_EVENTS &amp; events(pattern.vecEvents("Analog_out"));
+
+  // attach event to the pattern and download
+  events.insert(100, event_DAC_capt).setup();
+}</pre></section>
+		<section class="section"><h2>Execution test
+			method</h2><pre class="prettyprint linenums copyable">virtual void run()
+{
+  ARRAY_D DAC_capt;
+  INT      num_samples = 4096;
+  THDtype  thd_result;
+
+  EXECUTE_TEST (1.0);
+
+  // upload and retrieve result
+  DAC_capt = GET_VALUE_RESULT("Analog_out");
+
+  // Post-processing: Calculate the noise &amp; distortion
+  DSP_THD(DAC_capt, &amp;thd_result, 7, 5, DB, 0);
+
+  // Pass/Fail judgment
+  TEST("Analog_out", "THD", thd_result.thd, TM::CONTINUE);
+  TEST("Analog_out", "SNR", thd_result.snr, TM::CONTINUE);
+  TEST("Analog_out", "SND", thd_result.snd);
+}</pre></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117729</span><script type="text/javascript">var ti='117729';var tt='DC event example: DAC distortion & noise test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

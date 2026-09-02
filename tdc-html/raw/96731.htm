@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The general procedure for inserting instructions into a sequencer program is straightforward. It uses the edit command INSI to insert a command line into the sequencer area and the SQPG command to overwite this dummy line with the appropriate instruction."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Inserting a sequencer instruction</title></head><body id="_96731"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 96731</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Inserting a sequencer instruction</h1>
+	
+	
+	<div><p>The general procedure for inserting instructions into a sequencer program is
+		straightforward. It uses the edit command <span class="keyword">INSI</span> to insert a command line into
+		the sequencer area and the <span class="keyword">SQPG</span> command to overwite this dummy line with the
+		appropriate instruction.</p>
+		<p>However, if you want to insert a vector generating instruction (<span class="keyword">GENV</span> or
+				<span class="keyword">RPTV</span>), this procedure will raise problems when <span class="keyword">GENV</span> or
+				<span class="keyword">RPTV</span> instructions are already present in the program <em>after</em> the new
+			instruction. These vector generating instructions will usually point to incorrect waveform
+			DC/DC power units after the insertion, since <span class="keyword">INSI</span> and <span class="keyword">SQPG</span> do not
+			modify the parallel vector areas at all.</p>
+		<p>Suppose, for example, that you insert a <span class="keyword">GENV</span> instruction of length 10 with
+				<span class="keyword">INSI</span> and <span class="keyword">SQPG</span> into the first label of the standard example
+			(see the figure in <em><a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector areas</a></em><em>)</em> before command line 6. This will have
+			the effect that the new instruction is associated with the two memory words starting at 408 and
+			416. The following <span class="keyword">RPTV</span> instruction will now be associated with the vector
+			block at 424, and the last <span class="keyword">GENV</span> instruction will refer to the blocks at 432
+			and 440. Thus, the old instructions will now both refer to incorrect waveform DC/DC power units, and the
+			last <span class="keyword">GENV</span> instruction will illegitimately cross the boundary to the next
+			label.</p>
+		<p>To avoid these complications, use the edit command <span class="keyword">INGV</span> to insert a
+				<span class="keyword">GENV</span> instruction. <span class="keyword">INGV</span> makes room for the new instruction
+			in the vector areas and preserves the integrity of the existing sequencer constructs. </p>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Procedure (general case)</h3><ol>
+				<li>Activate the label for editing with the <span class="keyword">TSTL</span> command.</li>
+				<li>Use the edit command <span class="keyword">INSI</span> to expand the sequencer area by one or more
+					lines containing the dummy instruction <span class="keyword">NOP</span>.</li>
+				<li>Overwrite the dummy instructions using the <span class="keyword">SQPG</span> command. </li>
+			</ol></section>
+		<section class="section"><h3>Example (general case)</h3><p>For example, you can insert a
+					<span class="keyword">CTIM</span> instruction (see <em><a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">Changing the Timing
+					Set</a></em>) between command lines 6 and 7 in the figure in <em><a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector areas</a></em>
+				as follows:</p><ol>
+				<li><code>TSTL "test_1",</code></li>
+				<li><kbd class="userinput">INSI 7,1</kbd></li>
+				<li><kbd class="userinput">SQPG 7,CTIM,2,,,(@)</kbd></li>
+			</ol></section>
+		<section class="section"><h3>Procedure (vector generating instructions)</h3><ol>
+				<li>Activate the label for editing with the <span class="keyword">TSTL</span> command.</li>
+				<li>Use the <span class="keyword">INGV</span> command to generate a <span class="keyword">GENV</span> instruction
+					and to make room for it in the vector areas.</li>
+				<li>(<em>Optional</em>) If you want to create an <span class="keyword">RPTV</span> instruction, overwrite
+					the original <span class="keyword">GENV</span> instruction generated by <span class="keyword">INGV</span> with
+						<span class="keyword">SQPG</span>.</li>
+			</ol></section>
+		<section class="section"><h3>Example (vector generating instructions)</h3><p>The insertion of a
+					<span class="keyword">GENV</span> instruction and of an <span class="keyword">RPTV</span> instruction are slightly
+				different.</p></section>
+		<section class="section"><h3>Inserting a GENV instruction</h3><p>For the littles scenario described above,
+				issue:</p><ol>
+				<li><kbd class="userinput">TSTL "test_1",</kbd></li>
+				<li><kbd class="userinput">INGV 6,10</kbd></li>
+			</ol><p>The result will be:</p><div class="p"><figure class="fignone">
+					
+					<img src="120208.png" alt="Inserting a GENV Instruction with the INGV Command">
+				</figure></div><p>Note the following points in the figure:</p><ul>
+				<li>The vector areas are expanded by 2 memory words, which are needed for the new instruction.
+					Accordingly, the start address for the next label in command line 10 (previously 9) is
+					readjusted from 432 to 448. </li>
+				<li>The active vectors of the new instruction are represented by question marks to indicate that
+						<span class="keyword">INGV</span> only provides the space for the new sequencer construct. The
+					appropriate waveform DC/DC power units must be downloaded in a second step.</li>
+			</ul></section>
+		<section class="section"><h3>Inserting an RPTV instruction</h3><p>When you want to insert an
+					<span class="keyword">RPTV</span> instruction, use <span class="keyword">INGV</span> with the required length to
+				preserve the existing sequencer constructs, and subsequently overwrite the new
+					<span class="keyword">GENV</span> instruction with the <span class="keyword">RPTV</span> instruction.</p><p>Thus,
+				if you want to insert an <span class="keyword">RPTV</span> instruction of length 10 with 15 repetitions
+				before command line 6 in the figure in <em><a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector
+						area</a></em><a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">s</a>, issue the following commands: </p><ol>
+				<li><kbd class="userinput">TSTL "test_1",</kbd></li>
+				<li><kbd class="userinput">INGV 6,10</kbd></li>
+				<li><kbd class="userinput">SQPG 6,RPTV,10,15,,(@)</kbd>
+				</li>
+			</ol></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 96731</span><script type="text/javascript">var ti='96731';var tt='Inserting a sequencer instruction'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

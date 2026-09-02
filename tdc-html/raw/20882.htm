@@ -1,0 +1,103 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To execute an AC test, use the following APIs according to the test type."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Executing an AC Test</title></head><body id="_20882"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 20882</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Executing an AC Test</h1>
+	
+	
+	<div><p>To execute an AC test, use the following APIs according to the test type.</p>
+		<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-1 rowsep-0" id="_20882__entry__1"><p>Test Type</p>
+						</th>
+						<th class="colsep-1 rowsep-0" id="_20882__entry__2"><p>Test Method API</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr>
+						<td class="colsep-1 rowsep-0" headers="_20882__entry__1"><p>AC measurement test</p>
+						</td>
+						<td class="colsep-1 rowsep-0" headers="_20882__entry__2"><p><kbd class="userinput">EXECUTE_TEST</kbd> or </p>
+							<p><kbd class="userinput">START_TEST</kbd> and <kbd class="userinput">WAIT_TEST_DONE</kbd></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-0" headers="_20882__entry__1"><p>Digital capture test</p>
+						</td>
+						<td class="colsep-1 rowsep-0" headers="_20882__entry__2"><p><kbd class="userinput">DIGITAL_CAPTURE_TEST</kbd>,</p>
+							<p><kbd class="userinput">NB_DIGITAL_CAPTURE_START or</kbd></p>
+							<p><kbd class="userinput">NB_DIGITAL_CAPTURE_END</kbd></p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-1 rowsep-0" headers="_20882__entry__1"><p>Digital functional test</p>
+						</td>
+						<td class="colsep-1 rowsep-0" headers="_20882__entry__2"><p><kbd class="userinput">FUNCTIONAL_TEST</kbd></p>
+						</td>
+					</tr>
+				</tbody></table>
+		<p>This section describes how to execute an AC test using these APIs.</p>
+		<ul>
+			<li><strong>Executing an AC measurement test</strong><p>To execute an AC test using the setup data
+					downloaded to the hardware, you can use the following
+					API.</p><pre class="prettyprint copyable singleline">EXECUTE_TEST(...);</pre><p>When this API is executed, the digital
+					sequencer is started and the test starts.</p>
+				<p>You can set the timeout time for the test (or measurement). The timeout time is compared to
+					the time from when the test was started. If the test time exceeds the timeout time, this API
+					returns "1" to a variable of the timeout flag parameter, and the program execution goes to the
+					next statement.</p>
+				<p>Example:</p><pre class="prettyprint copyable singleline">EXECUTE_TEST(0.1 sec, &amp;timeout_flag);</pre><p>Instead of the
+						<kbd class="userinput">EXECUTE_TEST</kbd> API, you can use the <kbd class="userinput">START_TEST</kbd> and
+						<kbd class="userinput">WAIT_TEST_DONE</kbd> APIs as
+						follows:</p><pre class="prettyprint linenums copyable">START_TEST();
+WAIT_TEST_DONE(timeout, &amp;timeout_flg);</pre><p><kbd class="userinput">START_TEST</kbd>
+					starts the digital sequencer at the specified start label, that is, changes the state of the
+					digital sequencer from "BRK" to "RUN". Then the program execution goes to the next
+					statement.</p>
+				<p><kbd class="userinput">WAIT_TEST_DONE</kbd> pauses the program execution until the digital
+					sequencer and all the analog module's sequencers (except the AWG sequencers) stop.</p>
+				<p>For details, see <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a>, <a href="29780.htm" title="Starts the digital sequencer at the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution goes to the next statement.">START_TEST</a> and <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a>.</p>
+				<p>The advantage of the pair of the <kbd class="userinput">START_TEST</kbd> and
+						<kbd class="userinput">WAIT_TEST_DONE</kbd> APIs is that the workstation can execute another job
+					while the tester hardware is performing the test. To execute another job during a test, you
+					have to write statements for the job such as calculation of data between the
+						<kbd class="userinput">START_TEST</kbd> and <kbd class="userinput">WAIT_TEST_DONE</kbd> APIs as
+					follows:</p><pre class="prettyprint linenums copyable">START_TEST();
+       :
+//Another Job Statements
+       :
+WAIT_TEST_DONE(1.0 s, &amp;flg);
+//Timeout time = 1.0sec</pre><p>The
+					figure below shows the relationship of the test time (or measurement time), the timeout time,
+					and the execution time of another job.</p></li>
+			<li><strong>Executing a digital capture test</strong><p>To execute a digital capture test using the setup
+					data downloaded to the hardware, you can use the following APIs:</p><pre class="prettyprint linenums copyable">DIGITAL_CAPTURE_TEST();
+NB_DIGITAL_CAPTURE_START(); and 
+NB_DIGITAL_CAPTURE_END();</pre><div></div>
+				<p>If you attempt to execute a test containing digital capturing by the
+						<kbd class="userinput">EXECUTE_TEST</kbd> API, the test cannot be done. For details, see the <a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST</a> or <a href="29520.htm" title="This API declares the beginning of a non-blocking test which contains digital capturing.">NB_DIGITAL_CAPTURE_START</a>.</p>
+				<p>Note that you cannot perform another job during the measurement if you execute a test
+					containing digital capturing using the <kbd class="userinput">DIGITAL_CAPTURE_TEST(); </kbd>API.
+					However, the <kbd class="userinput">NB_DIGITAL_CAPTURE_START(); </kbd>and<kbd class="userinput">
+						NB_DIGITAL_CAPTURE_END(timeout); </kbd>APIs allow communication with analog
+					instrumentation during a digital capture test.</p></li>
+			<li><strong>Executing a digital functional test</strong><p>To execute a digital functional test using the
+					setup data downloaded to the hardware, you can use the <kbd class="userinput">FUNCTIONAL_TEST</kbd>
+					API. This API activates the digital primaries before executing the test. For details, see <a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNCTIONAL_TEST</a>.</p>
+				<p>If you perform a functional test where an analog module is also used, put the
+						<kbd class="userinput">FLUSH</kbd> API to activate the primary analog set and routing connections
+					before the <kbd class="userinput">FUNCTIONAL_TEST</kbd> API. In this case, statements for enabling
+					the analog module trigger signal input and making routing connections are required before the
+						<kbd class="userinput">FLUSH</kbd> API.</p>
+				<p>To retrieve the functional test result, you can use the
+						<kbd class="userinput">GET_FUNCTIONAL_RESULT</kbd> API.</p>
+				<div class="note"><span class="title">Note</span> In the figure below, it is assumed that the <em>flag</em> parameter is set with
+					the <kbd class="userinput">WAIT_TEST_DONE</kbd> API. If the <em>flag</em> parameter is not set, the
+					program execution will be aborted when timeout occurs. For details of this topic, see <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a>.</div>
+			</li>
+		</ul>
+		<div class="p"><figure class="fignone">
+				
+				<img src="20881.png" alt="Measurement Time, Timeout Time, and Execution Time">
+			</figure></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 20882</span><script type="text/javascript">var ti='20882';var tt='Executing an AC Test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

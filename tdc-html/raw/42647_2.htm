@@ -1,0 +1,134 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="As described in the previous sections, the behavior of the test method APIs in multisite testing depends on the state of each site."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>API Behavior on Multisite Testing</title><meta name="keywords" content="multi-site"></head><body id="_42647"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42647</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">API Behavior on Multisite Testing</h1>
+	
+	
+	<div><p>As described in the previous sections, the behavior of the test method APIs in multisite
+		testing depends on the state of each site. </p>
+		<p>However, all the APIs allow site specific setup, execution and result evaluation.</p>
+		<p>The result APIs store the measurement data of all sites into the cache temporarily when the
+			program is launched for the first tested site. They return the measurement data for the currently
+			tested site from the cache at each execution.</p>
+		<p>The following describes other points related to the API behavior on multisite testing:</p>
+		<ul>
+			<li><a href="29658.htm" title="Passes the specified array data or WAVE_LOG/SCATTER_LOG/Wave API's class object (array data with captions) to the signal analyzer if the debug_analog testflow flag is on.">PUT_DEBUG</a> API works only for a single site that is specified as a focus site in
+				the Site Control window.</li>
+			<li>The following APIs are ignored in single-site testing. Hence, you can develop test method
+				programs that are compatible with both single-site and multisite tests.<ul>
+					<li><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN()</a> - <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END()</a></li>
+					<li><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN()</a> - <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END()</a></li>
+					<li><a href="29732.htm" title="This API sets the specified sites in the currently-enabled sites to setup-focus state. This API can also set all enabled sites except for the specified single site to not setup-focus state simultaneously. The API returns also the previous state of sites.">SET_TEST_FOCUS()</a>
+					</li>
+					<li><a href="29818.htm" title="This API sets the specified site in the currently setup-focused sites to the non-setup-focus state, and returns the previous state of the site.">UNSET_TEST_FOCUS()</a><div class="note"><span class="title">Note</span> In single-site testing,
+								<span class="keyword">SET_TEST_FOCUS()</span> and <span class="keyword">UNSET_TEST_FOCUS()</span> APIs generate
+							a warning message to the report window, and the program execution continues to the next
+							statement. In this case, the setting by these APIs except for site 1 is ignored. You can also
+							ignore the warning message by using the <a href="28764.htm" title="This API disables generation of error messages to the report window. Note that the generation of error messages to the report window is enabled by default.">DISABLE_ERROR_MESSAGE</a> API.</div>
+					</li>
+				</ul></li>
+			<li>The <em>flag</em> parameter of <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a> or <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a> API does not
+				depend on site information. Hence, if a timeout occurs on one or more sites, "1" is returned to
+				this parameter regardless of where the timeout occurred. If you use this parameter in the
+				first-invocation block, keep this point in mind.<p>Do any "on timeout" process with the timeout
+					flag parameter in the first-invocation block as follows:</p><pre class="prettyprint linenums copyable">INT globalTimeoutFlag;
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+    ...
+    ...
+    EXECUTE_TEST (100 ms, &amp;globalTimeoutFlag);
+
+    if (globalTimeoutFlag == 1)
+    {
+        //
+        // Do "On timeout" process
+        //
+        ...
+        ...
+    }
+
+ON_FIRST_INVOCATION_END();
+...
+...</pre><div></div>
+				<p>For more details of this functionality, see the reference of above APIs in the <em>Test Method
+						Programming</em> manual.</p></li>
+			<li>The <span class="keyword">timeout_info</span> parameter of <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a> or <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a> API can be used to check whether a timeout error has occurred or not for each
+				site. Note that the <span class="keyword">trigger_info</span> parameter is required to get the site
+				specific information by the <span class="keyword">timeout_info</span> parameter. The following is an
+				example of error handling by using the parameter <span class="keyword">timeout_info</span> to get the site
+				specific information. Detail of this feature is described in the <a href="105426.htm">Test
+					Method Programming</a>
+					manual.<div></div><pre class="prettyprint linenums copyable">static int timeout_info, trigger_info;
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+
+    ...
+    ...
+    EXECUTE_TEST (100 ms, &amp;timeout_info, &amp;trigger_info);
+    ...
+    ...
+
+ON_FIRST_INVOCATION_END();
+...
+...
+if ((timeout_info &gt;&gt; (CURRENT_SITE_NUMBER() - 1)) &amp; 1)
+{
+    cout &lt;&lt; "Timeout error has occurred on site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl;
+
+    TEST("","",TM::Fail,0);
+}
+...
+...</pre><p>Note:
+					The keyword <span class="keyword">static</span> must be used for the declaration of the variables
+						<span class="keyword">timeout_info</span> and <span class="keyword">trigger_info</span> in the example above. The
+					variables are filled with the first invocation of the function but evaluated in the invocation
+					for each site. For more information refer to <a href="42648.htm" title="This section summarizes the important points on programming for multisite testing.">Important Points on Multisite Programming</a>.</p>
+				
+			</li>
+			<li>The <em>mistriggered_site</em> parameter of <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a> or <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a>
+				API can be used to check whether the analog modules used for the test have received one or more
+				triggers or not. <p>Note that <em>timeout_site</em> parameter is required for using the
+						<em>mistriggered_site</em> parameter. The following is an example of error handling by using the
+						<em>mistriggered_site</em> parameter. Detail of this feature is described in the <a href="105426.htm">Test Method Programming</a>
+				manual.</p><pre class="prettyprint linenums copyable">static int timeout_info, trigger_info;
+..
+..
+ON_FIRST_INVOCATION_BEGIN();
+
+    ...
+    ...
+    EXECUTE_TEST (100 ms, &amp;timeout_info, &amp;trigger_info);
+    ...
+    ...
+
+ON_FIRST_INVOCATION_END();
+...
+...
+if ((trigger_info &gt;&gt; (CURRENT_SITE_NUMBER() - 1)) &amp; 1)
+{
+    cout &lt;&lt; "Minimum one analog module has not received any trigger on site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl;
+
+    TEST("","",TM::Fail,0);
+}
+...
+...</pre><div></div>
+			</li>
+			<li>The behavior of the <a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a> API is slightly different from the behavior for
+				single-site testing. <p>When the program is first executed, the program execution does not
+					return immediately to the test flow level and continues even if the continue parameter is FALSE
+					(default) when the test result is fail. </p>
+				<p>For subsequent executions the program execution goes immediately to the next site's test when
+					the test result is fail. </p>
+				<p>For the last execution, the program execution returns immediately to the testflow level when
+					the test result is fail. </p>
+				<p>The figure below shows the behavior of <a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a> API for multisite testing.</p>
+				<div class="p"><figure class="fignone">
+						
+						<img src="47503.png" alt="Behavior of TEST API for Multi-Site Testing">
+					</figure></div></li>
+		</ul>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a></div><div><a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a></div><div><a href="28751.htm" title="This API returns the site number of the current site under test.">CURRENT_SITE_NUMBER()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42647</span><script type="text/javascript">var ti='42647';var tt='API Behavior on Multisite Testing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

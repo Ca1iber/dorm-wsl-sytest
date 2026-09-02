@@ -1,0 +1,79 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="You can run predefined PPMU tests from within a pattern with the sequencer instruction MEAS. This can be used to:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Executing PPMU tests from a pattern</title><meta name="keywords" content="vector label parametric measurement unit per-pin PMU"></head><body id="_77802"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 77802</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Executing PPMU tests from a pattern</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="78343.htm" title="In order to create and execute a multi-port burst that executes a PPMU test for one port, you must perform the following steps:">How to Set Up a Multi-Port Test for a DC Subroutine</a></li></ol></div></nav>
+	
+	
+	<div><p>You can run predefined PPMU tests from within a pattern with the sequencer instruction
+			<kbd class="userinput">MEAS</kbd>. This can be used to:</p>
+		<ul>
+			<li>Execute PPMU tests for one port in parallel with digital tests for other ports in a
+				multi-port environment.</li>
+			<li>Alternate digital and PPMU DC tests in one test run without having to perform a
+				time-consuming restart of the sequencers after the PPMU test.</li>
+		</ul>
+		<p>The main tools for setting up and executing such a <em>DC pattern</em> are the
+				<kbd class="userinput">PATTERN_CONTROLLER</kbd> and <kbd class="userinput">PATTERN</kbd> API's. These API's
+			serve to:</p>
+		<ol>
+			<li>Download a collection of measurement sets defined with the
+					<kbd class="userinput">PPMU_SETTING</kbd>, <kbd class="userinput">PPMU_RELAY</kbd>, and
+					<kbd class="userinput">PPMU_MEASURE</kbd> API's (abbreviated from now on as
+					<kbd class="userinput">PPMU_</kbd><em>XXX</em>).</li>
+			<li>Insert a <kbd class="userinput">MEAS</kbd> sequencer instruction for each of these measurement sets
+				into a predefined empty subpattern.</li>
+			<li>Execute the current primary sets.</li>
+		</ol>
+		<p>If you set up the DC pattern with the <kbd class="userinput">PATTERN_CONTROLLER</kbd> and
+				<kbd class="userinput">PATTERN</kbd> API's, which is recommended, the DC pattern must be a
+			<em>sub</em>pattern, and must not contain any vectors or other sequencer instructions. It is
+			exclusively intended for the execution of the PPMU tests.</p>
+		<p>In the multi-port case, the DC test subpattern must be called from a main pattern of the
+			desired port, and the main pattern in its turn must be made part of a multi-port burst. Finally,
+			the multi-port burst must be specified as the start label of the respective testsuite.</p>
+		<p>With this construction the PPMU tests can be executed in parallel with any digital test for the
+			other ports. The following figure illustrates the runtime flow:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="78560.png" alt="Executing a DC Test Concurrently with a Digital Test">
+			</figure></div>
+		<p>The DC set numbers and the measurement set numbers depend on the previous testsuites of the
+			testflow (see <a href="75771.htm" title="Every DC test stores its measurement parameters in a DC set, which is identified by a number. All those DC tests that (can) define a PPMU test use a common pool of DC sets, which are stored in the Sequencer Memory: if the firmware commands they issue specify the same DC set number, they refer to the same object.">DC set management</a>) and are therefore represented by the placeholders <em>x</em>
+			and <em>u</em>, <em>v</em>, <em>w</em>, respectively.</p>
+		
+		
+		<p>In the single-port case, the DC subpattern and the calling main pattern must be defined for the
+			default port <kbd class="userinput">@</kbd>.</p>
+		<p>The pins of a port on which a <kbd class="userinput">MEAS</kbd> instruction is being executed are fed
+			with break vectors during the execution of <kbd class="userinput">MEAS</kbd>. The time span needed for
+			one <kbd class="userinput">MEAS</kbd> instruction is roughly determined by</p>
+		<p><em> n </em>× 8 × <em>period_length</em> + <em>wait_time</em>,</p>
+		<p>where <em>n</em> is the number of actions in the measurement set, and <em>wait_time</em> is the
+			waiting time specified by the user for the measurement set.</p>
+		<div class="note"><span class="title">Note</span> 
+			<p>The typical time required for a BADC or PPMU measurement can be calculated as follows:</p>
+			<table class="ly"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0" colspan="2"><strong>t<sub>wait</sub>&nbsp;=&nbsp;(25&nbsp;μs&nbsp;+&nbsp;N&nbsp;*&nbsp;4&nbsp;μs)</strong></td>
+						</tr>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0">where:</td>
+							<td class="colsep-0">25&nbsp;μs is a one-time overhead</td>
+						</tr>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0"></td>
+							<td class="colsep-0">"N" is the number of samples</td>
+						</tr>
+					</tbody></table>
+			<p>After the measurement is performed, SmarTest needs an additional time (typical) of
+				20&nbsp;μs&nbsp;*&nbsp;N, where N is the number of samples, to fetch the results. For this
+				additional duration of time, the BADC cannot be used to perform a new measurement.</p>
+			<p>In additional, an extra wait time of, at least, 60 μs must be added for the
+				first BADC measurement after switching the measurement mode on one channel for EXA Scale digital
+				cards or Smart Scale digital cards in Exa Scale compatibility mode.</p>
+		</div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 77802</span><script type="text/javascript">var ti='77802';var tt='Executing PPMU tests from a pattern'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

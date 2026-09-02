@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This testflow variable controls the level of SmartRDI related information that is shown in the SmarTest UI report window. SmartRDI supports logging levels 0, 1, 2, and 3."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>RDI_INFO_LEVEL</title></head><body id="_149626"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149626</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">RDI_INFO_LEVEL</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="353752.htm" title="Retrieves the information level value that has been specified by setInfoLevel().">rdi.getInfoLevel()</a></li><li><a href="353753.htm" title="Sets an RDI information level value to replace the RDI_INFO_LEVEL in block(s) or test suite(s).">rdi.setInfoLevel()</a></li></ol></div></nav>
+	
+	
+	<div><p>This testflow variable controls the level of SmartRDI related information that is shown
+		in the SmarTest UI report window. SmartRDI supports logging levels 0, 1, 2, and
+		3.</p>
+		<section class="section"><p>The optional flag can be defined as <span class="keyword">Userflag</span> on the <a href="99275.htm" title="On this page, you can add, delete, and edit variables.">Variables page</a> of the <a href="99271.htm" title="The Flow Data Editor consists of eight pages.">Flow Data Editor</a>.</p></section>
+		<section class="section"><h2>Level 0</h2><p>When the information level is 0, nothing is reported in the
+				SmarTest UI report window. </p></section>
+		<section class="section"><h2>Level 1</h2><p>When the information level is 1, SmarTest command behind
+				SmartRDI appears in the SmarTest UI report window. </p><p>For example, consider this piece of
+				SmartRDI
+				code:</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+rdi.dgt("cap").pin("E+").samples(1024).FS(1e5).execute();
+rdi.wait(TA::WAIT_DGT);         
+RDI_END();</pre><p>Executing
+				it will generate a log similar to this (numbers in square brackets indicate sites):
+			</p><pre class="msgblock">rdi:[1] Analog.primary("_RDI_PLAY_BK1");
+rdi:[1] Routing.pin("DGT1_E+").connect(TM::SINGLE);
+rdi:[1] DGT("DGT1_E+").enable();
+rdi:[1] FLUSH();
+rdi:[1] Primary.label("_rdi_burst_RDI_BK1_v1");
+rdi:[1] SMC_FUNCTIONAL_TEST();
+rdi:[1] ---------------------------------------------  
+rdi:[1] DGT("DGT1_E+") .getWaveform(1,results,1)
+rdi:[2] DGT("DGT1_E+") .getWaveform(1,results,1)
+rdi:[3] DGT("DGT1_E+") .getWaveform(1,results,1)
+rdi:[4] DGT("DGT1_E+") .getWaveform(1,results,1)  
+rdi:[1] ---------------------------------------------
+rdi:[1] Routing.pin("DGT1_E+").disconnect();</pre></section>
+		<section class="section"><h2>Level 2</h2><p>When the information level is set to 2, separate test times are
+				displayed for each test in the SmarTest UI report window.</p><p>This is a sample for the
+				information level
+			2:</p><pre class="msgblock">Total:                             26.071 msec
+  Setup Generation:                       15.631 msec
+    Action pattern &amp; Dc generation:              14.090 msec
+    Burst pattern gen:                     0.080 msec
+    Other init &amp; check:                    0.069 msec
+    Pattern Cycle Calculation:                   1.376 msec
+    User Code:                             0.016 msec
+  Setup Command:                           6.044 msec
+    DC Setup:                              5.839 msec
+    Other Command:                         0.205 msec
+  Pattern Execution:                       3.278 msec
+  Result Upload:                           1.043 msec
+    DC Result Upload:                      1.023 msec
+  Others:                                  0.075 msec</pre><div></div>
+			<div class="p">The information level 2 example above is generated from the following code:
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("DATA1").vForce(3 V).execute();
+  rdi.dc().pin("DATA2").iForce(0 mA).vMeas().measWait(100 us).execute();
+RDI_END();</pre></div>
+			<div class="note"><span class="title">Note</span> All "other" time refers to SmartRDI execution/generation overhead that does not
+				consume a significant portion of time in general.</div></section>
+		<section class="section"><h2>Level 3</h2><p>When the information level is set to 3, executed RDI actions are dumped to the SmarTest UI report
+				window in the first run.</p><p>This feature shows RDI
+				commands and their default values. It helps to debug deeply layered code structures.</p><p>For
+				example, consider this piece of SmartRDI
+				code:</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+write (data1);
+write (data2);
+write (data3);         
+RDI_END();
+
+void write (int data)
+{data2=process(data)
+rdi.smartVec().pin("DATA1").defaultBit(0).writeData(data2,8,2).execute();
+}</pre><p>Executing
+				it will generate a log similar to this:
+			</p><pre class="msgblock">**************************
+SmartRDI version : 2.4.5.0
+**************************
+----------RDI commands in testsuite RDI_Dump_info-----------
+RDI_BEGIN(TA::BURST);
+rdi.smartVec().pin("DATA1").defaultBit(0).writeData(71,8,2).execute();
+rdi.smartVec().pin("DATA1").defaultBit(0).writeData(73,8,2).execute();
+rdi.smartVec().pin("DATA1").defaultBit(0).writeData(75,8,2).execute();
+RDI_END();</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmartRDI 2.4.0: Support RDI_INFO_LEVEL 2.</li><li>SmartRDI 2.4.5: Support RDI_INFO_LEVEL 3.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149626</span><script type="text/javascript">var ti='149626';var tt='RDI_INFO_LEVEL'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

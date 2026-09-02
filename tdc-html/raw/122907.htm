@@ -1,0 +1,2106 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The template class &#34;Wave&#34; provides the complete functionality for digital signal processing including:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Wave</title></head><body id="_122907"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122907</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Wave</h1>
+	
+	
+	<div><p>The template class "Wave" provides the complete functionality for digital signal
+		processing including:</p>
+		<section class="section"><ul>
+				<li>the initialization methods</li>
+				<li>basic and advanced math operations</li>
+				<li>trigonometric functions</li>
+				<li>bitwise operations</li>
+				<li>operations on arrays</li>
+				<li>resampling, windowing and moving average calculation</li>
+				<li>A-law and μ-law encoding and decoding</li>
+				<li>FFT, IFFT and spectrum calculation</li>
+				<li>calculation of static converter parameters (linearity) </li>
+			</ul><p>This class supports the data types INT, DOUBLE, FLOAT and COMPLEX. Some functions are
+				only available for a subset of these data types. </p><p>A Wave object has the following
+				properties:</p><ul>
+				<li>Waveform<p>This property points to an array containing the sampled waveform in the time
+						domain, or in the frequency domain. The array type can be integer, float, double or
+						complex.</p>
+					<p>No default values are assigned.</p></li>
+				<li>Size<p>The integer number defining the size of the waveform. For complex waveforms, this is
+						the number of complex values.</p></li>
+				<li>Domain<p>The domain of the waveform data. It can be <kbd class="userinput">DSP::TIME</kbd> for a
+						time domain or <kbd class="userinput">DSP::FREQUENCY</kbd> for a frequency domain. The default value
+						after the initialization of a waveform is <kbd class="userinput">DSP::TIME</kbd>.</p></li>
+				<li>Sampling Rate<p>The sampling rate of the sampled waveform. The default value is -1. This
+						means this property is not initialized.</p></li>
+				<li>Number of Periods<p>The number of waveform periods if the waveform is periodic. If the
+						waveform is not periodic, this value is 0.</p></li>
+				<li>Unit<p>The unit of the waveform data. It can be:</p>
+					<p><kbd class="userinput">DSP::UNIT_V</kbd>: for the unit V(Volts). This unit is set automatically if
+						the data is uploaded from a digitizer. </p>
+					<p><kbd class="userinput">DSP::UNIT_1</kbd>: if the data does not have a unit. This is set
+						automatically if the data is uploaded from a digital channel (digital capture data). </p>
+					<p><kbd class="userinput">DSP::UNIT_DBV</kbd>, <kbd class="userinput">DSP::UNIT_DB</kbd>,
+							<kbd class="userinput">DSP::UNIT_DBM</kbd> or <kbd class="userinput">DSP::UNIT_W</kbd>: These units are
+						set after the FFT calculation, depending on the conversion function.</p></li>
+				<li>Comment<p>A comment for the waveform. It is displayed in the Signal Analyzer, or can be
+						exported to a file. The length of the comment is not restricted.</p></li>
+				<li>Reference Line<p>The reference line required for the calculation of linearity parameters.
+						The value can be:</p>
+					<p><kbd class="userinput">DSP::END_PT</kbd>: The reference line connects the first and the last
+						points.</p>
+					<p><kbd class="userinput">DSP::ZERO_PT</kbd>: The reference line minimizes the peak deviation.</p>
+					<p><kbd class="userinput">DSP::MIN_RMS</kbd>: The reference line minimizes the RMS of the
+						deviations.</p>
+					<p>The default value is <kbd class="userinput">DSP::END_PT</kbd>.</p></li>
+				<li>Spectrum Type<p>The type of spectrum. The value can be:</p>
+					<p><kbd class="userinput">DSP::ONE_SIDED</kbd>: for one-sided spectrums</p>
+					<p><kbd class="userinput">DSP::TWO_SIDED</kbd>: for two-sided spectrums. </p>
+					<p>Applying the fft() or spectrum() function to non-complex Wave objects, returns one-sided
+						spectrums. </p>
+					<p>Applying fft() function to complex Wave objects returns two-sided spectrums. </p>
+					<p>One-sided spectrums contain the frequency bins from DC to <code>fs*(size -
+							1)/(2*size)</code>. Two-sided spectrums contain the frequency bins from DC to
+							<code>fs</code>, where the right half of the spectrum is a mirror image of the negative
+						frequencies from DC to <code>-fs/2</code>. (<code>fs</code> is the sampling
+						frequency).</p></li>
+			</ul><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Wave.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Class definition</h2><p>In the class
+				definition:</p><p><code>Wave&lt;T&gt;</code> means <code>Wave&lt;INT&gt;</code>,
+					<code>Wave&lt;DOUBLE&gt;</code>, <code>Wave&lt;FLOAT&gt;</code> or
+					<code>Wave&lt;COMPLEX&gt;</code>. </p><p>Data type <code>T</code> means
+					<code>INT</code>, <code>DOUBLE</code>, <code>FLOAT</code> or
+					<code>COMPLEX</code>.</p></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">Wave();
+Wave(INT size, T initValue);
+Wave(const ARRAY_I &amp; array);
+Wave(const ARRAY_D &amp; array);
+Wave(const ARRAY_F &amp; array);
+Wave(const ARRAY_COMPLEX &amp; array);
+Wave(const Wave&lt;INT&gt; &amp; wave);
+Wave(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave(const Wave&lt;COMPLEX&gt; &amp; wave);</pre></section>
+		<section class="section"><h3>Member
+			functions</h3><pre class="prettyprint linenums copyable">//Assignment
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;COMPLEX&gt; &amp; wave);
+
+//Initialization
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;COMPLEX&gt; &amp; wave);
+Wave&lt;T&gt; &amp; importFile(const STRING &amp; filePath);
+Wave&lt;T&gt; &amp; initRealImag(const Wave&lt;DOUBLE&gt; &amp; real, const Wave&lt;DOUBLE&gt; &amp; imag);
+Wave&lt;T&gt; &amp; initRealImag(const Wave&lt;FLOAT&gt; &amp; real, const Wave&lt;FLOAT&gt; &amp; imag);
+Wave&lt;T&gt; &amp; initMagnitudePhase(const Wave&lt;DOUBLE&gt; &amp; magnitude, const Wave&lt;DOUBLE&gt; &amp; phase);
+Wave&lt;T&gt; &amp; initMagnitudePhase(const Wave&lt;FLOAT&gt; &amp; magnitude, const Wave&lt;FLOAT&gt; &amp; phase);
+
+//Access elements
+T &amp; operator[](const INT index);
+const T &amp; operator[](const INT index) const;
+T getComponent(DOUBLE value) const;
+T getComponent(FLOAT value) const;
+Wave&lt;T&gt; &amp; setComponent(DOUBLE value, T newValue);
+Wave&lt;T&gt; &amp; setComponent(FLOAT value, T newValue);
+
+//Basic Math Operation
+Wave&lt;T&gt; &amp; operator+(T value);
+Wave&lt;T&gt; &amp; operator-(T value);
+Wave&lt;T&gt; &amp; operator*(T value);
+Wave&lt;T&gt; &amp; operator/(T value);
+Wave&lt;T&gt; &amp; operator++();
+Wave&lt;T&gt; &amp; operator--();
+Wave&lt;T&gt; operator++(INT arg); //postfix
+Wave&lt;T&gt; operator--(INT arg); //postfix
+Wave&lt;T&gt; &amp; operator%(INT value);
+Wave&lt;T&gt; &amp; operator+(const Wave&lt;T&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator-(const Wave&lt;T&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator*(const Wave&lt;T&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator/(const Wave&lt;T&gt; &amp; wave);
+friend Wave&lt;INT&gt; &amp; operator-(INT value, Wave&lt;INT&gt; &amp; wave);
+friend Wave&lt;FLOAT&gt; &amp; operator-(FLOAT value, Wave&lt;FLOAT&gt; &amp; wave);
+friend Wave&lt;DOUBLE&gt; &amp; operator-(DOUBLE value, Wave&lt;DOUBLE&gt; &amp; wave);
+friend Wave&lt;COMPLEX&gt; &amp; operator-(COMPLEX value, Wave&lt;COMPLEX&gt; &amp; wave);
+
+//Bitwise Math Operation
+Wave&lt;T&gt; &amp; operator&amp;(INT number);
+Wave&lt;T&gt; &amp; operator|(INT number);
+Wave&lt;T&gt; &amp; operator^(INT number);
+Wave&lt;T&gt; &amp; operator~();
+Wave&lt;T&gt; &amp; operator&lt;&lt;(INT number);
+Wave&lt;T&gt; &amp; operator&gt;&gt;(INT number);
+Wave&lt;T&gt; &amp; operator&amp;(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator|(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator^(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; extractBits(INT offset, INT stride, INT size);
+
+//Advanced Math Operation
+Wave&lt;T&gt; &amp; abs();
+Wave&lt;T&gt; &amp; sqrt();
+Wave&lt;T&gt; &amp; log(INT value);
+Wave&lt;T&gt; &amp; ln();
+Wave&lt;T&gt; &amp; exp(INT value);
+Wave&lt;T&gt; &amp; pow(INT value);
+Wave&lt;T&gt; &amp; sin();
+Wave&lt;T&gt; &amp; cos();
+Wave&lt;T&gt; &amp; tan();
+Wave&lt;T&gt; &amp; asin();
+Wave&lt;T&gt; &amp; acos();
+Wave&lt;T&gt; &amp; atan();
+Wave&lt;T&gt; &amp; atan2(T value);
+
+//Array operation
+Wave&lt;T&gt; &amp; append(const Wave&lt;T&gt; &amp; obj);
+Wave&lt;T&gt; &amp; select(INT offset, INT stride, INT size);
+Wave&lt;T&gt; &amp; deselect();
+Wave&lt;T&gt; &amp; remove(INT offset, INT stride, INT size);
+Wave&lt;T&gt; &amp; sort();
+Wave&lt;T&gt; &amp; shuffle();
+Wave&lt;T&gt; &amp; differentiate();
+Wave&lt;T&gt; &amp; integrate();
+Wave&lt;DOUBLE&gt; convolve(const Wave&lt;T&gt; &amp; wave,
+                      enum DSP::CIRCULAR_MODE mode = DSP::NON_CIRCULAR) const;
+Wave&lt;DOUBLE&gt; correlate(const Wave&lt;T&gt; &amp; wave, 
+                       enum DSP::CIRCULAR_MODE mode = DSP::NON_CIRCULAR) const;
+Wave&lt;T&gt; &amp; serialize(INT width, INT slot);
+Wave&lt;T&gt; &amp; parallelize(INT width, INT slot);
+Wave&lt;DOUBLE&gt; real() const;
+Wave&lt;DOUBLE&gt; imag() const;
+
+//signal processing in time domain
+Wave&lt;T&gt; &amp; resample(DOUBLE new_fsample);
+Wave&lt;T&gt; &amp; movingAverage(INT windowLength);
+Wave&lt;T&gt; &amp; window(enum DSP::WINDOW window);
+Wave&lt;INT&gt; encode(enum DSP::CONVERSION_METHOD method,
+                 enum DSP::OUTPUT_FORMAT output_format = DSP::CMPLM2) const;
+Wave&lt;DOUBLE&gt; decode(enum DSP::CONVERSION_METHOD method,
+                    enum DSP::OUTPUT_FORMAT output_format = DSP::CMPLM2) const;
+
+//FFT and spectrum
+Wave&lt;T&gt; &amp; spectrum(const Wave&lt;INT&gt; &amp; wave, enum DSP::SCALE scale = DSP::DBC);
+Wave&lt;T&gt; &amp; spectrum(const Wave&lt;FLOAT&gt; &amp; wave, enum DSP::SCALE scale = DSP::DBM);
+Wave&lt;T&gt; &amp; spectrum(const Wave&lt;DOUBLE&gt; &amp; wave, enum DSP::SCALE scale  = DSP::DBM);
+Wave&lt;T&gt; &amp; spectrum (const Wave&lt;COMPLEX&gt; &amp; wave, enum DSP::SCALE scale=DSP::DBM);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;COMPLEX&gt; &amp; wave);
+Wave&lt;DOUBLE&gt; magnitudes() const;
+Wave&lt;DOUBLE&gt; squared_magnitudes() const;
+Wave&lt;DOUBLE&gt; phases() const;
+Wave&lt;T&gt; &amp; ifft();
+Wave&lt;T&gt; &amp; ifft(const Wave&lt;COMPLEX&gt; &amp; wave);
+
+//Access properties
+INT getSize() const;
+INT setSize(INT size);
+DOUBLE getSamplingRate() const;
+DOUBLE setSamplingRate(DOUBLE value);
+INT getPeriods() const;
+INT setPeriods(INT periods);
+DOUBLE getFundamental() const;
+DOUBLE setFundamental(DOUBLE value);
+INT getDomain() const;
+INT setDomain(enum DSP::WAVE_DOMAIN domain);
+INT getUnit() const;
+INT setUnit(enum DSP::UNIT unit);
+const STRING &amp; getComment() const;
+const STRING &amp; setComment(const STRING &amp; comment);
+INT getReferenceLine() const;
+INT setReferenceLine(enum DSP::REFERENCE_LINE method);
+INT getSpectrumType() const;
+INT setSpectrumType(enum DSP::SPECTRUM_TYPE type);
+
+//statistic functions
+T min(INT *index = NULL) const;
+T max(INT *index = NULL) const;
+T median(INT *index = NULL) const;
+T sum() const;
+DOUBLE mean() const;
+DOUBLE stddev() const;
+DOUBLE rms() const;
+Wave&lt;T&gt; &amp; histogram(const Wave&lt;INT&gt; &amp; wave, INT num_bins, DOUBLE min, DOUBLE max);
+Wave&lt;T&gt; &amp; histogram(const Wave&lt;FLOAT&gt; &amp; wave, INT num_bins, DOUBLE min, DOUBLE max);
+Wave&lt;T&gt; &amp; histogram(const Wave&lt;DOUBLE&gt; &amp; wave, INT num_bins, DOUBLE min, DOUBLE max);
+
+//Data converter
+DOUBLE dnl() const;
+ARRAY_D dnlArr() const;
+DOUBLE inl() const;
+ARRAY_D inlArr() const;
+INT numberOfMissingCodes(DOUBLE minCodeSize = 1.0) const;
+ARRAY_I missingCodes(DOUBLE minCodeSize = 1.0) const;
+
+//Frequency domain analysis
+DOUBLE fundPower() const;
+DOUBLE harmPower(INT num_harm = 7) const;
+DOUBLE noisePower(INT num_harm = 7) const;
+DOUBLE sfdr(INT num_harm = 7) const;
+DOUBLE snr(INT num_harm = 7) const;
+DOUBLE snd() const;
+DOUBLE thd(INT num_harm = 7) const;
+
+//Export and plot
+void exportFile(const STRING &amp; filePath) const;
+void plot(const STRING &amp; label) const;</pre></section>
+		<section class="section"><h3>Syntax</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; waveObj;
+Func(waveObj, ...)
+waveObj.waveFunc();</pre><p>The
+				syntax shows how to use the Wave class in test method programming. </p><p>First, you need to
+				define a Wave class object. The object can have an arbitrary name. In this example, we call it
+					<code>waveObj</code>. </p><p>The waveform content and other properties of the class wave can be initialized with member
+				functions of <a href="29830.htm" title="The VECTOR API accesses a data container holding the settings of a vector variable. The class functions are used to either get, or set, vector variable data which will indirectly retrieve or change vector memory.">VECTOR</a>,
+				<a href="121944.htm" title="Retrieves the captured waveform data from the hardware memory.">SMC_GET_WAVEFORM</a> or <a href="120101.htm" title="Retrieves the captured waveform data from the hardware memory.">SMC_GET_COMPLEX_WAVEFORM()</a>. The waveform content
+				can be displayed with <a href="29658.htm" title="Passes the specified array data or WAVE_LOG/SCATTER_LOG/Wave API's class object (array data with captions) to the signal analyzer if the debug_analog testflow flag is on.">PUT_DEBUG</a> or a member function of <a href="118743.htm" title="The PutDebugTrace API sends the specified array data to the Signal Analyzer tool if the debug_analog testflow flag is on.">PutDebugTrace</a>.</p><p>After defining the Wave class <code>waveObj</code> you can initialize further properties or
+				modify the waveObject with the member functions of the Wave class. <code>waveFunc()</code>
+				represents one of the member functions of the Wave class. Refer to the <strong>Example </strong>section
+				below.</p></section>
+		<section class="section"><h3>Constructors</h3><pre class="prettyprint copyable singleline">Wave();</pre><p>This creates a Wave object
+				with no waveform data.</p><pre class="prettyprint copyable singleline">Wave(INT size, T initValue);</pre><p>This creates a
+				Wave object with the specified waveform data size and initial value.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">size</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The size of the waveform data</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">initValue</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The initial value for all the elements of the waveform data</p>
+							</td>
+						</tr>
+					</tbody></table><pre class="prettyprint linenums copyable">Wave(const ARRAY_I &amp; array);
+Wave(const ARRAY_D &amp; array);
+Wave(const ARRAY_F &amp; array);
+Wave(const ARRAY_COMPLEX &amp; array);</pre><p>This
+				constructor creates a Wave object with the specified array. If the array type is different to
+				the data type of the Wave object, the elements in the array will be converted to the Wave object
+				data type. If the conversion from COMPLEX to other types, or vise versa occurs, an error message
+				will be issued.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">array</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>ARRAY_X</p>
+								<p>(X can be I, D, F or COMPLEX)</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The data array to be used as the waveform data</p>
+							</td>
+						</tr>
+					</tbody></table><pre class="prettyprint linenums copyable">Wave(const Wave&lt;INT&gt; &amp; wave);
+Wave(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave(const Wave&lt;COMPLEX&gt; &amp; wave);</pre><p>This
+				constructor creates a Wave object by copying from a defined Wave object. All the properties of
+				the Wave object will be copied. If a sub-waveform is selected in the specified Wave object, only
+				the sub-waveform will be copied.</p><p>If the data types of the two Wave object are not the
+				same, each element will be converted and copied to the new object. If the conversion from
+				COMPLEX to other types or vise versa happens, an error message will be issued.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">wave</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to copy from</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2><p>The descriptions of the
+				member functions are sorted according to the following functionalities:</p><ul>
+				<li>Initialization functions</li>
+				<li>Basic and advanced math operations</li>
+				<li>Trigonometric math operations</li>
+				<li>Bitwise math operations</li>
+				<li>Array operations</li>
+				<li>Signal processing in time domain</li>
+				<li>FFT, IFFT and spectrum calculation</li>
+				<li>Properties accessing</li>
+				<li>Statistics functions</li>
+				<li>Calculation of static converter parameters (linearity) </li>
+				<li>Frequency domain analysis</li>
+				<li>Wave object exporting and plotting</li>
+			</ul><p>Under each functionality, the functions are listed in alphabetical order.</p></section>
+		<section class="sectiontitlefake"><h2>Initialization functions</h2></section>
+		<section class="section"><h3>Copy()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; Wave&lt;T&gt;::copy(const Wave&lt;COMPLEX&gt; &amp; wave);</pre><p>This
+				function copies the specified Wave object to the current object. All properties are copied.
+				</p><p>If <code>select()</code> is applied to the specified object, only the selected
+				waveform data will be copied. The size property of the new Wave object will be adjusted to the
+				size of the selected waveform. </p><p>If the two Wave objects are not of the same data type, the
+				data will be converted to the data type of the current Wave object. If the conversion from
+				COMPLEX to other data types happens or vise versa, an error message will be issued.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">wave</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+								<p>(T can be INT, DOUBLE, FLOAT, or COMPLEX)</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to copy from</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>importFile()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; importFile(const STRING &amp; filePath);</pre><p>This
+				function initializes the Wave object with the waveform data of the specified ASCII file if the
+				file contains a list of numbers in ASCII format. For COMPLEX data, the real and imaginary parts
+				of complex numbers need to be separated with a blank space, tab or semicolon.</p><p>If the data
+				type in the file is different to the data type of the Wave object, the data will be converted to
+				the data type of Wave object. If the conversion from COMPLEX to other data types happens or vise
+				versa, an error message will be issued.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">filePath</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>STRING</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The location of the file. If only the file name is specified, the default path is
+									the waveform directory in the current device. Relative paths are allowed and they are
+									relative to the waste directory of the device.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>initMagnitudePhase()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; initMagnitudePhase(const Wave&lt;DOUBLE&gt; &amp; magnitude, const Wave&lt;DOUBLE&gt; &amp; phase);
+Wave&lt;T&gt; &amp; initMagnitudePhase(const Wave&lt;FLOAT&gt; &amp; magnitude, const Wave&lt;FLOAT&gt; &amp; phase);</pre><p>These
+				functions initialize the Wave object with two FLOAT or DOUBLE types of Wave objects,
+				representing the magnitude and the phase. The size, domain type, sampling rate, unit and periods
+				of the two Wave objects must be the same.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">magnitude</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;DOUBLE&gt;</p>
+								<p>or</p>
+								<p>Wave&lt;FLOAT&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave object used as the magnitude of a complex Wave object</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">phase</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;DOUBLE&gt;</p>
+								<p>or</p>
+								<p>Wave&lt;FLOAT&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave object used as the phase of a complex Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>initRealImag()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; initRealImag(const Wave&lt;DOUBLE&gt; &amp; real, const Wave&lt;DOUBLE&gt; &amp; imag);
+Wave&lt;T&gt; &amp; initRealImag(const Wave&lt;FLOAT&gt; &amp; real, const Wave&lt;FLOAT&gt; &amp; imag);</pre><p>This
+				function initializes a complex Wave object with the Wave objects of DOUBLE or FLOAT type
+				representing the real and the imaginary part of the waveform. The size, domain type, sampling
+				rate, unit and periods of the two Wave objects must be the same.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">real</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;DOUBLE&gt;</p>
+								<p>or</p>
+								<p>Wave&lt;FLOAT&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave object used as the real part of the complex Wave object</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">imag</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;DOUBLE&gt;</p>
+								<p>or</p>
+								<p>Wave&lt;FLOAT&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave object used as the imaginary part of the complex Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				=</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; operator=(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; operator=(const Wave&lt;COMPLEX&gt; &amp; wave);</pre><p>This
+				operator can be used to assign an existing Wave object to the current Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">wave</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The existing Wave object to use.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Element accessing functions</h3></section>
+		<section class="section"><h3>getComponent()</h3><pre class="prettyprint linenums copyable">T getComponent(DOUBLE value) const;
+T getComponent(FLOAT value) const;</pre><p>These
+				functions return the value of a single element with the specified time or frequency.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+								<p>or</p>
+								<p>FLOAT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The time or frequency of which value to retrieve.</p>
+								<p>The unit for frequency is Hz and the unit for time is second.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				[]</h3><pre class="prettyprint linenums copyable">T &amp; operator[](const INT index);
+const T &amp; operator[](const INT index) const;
+const T &amp; Wave&lt;T&gt;::operator [] (const DOUBLE freqValue) const;
+const T &amp; Wave&lt;T&gt;::operator [] (const FLOAT freqValue) const;
+T &amp; Wave&lt;T&gt;::operator [] (const DOUBLE freqValue);
+T &amp; Wave&lt;T&gt;::operator [] (const FLOAT freqValue);</pre><p>This
+				operator accesses the value of a single element with its index, or with the point in time, or
+				the frequency of the spectral component.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>index</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Index number of the element to be accessed</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>freqValue</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+								<p>or FLOAT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The frequency value or point in time</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setComponent()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; setComponent(DOUBLE value, T newValue);
+Wave&lt;T&gt; &amp; setComponent(FLOAT value, T newValue);</pre><p>These
+				functions set the specified time or frequency value of a single element.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+								<p>or</p>
+								<p>FLOAT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The time or frequency at which the element will be changed </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>newValue</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The new value for the element</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Basic and advanced math operations</h3></section>
+		<section class="section"><h3>abs()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; abs();</pre><p>The
+					<code>abs()</code> function calculates the absolute value of each element of the Wave
+				object as follows. </p><p>For non-complex data processing:</p><div class="p"><figure class="fignone">
+					<img src="30619.png" alt="formula">
+				</figure></div><p>For complex data processing:</p><div class="p"><figure class="fignone">
+					<img src="30620.png" alt="formula">
+				</figure></div><p>src[i] represents every element of the Wave object before calculation. result[i]
+				represents every element after calculation.</p><p>This function is performed on the current Wave
+				object. The object itself is modified and returned.</p><p>If <code>select()</code> has been
+				previously called, then this function only calculates the absolute value of the selected
+				elements.</p><p>It applies to INTEGER, DOUBLE and FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>exp()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; exp(INT value);</pre><p>This
+				function raises each element of the waveform to the power of specified value. </p><p>This
+				operation is performed on the Wave object itself and the object itself is modified and returned.
+				</p><p>If <code>select()</code> has been previously called, then this function only raises
+				the selected elements to the power of specified value. </p><p>It applies to DOUBLE or FLOAT
+				types of Wave objects.</p><p>An error message will be issued if negative or zero value exists in
+				the waveform.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The power number.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>log()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; log(INT value);</pre><p>This
+				function calculates the logarithm to the base of specified value for each element of the
+				waveform. </p><p>The operation is performed on the Wave object itself and the object itself is
+				modified and returned. </p><p>If <code>select()</code> has been previously called, then this
+				function only calculates the logarithm of the selected elements of the waveform. </p><p>It only
+				applies to DOUBLE or FLOAT types of objects.</p><p>An error message will be issued if:</p><ul>
+				<li>a negative value or 0 is found in the waveform data</li>
+				<li>a parameter value is negative, or 1</li>
+			</ul><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The base number of logarithm.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>ln()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; ln();</pre><p>This function
+				calculates the natural logarithm of each element of the waveform. </p><p>The operation is
+				performed on the Wave object and the object is modified and returned. </p><p>If
+					<code>select()</code> has been previously called, then this function only calculates the
+				natural logarithm of the selected elements of the waveform. </p><p>It applies to DOUBLE or FLOAT
+				types of Wave objects.</p><p>An error message will be issued if negative or zero values exist in
+				the waveform.</p></section>
+		<section class="section"><h3>operator
+				+=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator+=(T value);</pre><p>This operator adds a
+				value to each element of the Wave object. </p><p>The operation is performed on the current Wave
+				object and it is modified and returned. </p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Value to be added</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				+=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator+(const Wave&lt;T&gt; &amp; wave);</pre><p>This
+				operator adds the Wave objects element by element. </p><p>If the <code>select()</code>
+				function has been previously called, then the operation is only performed on the selected
+				elements in the current Wave object. Elements which are not selected in the current Wave object
+				are not changed. </p><p>The operation is performed on the current Wave object and it is modified
+				and returned.</p><p>If the operands have different data types, they have to be converted before
+				this operation.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to be added.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				-=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator-=(T value);</pre><p>This operator
+				subtracts value from each element of the Wave object. </p><p>The operation is performed on the
+				current Wave object and it is modified and returned. </p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Value to be subtracted</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				-=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator-(const Wave&lt;T&gt; &amp; wave);</pre><p>This
+				operator subtracts the specified Wave object from the current object element by
+				element.</p><p>If the <code>select()</code> function has been previously called, then the
+				operation is only performed on the selected elements in the current Wave object. Elements which
+				are not selected in current Wave object are not changed. </p><p>The operation is performed on
+				the current Wave object and it is modified and returned.</p><p>If the operands have different
+				data types, they have to be converted before the operation.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to be subtracted.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				*=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator*=(T value);</pre><p>This operator
+				multiplies a value with each element of the Wave object. </p><p>The operation is performed on
+				the current Wave object and it is modified and returned. </p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Value to multiplied</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				*=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator*(const Wave&lt;T&gt; &amp; wave);</pre><p>This
+				operator multiplies the Wave objects, element by element. </p><p>If the
+					<code>select()</code> function has been previously called, then the operation is only
+				performed on the selected elements in the current Wave object. Elements which are not selected
+				in the current Wave object are not changed. </p><p>The operation is performed on the current
+				Wave object and it is modified and returned.</p><p>If the operands have different data types,
+				they have to be converted before this operation.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to be multiplied.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				/=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator/=(T value);</pre><p>This operator
+				divides each element of the Wave object by the specified value. </p><p>The operation is
+				performed on the current Wave object and it is modified and returned. </p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Value to divide with.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				/=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator/(const Wave&lt;T&gt; &amp; wave);</pre><p>The
+				operator divides the current object with the specified Wave object element by element. </p><p>If
+				the <code>select()</code> function has been previously called, then the operation is only
+				performed on the selected elements in the current Wave object. Elements which are not selected
+				in the current Wave object are not changed. </p><p>The operation is performed on the current
+				Wave object. It is modified and returned.</p><p>If the operands have different data types, they
+				have to be converted before this operation.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to be used as the denominator in the division.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator ++</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator++();</pre><p>This
+				operator increases each element of the Wave object by 1. </p><p>If the <code>select()</code>
+				function has been previously called, then only the selected elements are increased. </p><p>The
+				operation is performed on the current Wave object and it is modified and returned.
+			</p></section>
+		<section class="section"><h3>operator --</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator--();</pre><p>This
+				operator decreases each element of the Wave object by 1. </p><p>If the select() function has
+				been previously called, then only the selected elements are increased or decreased. </p><p>The
+				operation is performed on the current Wave object and it is modified and returned.
+			</p></section>
+		<section class="section"><h3>operator
+				%=</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator%(INT value);</pre><p>This operator will
+				modulo each element of the Wave object by the given value. </p><p>If the
+					<code>select()</code> function has been previously called, then the modulo operation is
+				only applied to the selected elements. </p><p>The operation is performed on the current Wave
+				object and it is modified and returned.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>modulo</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number used as divisor in the modulo operation.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>pow()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; pow(INT value);</pre><p>This
+				function raises the specified value to the power of each element. </p><p>The operation is
+				performed on the Wave object itself and the object itself is modified and returned. </p><p>If
+				the <code>select()</code> function has been previously called, then this function only
+				raises the specified value to the power of the selected elements. </p><p>It applies to DOUBLE or
+				FLOAT types of Wave objects.</p><p>An error message will be issued if negative or zero values
+				exist in the waveform.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number to be powered.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>sqrt()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; sqrt();</pre><p>The
+					<code>sqrt()</code> function calculates the square root of each element. The operation is
+				performed on the Wave object itself and the object itself is modified and returned.</p><p>If the
+					<code>select()</code> function has been previously called, then this function only
+				calculates the square root of the selected elements.</p><p>This function is only defined for
+				DOUBLE and FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>Bitwise math operations</h3></section>
+		<section class="section"><h3>extractBits()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; extractBits(INT offset, INT stride, INT size);</pre><p>The
+				function extracts certain bits from the elements of Wave object. </p><p>The operation is
+				performed on the current Wave object. </p><p>The waveform data of the object is modified and
+				returned with the remained bits. </p><p>If the <code>select()</code> function has been
+				previously called, then the operation is only performed on the selected elements. </p><p>The bit
+				is counted starting from LSB. The LSB is bit 0 and MSB is bit 31. (Refer to the <strong>Example
+				</strong>section below.)</p><p>It only applies to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>offset</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The start bit of an element to be extract. It is an integer from 0 to 31.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>stride</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The step of the bits to be extracted in an element. It is an integer from 0 to
+									31.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>size</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number of bits of an element to be extracted. It is an integer from 1 to 32.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Operator
+				&amp;</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator&amp;(INT number);</pre><p>This
+				operator performs a logical AND between each waveform element and the specified integer
+				number.</p><p>If the <code>select()</code> function has been previously called, then the
+				logical AND with the specified integer is only applied to the selected elements. </p><p>The
+				operation is performed on the current Wave object and it is modified and returned.</p><p>It only
+				applies to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>number</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The integer to perform AND with the current Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Operator
+				&amp;</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator&amp;(const Wave&lt;INT&gt; &amp; wave);</pre><p>This
+				operator performs a logical AND between each pair of waveform elements. </p><p>If the
+					<code>select()</code> function has been previously called, then the logical AND will only
+				be performed on the selected elements in current Wave object with elements which have the same
+				index in the second Wave object. Elements which are not selected in current Wave object are not
+				changed.</p><p>It only applies to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to perform AND with the current Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				|</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator|(INT number);</pre><p>This operator
+				performs a logical OR between each waveform element and the specified integer number.</p><p>If
+				the <code>select()</code> function has been previously called, then the logical OR with the
+				specified integer is only applied to the selected elements. </p><p>The operation is performed on
+				the current Wave object and the waveform data of the object is modified and returned.</p><p>It
+				only applies to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>number</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The integer to perform OR with the current Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				|</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator|(const Wave&lt;INT&gt; &amp; wave);</pre><p>This
+				operator performs logical OR between each pair of waveform elements. </p><p>The operation is
+				performed on the current Wave object and the waveform data of the object is modified and
+				returned. </p><p>If the <code>select()</code> function has been previously called, then the
+				logical OR will only be performed on the selected elements in the current Wave object having an
+				element with the same index as the specified Wave object.</p><p>It only applies to the INTEGER
+				type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to perform OR with the current Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				^</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator^(INT number);</pre><p>This operator
+				performs logical exclusive OR between each waveform element and the specified integer number.
+				</p><p>The operation is performed on the current Wave object and the waveform data of the object
+				is modified and returned. </p><p>If the <code>select()</code> function has been previously
+				called, then the logical exclusive OR with the specified integer is only applied to the selected
+				elements. </p><p>It only applies to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>number</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The integer to perform exclusive OR with the current Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				^</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator^(const Wave&lt;INT&gt; &amp; wave);</pre><p>This
+				operator performs logical exclusive OR between each pair of waveform elements. </p><p>The
+				operation is performed on the current Wave object and it is modified and returned. </p><p>If the
+					<code>select()</code> function has been previously called, then the logical exclusive OR
+				will only be performed on the selected elements in the current Wave object element having the
+				same index as the specified Wave object. </p><p>It only applies to the INTEGER type of Wave
+				object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;INT&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to perform exclusive OR with the current object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator ~</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator~();</pre><p>This
+				operator inverts every bit of each element of the Wave object. </p><p>The operation is performed
+				on the current Wave object and the waveform data of the object is modified and
+				returned.</p><p>If the <code>select()</code> function has been previously called, then the
+				operation is only performed on the selected elements.</p><p>It only applies to the INTEGER type
+				of Wave object.</p></section>
+		<section class="section"><h3>operation
+				&lt;&lt;</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator&lt;&lt;(INT number);</pre><p>This
+				operator shifts the bits of each element of a Wave object by the specified number of positions
+				to the left. </p><p>The operation is performed on the current Wave object and the waveform data
+				of the object is modified and returned.</p><p>If the <code>select()</code> function has been
+				previously called, then only the selected elements will be shifted left.</p><p>It only applies
+				to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">number</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of bits to shift</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>operator
+				&gt;&gt;</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; operator&gt;&gt;(INT number);</pre><p>This
+				operator shifts the bits of each element of a Wave object by the specified number of positions
+				to the right. </p><p>The operation is performed on the current Wave object and the waveform data
+				of the object is modified and returned.</p><p>If the <code>select()</code> function has been
+				previously called, then only the selected elements will be shifted right.</p><p>It only applies
+				to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">number</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of bits to shift</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Trigonometric math functions</h3></section>
+		<section class="section"><h3>acos()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; acos();</pre><p>This function
+				calculates arccosine value of each element and return them. </p><p>The operation is performed on
+				the Wave object and the object is modified and returned. </p><p>If the <code>select()</code>
+				function has been previously called, then these functions are only performed on the selected
+				elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>asin()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; asin();</pre><p>This function
+				calculates arcsine value of each element and return them. </p><p>The operation is performed on
+				the Wave object and the object is modified and returned. </p><p>If the <code>select()</code>
+				function has been previously called, then these functions are only performed on the selected
+				elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>atan()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; atan();</pre><p>This function
+				calculates arctangent value of each element and return them. </p><p>The operation is performed
+				on the Wave object and the object is modified and returned. </p><p>If the
+					<code>select()</code> function has been previously called, then these functions are only
+				performed on the selected elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave
+				objects.</p></section>
+		<section class="section"><h3>atan2()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; atan2(T value);</pre><p>This
+				function calculates atan2 value of of the specified angle and return them. </p><p>The operation
+				is performed on the Wave object and the object is modified and returned. </p><p>If the
+					<code>select()</code> function has been previously called, then these functions are only
+				performed on the selected elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave
+				objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>T</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The angle in radians.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>cos()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; cos();</pre><p>This function
+				calculates cosine value of each element and return them. </p><p>The operation is performed on
+				the Wave object and the object is modified and returned. </p><p>If the <code>select()</code>
+				function has been previously called, then these functions are only performed on the selected
+				elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>sin()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; sin();</pre><p>This function
+				calculates sine value of each element and return them. </p><p>The operation is performed on the
+				Wave object and the object is modified and returned. </p><p>IIf the <code>select()</code>
+				function has been previously called, then these functions are only performed on the selected
+				elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>tan()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; tan();</pre><p>This function
+				calculates tangent value of each element and return them. </p><p>The operation is performed on
+				the Wave object and the object is modified and returned. </p><p>If the <code>select()</code>
+				function has been previously called, then these functions are only performed on the selected
+				elements. </p><p>It applies to the DOUBLE or FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>Array operations</h3></section>
+		<section class="section"><h3>append()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; append(const Wave&lt;T&gt; &amp; obj);</pre><p>This
+				function appends the elements of the specified Wave object to the current Wave object. The size
+				of the current object is enlarged and the size property of the object is adjusted accordingly.
+				</p><p>The operation is performed on the Wave object and the object is modified and returned.
+				</p><p>This function resets all selections.</p><p>The two Wave objects must be of the same data
+				type.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>obj</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to be appended.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>convolve()</h3><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; convolve(const Wave&lt;T&gt; &amp; wave,
+                      enum DSP::CIRCULAR_MODE mode = DSP::NON_CIRCULAR) const;</pre><p>This
+				function calculates the convolution of the current object with the specified object. </p><p>The
+				calculated result is returned as a new Wave object and the current Wave object itself is not
+				modified. </p><p>If the <code>select()</code> function has been previously called, then the
+				calculation is only based on the selected waveform elements.</p><p>This function computes the
+				convolution between <kbd class="userinput">src1</kbd> and <kbd class="userinput">src2</kbd> as follows
+					(<kbd class="userinput">src1</kbd> refers to the current Wave object and <kbd class="userinput">src2</kbd>
+				refers to the specified parameter wave):</p><div class="p"><figure class="fignone">
+					<img src="123477.png" alt="Formula of convolution">
+				</figure></div><p>k = 0, 1, ...., <kbd class="userinput">size2</kbd> - 1 </p><p>(where size2 is the size of
+				src2, size1 is the size of src1)</p><p>For subscripts of <kbd class="userinput">src2</kbd> that are 0
+				or less, the elements of <kbd class="userinput">src2</kbd> are set as determined by
+					<kbd class="userinput">mode</kbd> :</p><ul>
+				<li><kbd class="userinput">mode</kbd> = DSP::NON_CIRCULAR<p><kbd class="userinput">src2</kbd>[k-i+1] = 0</p></li>
+				<li><kbd class="userinput">mode</kbd> = DSP:: CIRCULAR<p><kbd class="userinput">src2</kbd>[k-i+1] =
+							<kbd class="userinput">src2</kbd>[k-i+1+m]</p>
+					<p>where m is <kbd class="userinput">size2</kbd>.</p></li>
+			</ul><p>It applies to INTEGER, DOUBLE and FLOAT types of Wave objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The second argument in convolution.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>mode</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::CIRCULAR_MODE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The circular mode. It can be <kbd class="userinput">DSP::NON_CIRCULAR</kbd> or
+										<kbd class="userinput">DSP::CIRCULAR</kbd>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>correlate()</h3><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; correlate(const Wave&lt;T&gt; &amp; wave, 
+             enum DSP::CIRCULAR_MODE mode = DSP::NON_CIRCULAR) const;</pre><p>This
+				function calculates the correlation of the current Wave object with the specified Wave object.
+				</p><p>The calculated result is returned as a new Wave object and the current Wave object is not
+				modified. </p><p>If the <code>select()</code> function has been previously called, then the
+				calculation is only based on the selected waveform elements.</p><p>This function calculates the
+				correlation between <kbd class="userinput">src1</kbd> and <kbd class="userinput">src2</kbd> as follows
+					(<kbd class="userinput">src1</kbd> refers to the current Wave object and src2 refers to the specified
+				parameter wave):</p><div class="p"><figure class="fignone">
+					<img src="30627.png" alt="formula">
+				</figure></div><p>k = 0, 1, ...., <kbd class="userinput">size2</kbd> - 1 (where size2 is the size of
+				src2)</p><p>where N is <kbd class="userinput">size1 </kbd>(where size1 is the size of src1).</p><p>For
+				subscripts of <kbd class="userinput">src2</kbd> that are greater than <kbd class="userinput">size2</kbd>,
+				the elements of <kbd class="userinput">src2</kbd> are set as determined by
+				<kbd class="userinput">mode</kbd></p><ul>
+				<li><kbd class="userinput">mode</kbd> = DSP::NON_CIRCULAR </li>
+			</ul><pre class="prettyprint copyable singleline">src2[k+i-1] = 0</pre><ul>
+				<li><kbd class="userinput">mode</kbd> = DSP::CIRCULAR</li>
+			</ul><pre class="prettyprint copyable singleline">src2[k+i-1] = src2[k+i-1-m]</pre><p>where m is
+				<kbd class="userinput">size2</kbd>.</p><p>It applies to INTEGER, DOUBLE and FLOAT types of Wave
+				objects.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The second argument in correlation.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>mode</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p> DSP::CIRCULAR_MODE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The circular mode. It can be <kbd class="userinput">DSP::NON_CIRCULAR</kbd> or
+										<kbd class="userinput">DSP::CIRCULAR</kbd>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>deselect()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; deselect();</pre><p>This
+				function resets the selection of the object. All subsequent operations will apply for the entire
+				object.</p></section>
+		<section class="section"><h3>differentiate()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; differentiate();</pre><p>This
+				operation calculates the difference between adjacent elements of a Wave object. The first
+				element in the resulting array is 0 or 0.0. The size of the result array is the same size with
+				the original array. </p><p>This operation is performed on the Wave object and the object is
+				modified and returned. </p><p>If the <code>select()</code> function has been previously
+				called, then this function only calculates the difference between the selected
+				elements.</p><p>It applies to INTEGER, DOUBLE and FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>imag()</h3><pre class="prettyprint copyable singleline">Wave&lt;DOUBLE&gt; imag() const;</pre><p>This
+				function extracts the imaginary sub-array from the current Wave object. </p><p>The imaginary
+				sub-array is returned as a new Wave object and current Wave object is itself not modified.
+				</p><p>If the <code>select()</code> function has been previously called, then only the
+				imaginary parts of the selected elements are returned.</p><p>It only applies to the COMPLEX type
+				of Wave object.</p></section>
+		<section class="section"><h3>integrate()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; integrate();</pre><p>This
+				operation integrates the elements of a Wave object. Each element contains the sum of all
+				elements up to the current position. </p><p>The operation is performed on the Wave object and it
+				is modified and returned. </p><p>If the <code>select()</code> function has been previously
+				called, then this function only integrates the selected elements.</p><p>It applies to INTEGER,
+				DOUBLE and FLOAT types of Wave objects.</p></section>
+		<section class="section"><h3>parallelize()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; parallelize(INT width, INT slot);</pre><p>This
+				function converts the serial data to parallel data. </p><p>It only applies to the INTEGER type
+				of Wave object. </p><p>It is performed on the Wave object which is then modified and returned.
+				</p><p>The operation changes the waveform size and so it is applied to the entire object even if
+					<code>select()</code> had been called before. </p><p>This operation resets the
+				selections.</p><p>For the specified number (<kbd class="userinput">width</kbd>) of
+					<kbd class="userinput">src</kbd> elements, bit 0 is stored into the rightmost bits of one
+					<kbd class="userinput">result</kbd> element. </p><p>This is repeated <kbd class="userinput">size
+					</kbd>/<kbd class="userinput">slot</kbd> times.</p><p>If <kbd class="userinput">slot</kbd>
+					&gt;<kbd class="userinput">width</kbd>, then elements of <kbd class="userinput">src</kbd> are processed
+				after <kbd class="userinput">width</kbd>, <code>parallelize()</code> skips the next
+					<kbd class="userinput">slot </kbd>- <kbd class="userinput">width</kbd> elements of
+					<kbd class="userinput">src</kbd>.</p><div class="p"><figure class="fignone">
+					
+					<img src="30653.png" alt="Serial-to-Parallel Bit Conversion">
+				</figure></div><p>It applies to the INTEGER type of Wave object.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>width</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number of slot bits that are valid.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>slot</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number of bits for one conversion slot</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>real()</h3><pre class="prettyprint copyable singleline">Wave&lt;DOUBLE&gt; real() const;</pre><p>This
+				function extracts the real sub-array from the current Wave object. </p><p>The real sub-array is
+				returned to a new Wave object and the current Wave object is itself not modified. </p><p>If the
+					<code>select()</code> function has been previously called, then only the real parts of the
+				selected elements are returned.</p><p>It only applies to the COMPLEX type of
+			object.</p></section>
+		<section class="section"><h3>remove()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; remove(INT offset, INT stride, INT size);</pre><p>This
+				function removes the specified elements permanently from the Wave object. </p><p>The object is
+				modified and returned. </p><p>The size and SamplingRate properties of the object are adjusted.
+				This function resets all selections.</p><div class="p"><figure class="fignone">
+					
+					<img src="123257.png" alt="Remove elements from the object">
+				</figure></div><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>offset</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The start position of the elements to remove</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>stride</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The step between two adjacent elements to be removed</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>size</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of elements to remove</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>select()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; select(INT offset, INT stride, INT size);</pre><p>This
+				function selects some elements of the current Wave object. </p><p>All subsequent operations on
+				the Wave object, like basic or advanced math operations or statistical functions, will only be
+				executed on the selected elements. </p><p>The functions that modify the size of object will
+				still apply to the entire object. </p><p>The selection is reset when the following situation
+				happens:</p><ul>
+				<li>the deselect() function is called</li>
+				<li>a new selection is made</li>
+				<li>the waveform size is changed</li>
+				<li>the waveform data is re-initialized by one of the initialization functions</li>
+				<li>the domain property is changed by calling domain()</li>
+			</ul><p>The following functions cannot be applied to selections:</p><p><code>remove()</code>,
+					<code>append()</code>, <code>resample()</code>, <code>serialize()</code>,
+					<code>parallelize()</code>, <code>movingAverage()</code> and any initialization
+				function.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>offset</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The start position of the elements to select.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>stride</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The step between two adjacent elements to select</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>size</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of elements to select.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>serialize()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; serialize(INT width, INT slot);</pre><p>This
+				operation converts parallel data to serial data. </p><p>It only applies tor INTEGER types of
+				objects. </p><p>The operation is performed on the Wave object and the object is modified and
+				returned. </p><p>The operation changes the waveform size and so it is applied on the entire
+				object even if <code>select()</code> had been called before. </p><p>The operation resets the
+				selections.</p><p>For the specified bits (<kbd class="userinput">width</kbd>) of the specified
+					<kbd class="userinput">src</kbd> elements (<kbd class="userinput">size</kbd>), <code>serialize()</code>
+				stores each bit into bit 0 of the <kbd class="userinput">result</kbd> elements.</p><p>The
+					<kbd class="userinput">slot</kbd> specifies the number of serial bits that will result for each
+					<kbd class="userinput">src</kbd> element. So, if <kbd class="userinput">slot</kbd> &gt;
+					<kbd class="userinput">width</kbd>, then <kbd class="userinput">slot - width</kbd> zeros are
+				added.</p><p>The following figure shows the parallel-to-serial bit conversion by
+					<code>serialize()</code>:</p><div class="p"><figure class="fignone">
+					
+					<img src="29119.png" alt="Parallel-to-Serial Bit Conversion">
+				</figure></div><p>It applies to INTEGER types of Wave objects.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>width</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number of slot bits that are valid.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>slot</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number of bits for one conversion slot</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>shuffle()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; shuffle();</pre><p>This
+				operation reshuffles the elements of a Wave object to put samples of an undersampled waveform
+				into phase order. </p><p>This function modifies the Sampling Rate property. </p><p>The operation
+				is performed on the Wave object and the object is modified and returned. </p><p>If the
+					<code>select()</code> function has been previously called, then only the selected elements
+				are shuffled.</p><p>This function copies the <kbd class="userinput">src</kbd> elements, which are
+				coherent sampling data, into <kbd class="userinput">result</kbd> so that the elements are in phase
+				order as follows:</p><p><kbd class="userinput">result</kbd>[0] = <kbd class="userinput">src</kbd> [0]
+					</p><p><kbd class="userinput">result</kbd>[(<kbd class="userinput">periods</kbd> × 1 +
+					<kbd class="userinput">size</kbd>) mod <kbd class="userinput">size</kbd>] </p><p> =
+					<kbd class="userinput">src</kbd> [1]
+					</p><p><kbd class="userinput">result</kbd>[(<kbd class="userinput">periods</kbd> × 2 +
+					<kbd class="userinput">size</kbd>) mod <kbd class="userinput">size</kbd>] </p><p> =
+					<kbd class="userinput">src</kbd> [2] </p><p> : </p><p><kbd class="userinput">result</kbd>
+					[(<kbd class="userinput">periods</kbd> × (<kbd class="userinput">size</kbd> -<em> 1) +
+					</em><kbd class="userinput">size</kbd>) mod <kbd class="userinput">size</kbd> ] </p><p> =
+					<kbd class="userinput">src</kbd> [ <kbd class="userinput">size</kbd> - 1]</p><div class="p"><figure class="fignone">
+					
+					<img src="29201.png" alt="Putting Coherent Sampling Data into Phase Order">
+				</figure></div><p>As shown in the above figure, <kbd class="userinput">t × periods = Dt × size</kbd>.
+				</p><p>periods ≠ 1.</p><p>In relation to each other, <kbd class="userinput">size</kbd> and
+					<kbd class="userinput">periods</kbd> must be prime. That is, these integers must have no common
+				factors other than 1. For example, <kbd class="userinput">size</kbd>=16,
+					<kbd class="userinput">periods</kbd>=5 is acceptable. However, <kbd class="userinput">size</kbd>=16,
+					<kbd class="userinput">periods</kbd>=10 is not allowed because these integers have a common factor
+				(2).</p></section>
+		<section class="section"><h3>sort()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; sort();</pre><p>This function
+				sorts the elements in the Wave object in ascending order. Complex arrays are sorted by ascending
+				magnitudes. </p><p>The operation is performed on the current Wave object and the object is
+				modified and returned. </p><p>If the <code>select()</code> function has been previously
+				called, then only the selected elements are sorted.</p></section>
+		<section class="sectiontitlefake"><h2>Signal processing in time domain</h2></section>
+		<section class="section"><h3>decode()</h3><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; decode(enum DSP::CONVERSION_METHOD method,
+                    enum DSP::OUTPUT_FORMAT output_format = DSP::CMPLM2) const;</pre><p>This
+				function decodes the contents of the Wave object using A-law conversion method or using the
+				µ=255 law.</p><p><a href="29875.htm" title="The following tables shows the coding formats used by DSP_A_ENCODE and DSP_A_DECODE APIs for A-law, and DSP_MU_ENCODE and DSP_MU_DECODE APIs for µ-law.">Encoding/Decoding Table for A-Law/µ-Law</a> lists the decoding format of the A-law and µ= 255 law
+				conversion. Also, refer to <a href="29874.htm" title="The following tables show the coding formats used by member functions of the VECTOR API; format and inputMode.">Code Format Tables</a> for the two's complement, A-law and
+				complementary symmetry code format.</p><p>The result is returned by a new Wave object and
+				current Wave object itself is not modified. </p><p>If the <code>select()</code> function has
+				been previously called, then only the selected waveforms are decoded.</p><p>This only applies to
+				the INTEGER type of Wave object with the domain property of TIME.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>method</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::CONVERSION_METHOD</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The method to encode the elements. It can be DSP::A_LAW or DSP::MU_LAW</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>output_format</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::OUTPUT_FORMAT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The output format of the encoded elements.</p>
+								<p>For A_LAW, it can be:</p>
+								<p><kbd class="userinput">DSP::CMPLM2</kbd>(default): two's complement</p>
+								<p><kbd class="userinput">DSP::ALAW_CODE</kbd>: A-law code format</p>
+								<p><kbd class="userinput">DSP::ADI_ALAW</kbd>: Alternative Digit Inverse of A-law code format</p>
+								<p>For MU_LAW, it can be:</p>
+								<p><kbd class="userinput">DSP::CMPLM2</kbd>: two's complement</p>
+								<p><kbd class="userinput">DSP::CPLM_SYMM</kbd>: complementary symmetry format</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>encode()</h3><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; encode(enum DSP::CONVERSION_METHOD method,
+          enum DSP::OUTPUT_FORMAT output_format = DSP::CMPLM2) const;</pre><p>This
+				functions encodes the contents of a specified array into 8-bit code using the A-law conversion
+				method, or encodes the contents of a specified array using the µ=255 law. </p><p>The <em><a href="29875.htm" title="The following tables shows the coding formats used by DSP_A_ENCODE and DSP_A_DECODE APIs for A-law, and DSP_MU_ENCODE and DSP_MU_DECODE APIs for µ-law.">Encoding/Decoding Table for A-Law/µ-Law</a></em> lists the encoding format of the A-law and µ-law conversion used. Also,
+				refer to <a href="29874.htm" title="The following tables show the coding formats used by member functions of the VECTOR API; format and inputMode.">Code Format Tables</a> for the complement, A-law code and complementary symmetry
+				format. </p><p>The result is returned to a new Wave object and the current Wave object is not
+				modified. </p><p>If the <code>select()</code> function has been previously called, then only
+				the selected waveform are encoded. </p><p>It only applies to DOUBLE or FLOAT types of
+				objects.</p><p>Error message will be issued if the domain property of the object is
+				FREQUENCY.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>method</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::CONVERSION_METHOD</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The method to encode the elements. It can be <kbd class="userinput">DSP::A_LAW</kbd> or
+										<kbd class="userinput">DSP::MU_LAW</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>output_format</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::OUTPUT_FORMAT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The output format of the encoded elements.</p>
+								<p>For A_LAW, it can be:</p>
+								<p><kbd class="userinput">DSP::CMPLM2</kbd> (default): two's complement</p>
+								<p><kbd class="userinput">DSP::ALAW_CODE</kbd>: A-law code format</p>
+								<p><kbd class="userinput">DSP::ADI_ALAW</kbd>: Alternative Digit Inverse of A-law code format</p>
+								<p>For MU_LAW, it can be:</p>
+								<p><kbd class="userinput">DSP::CMPLM2</kbd>: two's complement</p>
+								<p><kbd class="userinput">DSP::CPLM_SYMM</kbd>: complementary symmetry format</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>movingAverage()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; movingAverage(INT windowLength);</pre><p>This
+				function calculates the moving average of the object. The operation is performed on the Wave
+				object. </p><p>The object itself is modified and returned. </p><p>The operation changes the
+				waveform size and so it is applied to the entire waveform even if <code>select()</code> had
+				been called. </p><p>This operation resets the selections.</p><p>The moving average is defined as
+				follows:</p><div class="p"><figure class="fignone">
+					<img src="30642.png" alt="formula">
+				</figure></div><p>where 0 ≤ i ≤ <kbd class="userinput">size</kbd> - <kbd class="userinput">length</kbd>.
+					<kbd class="userinput">size </kbd>is the size of the Wave object and <kbd class="userinput">length</kbd> is
+				the length of moving average window.</p><p>Error message will be issued if:</p><ul>
+				<li>The object size is smaller than two,</li>
+				<li>window length is smaller than two,</li>
+				<li>The size of object is equal or smaller than two,</li>
+				<li>Or the domain property of the object is FREQUENCY.</li>
+			</ul><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>windowLength</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The moving average window. It is an integer lager than one.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>resample()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; resample(DOUBLE new_fsample);</pre><p>This
+				function re-samples the waveform in the Wave object with the new sampling frequency. Re-sampling
+				also modifies the size and the sampling rate property of the object. </p><p>The operation is
+				applied to the entire waveform contained in the Wave object even if <code>select()</code>
+				had been called. </p><p>It resets all selections. The operation is performed on the Wave object
+				itself and the object itself is modified.</p><p>It applies to INTEGER, DOUBLE FLOAT types of
+				objects.</p><p>An error message will be issued if:</p><ul>
+				<li>The sampling frequency property of the object is not defined</li>
+				<li>The domain property of the object is FREQUENCY</li>
+			</ul><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>new_fsample</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The new frequency to re-sample the waveform. The value must be larger than 0.0.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>window()</h3><pre class="prettyprint copyable singleline">Wave&lt;T&gt; &amp; window(enum DSP::WINDOW window);</pre><p>This
+				function multiplies the object with the specified window. </p><p>If the
+					<code>select()</code> function has been previously called, then only the selected waveform
+				elements is multiplied with a window.</p><p>The operation is performed on the Wave object and
+				the object is modified and returned.</p><p>It applies to INTEGER, DOUBLE, FLOAT types of
+				objects.</p><p>An error message will be issued if the domain property of the object is
+				FREQUENCY.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>window</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::WINDOW</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The window to use. It can be:</p>
+								<p><kbd class="userinput">DSP::RECTANGULAR</kbd>: Rectangular window (no window)</p>
+								<p><kbd class="userinput">DSP::HANN</kbd>: Hanning window</p>
+								<p><kbd class="userinput">DSP::HAMMING</kbd>: Hamming window</p>
+								<p><kbd class="userinput">DSP::FLATTOP</kbd> : Flat-top window</p>
+								<p><kbd class="userinput">DSP::BLACKMAN</kbd> : blackman window</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>FFT and spectrum calculation</h2></section>
+		<section class="section"><h3>fft()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; fft(const Wave&lt;INT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;FLOAT&gt; &amp; wave);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;DOUBLE&gt; &amp; wave);
+Wave&lt;T&gt; &amp; fft(const Wave&lt;COMPLEX&gt; &amp; wave);</pre><p>This
+				operation performs the Fast Fourier Transform on the Wave object of the data types integer,
+				float, double and complex. The result of the FFT is a complex data array and the result is
+				returned to a new Wave object.</p><p>In the case of a non-complex input waveform with n samples,
+				the result data array has n/2 elements, representing the DC component and the positive
+				frequencies. The negative frequencies are omitted. </p><p>In the case of a complex input
+				waveform with n samples the result data array has n elements representing the DC components, the
+				positive frequencies followed by the negative frequencies in inverse order.</p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied on the selections. </p><p>The domain-property for the current Wave object is set to
+				DSP::FREQUENCY.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to perform FFT.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>ifft()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; ifft();
+Wave&lt;T&gt; &amp; ifft(const Wave&lt;COMPLEX&gt; &amp; wave);</pre><p>This
+				operation performs the Inverse Fourier Transform (IFFT) on the current Wave object or the
+				specified Wave object. The result is a complex data object with the domain-property
+					<code>DSP::TIME</code>. The result is stored in the current Wave object. </p><p>If no
+				parameter is inputted, the IFFT is performed on the current object itself and the current object
+				will be modified by the result. </p><p>If the <code>select()</code> function has been
+				previously called, then this operation is only applied to the selections.</p><p>It applies to
+				the COMPLEX type of Wave object only.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;COMPLEX&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to perform IFFT.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>magnitudes()</h3><pre class="prettyprint copyable singleline">Wave&lt;DOUBLE&gt; magnitudes() const;</pre><p>This
+				function calculates the magnitudes of the object data and returns the result array. </p><p>If
+				the <code>select()</code> function has been previously called, then this operation is only
+				applied on the selected elements. </p><p>The result is returned to a new Wave object and the
+				current Wave object is not modified.</p><p>It applies to the COMPLEX type of Wave object
+				only.</p></section>
+		<section class="section"><h3>phases()</h3><pre class="prettyprint copyable singleline">Wave&lt;DOUBLE&gt; phases() const;</pre><p>This
+				operation calculates the phases of the waveform in radians for a complex data type Wave object.
+				</p><p>If the <code>select()</code> function has been previously called, then this operation
+				is only applied to the selected elements. </p><p>The result is returned to a new Wave object and
+				the current Wave object is not modified.</p><p>It applies to the COMPLEX type of Wave object
+				only.</p></section>
+		<section class="section"><h3>spectrum()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; spectrum(const Wave&lt;INT&gt; &amp; wave, enum DSP::SCALE scale = DSP::DBC);
+Wave&lt;T&gt; &amp; spectrum(const Wave&lt;FLOAT&gt; &amp; wave, enum DSP::SCALE scale = DSP::DBM);
+Wave&lt;T&gt; &amp; spectrum(const Wave&lt;DOUBLE&gt; &amp; wave, enum DSP::SCALE scale = DSP::DBM);
+Wave&lt;T&gt; &amp; spectrum (const Wave&lt;COMPLEX&gt; &amp; wave, enum DSP::SCALE scale=DSP::DBM);</pre><p>This
+				function performs the FFT and calculates the magnitudes. The domain-property of the current Wave
+				object will be set to <code>DSP::FREQUENCY</code>. </p><p>If the <code>select()</code>
+				function has been previously called, then this operation is only applied to the selections.
+				</p><p>The resulting object will inherit periods, sampling rate and comment from the input
+				waveform. The unit of the resulting waveform depends on the scale:</p><p>DSP::DBM gives the
+				UNIT_DBM</p><p>DSP::DBC gives the UNIT_DB</p><p>DSP::VOLT gives the UNIT_V</p><p>DSP::PWR gives
+				the UNIT_W</p><p>The result is returned to a new Wave object and the current Wave object itself
+				is not modified.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;T&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object in time domain. If the data type of the object is complex, the
+									object must be in frequency domain and FFT was already performed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>scale</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::SCALE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The desired output scale of the spectrum. It can be:</p>
+								<p><kbd class="userinput">DSP::DBM</kbd>: logarithmic scale (dBm). Power spectrum is based on 50
+									Ohms input impedance. This is the default value for non-integer waveforms.</p>
+								<p><kbd class="userinput">DSP::DBC</kbd>: Normalized logarithmic scale (dBc). Power spectrum is
+									based on 50 Ohms input impedance. The highest amplitude is set to 0dB. This is the default
+									value for integer waveforms.</p>
+								<p><kbd class="userinput">DSP::VOLT</kbd>: amplitude spectrum, linear scale.</p>
+								<p><kbd class="userinput">DSP::PWR</kbd>: linear scale. Power spectrum is based on 50 Ohms input
+									impedance.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>squared_magnitudes()</h3><pre class="prettyprint copyable singleline">Wave&lt;DOUBLE&gt; squared_magnitudes() const;</pre><p>This
+				function calculates the squared magnitudes of the waveform or spectrum and returns the result
+				array. </p><p>If the <code>select()</code> function has been previously called, then this
+				operation is only applied to the selected elements. </p><p>The result is returned to a new Wave
+				object and the current Wave object is not modified.</p><p>It applies to the COMPLEX type of Wave
+				object only.</p></section>
+		<section class="sectiontitlefake"><h2>Wave object properties accessing</h2></section>
+		<section class="section"><h3>getComment()</h3><pre class="prettyprint copyable singleline">const STRING &amp; getComment() const;</pre><p>This
+				function retrieves the Wave object comment.</p></section>
+		<section class="section"><h3>getDomain()</h3><pre class="prettyprint copyable singleline">INT getDomain() const;</pre><p>This function
+				returns the Domain property of the Wave object. 0 or 1 will be returned. 0 represents time
+				domain and 1 represents frequency domain.</p></section>
+		<section class="section"><h3>getFundamental()</h3><pre class="prettyprint copyable singleline">DOUBLE getFundamental() const;</pre><p>This
+				function returns the fundamental signal frequency if the periods property and the sampling rate
+				property of the Wave objects are known.</p></section>
+		<section class="section"><h3>getPeriods()</h3><pre class="prettyprint copyable singleline">INT getPeriods() const;</pre><p>This function
+				retrieves the periods of the current Wave object.</p></section>
+		<section class="section"><h3>getReferenceLine()</h3><pre class="prettyprint copyable singleline">INT getReferenceLine() const;</pre><p>This
+				function retrieves the reference line of the Wave object. </p><p>An integer from 0 to 2 is
+				returned referring to the reference line as follows.</p><p><kbd class="userinput">0</kbd>:
+				DSP::END_PT</p><p><kbd class="userinput">1</kbd>: DSP::ZERO_PT</p><p><kbd class="userinput">2</kbd>:
+				DSP::MIN_RMS</p></section>
+		<section class="section"><h3>getSamplingRate()</h3><pre class="prettyprint copyable singleline">DOUBLE getSamplingRate() const;</pre><p>This
+				function gets the sampling rate of the Wave object.</p></section>
+		<section class="section"><h3>getSize()</h3><pre class="prettyprint copyable singleline">INT getSize() const;</pre><p>This function
+				returns the size of the Wave object.</p></section>
+		<section class="section"><h3>getSpectrumType()</h3><pre class="prettyprint copyable singleline">INT getSpectrumType() const;</pre><p>This
+				function retrieves the spectrum type of the Wave object. 0 or 1 is returned. 0 means the
+				spectrum type <kbd class="userinput">DSP::ONESIDED</kbd> and 1 means spectrum type
+					<kbd class="userinput">DSP::TWOSIDED</kbd>. </p></section>
+		<section class="section"><h3>getUnit()</h3><pre class="prettyprint copyable singleline">INT getUnit() const;</pre><p>This function
+				returns the unit of the Wave object. The returned value can be an integer from 0 to 6, referring
+				to the respective units as listed below.</p><p>0: DSP::UNKNOWN_UNIT</p><p>1:
+				DSP::UNIT_1</p><p>2: DSP::UNIT_V</p><p>3: DSP::UNIT_W</p><p>4: DSP::UNIT_DB</p><p>5:
+				DSP::UNIT_DBV</p><p>6: DSP::UNIT_DBM</p></section>
+		<section class="section"><h3>setComment()</h3><pre class="prettyprint copyable singleline">const STRING &amp; setComment(const STRING &amp; comment);</pre><p>This
+				function sets the comment for the Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>comment</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>STRING</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The comment for the Wave object.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setDomain()</h3><pre class="prettyprint copyable singleline">INT setDomain(enum DSP::WAVE_DOMAIN domain);</pre><p>This
+				function sets the new domain for the Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>domain</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::WAVE_DOMAIN</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>New domain for the Wave object. It can be <kbd class="userinput">DSP::TIME</kbd>
+										or <kbd class="userinput">DSP::FREQUENCY</kbd>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setFundamental()</h3><pre class="prettyprint copyable singleline">DOUBLE setFundamental(DOUBLE value);</pre><p>This
+				function adjusts the periods property of the Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The new fundamental signal frequency. </p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setPeriods()</h3><pre class="prettyprint copyable singleline">INT setPeriods(INT periods);</pre><p>This
+				function sets the number of periods for the Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>periods</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Thew new periods for the object.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setReferenceLine()</h3><pre class="prettyprint copyable singleline">INT setReferenceLine(enum DSP::REFERENCE_LINE method);</pre><p>This
+				function sets the reference line for the Wave object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>method</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::REFERENCE_LINE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The reference line type. It can be:</p>
+								<p><kbd class="userinput">DSP::END_PT</kbd>: The reference line connects the first and the last
+									points.</p>
+								<p><kbd class="userinput">DSP::ZERO_PT</kbd>: The reference line minimizes the peak deviation.</p>
+								<p><kbd class="userinput">DSP::MIN_RMS</kbd>: The reference line minimizes the RMS of the
+									deviations.</p>
+								<p>The default value is <kbd class="userinput">DSP::END_PT</kbd>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setSamplingRate()</h3><pre class="prettyprint copyable singleline">DOUBLE setSamplingRate(DOUBLE value);</pre><p>This
+				function sets a new sampling rate for the Wave object. </p><p>Setting a new sampling rate will
+				not re-sample the waveform. </p><p>To re-sample a waveform the <code>resample()</code>
+				function has to be used.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>value</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The new sampling rate.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setSize()</h3><pre class="prettyprint copyable singleline">INT setSize(INT size);</pre><p>This function
+				sets the size for a Wave object. </p><p>If the original waveform size is smaller than the
+				specified new size, the object size will be enlarged and the new elements will be filled by a
+				default value "0". </p><p>If the original size is larger than the new size, the waveform array
+				will be cut short. The remaining element values are not changed. If the periods property is not
+				0, it is adjusted according to the change in size.</p><p>This function resets all selections of
+				the object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>size</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The new size of the Wave object</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setSpectrumType()</h3><pre class="prettyprint copyable singleline">INT setSpectrumType(enum DSP::SPECTRUM_TYPE type);</pre><p>This
+				function sets the spectrum type for the Wave object. </p><div class="note"><span class="title">Note</span> Wave objects
+				initialized with other Wave objects of type integer, float or double which have undergone a
+				Fourier transform (after applying spectrum() or fft() ) are initialized with
+					<code>DSP::ONE_SIDED</code>. After applying fft() on a complex type Wave object, the
+				spectrum Type property of the returned waveform is initialized with
+					<code>DSP::TWO_SIDED</code>. </div><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>type</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::SPECTRUM_TYPE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The spectrum type. It can be:</p>
+								<p>DSP::ONESIDED: for spectrum on one side</p>
+								<p>DSP::TWOSIDED: for spectrum on two side</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setUnit()</h3><pre class="prettyprint copyable singleline">INT setUnit(enum DSP::UNIT unit);</pre><p>This
+				function sets a new unit for the waveform data.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>unit</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DSP::UNIT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The new unit for the domain. It can be:</p>
+								<ul>
+									<li><kbd class="userinput">DSP::UNIT_V</kbd>: for the unit V(Volts). This unit is set
+										automatically if the data are uploaded from a digitizer. </li>
+									<li><kbd class="userinput">DSP::UNIT_1</kbd>: if the data do not have a unit. This is set
+										automatically if the data are uploaded from a digital channel (digital capture data). </li>
+									<li><kbd class="userinput">DSP::UNIT_DBV</kbd>, <kbd class="userinput">DSP::UNIT_DB</kbd>,
+											<kbd class="userinput">DSP::UNIT_DBM</kbd> or <kbd class="userinput">DSP::UNIT_W</kbd>: These units
+										are set after FFT calculation depending on the conversion function.</li>
+								</ul></td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Statistics functions</h2></section>
+		<section class="section"><h3>histogram()</h3><pre class="prettyprint linenums copyable">Wave&lt;T&gt; &amp; histogram(const Wave&lt;INT&gt; &amp; wave, INT num_bins, DOUBLE min, DOUBLE max);
+Wave&lt;T&gt; &amp; histogram(const Wave&lt;FLOAT&gt; &amp; wave, INT num_bins, DOUBLE min, DOUBLE max);
+Wave&lt;T&gt; &amp; histogram(const Wave&lt;DOUBLE&gt; &amp; wave, INT num_bins, DOUBLE min, DOUBLE max);</pre><p>This
+				function generates a histogram of the specified Wave object and stores the result in the current
+				Wave object. </p><p>If the <code>select()</code> function has been previously called, then
+				this operation is only applied to the selections.</p><p>This function sets up bins and sorts the
+				elements of the specified waveform into the bins, then returns the results in a histogram
+				format.</p><p>The bin width (BW) is calculated as follows:</p><div class="p"><figure class="fignone">
+					<img src="123478.png" alt="Formula to calculate BW">
+				</figure></div><p>If <kbd class="userinput">num_bins</kbd> = 2, the <kbd class="userinput">max</kbd> value has no
+				meaning. The waveform data are sorted into two bins: elements less than
+					<kbd class="userinput">min</kbd> and elements greater than or equal to
+				<kbd class="userinput">min</kbd>.</p><p>The results returned are the frequency of occurrence of the
+				waveform elements in each bin. A result element is incremented each time one of the waveform
+				elements is within the bin width as follows:</p><p><kbd class="userinput">result</kbd> Conditions
+				</p><p>-------------------------------------------------------------------</p><p> 1st element :
+				element &lt; min</p><p> 2nd element : min ≤ element &lt; min + BW</p><p> . .</p><p> . .</p><p> i
+				th element : min+(i-2) × BW ≤ element &lt; min+(i-1) × BW</p><p> . .</p><p> . .</p><p> N-1 th
+				element : max - BW ≤ element &lt; max</p><p> N th element : max ≤ element</p><p>where</p><ul>
+				<li>element is an waveform element,</li>
+				<li>min is <kbd class="userinput">minimum boundary,</kbd></li>
+				<li>max is <kbd class="userinput">maximum boundary,</kbd></li>
+				<li>BW is bin width,</li>
+				<li>N is <kbd class="userinput">number of bins</kbd>.</li>
+			</ul><p>The following figure shows an example of <code>histogram()</code> operation.</p><div class="p"><figure class="fignone">
+					<img src="123479.png" alt="Example of histogram() operation">
+				</figure></div><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>wave</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Wave&lt;INT&gt; or</p>
+								<p>Wave&lt;FLOAT&gt; or</p>
+								<p>Wave&lt;DOUBLE&gt;</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Wave object to calculate</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>num_bins</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number of bins. It is an integer larger than 1.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>min</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The minimum boundary for sorting</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>max</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The maximum boundary for sorting</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>max()</h3><pre class="prettyprint copyable singleline">T max(INT *index = NULL) const;</pre><p>This
+				function returns the maximum value of the Wave object. For a complex type object, it returns the
+				element that has the maximum element in the array. </p><p>If the <code>select()</code>
+				function has been previously called, then this operation is only applied to the
+				selection.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>index</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>A pointer pointing to the index value.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>mean()</h3><pre class="prettyprint copyable singleline">DOUBLE mean() const;</pre><p>This function
+				calculates and returns the mean value of the object. The mean value is calculated as below
+					(<code>src</code> refers to the waveform of the Wave object):</p><div class="p"><figure class="fignone">
+					<img src="123480.png" alt="Formula to calculate the mean value">
+				</figure></div><p>If the <code>select()</code> function has been previously called, then this
+				operation is only applied to the selections. </p><p>This function applies to the INTEGER,
+				DOUBLE, FLOAT data types of Wave objects.</p></section>
+		<section class="section"><h3>median()</h3><pre class="prettyprint copyable singleline">T median(INT *index = NULL) const;</pre><p>This
+				function returns the median element, which is defined as the number separating the higher half
+				of a list of data from the lower half. It sorts the list of data in ascending order and picks
+				the middle one as the median. For the complex array, the elements are sorted by ascending
+				magnitudes. </p><p>If the element number is even, it returns the mean value of the two media
+				elements. The returned index is the lower element index which is used to calculate the median
+				value.</p><p>If the <code>select()</code> function has been previously called, then this
+				operation is only applied to the selections.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>index</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Index number of the median value.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>min()</h3><pre class="prettyprint copyable singleline">T min(INT *index = NULL) const;</pre><p>This
+				function returns the minimum value of the Wave object. For a complex type object, it returns the
+				element that has the minimum magnitude in the array. </p><p>If the <code>select()</code>
+				function has been previously called, then this operation is only applied to the
+				selection.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>index</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>A pointer pointing to the index value.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>rms()</h3><pre class="prettyprint copyable singleline">DOUBLE rms() const;</pre><p>This function computes
+				and returns the root mean square of the object as below:</p><div class="p"><figure class="fignone">
+					<img src="123481.png" alt="Formula to calculate RMS">
+				</figure></div><p>where <code>N</code> is the size of the Wave object and <code>src</code> is
+				the waveform of the object.</p><p>If the <code>select()</code> function has been previously
+				called, then this operation is only applied to the selections. </p><p>It applies to the INTEGER,
+				DOUBLE, FLOAT data types of Wave objects.</p></section>
+		<section class="section"><h3>stddev()</h3><pre class="prettyprint copyable singleline">DOUBLE stddev() const;</pre><p>This function
+				calculates the standard deviation of the object. The formula used to calculate standard
+				deviation is:</p><div class="p"><figure class="fignone">
+					<img src="123482.png" alt="Formula to calculate stddev">
+				</figure></div><p>If the <code>select()</code> function has been previously called, then this
+				operation is only applied to the selections. </p><p>It applies to the INTEGER, DOUBLE, FLOAT
+				data types of Wave objects.</p></section>
+		<section class="section"><h3>sum()</h3><pre class="prettyprint copyable singleline">T sum() const; </pre><p>This function sums up all
+				the elements of the waveform and then returns the sum value. If select() is called before, this
+				operation is only applied on the selections.</p><p>It applies to the INTEGER, DOUBLE, FLOAT data
+				types of Wave objects.</p></section>
+		<section class="section"><h3>Functions to calculate static converter parameters (linearity)</h3><p>The
+				linearity parameters are calculated for the waveform in the time domain or the histogram of the
+				ADC output codes. The waveform is usually a ramp or a sine wave. </p><p>If the periods property
+				is 0, the ramp wave method is used. Otherwise, the sine wave method is used. (Refer to <a href="26085.htm" title="The following formula is used to calculate the Integral Non-Linearity:">INL and DNL (Ramp selected)</a> and <a href="26086.htm" title="In ADC tests you can test Integral Non-Linearity and Differential Non-Linearity by applying a sine wave.">INL and DNL (Sine Wave selected)</a> for the details of calculation.) But using sine
+				wave is only available for integer Wave objects.</p><p>The digital output codes of A/D
+				converters measured with ramp waveforms need to be pre-processed before the linearity parameter
+				calculation. Calculation of the histogram of the output codes is done with the
+					<code>histogram()</code> function. If the data type of the Wave object is an integer, then
+				all the functions used to calculate linearity parameters expect the Wave object to contain the
+				histogram of the output codes.</p></section>
+		<section class="section"><h3>dnl()</h3><pre class="prettyprint copyable singleline">DOUBLE dnl() const;</pre><p>This function calculates
+				and returns the absolute maximum differential linearity error (DNL). The reference line required
+				for the calculation of the DNL is specified by the wave object property Reference Line.
+				</p><p>If the <code>select()</code> function has been previously called, then this operation
+				is only applied to the selection.</p><p>It applies to the INTEGER, DOUBLE, FLOAT data type of
+				Wave objects.</p></section>
+		<section class="section"><h3>dnlArr()</h3><pre class="prettyprint copyable singleline">ARRAY_D dnlArr() const;</pre><p>This function
+				calculates and returns the entire array of differential linearity errors (DNL). The reference
+				line required for the calculation of the DNL is specified by the wave object property Reference
+				Line. </p><p>If the <code>select()</code> function has been previously called, then this
+				operation is only applied to the selection.</p><p>It applies to the INTEGER, DOUBLE, FLOAT data
+				type of Wave objects.</p></section>
+		<section class="section"><h3>inl()</h3><pre class="prettyprint copyable singleline">DOUBLE inl() const;</pre><p>This function returns
+				the absolute maximum integral linearity error (INL). The reference line required for the
+				calculation of the DNL is specified by the wave object property Reference Line. </p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied to the selections.</p><p>It applies to the INTEGER, DOUBLE, FLOAT data type of Wave
+				objects.</p></section>
+		<section class="section"><h3>inlArr()</h3><pre class="prettyprint copyable singleline">ARRAY_D inlArr() const;</pre><p>This function
+				returns an array containing the integral linearity errors (INL). The reference line required for
+				the calculation of the DNL is specified by the wave object property Reference Line. </p><p>If
+				the <code>select()</code> function has been previously called, then this operation is only
+				applied to the selections.</p><p>It applies to the INTEGER, DOUBLE, FLOAT data type of Wave
+				objects.</p></section>
+		<section class="section"><h3>missingCodes()</h3><pre class="prettyprint copyable singleline">ARRAY_I missingCodes(DOUBLE minCodeSize = 1.0) const;</pre><p>This
+				function calculates the missing codes. If the periods property of the Wave object is 0, the
+				method for ramps is applied, otherwise the method for sine waves is used. </p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied to the selections.</p><p>It applies to the INTEGER data type of Wave objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>minCodeSize</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The minimum code size.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>numberOfMissingCodes()</h3><pre class="prettyprint copyable singleline">INT numberOfMissingCodes(DOUBLE minCodeSize = 1.0) const; </pre><p>This
+				function calculates the number of missing codes. If the periods-property of the Wave object is
+				0, the method for ramps is applied, otherwise the method for sine waves is used. </p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied to the selections.</p><p>This function applies to the INTEGER type of Wave objects
+				only.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>minCodeSize</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>DOUBLE</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The minimum code size</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Frequency domain analysis</h3><p>Prior to the calculation of the following
+				functions the waveform has to be transformed to the frequency domain with a Fourier Transform.
+				These functions only apply for complex objects in frequency domain. These functions require a
+				proper setting of the following properties: spectrum type, sampling frequency and periods or
+				fundamental.</p></section>
+		<section class="section"><h3>fundPower()</h3><pre class="prettyprint copyable singleline">DOUBLE fundPower() const;</pre><p>This
+				function calculates the power of the fundamental frequency. </p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied to the selections.</p><p>It applies to the COMPLEX data type of Wave
+			objects.</p></section>
+		<section class="section"><h3>harmPower()</h3><pre class="prettyprint copyable singleline">DOUBLE harmPower(INT num_harm = 7) const;</pre><p>This
+				function returns the power of the harmonics. </p><p>If the <code>select()</code> function
+				has been previously called, then this operation is only applied to the selections.</p><p>It
+				applies to the COMPLEX data type of Wave objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>num_harm</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>(Optional) Number of harmonics to be included. Default is 7.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>noisePower()</h3><pre class="prettyprint copyable singleline">DOUBLE noisePower(INT num_harm = 7) const;</pre><p>This
+				function calculates the noise power of the current object. </p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied to the selections.</p><p>It applies to the COMPLEX data type of Wave objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>num_harm</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>(Optional) Number of harmonics to be excluded from noise calculation. Default is
+									7.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>sfdr()</h3><pre class="prettyprint copyable singleline">DOUBLE sfdr(INT num_harm = 7) const;</pre><p>This
+				function calculates the spurious-free dynamic range (SFDR). </p><p>If the
+					<code>select()</code> function has been previously called, then this operation is only
+				applied to the selections. </p><p>It applies to the COMPLEX data type of wave objects.</p><p>The
+				spurious-free dynamic range (SFDR) is the difference between the magnitude of the measured
+				signal and its highest spurious peak. This spurious peak is typically a harmonic of the measured
+				signal, but does not have to be.</p><p>This function computes the SFDR by calculating the ratio
+				of the RMS value of the fundamental signal (sometimes also called the "carrier"), to the RMS
+				value of the largest spectral component, excluding DC. The harmonics can be included or excluded
+				from the SFDR calculation.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>num_harm</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>(Optional) Number of harmonics to be excluded from the spurious calculation.
+									Default is 7.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>snd()</h3><pre class="prettyprint copyable singleline">DOUBLE snd() const;</pre><p>This function calculates
+				the signal-to-noise-and-distortion ratio (SINAD). </p><p>If the <code>select()</code>
+				function has been previously called, then this operation is only applied to the
+				selections.</p><p>It applies to the COMPLEX data type of Wave objects.</p></section>
+		<section class="section"><h3>snr()</h3><pre class="prettyprint copyable singleline">DOUBLE snr(INT num_harm = 7) const;</pre><p>This
+				function calculates the signal-to-noise ratio (SNR). </p><p>If the <code>select()</code>
+				function has been previously called, then this operation is only applied to the
+				selections.</p><p>It applies to the COMPLEX data type of Wave objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>num_harm</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>(Optional) Number of harmonics to be excluded from the spurious calculation.
+									Default is 7.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>thd()</h3><pre class="prettyprint copyable singleline">DOUBLE thd(INT num_harm = 7) const;</pre><p>This
+				function calculates the total harmonic distortion (THD). </p><p>If the <code>select()</code>
+				function has been previously called, then this operation is only applied to the
+				selections.</p><p>It applies to the COMPLEX data type of Wave objects.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>num_harm</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>INT</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>(Optional) Number of harmonics to be included. Default is 7.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Wave object exporting and
+			plotting</h2></section>
+		<section class="section"><h3>exportFile()</h3><pre class="prettyprint copyable singleline">void exportFile(const STRING &amp; filePath) const;</pre><p>This
+				function exports the content of a wave object to a file. The data is represented by a column of
+				numbers in ASCII format. In the case of complex numbers, the real part and the imaginary part
+				are placed into one row and separated with a blank space, tab or semicolon. The Wave object
+				properties will be dumped to the file as comments at the beginning of the file. </p><p>The
+				default directory is the waveform directory of the current device. Relative paths are allowed
+				and they are relative to the waste directory. Existing files will be overwritten.</p><p>If the
+					<code>select()</code> function has been previously called, then only the selected elements
+				are exported. </p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>filePath</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>STRING</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The location of the file.</p>
+								<p>If only the file name is specified, the default path is the waveform directory in the
+									current device.</p>
+								<p>Relative paths are allowed and they are relative to the waste directory of the current
+									device.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>plot()</h3><pre class="prettyprint linenums copyable">void plot(const STRING &amp; label) const;
+template&lt;class T&gt; void Wave&lt;T&gt;::plot() const;</pre><p>If
+				the testflow flag <span class="keyword">debug_analog</span> is <span class="uicontrol">on</span>, this function
+				displays the waveform in the Signal Analyzer. In the case of complex waveforms, the real and the
+				imaginary waveforms are displayed in different colors on the same graph. </p><p>If the
+					<code>select()</code> function has been previously called, then only the selected elements
+				are plotted.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>label</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>STRING</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The label to be shown in Signal Analyzer. If not specified, a default label will be
+									shown. The default label is in the format of Plot_&lt;DataType&gt;_&lt;Number&gt;, where </p>
+								<p>DataType can be INT, FLOAT, DOUBLE or COMPLEX</p>
+								<p>and Number is an integer starting from 0.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<h2>Examples</h2><div class="example"><h3>Initializing the Wave object</h3><p>The following example retrieves the
+				waveform from the digitizer, processes the data and copies the data to
+				wave2.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave1;
+Analog.DGT ("A_OUT").getWaveform(wave1);
+wave1*= 0.5; 
+wave1.sqrt();
+Wave&lt;DOUBLE&gt; wave2(wave1);</pre><p>The
+				following example initializes <code>wave1</code> by importing the waveform data from the
+				file <span class="filepath">waveform.txt</span>. Then <code>wave1</code> is copied to
+					<code>wave2</code>. All properties are also copied.
+				</p><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; wave1;
+wave1.importFile ("waveform.txt");
+Wave&lt;INT&gt; wave2;
+wave2.copy(wave1);</pre><p>The
+				example below initializes <code>complexWave1</code> with two float types of objects;
+					<em>magnitude </em>and <em>phase</em>. It also initializes the Wave object
+					<code>complexWave2</code> with two double objects; the <em>real </em>and <em>imaginary
+				</em>part of the complex
+			object.</p><pre class="prettyprint linenums copyable">Wave&lt;FLOAT&gt; Magnitude, Phase;
+Wave&lt;DOUBLE&gt; RealWave, ImagWave;
+Wave&lt;COMPLEX&gt; complexWave1, complexWave2;
+complexWave1.initMagnitudePhase (Magnitude, Phase);
+complexWave2.initRealImag(RealWave, ImagWave);</pre></div>
+		<div class="example"><h3>Accessing waveform data</h3><p>The example below retrieves the component of
+					<code>wave1</code> at 1kHz and retrieves the component of <code>wave2</code> at 1khz.
+				It then sets the value of <code>wave1</code> and <code>wave2</code> at 1kHz to
+			3.6.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave1;
+Wave&lt;COMPLEX&gt; wave2;
+...
+DOUBLE val = wave1.getComponent (1000.0);
+COMPLEX value = wave2[(double)1000.0];
+wave1.setComponent (1000.0, 3.6);
+wave2[(double)1000.0] = 3.6;</pre></div>
+		<div class="example"><h3>Converting form an array into waveform</h3><p>This example shows the conversion
+				from a double data type array (that is, ARRAY_D) into
+			waveform:</p><pre class="prettyprint linenums copyable">ARRAY_D DA_x;
+Wave&lt;DOUBLE&gt; wave(DA_x);</pre></div>
+		<div class="example"><h3>Basic math operation</h3><p>The example below adds 5.2 to each element of
+					<code>wave1</code> and subtracts 5.2 from each element of <code>wave2</code>. Then 100
+				is multiplied to each element of <code>wave1</code> and divided by each element of
+					<code>wave2</code>.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave1, wave2; 
+DOUBLE offset;
+wave1 += 5.2; 
+wave2 -= 5.2;
+wave1 *= 100;
+wave2 /= 100;</pre><p>The
+				example below adds an <code>INT</code> type object <code>wave2</code> to the
+					<code>INT</code> type object <code>wave1</code>. Then it converts a
+					<code>DOUBLE</code> type of object <code>waveDouble</code> to <code>INT</code> type
+				of object <code>wave</code> and add <code>wave</code> to
+				<code>wave1</code>.</p><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; wave1, wave2; 
+Wave&lt;DOUBLE&gt; waveDouble;
+...
+wave1 += wave2;
+Wave&lt;INT&gt; wave(waveDouble);
+wave1 += wave;</pre><p>The
+				example below increases each element of <code>wave1</code> by one and decreases each element
+				of <code>wave2</code>by one. Then it does modulo 2 operation on each element of
+					<code>wave1</code>.</p><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; wave1, wave2;
+  ...
+wave1++;
+wave2 --;
+wave1 %= 2;</pre></div>
+		<div class="example"><h3>Bitwise operation</h3><p>The example below performs logical AND with 5 on each
+				element of <code>wave1.</code> Then it performs logical OR on <code>wave1</code> with
+					<code>wave2</code>. Inversion is performed on each element of the object
+					<code>wave</code>. And then each element of <code>wave</code> is shifted left by 2
+				bits.</p><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; wave1, wave2,wave;
+...
+wave1 &amp; 5;
+wave1 | wave2;
+~wave;
+wave &lt;&lt; 2;</pre></div>
+		<div class="example"><h3>Extracting bits from the Wave object</h3><p>In the example below, <code>wave1
+				</code> contains four elements 124, 99, 28, and 72. The bit extraction starts from bit 1 and
+				extracts every other bit. After the extraction, <code>wave1</code> contains 14,9,6 and 8.
+				The binary representations of them is: 1110, 1001,0110 and
+			1000.</p><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; wave1;
+wave1[0] = 124; // binary: 01111100
+wave1[1] = 99;  // binary: 01100011
+wave1[2] = 28;  // binary: 00011100
+wave1[3] = 72;  // binary: 01001000
+int position = 1;  // starting from bit 1
+int step    = 2;   // skip every other bit
+int numBits  = 4;  // extract 4 bits
+wave1.extractBits (position, step, numBits);</pre></div>
+		<div class="example"><h3>Advanced math operation</h3><p>The example below performs log to base 10 for
+				each element of wave1, performs square on each element of wave2 and then performs power
+				operation with exponent 10 on each element of wave3
+			.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave1,wave3;
+Wave&lt;FLOAT&gt; wave2;
+  ...
+wave1.log (10);
+wave2.exp (2);
+wave3.pow (10);</pre></div>
+		<div class="example"><h3>Trigonometric operation</h3><p>The example below calculates the sine value of
+				each element of <code>wave1</code> and calculates the cosine value of each element of
+					<code>wave2</code>.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave1;
+Wave&lt;FLOAT&gt; wave2;
+wave1.sin();
+wave2.cos();</pre></div>
+		<div class="example"><h3>Array operations</h3><p>The example below appends <code>wave2</code> to
+					<code>wave1</code>. Then it multiplies the first 16 elements of <code>wave1</code> by 2
+				and sorts the elements of <code>wave1</code>. For the complex object
+					<code>waveComp</code>, its real part and imaginary part are
+			retrieved.</p><pre class="prettyprint linenums copyable">Wave&lt;INT&gt; wave1, wave2;
+Wave&lt;COMPLEX&gt; waveComp;
+  ...
+wave1.append (wave2);
+wave1.select(0, 1, 16);
+wave1 *= 2;
+wave1.sort ();
+Wave&lt;DOUBLE&gt; waveReal = waveComp.real ();
+Wave&lt;DOUBLE&gt; waveImag= waveComp.imag ();</pre></div>
+		<div class="example"><h3>Signal processing in the time domain</h3><p>The example below calculates the
+				frequency spectrum of wave1 in dBm and stores the result in wave. It then calculates the power
+				spectrum of wave2 and stores the result in
+				wave1.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave, wave1, wave2;
+wave.spectrum (wave1); 
+wave1.spectrum (wave2, DSP::PWR);</pre><p>The
+				example below performs FFT on <code>wave3</code> and then calculates the spectrum of the
+				result object
+			<code>fftResult</code>.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; spectResult, wave3;
+Wave&lt;COMPLEX&gt; fftResult;
+...
+fftResult.fft(wave3); //Perform fft first;
+spectResult.spectrum(fftResult);</pre></div>
+		<div class="example"><h3>Statistics</h3><p>The example below retrieves the min and max value of wave
+				with the pointers to the index. It then sums up the elements of wave and store the result in
+					<code>valueSum</code>.</p><pre class="prettyprint linenums copyable">Wave &lt;DOUBLE&gt; wave;
+INT indexMin, indexMax;
+DOUBLE valueMin = wave.min(&amp;indexMin);
+DOUBLE valueMax = wave.max(&amp;indexMax);
+DOUBLE valueSum = wave.sum();</pre></div>
+		<div class="example"><h3>Reshuffle the
+				waveform</h3><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave;
+wave.setPeriods(11);
+wave.shuffle();</pre><p>In
+				the above example, the waveform is reshuffled into phase order as follows:</p><div class="p"><figure class="fignone">
+					
+					<img src="29203.png" alt="Example of shuffling">
+				</figure></div></div>
+		<div class="example"><h3>Calculate the fund power</h3><p>The example below performs FFT on <code>wave
+				</code> and then calculates the fund power of the result object
+			<code>fftResult</code>.</p><pre class="prettyprint linenums copyable">Wave&lt;DOUBLE&gt; wave;
+Wave&lt;COMPLEX&gt; fftResult;
+...
+fftResult.fft(wave);
+double fundPower = fftResult.fundPower();</pre></div>
+		<div class="example"><h3>Example Wave object dumped
+			file</h3><pre class="prettyprint linenums copyable"># Size: 1024;
+# Domain: "DSP::TIME";
+# SamplingRate: 110E6;
+# Unit: "DSP::UNIT_V";
+# Periods: 7;
+# Comment: "14.07 MHz sine wave captured on HFDAC";
+0.02389080984
+0.03098095684
+0.03809864095
+0.04589679478
+...</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29830.htm" title="The VECTOR API accesses a data container holding the settings of a vector variable. The class functions are used to either get, or set, vector variable data which will indirectly retrieve or change vector memory.">VECTOR</a></div><div><a href="121944.htm" title="Retrieves the captured waveform data from the hardware memory.">SMC_GET_WAVEFORM()</a></div><div><a href="120101.htm" title="Retrieves the captured waveform data from the hardware memory.">SMC_GET_COMPLEX_WAVEFORM()</a></div><div><a href="29658.htm" title="Passes the specified array data or WAVE_LOG/SCATTER_LOG/Wave API's class object (array data with captions) to the signal analyzer if the debug_analog testflow flag is on.">PUT_DEBUG</a></div><div><a href="118743.htm" title="The PutDebugTrace API sends the specified array data to the Signal Analyzer tool if the debug_analog testflow flag is on.">PutDebugTrace</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.3</li><li>SmarTest 7.0.4: Enhanced initRealImag() and initMagnitudePhase().</li><li>SmarTest 7.1.3:  The member function min(), max() and median() support the data type
+					COMPLEX.</li><li>SmarTest 7.1.3:  The member function plot() only displays the waveform in Signal Analyzer when
+					the testflow flag debug_analog is on.</li><li>SmarTest 7.1.4: The Wave class has been made thread safe.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122907</span><script type="text/javascript">var ti='122907';var tt='Wave'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

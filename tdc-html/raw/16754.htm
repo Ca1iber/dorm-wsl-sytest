@@ -1,0 +1,66 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The burst mode option in the vector setup allows you to execute a sequence of test labels in one go. In a production environment this feature becomes very important (as a one-shot execution can be considerably quicker than individual test execution), especially if you have streams of vectors with lots of labels."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Identifying fail labels in a burst</title><meta name="keywords" content="pattern vector label"></head><body id="_16754"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 16754</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Identifying fail labels in a burst</h1>
+	
+	
+	<div><p>The burst mode option in the vector setup allows you to execute a sequence of test
+		labels in one go. In a production environment this feature becomes very important (as a one-shot
+		execution can be considerably quicker than individual test execution), especially if you have
+		streams of vectors with lots of labels.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>However, it is also important to pinpoint which of a sequence of tests a device has
+				failed. There are two solutions to locate where devices are failing in a burst mode test.</p><ul>
+				<li>Set the testflow flag <em>unburst_mode</em> for testflow execution.</li>
+				<li>Use the <em>for...loop</em> testflow control node.</li>
+			</ul><p>This task describes the second method.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>There must be a testflow using the burst mode. For details on setting bursts, see:</p>
+				<ul>
+					<li><a href="37554.htm" title="Bursts and multi-port bursts must be defined in the vector configuration file. Thus, they can only be generated with the high level tool aiv, not with v2b. The BURST statement of the vector configuration file has the following format:">Bursts and Multi-Port Bursts</a></li>
+					<li><a href="128881.htm" title="A multiport burst is the combination of one or more port bursts that are executed in parallel in a multiport test.">Creating a multiport burst</a></li>
+					<li><a href="128883.htm" title="A port burst is a burst (sequence of main patterns) for a specified group of pins (the port). A port burst is always part of a multiport burst and must belong to a sync group.">Creating and assigning a port burst</a></li>
+				</ul>
+			<p>For other details on bursting, see:</p>
+				<ul>
+					<li><a href="102291.htm" title="A multiport editor is one of the pattern tools. It gives access to multiport bursts and the individual port bursts. Port bursts are pattern sequences for a specific port (group of pins). A port burst is always part of a multiport burst.">Multiport Burst Editor</a></li>
+					<li><a href="98855.htm" title="This topic gives an overview of the most used terms in conjunction with the pattern tools. The figure below shows the pattern tools 'Pattern Explorer' and 'Pattern Editor'. In the Pattern Editor the device cycle (DC/DVC) names are displayed.">Definitions: Vector, Pattern, Burst, etc. ...</a></li>
+				</ul>
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>In the Flow Sequence Editor, select the insertion point on the <span class="uicontrol">F</span>
+					branch immediately after the test suite <span class="keyword">BurstTest</span><em>using the burst mode,
+						and then click </em><span class="uicontrol">for loop</span> on the Palette.</span>
+				<div><div class="p"><figure class="fignone">
+							
+							<img src="110990.png" alt="Setting up a loop for identifying the fail label in a burst">
+						</figure></div>
+				</div>
+			</li><li class="stepexpand">
+				<span>The <span class="uicontrol">New For Loop Wizard </span>window opens. Set up appropriate parameters
+					of a loop that automatically tests each of the labels in the failing burst mode test suite. </span>
+				<div><p>Two <a href="16753.htm" title="The Testflow Editor provides a number of built-in functions you can use to access internal data during testflow execution like, for example, test suite results. You can use these functions in the flow control nodes for more sophisticated testflow control.">Built-in functions</a> <code>burstfirst(Burst_label)</code> and
+							<code>burstnext(label),</code> enable you to find the first label and next label of a
+						burst label.</p>
+					<p>In the above figure, a variable <span class="keyword">lbl</span> is used. The expression
+							<code>burstfirst("Burst")</code> returns the name of the first label of the burst label
+							<span class="keyword">Burst</span>. </p>
+				</div>
+			</li><li class="stepexpand">
+				<span>On the <span class="uicontrol">T</span> branch immediately after the <em>for loop</em> node, insert a
+					test suite <em>Unburst</em>. The only difference between the <span class="keyword">Unburst</span><em>and
+						</em><span class="keyword">BurstTest</span><em>test suites is that </em><span class="keyword">BurstTest</span> uses
+					the label <span class="keyword">Burst</span> and <span class="keyword">Unburst</span> uses
+					<span class="keyword">lbl</span>.</span>
+			</li><li class="stepexpand">
+				<span>Insert the bin and the <span class="keyword">Print</span> node to output message in the report
+					window, displaying which label makes the device fail.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>When you run the testflow, the individual labels of the burst is executed separately,
+				which allows you to pinpoint which of a sequence of tests a device has failed.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>In this testflow, any failing device from the test suite "Unburst" will end up in bin
+				f1.</p><div class="p"><figure class="fignone">
+					
+					<img src="110991.png" alt="Find the failing label in a burst">
+				</figure></div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="20230.htm" title="Flow control nodes represent conditional branches and loops in the testflow. When you insert any of the flow control nodes, the appropriate dialog window appears in which you state the conditions (you can also get this dialog window by double-clicking the node).">Flow control nodes</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 16754</span><script type="text/javascript">var ti='16754';var tt='Identifying fail labels in a burst'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

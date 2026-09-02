@@ -1,0 +1,535 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The PSAS? (Power Supply Accumulated Status) query reads and clears the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at connect and disconnect if the trigger condition is no longer true."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PSAS? - (Power Supply Accumulated Status)</title><meta name="keywords" content="PSAS_"></head><body id="_98691"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98691</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PSAS? - (Power Supply Accumulated Status)</h1>
+	
+	
+	<div><p>The <span class="keyword">PSAS?</span> (Power Supply Accumulated Status) query reads and clears
+		the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU
+		operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at
+		connect and disconnect if the trigger condition is no longer true.</p>
+		<section class="section">
+			<p>The query returns either a hex value or a pass/fail result. The hex value must be
+				translated into binary form to interpret the status. The result will show any bits
+				that have been set on tests performed since the previous execution of the command,
+				or since the last connect or disconnect sequence was executed.</p>
+			<div class="note"><span class="title">Note</span> All DPS status flags are reset to 0 at connect (<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST ON</a>) and disconnect (<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST OFF</a>)<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a><span>, but the effect of a <span class="keyword">PSAS?</span> query differs
+					depending on the DPS card. For details see the <a href="98691.htm#_98691__s_DPS_flag_reset">DPS flag reset</a> table below</span>. A reset to 0 is only
+				effective if the condition for the flag is no longer true. If the condition is true
+				at the time of the connect/disconnect or <span class="keyword">PSAS?</span> query, then the
+				flag is not reset.</div>
+			<p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p>
+			<div class="note"><span class="title">Note</span> <p>Pass/fail results that are retrieved by command <a href="98689.htm" title="The PRLT? query returns the global pass/fail results of the last executed test for the specified sites in parallel. You can use this command to find out the global results of all sites (not only the one that has the query focus) in one step.">PRLT</a> are invalidated
+				by commands <a href="144688.htm" title="The CSAS? query reads and clears the internal status flags of the DPS128/64 or XPS256 pins. The flags are not cleared by a connect or disconnect sequence.">CSAS</a> and <a href="98691.htm" title="The PSAS? (Power Supply Accumulated Status) query reads and clears the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at connect and disconnect if the trigger condition is no longer true.">PSAS</a>.</p>
+			<p>We recommend therefore using the command PRLT directly after the related functional test and
+				before command CSAS or PSAS are performed.</p><p>This behavior applies not only to the commands but also
+				to the related APIs: Function <a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a> must be performed before any of
+				the <a href="141284.htm" title="The DPS_AUX_PIN_TASK class is a subsidiary data container of the DPS_AUX_TASK API.">DPS_AUX_PIN_TASK.check...()</a> functions is called or
+				the results of GET_FUNCTIONAL_RESULT() are invalid.</p></div>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">PSAS? [msMode ,] {mask}, {(pinlist)}</pre><div></div>
+			<p>returns</p>
+			<div></div><pre class="prettyprint copyable singleline">PSAS {status}, {(pinlist)}</pre><div></div>
+			<table class="frame-bottom"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">msMode</var></td>
+							<td class="colsep-0 rowsep-1">The extra parameter controls how the return value is
+									created.<p>The value of the parameter can be
+										<span class="keyword">PQFC</span>:</p><ul>
+									<li><span class="keyword">PQFC</span> specified: The current query focus
+										is respected and allows status query per site without
+										affecting status bits of other sites.</li>
+									<li><span class="keyword">PQFC</span> not specified: The command reads
+										(and clears) status bits of all enabled and active sites at
+										a glance, ignoring the actual query focus.</li>
+								</ul>The parameter applies only to use of parameter
+									<var class="varname">mask</var> as integer value.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">mask</var></td>
+							<td class="colsep-0 rowsep-1">Integer bit mask or <span class="keyword">ALL</span>.<ul>
+									<li>
+										<p>Integer bit mask: Integer value is used to mask out individual status bits. Each bit of mask is logically
+											AND-ed with the corresponding bit of the DPS status. If one of the resulting bits is set, then
+												<span class="keyword">F</span> (Fail) is returned, otherwise <span class="keyword">P</span> (Pass).</p>
+										<p>It is used to check for an error condition. All bit positions of the status flags that should be checked,
+											must be set to 1 in mask. If one of the selected status bits is set, then <span class="keyword">PSAS?</span> returns
+												<span class="keyword">F</span>.</p>
+									</li>
+									<li><span class="keyword">ALL</span>: Hex value (hexadecimal representation of all status bits) is returned.</li>
+								</ul>For setting the integer bit mask or interpreting a returned hex value, refer to the <a href="98691.htm#_98691__r_status">status</a> parameter below.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">pinlist</var></td>
+							<td class="colsep-0 rowsep-1">Comma separated list of<span> DPS128/64 or XPS256</span>
+								pins. The @ character can be used to read the status for all DPS
+								pins.</td>
+						</tr>
+						<tr id="_98691__r_status">
+							<td class="colsep-0 rowsep-1"><var class="varname">status</var></td>
+							<td class="colsep-0 rowsep-0">If parameter <var class="varname">mask</var> is
+									<span class="keyword">ALL</span>, you need to translate the hex value
+								(hexadecimal representation of the status bits) to its binary form
+								as follows:<div class="p">
+									
+									<table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;0&nbsp;(LSB):</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_0_Constant_voltage">Constant voltage</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;1:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_1_Constant_current">Constant current</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;2:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_2_Unregulated">Unregulated</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;3:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_3_Overvoltage">Overvoltage</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;4:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_4_Overpower">Overpower / Overcurrent / Power
+												budget exceeded</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;5:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_5_Overtemperature">Overtemperature</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;6:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_6_Voltage_drop_force">Voltage drop force</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;7:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_7_Voltage_drop_return">Voltage drop return</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;8:</td>
+												<td class="rowsep-1"><span id="_98691__ph_PSAS_bit_8_DB_disconnect">DUT board disconnect</span></td>
+												<td class="rowsep-1" rowspan="2">For the special mapping of bit
+												9 and 8 on UHC4 and UHC4T, refer to table <a href="98691.htm#_98691__s_DPS_flag_description">DPS flag description</a>
+												below.</td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;9:</td>
+												<td class="rowsep-1"><span id="_98691__ph_PSAS_bit_9_Safety_line">Safety line</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;10:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_10_Current_limit_disconnect">Current limit
+												disconnect</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;11:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_11_Low_headroom">Low headroom</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;12:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_12_Current_limiter">Current limiter protection
+												detected</span></td>
+												</tr>
+												<tr>
+												<td class="rowsep-1">Bit&nbsp;13:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_13_Range_overflow">Range overflow</span></td>
+												</tr>
+												<tr class="rowsep-1">
+												<td class="rowsep-1">Bit&nbsp;14&nbsp;(MSB):</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_14_Clamp_distance">Clamp distance too
+												low</span></td>
+												</tr>
+												<tr class="rowsep-1">
+												<td class="rowsep-1">Bit&nbsp;15:</td>
+												<td class="rowsep-1" colspan="2"><span id="_98691__ph_PSAS_bit_15_V_drop_force_warning">Voltage drop force
+												warning</span></td>
+												</tr>
+												<tr class="rowsep-1">
+												<td class="rowsep-0">Bit&nbsp;16:</td>
+												<td class="rowsep-0" colspan="2"><span id="_98691__ph_PSAS_bit_16_V_drop_return_warning">Voltage drop return
+												warning</span></td>
+												</tr>
+											</tbody></table>
+								</div>If parameter <var class="varname">mask</var> is specified as an integer
+								bit-mask: <ul>
+									<li>Pass: <span class="keyword">P</span></li>
+									<li>Fail: <span class="keyword">F</span></li>
+								</ul><p>Refer to table <a href="98691.htm#_98691__s_DPS_flag_implementation_710">DPS flag
+										implementation</a> below for information regarding the
+									card specific implementation of the bits or flags.</p></td>
+						</tr>
+					</tbody></table>
+			
+		</div>
+		<section class="section" id="_98691__s_DPS_flag_description"><h2>DPS flag description</h2>
+			
+			<p>The functionality of the flags is largely the same for the various DPS cards.</p>
+			<div class="p">For a card-specific detailed description of the flags refer to<ul>
+					
+					
+					
+					<li><a href="354167.htm" title="The XPS256 card features several mechanisms for the self-protection of the card and for indicating the operating state, unusual operating conditions or test results.">XPS256 status flags</a></li>
+				</ul></div>
+			<table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_98691__s_DPS_flag_description__entry__1">Flag</th>
+							<th class="colsep-0 rowsep-1" id="_98691__s_DPS_flag_description__entry__2" colspan="2">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Constant voltage</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The flag indicates the constant
+								voltage operating mode.<p>The DPS channel is forcing or clamping the
+									voltage.</p><p>Note: In offline mode of SmarTest, this flag will
+									be set to 1.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Constant current</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The flag indicates the constant
+								current operating mode.<p>The DPS channel is forcing or clamping the
+									current.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Unregulated</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The channel is in an unregulated
+								state.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Overvoltage</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">An overvoltage condition has been
+								detected.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Overpower / Overcurrent / Power
+												budget exceeded</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">An overpower or overcurrent
+								condition has been detected or a power budget has been
+								exceeded.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Overtemperature</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The temperature of the channel
+								hardware is too high.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Voltage drop force</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">
+								<p>The user defined voltage drop on the high force line of the DUT
+									board is too high.</p>
+								
+								<p>For UHC4T channels in DPS operating mode, see
+										<a href="16887.htm#_16887__max_voltage_drop_force">max_voltage_drop_force</a> in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a>.</p>
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Voltage drop return</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">
+								<p>The user defined voltage drop on the low force / return line of
+									the DUT board is too high.</p>
+								
+								<p>For UHC4T channels in DPS operating mode, see
+										<a href="16887.htm#_16887__max_voltage_drop_return">max_voltage_drop_return</a> in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a>.</p>
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>DUT board disconnect</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2">The DUT board has been disconnected.</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" rowspan="2">Due to the hardware structure of UHC4 and UHC4T, bit
+								9 (<span>Safety line</span>) is actually
+								mapped to bit 8 (<span>DUT board disconnect</span>) and bit 9 will never be set. This special mapping of the bit
+								applies only to UHC4 and UHC4T.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Safety line</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2">The interlock of the safety line is open.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Current limit
+												disconnect</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The user defined time for constant
+								current mode was reached.<p>See <a href="16887.htm#_16887__ms_const_curr_disconnect">ms_const_curr_disconnect</a> in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Low headroom</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The energy supply provides not
+								enough headroom for the proper function of the output
+								buffer.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Current limiter protection
+												detected</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The current limiter protection mode
+								has been triggered.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Range overflow</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">An overflow of the force range or
+								the clamp range has been detected. The flag is also set for
+								comparator range overflows if the related measurement range is
+								determined by the force or clamp range.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Clamp distance too
+												low</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The programmed distance between the
+								upper and lower clamp voltage or between the sourcing and sinking
+								clamp current is too low.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Voltage drop force
+												warning</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The measured voltage drop on the
+								force line (P#) exceeds the programmed warning threshold.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__1"><span>Voltage drop return
+												warning</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_description__entry__2" colspan="2">The measured voltage drop on the
+								common return line (GND) referenced to the ground sense line (GS#)
+								exceeds the programmed warning threshold.</td>
+						</tr>
+					</tbody></table>
+		</section>
+		
+		<section class="section" id="_98691__s_DPS_flag_implementation_710"><h2>DPS flag
+				implementation</h2><p>The implementation of the flags
+				differs for the various DPS cards, that is, various cards do not support every
+				flag.</p><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col><col><col></colgroup><thead>
+						<tr class="valign-middle">
+							<th class="colsep-0 rowsep-1" id="_98691__s_DPS_flag_implementation_710__entry__1">Bit</th>
+							<th class="colsep-0 rowsep-1" id="_98691__s_DPS_flag_implementation_710__entry__2">Flag</th>
+							<th class="colsep-0 rowsep-1" id="_98691__s_DPS_flag_implementation_710__entry__3"></th>
+							<th class="colsep-1 rowsep-1" id="_98691__s_DPS_flag_implementation_710__entry__4">DPS128<p>DPS64</p></th>
+							<th class="colsep-1 rowsep-1" id="_98691__s_DPS_flag_implementation_710__entry__5">UHC4T</th>
+							<th class="colsep-0 rowsep-1" id="_98691__s_DPS_flag_implementation_710__entry__6">XPS256</th>
+						</tr>
+					</thead><tbody>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">0</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Constant voltage</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">+</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">1</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Constant current</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">+</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">2</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Unregulated</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">3</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Overvoltage</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">4</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Overpower / Overcurrent / Power
+												budget exceeded</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">5</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Overtemperature</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">+</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">6</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Voltage drop force</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">7</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Voltage drop return</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">8</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>DUT board disconnect</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">9</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Safety line</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+<a href="#_98691__d1574e1566"><sup>2)</sup></a></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">10</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Current limit
+												disconnect</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">11</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Low headroom</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">-</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">-</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">12</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Current limiter protection
+												detected</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">+</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">-</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">13</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Range overflow</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">-</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr class="valign-middle">
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">14</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Clamp distance too
+												low</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">-</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">15</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Voltage drop force
+												warning</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">-</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__1">16</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__2"><span>Voltage drop return
+												warning</span></td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__3"></td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__4">-</td>
+							<td class="colsep-1 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__5">-</td>
+							<td class="colsep-0 rowsep-1" headers="_98691__s_DPS_flag_implementation_710__entry__6">+</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section" id="_98691__s_DPS_flag_reset"><h2>DPS flag reset</h2>
+			
+			<div>
+				<p>All DPS status flags are reset to 0 at connect (<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST
+						ON</a>) and disconnect (<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST OFF</a>), but the
+					effect of a <span class="keyword">PSAS?</span> is different for the "Constant Voltage"
+					flag. It is 1 when all other flags are 0.</p>
+				<p>Note that a reset to 0 is only effective if the condition for the flag is no
+					longer true. The flag is not reset, if the condition is still true at the time
+					of the connect / disconnect or <span class="keyword">PSAS?</span> query.</p>
+			</div>
+			
+		</section>
+		<section class="section"><h2>Application</h2>
+			
+			<p>DC Tests, see <a href="10463.htm">DC Measurement Commands</a>.</p>
+		</section>
+		<section class="section"><h2>Errors</h2>
+			
+			<p>An error is generated if a communication error with the DPS occurs.</p>
+			<p>The status bits 4 to 11 result in a disconnect of the pin. To reconnect you must
+				execute a disconnect-connect sequence.</p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Description</h3>
+			
+			<p>For the following examples (1 to 4), the assumed binary value of the status of the
+				UHC4 pin Vcc is 10000110 (Voltage drop return, Unregulated, Constant Current).</p>
+		</div>
+		<div class="example"><h3>Example 1</h3>
+			
+			<p>To get all flags:</p>
+			<div></div><pre class="prettyprint copyable singleline">PSAS? ALL,(Vcc)</pre><div></div>
+			<p>returns</p>
+			<div></div><pre class="msgblock">PSAS #86,(Vcc)</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<p>To check if Unregulated (bit 2) is set:</p>
+			<div></div><pre class="prettyprint copyable singleline">PSAS? 4,(Vcc)</pre><div></div>
+			<p>returns</p>
+			<div></div><pre class="msgblock">PSAS F,(Vcc)</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 3</h3>
+			
+			<p>To check if Constant Current (bit 1) or Overpower (bit 4) is set:</p>
+			<div></div><pre class="prettyprint copyable singleline">PSAS? 18,(Vcc)</pre><div></div>
+			<p>returns</p>
+			<div></div><pre class="msgblock">PSAS F,(Vcc)</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 4</h3>
+			
+			<p>To check if Voltage Drop Force (bit 6) or DUT Board Disconnect (bit 8) is set:</p>
+			<div></div><pre class="prettyprint copyable singleline">PSAS? 320,(Vcc)</pre><div></div>
+			<p>returns</p>
+			<div></div><pre class="msgblock">PSAS P,(Vcc)</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 5</h3>
+			
+			<div></div><pre class="prettyprint copyable singleline">PSAS? ALL,(Vee)</pre><div></div>
+			<p>returns </p>
+			<div></div><pre class="msgblock">PSAS 2,(Vee)</pre><div></div>
+			<p>This example for device pin Vee shows the DPS is working in constant current mode.
+			</p>
+		</div>
+		<div class="example"><h3>Example 6</h3>
+			
+			<div></div><pre class="prettyprint copyable singleline">PSAS? ALL,(Vee)</pre><div></div>
+			<p>returns </p>
+			<div></div><pre class="msgblock">PSAS 64,(Vee)</pre><div></div>
+			<p>This example for device pin Vee shows the DPS has hit the voltage drop force
+				threshold.</p>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144688.htm" title="The CSAS? query reads and clears the internal status flags of the DPS128/64 or XPS256 pins. The flags are not cleared by a connect or disconnect sequence.">CSAS? - (Channel Slot Accumulated Status)</a></div><div><a href="150021.htm" title="Reads the accumulated power supply status flags from the hardware. The flags are supported by DC Scale cards in DPS operating mode, in PMU operating mode.">DPS_AUX_PIN_TASK.checkPowerFlags()</a></div><div><a href="150053.htm" title="The DPS_AUX_TASK class features several member functions for reading the accumulated power supply status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode or in Digital I/O operating mode.">DPS power flags - get...() functions</a></div><div><a href="354167.htm" title="The XPS256 card features several mechanisms for the self-protection of the card and for indicating the operating state, unusual operating conditions or test results.">XPS256 status flags</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.3.1: The command supports now pins in SIG (PMU) mode.</li><li>SmarTest 7.3.1: New bit "Low Headroom" added.</li><li>SmarTest 7.3.2: DC Scale UHC4T card added.</li><li>SmarTest 7.3.3: New extra parameter "msMode".</li><li>SmarTest 7.4.0: DC Scale AVI64 card and support for the Digital I/O operating mode
+					of DPS added.</li><li>SmarTest 7.4.0: New flags Range overflow (Bit 13) and Clamp distance too low (Bit
+					14).</li><li>SmarTest 7.5.0: DC Scale FVI16 card added.</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  This
+					applies not for DC Scale cards in Digital I/O operating mode.</div><div class="p"><a id="_98691__d1574e1566"><sup>2)</sup></a>  Due to the hardware structure of UHC4T, flag "<span>Safety line</span>" is actually mapped to flag "<span>DUT board disconnect</span>" and flag "<span>Safety line</span>" will never be set. This special
+				mapping of the bit applies only to UHC4T.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98691</span><script type="text/javascript">var ti='98691';var tt='PSAS? - (Power Supply Accumulated Status)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

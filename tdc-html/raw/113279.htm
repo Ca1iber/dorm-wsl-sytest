@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="X-modes are a way to compress vectors using the V93000's flexible device cycle definitions. Using x-modes, two or more vectors are packed into one vector, while the timing definition is updated to reflect vector compression. Each compressed device cycle contains a number of original cycles as indicated by the x-mode. (For example, in the x4 mode, each compressed cycle contains four original cycles.)"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Configuring x-modes using STIL Reader</title></head><body id="_113279"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113279</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Configuring x-modes using STIL Reader</h1>
+	
+	
+	<div><p>X-modes are a way to compress vectors using the V93000's flexible device cycle
+		definitions. Using x-modes, two or more vectors are packed into one vector, while the timing
+		definition is updated to reflect vector compression. Each compressed device cycle contains a
+		number of original cycles as indicated by the x-mode. (For example, in the x4 mode, each
+		compressed cycle contains four original cycles.) </p>
+		<p>There are two ways to use the x-mode compression feature:</p>
+		<ul>
+			<li>In order to compress all vectors in a STIL file, set the <span class="keyword">xmode_factor</span>
+				variable to 2 or higher in the setup file: <div></div><pre class="prettyprint copyable singleline">xmode_factor = 2</pre><p>In case of
+					a multiport setup, the x-mode factor is applied to all ports.</p><p>Instead of setting the
+					x-mode manually, you can also specify <code>xmode_factor = "auto"</code> to let STIL Reader
+					automatically determine the optimal x-mode for the translated patterns and the target
+					hardware.</p></li>
+			<li>
+				<p>In order to apply different x-mode factors to the various ports in a multiport setup,
+				additional parameters are required in the ports' <span class="keyword">NameMaps</span> definitions in the
+				STIL file:</p>
+					<div></div><pre class="prettyprint copyable singleline"><var class="varname">signal_name</var> "<var class="varname">port_name</var>,<var class="varname">sync_group</var>,<var class="varname">master_clock</var>,<var class="varname">x_factor</var>,<var class="varname">hx, specs_scope</var>,<var class="varname">keep_spec_variables</var>,<var class="varname">phase_sync</var>"</pre><div></div>
+				<div class="p">The individual elements have the following meanings:
+					<ul>
+					<li><var class="varname">port_name</var>: The port name.</li>
+					<li><var class="varname">sync_group</var>: This parameter is currently unused.</li>
+					<li><var class="varname">master_clock</var>: This parameter is currently unused.</li>
+					<li><var class="varname">x_factor</var>: The x-mode to use. This parameter overrides the
+								<span class="keyword">xmode_factor</span> setup parameter.</li>
+					<li><var class="varname">port_type</var>: The high-speed channel handling. This parameter can be left
+							empty, set to <span class="keyword">hx</span>, or set to <span class="keyword">fast</span>.</li>
+					<li><var class="varname">specs_scope</var>: Can be set to <span class="keyword">global</span> or to
+								<span class="keyword">local</span>, to create global (for all ports) or local (per-port) specs tables,
+							respectively.</li>
+					<li><var class="varname">keep_spec_variables</var>: Can be set to 0 or 1. If the parameter is set to 1,
+							unused spec variables will be kept; if is set to 0, they are dropped. This parameter
+							overrides the <span class="keyword">keep_spec_variables</span> setup parameter.</li>
+					<li><var class="varname">phase_sync</var>: Can be set to <span class="keyword">on</span> or
+								<span class="keyword">off</span> to (respectively) enable or disable phase synchronization. The
+							default is <span class="keyword">on</span>.</li></ul></div>
+				<p>Example signal specification:</p>
+				<div></div><pre class="prettyprint copyable singleline">Sig1 "Clock,SyncGroup1,1,1,,global,1,off";</pre></li>
+		</ul>
+		<p>Please note that timing is created only for the actual combinations of vectors in the STIL
+			file. The x-mode compression may fail when insufficient tester resources are available (that is,
+			when there are too many edges or waveforms to compress).</p>
+		<section class="section"><h2>Padding</h2><p>When an x-mode is specified, STIL Reader always makes sure that
+				the number of vectors in the converted pattern is an even multiple of the chosen mode. For
+				example, with X6 mode, the number of vectors in the patterns will always be a multiple of
+				6.</p><p>If the number of vectors in the STIL patterns is not evenly divisible by the x-mode
+				factor, STIL Reader automatically adds the required number of padding vectors at the end. By
+				default these padding vectors contain no actions. If you would like instead to repeat the drive
+				actions from the last vector of the source pattern, set the <a href="118728.htm" title="The translation-related options in a STIL Reader setup file let you control the output of the translation process, in particular to accommodate variations between the input and the resulting output.">pad_xmode_vectors</a> parameter in the setup file to 1.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.1: Added port type fast.</li><li>SmarTest 7.2.1: Added phase sync parameter.</li><li>SmarTest 7.2.1: Added choice of padding vectors..</li><li>SmarTest 7.2.2: Added "auto" option to xmode_factor setting</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113279</span><script type="text/javascript">var ti='113279';var tt='Configuring x-modes using STIL Reader'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

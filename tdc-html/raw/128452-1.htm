@@ -1,0 +1,86 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A serial interface for sequencer‑controlled utility lines can handle the data stream for more than one utility block. This cascading of serial interfaces of utility blocks is called &#34;ganging&#34; in the context of the sequencer‑controlled utility lines."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Ganging utility blocks</title><meta name="keywords" content="utility line block utility pin block utility pogo block"></head><body id="_128452"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 128452</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Ganging utility blocks</h1>
+	
+	
+	<div><p>A serial interface for sequencer‑controlled utility lines can handle the data
+		stream for more than one utility block. This cascading of serial interfaces of utility
+		blocks is called "ganging" in the context of the sequencer‑controlled utility
+		lines.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span>  This section applies to<ul>
+					<li>V93000 Pin Scale and Smart Scale systems running SmarTest&nbsp;7,</li>
+					<li>V93000 Pin Scale and Smart Scale systems running SmarTest&nbsp;8,</li>
+					<li>V93000 EXA Scale systems running SmarTest&nbsp;7 and equipped with the <a href="351250.htm" title="The Utility Card provides 256 utility lines and several utility power supplies on eight 4-row pogo blocks. The cards can reside in any slot of a V93000 EXA Scale system. There are two variants available, EK051 and EK051A. The EK051 Utility card is used in SmarTest 8 only. The EK051A Utility card is used in both SmarTest 7 (SmarTest version 7.10 and higher) and SmarTest 8.">optional Utility
+							Card</a>.</li>
+				</ul><p>On V93000 EXA Scale systems running SmarTest&nbsp;8 and equipped with the
+					optional Utility Card, the pattern sequencer controls utility lines via an
+					internal data path.</p></div>
+		</section>
+		<section class="section"><h2>Rules and general behavior for ganged utility blocks</h2>
+			
+			<p>The following rules are to be considered for ganging utility blocks:</p>
+			<ul>
+				<li>The ganged utility blocks must be contiguous.</li>
+				<li>Up to eight pogo blocks can be controlled by a single serial interface.</li>
+				<li>The block with the lowest number becomes the master.</li>
+				<li>Only the serial interface pins on the master must be connected to the digital
+					pins that you will be using to supply the control signals.</li>
+				<li>The interface pins of the slave utility blocks must be left floating. The
+					required connections for ganging the slave blocks are routed internally.</li>
+				<li>On V93000 EXA Scale systems running SmarTest 7 and equipped with more than one
+						<a href="351250.htm" title="The Utility Card provides 256 utility lines and several utility power supplies on eight 4-row pogo blocks. The cards can reside in any slot of a V93000 EXA Scale system. There are two variants available, EK051 and EK051A. The EK051 Utility card is used in SmarTest 8 only. The EK051A Utility card is used in both SmarTest 7 (SmarTest version 7.10 and higher) and SmarTest 8.">optional Utility
+						Card</a>, ganging utility blocks across Utility cards is not
+					supported.</li>
+			</ul>
+			<p>The serially transferred data are internally stored in a hardware register and
+				transferred in parallel to all utility lines of the controlled group of ganged
+				blocks:</p>
+			<ul>
+				<li>Utility lines are not toggled while the data are transferred via the serial
+					interface is in progress.</li>
+				<li>All lines change the state in parallel as soon as the transfer via the serial
+					interface has been finished.</li>
+				<li>Because the time required for this hardware based dynamic switching is
+					negligible, latency can be disregarded.</li>
+			</ul>
+		</section>
+		<section class="section"><h2>Defining ganged utility blocks</h2>
+			
+			<div class="p">In your test program, ganged utility blocks are to be defined as follows:<ul>
+					<li><strong>SmarTest 8:</strong><p>The ganged utility blocks are to be defined by element
+								<span class="keyword">utilityControl</span> of the <!--a href="smartest<244395.htm"-->DUT board
+								description file <!--/a--> with minimum two contiguous utility pogo
+							blocks defined. For more information, refer to <!--a href="smartest<256859.htm"-->Controlling
+								utility lines<!--/a-->.</p></li>
+					<li><strong>SmarTest 7:</strong><p>The ganged utility blocks are to be defined by the <a href="141996.htm" title="Specifies the utility pogo block(s) to set up.">UTILITY_SEQ_MODE.pogoBlock()</a> test method API. Refer also to
+							the example on ganging utility blocks in <a href="124758.htm">Setting up sequencer control of utility lines</a>.</p></li>
+				</ul></div>
+		</section>
+		<section class="section"><h2>Multiple groups of ganged utility blocks</h2>
+			
+			<p>It is possible to configure more than one ganged group. For example, you can set up
+				digital control of utility blocks 1,2,3 via a set of three digital channels and at
+				the same time set up digital control of utility blocks 4,5,6,7 via another set of
+				three digital channels. Sequencer control of the groups of utility blocks can be
+				switched on and off independently.</p></section>
+		<section class="section"><h2>Data width of the serial interface</h2>
+			
+			<p>Ganging of utility blocks allows you to expand the data width beyond that of a single
+				word (either 16 or 32 bits), where the number of ganged utility blocks multiplies
+				the available word width.</p>
+			<p>For instance, by ganging three utility blocks of 16 bits each a data width of 48 bits
+				is produced which can be controlled by a single burst of digital serial data. With
+				word widths of 32 bits, available on 4‑row utility blocks, it is possible to
+				control up to 256 utility lines (8 utility blocks with 32 utility lines each) by
+				three (or four) digital pins. You determine the word width yourself by fitting
+				either 2‑row or 4‑row utility pogo blocks to your DUT interface, refer
+				to <a href="59181.htm" title="All utility lines have read and write capabilities. The lines are routed to the DUT interface where they are available on utility pogo blocks. A utility pogo block contains 16 utility lines (00 to 15) or 32 utility lines (00 to 31).">Utility line assignments</a>.</p>
+			
+			
+			
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.2.0: 256 sequencer‑controlled utility lines introduced on
+					ATH/CTH/STH DUT Scale and on LTH</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 128452</span><script type="text/javascript">var ti='128452';var tt='Ganging utility blocks'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

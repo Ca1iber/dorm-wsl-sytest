@@ -1,0 +1,219 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Hiding the upload of the error map</title></head><body id="_128782"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 128782</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Hiding the upload of the error map</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This task example describes how to hide the upload of error map data behind a digital
+				test.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Allocate result areas</span>
+				<div><p>The following test method allocates three result areas for the error map data named:
+							<span class="keyword">EmapArea100k</span>, <span class="keyword">EmapArea200k</span> and
+							<span class="keyword">EmapArea300k</span>.</p><pre class="prettyprint linenums copyable">class AllocEmapResultArea: public testmethod::TestMethod
+{
+ protected:
+ virtual void initialize()
+ {
+ //Add your initialization code here
+ }
+ virtual void run()
+ {
+ ON_FIRST_INVOCATION_BEGIN();
+ RESULT_AREA_CONFIG resConf("@");
+ r<strong>esConf.appendArea("EmapArea_100k",102400)</strong>
+<strong> .appendArea("EmapArea_200k",204800)</strong>
+<strong> .appendArea("EmapArea_300k",307200)</strong>
+ .activate();
+ ON_FIRST_INVOCATION_END();
+ return;
+ }
+ virtual void postParameterChange(const string&amp; parameterIdentifier)
+ {
+ //Add your code
+ return;
+ }
+ virtual const string getComment() const 
+ {
+ string comment = " please add your comment for this method.";
+ return comment;
+ }
+};
+REGISTER_TESTMETHOD("AllocEmapResultArea", AllocEmapResultArea);</pre></div>
+			</li><li class="stepexpand">
+				<span>Capture error map data</span>
+				<div><p>This example shows how the error map recording can be configured to use</p>
+					<ul>
+						<li>the test processor's DDR memory</li>
+						<li>acquire large fail data</li>
+						<li>acquire per edge results</li>
+						<li>select the result area<p>A functional test is executed to capture the date before the
+								result areas are restored.</p></li>
+					</ul><pre class="prettyprint linenums copyable">class CaptureEmapData: public testmethod::TestMethod
+{
+ protected:
+ virtual void initialize()
+ {
+ //Add your initialization code here
+ }
+ virtual void run()
+ {
+ ON_FIRST_INVOCATION_BEGIN();
+ // Configure measurement into DDR and select result area
+ FW_TASK(
+ "DCGM FAIL,STRT,NONE\n"
+ "DCRP 102400,(@)\n"
+<strong>"DCRM EMAP,8,PF,(@@)\n"</strong>
+<strong>"DCRT RAM,(@@)\n"</strong>
+<strong>"RRSC \"EmapArea_100k\"\n"</strong> // Select area for result recording
+ );
+ FUNCTIONAL_TEST();
+ // Stop recording into result area
+ FW_TASK("RRSC OFF\n");
+ ON_FIRST_INVOCATION_END();
+ return;
+ }
+ virtual void postParameterChange(const string&amp; parameterIdentifier)
+ {
+ //Add your code
+ return;
+ }
+ virtual const string getComment() const 
+ {
+ string comment = " please add your comment for this method.";
+ return comment;
+ }
+};
+REGISTER_TESTMETHOD("CaptureEmapData", CaptureEmapData);</pre></div>
+			</li><li class="stepexpand">
+				<span>Start digital test</span>
+				<div><p>In a lot of cases, scan tests or LBIST tests done on digital devices can be used to
+						hide the upload and calculation from previously executed tests.</p>
+					<p>Perform a digital test like shown in the example
+					below:</p><pre class="prettyprint linenums copyable">class StartDigitalTest: public testmethod::TestMethod
+{
+ protected:
+ virtual void initialize()
+ {
+ //Add your initialization code here
+ }
+ virtual void run()
+ {
+ ON_FIRST_INVOCATION_BEGIN();
+<strong>START_TEST();</strong>
+ ON_FIRST_INVOCATION_END();
+ return;
+ }
+ virtual void postParameterChange(const string&amp; parameterIdentifier)
+ {
+ //Add your code
+ return;
+ }
+ virtual const string getComment() const 
+ {
+ string comment = " please add your comment for this method.";
+ return comment;
+ }
+};
+REGISTER_TESTMETHOD("StartDigitalTest", StartDigitalTest);</pre></div>
+			</li><li class="stepexpand">
+				<span>Perform hidden upload</span>
+				<div><p>While the digital test is being executed the error map data will be uploaded in
+						parallel.</p>
+					<div class="note"><span class="title">Note</span> To ensure that the running functional test does not get interrupted, the
+						primary fields of the upload test suites have to be blank as shown below.</div><div class="p"><figure class="fignone">
+							
+							<img src="120009.png" alt="TestFlowEditor_Properties_BlankPrimariesForHiddenErrorrMapUpload">
+						</figure></div>
+					<p>The following code example selects the result area, sets the block size to be uploaded and
+						restores the result area when
+					finished.</p><pre class="prettyprint linenums copyable">class UploadEmapData: public testmethod::TestMethod
+{
+ protected:
+ STRING fw_task;
+ static STRING fw_answer;
+ virtual void initialize()
+ {
+ //Add your initialization code here
+ }
+ virtual void run()
+ {
+ ERROR_MAP_TEST emap(TM::TESTER_CYCLES);
+
+ ON_FIRST_INVOCATION_BEGIN();
+ // Select result area for upload
+<strong>fw_task = "RRSC \"EmapArea_100k\"\n";</strong>
+ // Set to the same size as result area
+<strong>fw_task +="EMBS \"EmapArea_100k\",(@@)\n";</strong>
+ FOR_EACH_SITE_BEGIN();
+<strong>char buffer[1024];</strong>
+<strong> sprintf(buffer,"PQFC %i\n",CURRENT_SITE_NUMBER());</strong>
+<strong> fw_task += buffer;</strong>
+<strong> fw_task += "EMAP? PPIN,0,2048000,EDGE,8,pf,EOLY,BYTE,,(\"p1\")\n";</strong>
+ FOR_EACH_SITE_END();
+ fw_task +="RRSC OFF\n";
+ FW_TASK(fw_task,fw_answer);
+ ON_FIRST_INVOCATION_END();
+ return;
+ }
+ virtual void postParameterChange(const string&amp; parameterIdentifier)
+ {
+ //Add your code
+ return;
+ }
+ virtual const string getComment() const
+ {
+ string comment = " please add your comment for this method.";
+ return comment;
+ }
+};
+REGISTER_TESTMETHOD("UploadEmapData", UploadEmapData);</pre></div>
+			</li><li class="stepexpand">
+				<span>Wait for digital test to finish</span>
+				<div><div class="note"><span class="title">Note</span> To ensure that the running functional test does not get interrupted, the
+						primary fields of the test suite that is waiting for the digital test to finish have to be
+						left blank.</div><p>The following testmethod</p>
+					<ul>
+						<li>waits until the functional test is finished</li>
+						<li>judges and logs the data of the functional test results.</li>
+					</ul><pre class="prettyprint linenums copyable">class WaitForDigitalTestToFinish: public testmethod::TestMethod
+{
+ protected:
+ static STRNG fw_answer;
+ virtual void initialize()
+ {
+ //Add your initialization code here
+ }
+ virtual void run()
+ {
+ INT site = CURRENT_SITE_NUMBER()-1;
+
+ ON_FIRST_INVOCATION_BEGIN();
+<strong> WAIT_TEST_DONE();</strong>
+<strong> FW_TASK("PRLT? ALL",fw_answer);</strong>
+ ON_FIRST_INVOCATION_END();
+
+ // get digital result and do data log 
+ // fw_answer = PRLT ALL,"PP" First site pos = 10, second site pos = 11
+<strong>TEST("@","digital_test_end",fw_answer[site+10]=='P'?TM::Pass:TM::Fail,true);</strong>
+ return;
+ }
+ virtual void postParameterChange(const string&amp; parameterIdentifier)
+ {
+ //Add your code here
+ return;
+ }
+ virtual const string getComment() const 
+ {
+ string comment = " please add your comment for this method.";
+ return comment;
+ }
+};
+REGISTER_TESTMETHOD("WaitForDigitalTestToFinish", WaitForDigitalTestToFinish);</pre></div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The uploads of of three error map results areas have been performed while a digital
+				test was executed.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="58769.htm" title="The internal detailed Error Map is rather small. It can hold information about 8192 cycles at most.">Configuring the Error Map recording</a></div><div><a href="119803.htm" title="The Hidden Upload feature allows you to use test methods to set up a test flow to perform a digital capture test and then upload all the results at the end, which can save a lot of time, depending on your test.">Using Hidden Upload for Digital Capture</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 128782</span><script type="text/javascript">var ti='128782';var tt='Hiding the upload of the error map'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

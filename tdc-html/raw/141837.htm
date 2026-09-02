@@ -1,0 +1,140 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI provides the class util() to control the utility lines in code‑based mode and in pattern‑based mode."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmartRDI: Utility lines control</title><meta name="keywords" content="smart rdi srdi"></head><body id="_141837"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 141837</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmartRDI: Utility lines control</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="143872.htm" title="Specifies one or more utility pins to switch relays.">pin()</a></li><li><a href="143874.htm" title="Disconnects utility lines.">setOff()</a></li><li><a href="143873.htm" title="Connects utility lines.">setOn()</a></li><li><a href="153029.htm" title="SmartRDI supports mask mode of sequencer‑controlled utility lines.">Sequencer Controlled Utility Mask with SmartRDI</a></li></ol></div></nav>
+	
+	
+	<div><p>SmartRDI provides the class <span class="keyword">util()</span> to control the utility lines in
+		code‑based mode and in pattern‑based mode.</p>
+		<p>The following member functions are provided:</p>
+		<div class="p">
+			<ul>
+				<li><a href="143872.htm" title="Specifies one or more utility pins to switch relays.">pin()</a>,</li>
+				<li><a href="143873.htm" title="Connects utility lines.">setOn()</a>,</li>
+				<li><a href="143874.htm" title="Disconnects utility lines.">setOff()</a> and</li>
+				<li><a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a>.</li>
+			</ul>
+		</div>
+		<p>In the code‑based mode, the setup will be executed directly.</p>
+		<p>In the pattern‑based mode, the utility lines are controlled by the pattern. In the <a href="128329.htm" title="Utility lines may be controlled by the pattern sequencer via an internal data path or with the help of digital pins and a dedicated serial interface of the utility blocks. This type of controlling utility lines is referred to as &#34;dynamic access&#34; to utility lines. The advantage over the standard static access is that the utility lines can be controlled synchronously to the pattern sequencer.">sequencer‑controlled utility lines</a>, four serial pins are used
+			to control the utility lines. The control pattern for the four serial pins will be
+			generated. The serial pins need to be specified in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a> as below.
+			The following configuration means utility block 1 and 2 are ganged. Comma is used to
+			align the utility block and the pins to control the utility block.</p>
+		<div></div><pre class="prettyprint linenums copyable">UTIL_BLOCK =  12,3,4  // or 1-2,3,4
+UTIL_FRAM  =  FR1,FR3,FR4
+UTIL_SCLK  =  SK1,SK3,SK4
+UTIL_SINP  =  SN1,SN3,SN4
+UTIL_SOUT  =  SO1,SO3,SO4</pre><div></div>
+		<p>After the code is executed, you can check the relay status in the hardware view. </p>
+		<div class="p"><figure class="fignone">
+				<img src="144764.png" alt="Hardware view_Utility line status">
+			</figure></div>
+		<div class="note"><span class="title">Note</span> It is not necessary to set up levels/equations/wavetables for utility pins.
+			SmartRDI controls the four serial pins which are used to control the utility lines
+			directly. For the four serial pins, you need to set up levels/equations/wavetables as
+			normal digital pins.</div>
+		<div class="note"><span class="title">Note</span> In SmartRDI, utility lines may be controlled
+			by the <span class="keyword">rdi.util()</span> class or by the <span class="keyword">rdi.route()</span>
+			class of the <a href="343437.htm" title="The Routing Tools feature native multisite handling, user friendly table based configuration editors and a unified programming interface for controlling utility lines.">Routing Tools</a>. In addition, the utility lines
+			may be controlled by test method APIs, firmware commands or the "Routing Setup
+				Tool".<p>This may lead to conflicts if the same utility line is controlled by more
+				than one API or tool.</p><p>For SmartRDI we therefore strongly recommend,
+				controlling utility lines either by the <span class="keyword">rdi.route()</span> class or by
+				the <span class="keyword">rdi.util()</span> class. The mixed use of the two APIs or other test
+				method APIs and tools is not recommended. This recommendation applies to code‑based
+				programming and to pattern‑based programming.</p><p>Code‑based programming for the
+					<span class="keyword">rdi.route()</span> means that the utility lines are set to "static"
+				in the "Control table" of the <a href="153257.htm" title="The Utility Lines Control editor of the Routing Tools enables you selecting static or sequencer‑controlled utility lines and defining the digital control pins for the sequencer‑controlled utility lines.">Utility Lines Control
+					editor</a>. Pattern‑based programming for the <span class="keyword">rdi.route()</span>
+				means that the utility lines are set to "dynamic" in the "Utility Lines Control
+				editor".</p></div>
+		<h2>Example</h2><div class="example">
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">class RDI_STAT_UTIL: public testmethod::TestMethod
+{
+    protected:
+
+    string sMode;
+    STRING_VECTOR utilitylineStatus_1,utilitylineStatus_2,utilitylineStatus_3;
+
+    virtual void initialize()
+    {
+        addParameter("RDIMode","string",&amp;amp;sMode, testmethod::TM_PARAMETER_INPUT).setOptions("SINGLE:BURST:PROD").setDefault("BURST");
+    }
+
+    virtual void run()
+    {
+        RDI_INIT();
+
+        ON_FIRST_INVOCATION_BEGIN();
+
+            //
+            // Select smartRDI Mode
+            //
+            TA::USER_RUN_MODE mode;
+
+            if      (sMode == "SINGLE") mode     = TA::SINGLE;
+            else if (sMode == "BURST")  mode = TA::BURST;
+            else if (sMode == "PROD")   mode = TA::PROD;
+
+            utilitylineStatus_1 = GET_UTILITY_LINES_STATUS(0);
+
+            //
+            // Set 4 util lines of util block 2-9 defined in pin file
+            //
+            rdi.util().pin("SEQ_LED_201,SEQ_LED_207, SEQ_LED_209,SEQ_LED_215").setOn().execute();
+            rdi.wait(2 ms);
+            utilitylineStatus_2 = GET_UTILITY_LINES_STATUS(0);
+
+            //
+            // Reset 4 util lines of util block 2-9 defined in pin file
+            //
+            rdi.util().pin("SEQ_LED_201,SEQ_LED_207,SEQ_LED_209,SEQ_LED_215").setOff().execute();
+            rdi.wait(4 ms);
+            utilitylineStatus_3 = GET_UTILITY_LINES_STATUS(0);
+
+        ON_FIRST_INVOCATION_END();
+
+        //
+        // Datalog
+        //
+        cout &lt;&lt; "after reset" &lt;&lt; endl;
+
+        for(int i=1; i&lt;9;i++)
+        {
+            cout &lt;&lt; "STAT_UTIL" &lt;&lt; i &lt;&lt; " = " &lt;&lt; utilitylineStatus_1[i-1] &lt;&lt; endl;
+        }
+
+        cout &lt;&lt; "after set on" &lt;&lt; endl;
+
+        for(int i=1; i&lt;9;i++)
+        {
+            cout &lt;&lt; "STAT_UTIL" &lt;&lt; i &lt;&lt; " = " &lt;&lt; utilitylineStatus_2[i-1] &lt;&lt; endl;
+        }
+        cout &lt;&lt; "after set off" &lt;&lt; endl;
+
+        for(int i=1; i&lt;9;i++)
+        {
+            cout &lt;&lt; "STAT_UTIL" &lt;&lt; i &lt;&lt; " = " &lt;&lt; utilitylineStatus_3[i-1] &lt;&lt; endl;
+        }
+
+        return;
+    }
+
+    virtual void postParameterChange(const string&amp;amp; parameterIdentifier)
+    {
+        return;
+    }
+
+    virtual const string getComment() const
+    {
+        string comment = "please add your comment for this method.";
+        return comment;
+    }
+};</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="128329.htm" title="Utility lines may be controlled by the pattern sequencer via an internal data path or with the help of digital pins and a dedicated serial interface of the utility blocks. This type of controlling utility lines is referred to as &#34;dynamic access&#34; to utility lines. The advantage over the standard static access is that the utility lines can be controlled synchronously to the pattern sequencer.">Sequencer-controlled utility lines</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 141837</span><script type="text/javascript">var ti='141837';var tt='SmartRDI: Utility lines control'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

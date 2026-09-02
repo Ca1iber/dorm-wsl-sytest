@@ -1,0 +1,120 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Writes device cycles data or wavetable index to a pattern."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>writeVec()</title><meta name="keywords" content="write, Vec"></head><body id="_149037"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149037</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">writeVec()</h1>
+	
+	
+	<div><p>Writes device cycles data or wavetable index to a pattern.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">writeVec(vector&lt;string&gt; dvcList, int startVec);
+writeVec(ARRAY_I indexList, int startVec);
+writeVec(const string &amp;sData, int startVec); // application for runtime
+writeVec(vector&lt;ARRAY_I&gt; perSiteIndex, int startVec);
+writeVec(vector&lt;vector&lt;string&gt;&gt; perSiteDvc, int startVec);</pre><div></div>
+			<p>For pattern generation with per-site data, the sizes of all elements in
+					<span class="keyword">ARRAY_I</span> or <span class="keyword">vector&lt;string&gt;</span> must be the same. The value
+				for a site can be different from the value for another site. The values for all sites cannot be
+				changed at runtime.</p><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149037__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149037__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__1"><p><span class="keyword">dvcList</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__2"><p>The device cycle list you want to write to the pattern. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__1"><p><span class="keyword">indexList</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__2"><p>The physical index list you want to write to the pattern.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__1"><p><span class="keyword">sData</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__2"><p>The sData of the parameter that can be changed at runtime.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__1"><p><span class="keyword">startVec</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__2"><p>The starting position of the vector to be written. If the <span class="keyword">startVec</span> parameter
+									is not specified, the default value is <span class="keyword">0</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__1"><span class="keyword">perSiteIndex</span></td>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__2">The index list per site.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__1"><span class="keyword">perSiteDvc</span></td>
+							<td class="colsep-0 rowsep-0" headers="_149037__entry__2">The device cycle list per site.</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><pre class="prettyprint linenums copyable">vector&lt;string&gt; dvcList;
+dvcList.push_back("1"); // device cycle
+dvcList.push_back("0");
+
+ARRAY_I indexList(3);
+indexList[0]=0;         // physical index
+indexList[1]=1;
+indexList[2]=2;
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA1").writeVec(dvcList,1).execute();   // dvcList
+  rdi.smartVec().pin("DATA3").writeVec(indexList,4).execute(); // indexList
+RDI_END();</pre></div>
+		<div class="example">
+			<div class="p">Application for
+				runtime<div></div><pre class="prettyprint linenums copyable">vector&lt;ARRAY_I&gt; runtime_vec_ARRAY_I;  // this data type for writeData() runtime is supported 
+rdi.runTimeVal("string_runtime_vec_ARRAY_I", runtime_vec_ARRAY_I);
+
+// This data type for writeData() run-time is supported 
+ARRAY_I runtime_ARRAY_I; 
+//Initialize the array with required data
+rdi.runTimeVal("string_runtime_ARRAY_I", runtime_ARRAY_I);
+
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA1").writeVec("string_runtime_vec_ARRAY_I",2).execute();
+  rdi.smartVec().pin("DATA3").writeVec("string_runtime_ARRAY_I",4).execute();
+RDI_END();</pre></div>
+		</div>
+		<div class="example">
+			<div class="p">Pattern generation with per-site
+				data<div></div><pre class="prettyprint linenums copyable">// The sizes of ARRAY_I index1, index2, index3, and index4 must be the same:
+ARRAY_I index1(8), index2(8), index3(8), index4(8);
+vector&lt;ARRAY_I&gt; perSiteIndex;
+perSiteIndex.push_back(index1);
+...
+RDI_BEGIN();
+  rdi.smartVec().pin("A").writeVec(perSiteIndex,2).execute();
+RDI_END();</pre></div>
+			<div></div><pre class="prettyprint linenums copyable">...
+vector&lt;string&gt; vec_s;
+vec_s.push_back("0");
+vec_s.push_back("1");
+vec_s.push_back("0");
+vec_s.push_back("1");
+
+vector&lt;string&gt; vec_s1;
+vec_s1.push_back("1");
+vec_s1.push_back("0");
+vec_s1.push_back("1");
+vec_s1.push_back("0");
+
+vector&lt;vector&lt;string&gt; &gt; vec_vec_s;
+vec_vec_s.push_back(vec_s);
+vec_vec_s.push_back(vec_s1);
+vec_vec_s.push_back(vec_s);
+vec_vec_s.push_back(vec_s1);
+
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA1").writeVec(vec_vec_s).execute();
+RDI_END();</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149036.htm" title="The SmartRDI Vector class supports the generation of vector and patterns with simple commands. It provides an easy way to read digital outputs of a device.">SmartRDI: Vector and protocol programming</a></div><div><a href="149044.htm" title="Writes bit data to a pattern.">writeBit()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li><li>SmartRDI 2.5.1: writeVec() supports to generate patterns with per-site data.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149037</span><script type="text/javascript">var ti='149037';var tt='writeVec()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

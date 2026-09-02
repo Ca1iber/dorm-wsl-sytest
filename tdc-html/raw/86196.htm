@@ -1,0 +1,66 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If the ASCII scan setup is converted into a binary multi-port setup, and the original template length TL is not a multiple of the x-mode factor n, the conversion must apply vector padding to the ASCII scan instances. This requires specifying -xpi as a v2b option if at least one scan instance is followed by another (scan or parallel) section."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Vector padding for parallel pins in the scan sections</title></head><body id="_86196"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 86196</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Vector padding for parallel pins in the scan sections</h1>
+	
+	
+	<div><p>If the ASCII scan setup is converted into a binary multi-port setup, and the original
+		template length <span class="keyword">TL</span> is not a multiple of the x-mode factor <span class="keyword">n</span>,
+		the conversion must apply vector padding to the ASCII scan instances. This requires specifying
+			<span class="keyword">-xpi</span> as a <strong>v2b</strong> option if at least one scan instance is followed by
+		another (scan or parallel) section. </p>
+		<p>The padding for the scan parts is analogous to that applied to a standard scan translation (see
+					<em><a href="37603.htm" title="When the ASCII device cycle of a scan instance has an x-mode factor &gt; 1, the number of scan vectors in this instance must be a multiple of the x-mode factor. Now it is possible that the length of the scan chain is not a multiple of the intended x-mode factor. For instance, the scan chain can have length 3, but the ASCII device cycle of the scan instance has an x-mode factor 2. In this case v2b automatically increases the template length to the next multiple of the x-mode factor and inserts padding characters into the scan instances.">ASCII Vector Padding for Scan Vectors</a></em>). But the padding for the parallel parts is different, as
+			follows:</p>
+		<p>If <span class="keyword">TL</span> &gt; <span class="keyword">n</span>, two binary vectors are created, the first
+			from an <span class="keyword">n</span>-tuple of the state character in the parallel part of the ASCII scan
+			instance, and the second from an <span class="keyword">n</span>-tuple that is padded with
+				<span class="keyword">n</span>-<span class="keyword">r</span> occurrences of a padding character, where
+				<span class="keyword">r</span> is the remainder of <span class="keyword">TL</span>/<span class="keyword">n</span>. The first
+			vector is executed <span class="keyword">TL'</span>/<span class="keyword">n</span><em>-</em>1 times with an
+				<span class="keyword">RPTV</span> instruction, where <span class="keyword">TL'</span> is the corrected template
+			length. The second, padded, vector is executed once. If <span class="keyword">TL</span> &lt;
+				<span class="keyword">n</span>, only the padded vector will be created, and executed once.</p>
+		<section class="section"><h2>The padding character</h2><p>The padding character is either the default
+				padding character (see <em><a href="37576.htm" title="When a pattern is processed with an x-mode factor &gt; 1, the number of its ASCII vectors must be a multiple of the x-mode factor. If the ASCII vector file contains sequencer instructions, the number of vectors between any two sequencer instructions must also be a multiple of the x-mode factor.">X-Mode ASCII Vector Padding</a></em>), or it is defined in a padding translation
+				file (see <em><a href="37625.htm" title="If the total number of vectors in the ASCII vector file, or of the vectors between two sequencer instructions, is not a multiple of the x-mode factor, the vector translation can automatically insert ASCII padding vectors; see X-Modes, Processing of the Repeat Factor, and ASCII Vector Padding. There is a default as to how this padding vector is created from the last vector of the file, or the last vector before the sequencer instruction, but you can define your own rules be creating a padding translation file and passing it to aiv(in the v2b_options column of the vector configuration file) or to v2b with the -xpe, -xpi, and -xph parameters.">The Padding Translation File</a></em>), or specified by a <span class="keyword">SCAN_PAD</span>
+				instruction. The padding translation file overrides the default, and the
+					<span class="keyword">SCAN_PAD</span> instruction overrides the padding translation file.</p><p>Note that
+				the meaning of the <span class="keyword">SCAN_PAD</span> instruction depends on whether the ASCII scan
+				setup is converted to a scan tool setup or to a multi-port setup. In the latter case,
+					<span class="keyword">SCAN_PAD</span> only defines the padding character. For the former case, see <a href="37601.htm" title="The physical waveform DC/DC power units for the parallel part are by default created from the single state characters that occur in the first line of the ASCII scan instance. They are determined by creating n-tuples of the respective character, where n is the x-mode factor, and looking up these n-tuples in the timing map file.">Creation of the Waveform DC/DC power units for the Parallel Part</a>. </p></section>
+		<h2>Example</h2><div class="example"><p>As an example, consider the following ASCII vector
+				file:</p><pre class="prettyprint linenums copyable">FORMAT CP SI SO SE I1 I2 I3 O1;
+HORIZONTAL_SCAN;
+SCAN_TYPE STANDARD;
+
+R2 sc_par  1 n n 0 0 1 1 H;
+R3 sc_par  1 n n 0 1 0 0 L;
+
+SCAN_TEMPLATE T1 10;
+SCAN_PORT T1 IN SI;
+SCAN_PORT T1 OUT SO;
+
+SCAN T1 sc_par 1 - - 1 n n n H;
+PIN SI 10 01 10 01 10;
+PIN SO XX XX XX XX XX;
+
+R3 sc_par  1 n n 0 0 1 1 L;
+
+SCAN T1 sc_par 1 - - 1 n n n H;
+PIN SI ZZ ZZ ZZ ZZ ZZ;
+PIN SO HL LH HL LH HL;</pre><p>If
+				this file is translated with an x-mode factor of 3, the template length must be corrected from
+				10 to 12, and one padding vector must be added at the end of each of the scan instances. In this
+				case the parallel parts of the two binary scan sections will look as follows:</p><div class="p"><figure class="fignone">
+					
+					<img src="86194.png" alt="Padding of parallel scan parts for MP setup">
+				</figure></div><p>The figure shows the pattern for the parallel port. The principles of the padding
+				can be read off from the column for pin O1. The padding character is 'X', according to the base
+				rule for receive pins (see <em><a href="37576.htm" title="When a pattern is processed with an x-mode factor &gt; 1, the number of its ASCII vectors must be a multiple of the x-mode factor. If the ASCII vector file contains sequencer instructions, the number of vectors between any two sequencer instructions must also be a multiple of the x-mode factor.">X-Mode ASCII Vector Padding</a></em>). Since the last scan section vector of
+				the parallel part differs from the other ones, it cannot be included in the
+					<span class="keyword">RPTV</span> loop, but must be appended with a <span class="keyword">GENV</span> instruction.
+				This is reflected in the instruction
+			column.</p></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 86196</span><script type="text/javascript">var ti='86196';var tt='Vector padding for parallel pins in the scan sections'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

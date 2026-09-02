@@ -1,0 +1,129 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The run() function of test suites is usually called for each active site. The setStopSiteLoop() API enables you to call the run() function on the first active site only to minimize the test time."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>setStopSiteLoop()</title><meta name="keywords" content="set, Stop, Site, Loop"></head><body id="_151603"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 151603</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">setStopSiteLoop()</h1>
+	
+	
+	<div><p>The <span class="keyword">run()</span> function of test suites is usually called for each active
+		site. The <span class="keyword">setStopSiteLoop()</span> API enables you to call the <span class="keyword">run()</span> function on the first active site only to minimize the test
+		time.</p>
+		<section class="section"><p>To use this API you need to meet these requirements:</p><ul>
+				<li>Common thread in <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a></li>
+				<li><a href="149335.htm" title="SmartRDI can be used in combination with the SmartCalc (SMC) framework. This allows you to move time consuming calculations and uploads of test results to separate background threads and executing them in parallel.">Using SmartCalc (SMC) with SmartRDI</a></li>
+				<li><a href="130258.htm" title="Hidden data logging is a feature of the SMC framework that enables event-based data logging in the background.">Hidden data logging with SmartCalc (SmartCalc
+						framework)</a></li>
+			<li>Keep everything in the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void setStopSiteLoop (bool stop);</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">Parameter</dt>
+					<dd><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr class="rowsep-1">
+										<th class="colsep-0 rowsep-0" id="_151603__entry__1"><p>Parameter</p>
+										</th>
+										<th class="colsep-0 rowsep-0" id="_151603__entry__2"><p>Description</p>
+										</th>
+									</tr>
+								</thead><tbody>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0" headers="_151603__entry__1"><p><var class="varname">stop</var></p>
+										</td>
+										<td class="colsep-0 rowsep-0" headers="_151603__entry__2"><p>If set to <span class="keyword">true</span> the test suite
+												will not be called for the remaining sites.</p>
+											<p>Default: <span class="keyword">false</span></p>
+											<p>If this is set to <span class="keyword">true</span>, but you
+												want to go back to the default behavior, you need to
+												set it to <span class="keyword">false</span> again
+												explicitly.</p>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl>
+		</div>
+		<h2>Example</h2><div class="example"><p>This example executes the ON_FIRST_INVOCATION block on the first active site
+				only.</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+
+#include "mapi.hpp"
+using namespace std;
+
+// Set the limits for online execution
+static const LIMIT limitDpsPin(TM::GE,0 mA, TM::LE, 1 A);
+
+class dcOnce: public testmethod::TestMethod {
+private:
+  STRING  testSuiteName;
+  ARRAY_I activeSites;
+  INT     offline;
+  ARRAY_D measValues;
+public:
+  virtual void SMC_backgroundProcessing()
+  {
+    DC_RESULT_ACCESSOR result(testSuiteName);
+
+    // Hidden data logging
+    // The data logging depends if the test is executed online or offline
+    for (INT siteIdx=0, siteEnd=activeSites.size(); siteIdx &lt; siteEnd; siteIdx++) {
+      if (offline)
+         SMC_TEST(activeSites[siteIdx],"dps",testSuiteName,limitDpsPin, 1.0 A /activeSites[siteIdx],true,1);
+      else {
+         result.uploadResult(activeSites[siteIdx],"dps",TM::RESULT_INDEX, TM::RESULT_RANGE(TM::RESULT_INDEX,0,1));
+         measValues = result.getValues("dps");
+         SMC_TEST(activeSites[siteIdx],"dps",testSuiteName,limitDpsPin, measValues[0],true,1);
+      }
+    }
+  }
+protected:
+  virtual void run()
+  {
+    ON_FIRST_INVOCATION_BEGIN();
+      // initialization
+      CONNECT();
+      GET_TESTSUITE_NAME(testSuiteName);
+      GET_SYSTEM_FLAG("offline",&amp;offline);
+      GET_ACTIVE_SITES(activeSites);
+
+      // Enable the run once mechanism
+      setStopSiteLoop(true);
+
+      // define &amp; select result area
+      RESULT_AREA_CONFIG_SET resultArea(testSuiteName);
+      resultArea.pin("dps").setDcValueResultAreaSize(1024);
+      resultArea.setAsPrimary();
+      
+      // Execute the test
+      SMC_FUNCTIONAL_TEST();
+      // deselect result area for hidden upload
+      resultArea.deselectGlobally();
+
+      // start single thread background processing
+      SMC_ARM();
+    ON_FIRST_INVOCATION_END();
+
+    return;
+  }
+
+  virtual void initialize()
+  {
+  }
+
+  virtual void postParameterChange(const string&amp; parameterIdentifier)
+  {
+    return;
+  }
+
+  virtual const string getComment() const 
+  {
+    string comment = "dcOnce";
+    return comment;
+  }
+};
+REGISTER_TESTMETHOD("dcOnce", dcOnce);</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="151604.htm" title="Sets the result of the specified site to true (pass) or false (fail) to enable branching.">setSiteResult()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.4.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 151603</span><script type="text/javascript">var ti='151603';var tt='setStopSiteLoop()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

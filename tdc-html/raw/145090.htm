@@ -1,0 +1,265 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Use of TESTSET and SMC_TEST() test suites with multibin</title><meta name="keywords" content="multi bin stdf hex testsuite"></head><body id="_145090"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 145090</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Use of TESTSET and SMC_TEST() test suites with multibin</h1>
+	
+	
+	<div><p>The topic describes the binning rule and the main use cases using test suites with
+			<code>TESTSET</code> and test suites with <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a>
+		<code>and</code> its influence on the multibin.</p>
+		<div class="note"><span class="title">Note</span> 
+			
+			<p>If you use <span class="keyword">TESTSET</span> within the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC
+				framework</a> instead of <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST</a>, binning
+				happens in <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYCHRONIZE</a> according to the binning
+				rules as for <span class="keyword">SMC_TEST</span>. For details, see <a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a>.</p>
+			<p>If you use, within a testflow, the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC framework</a> and
+				<span class="keyword">TESTSET</span> test suites independent of each other, binning
+				happens according to the binning rules explained in the examples below.</p>
+		</div>
+		<p>In general, the first failing test defines the logged multibin. But for
+				<code>SMC_TEST()</code> calls the test suite with the <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIIZE()</a> call defines the point of time in the testflow when
+				<code>SMC_TEST()</code> tests are validated. In this respect, the
+				<code>SMC_TEST()</code> calls do not influence the binning rule, but the test
+			suite with the <code>SMC_SYNCHRONIZE</code> does.</p>
+		<div class="note"><span class="title">Note</span> The following examples use simplified setups with only one
+				<span class="keyword">TESTSET</span> object per "TESTSET_&lt;number&gt;" test suite. For more
+			information when using more than one <span class="keyword">TESTSET</span> object, see <a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a>.</div>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Failing non-SMC test followed by failing SMC test</h3>
+			
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<div class="p">
+									<figure class="fignone">
+										<img src="145122.png" alt="Flow Sequence Editor_Use of TESTSET and SMC_TEST() test suites with multibin (1)">
+									</figure>
+								</div>
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<p>In a testflow a test of the non-SMC test suite
+										<code>TESTSET_6</code> fails before a test of
+										<code>SMC_TEST_4</code> fails and before
+										<code>SMC_SYNCHRONIZE</code> is called.</p><div class="p"><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__3">Test suite</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__4">Type</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__5">State</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__6">Bin</th>
+												</tr>
+											</thead><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__3">TESTSET_6</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__4">non-SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__5">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__6">Logged</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__3">SMC_TEST_4</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__4">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__5">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__6"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__3">SMC_TEST_5</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__4">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__5">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__6"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__3">SMC_SYNCHRONIZE</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__4">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__5">n.a.</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__6"></td>
+												</tr>
+											</tbody></table></div>
+								<p>The failing test of non-SMC test suite <code>TESTSET_6</code>
+									is logged to the multibin.</p>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		<div class="example"><h3>Example 2: Failing SMC test followed by failing non-SMC test</h3>
+			
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<figure class="fignone">
+									<img src="145123.png" alt="Flow Sequence Editor_Use of TESTSET and SMC_TEST() test suites with multibin (2)">
+								</figure>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>In a testflow a test of the non-SMC test suite
+										<code>TESTSET_6</code> fails after a test of
+										<code>SMC_TEST_4</code> fails but before
+										<code>SMC_SYNCHRONIZE</code> is called.</p><div class="p">
+									<table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__25">Test suite</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__26">Type</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__27">State</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__28">Bin</th>
+												</tr>
+											</thead><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__25">SMC_TEST_4</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__26">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__27">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__28"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__25">TESTSET_6</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__26">non-SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__27">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__28">Logged</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__25">SMC_TEST_5</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__26">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__27">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__28"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__25">SMC_SYNCHRONIZE</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__26">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__27">n.a.</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__28"></td>
+												</tr>
+											</tbody></table>
+								</div></td>
+						</tr>
+					</tbody></table>
+		</div>
+		<div class="example"><h3>Example 3: Failing SMC test followed by multiple failing non-SMC test using
+				temporary TESTSET() objects</h3>
+			
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<figure class="fignone">
+									<img src="145124.png" alt="Flow Sequence Editor_Use of TESTSET and SMC_TEST() test suites with multibin (3)">
+								</figure>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>In a testflow a test of both the non-SMC test suites
+										<code>TESTSET_6</code> and <code>TESTSET_7</code>
+									fails after a test of <code>SMC_TEST_4</code> fails but
+									before <code>SMC_SYNCHRONIZE</code> is called. Both non-SMC
+									testsuites are using temporary <span class="keyword">TESTSET()</span>
+									objects. All tests fail before <code>SMC_SYNCHRONIZE</code>
+									is called.</p>
+								<p>Additional to the rule explained above, the rule for multiple
+									test suites with temporary <span class="keyword">TESTSET</span> objects
+									applies (see <a href="145088.htm#_145088__dle_Multiple_usage_of_the_temporary_object">Multiple usage of the temporary object</a> in <a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a>).</p>
+								<p>The failing test of <code>TESTSET_7</code> is logged to the
+									multibin.</p><div class="p"><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__47">Test suite</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__48">Type</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__49">State</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__50">Bin</th>
+												</tr>
+											</thead><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__47">SMC_TEST_4</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__48">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__49">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__50"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__47">TESTSET_6</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__48">non-SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__49">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__50"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__47">TESTSET_7</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__48">non-SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__49">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__50">Logged</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__47">SMC_TEST_5</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__48">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__49">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__50"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__47">SMC_SYNCHRONIZE</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__48">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__49">n.a.</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__50"></td>
+												</tr>
+											</tbody></table></div>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		<div class="example"><h3>Example 4: System prepared TestSet object in combination with temporary TESTSET
+				object</h3>
+			
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<figure class="fignone">
+									<img src="145129.png" alt="Flow Sequence Editor_Use of TESTSET and SMC_TEST() test suites with multibin (4)">
+								</figure>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>In a testflow all tests of the test suite
+										<code>TestSet</code> (using the system-prepared
+										<span class="keyword">TestSet</span> object) and test suite
+										<code>TESTSET_temporary</code> (using a temporary
+										<span class="keyword">TESTSET()</span> object) fail after a test of
+										<code>SMC_TEST_4</code> fails but before
+										<code>SMC_SYNCHRONIZE</code> is called.</p>
+								<p>Additional to the rule explained above, the rule for multiple
+									test suites using temporary <span class="keyword">TESTSET()</span> objects
+									applies (see Multiple test suites section in <a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a>).</p>
+								<p>The failing test of <code>TESTSET_temporary</code> is logged
+									to the multibin.</p>
+								<div class="p">
+									<table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__73">Test suite</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__74">Type</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__75">State</th>
+												<th class="colsep-0 rowsep-1" id="_145090__entry__76">Bin</th>
+												</tr>
+											</thead><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__73">SMC_TEST_4</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__74">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__75">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__76"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__73">TestSet</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__74">non-SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__75">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__76"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__73">TESTSET_temporary</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__74">non-SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__75">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__76">Logged</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__73">SMC_TEST_5</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__74">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__75">Fail</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__76"></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__73">SMC_SYNCHRONIZE</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__74">SMC</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__75">n.a.</td>
+												<td class="colsep-0 rowsep-1" headers="_145090__entry__76"></td>
+												</tr>
+											</tbody></table>
+								</div>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42606.htm" title="Using bins with multisite tests is basically the same as with single-site tests. You can use stop bins (good or bad bins) and otherwise bins, see Bins.">Use of bins with multisite tests</a></div><div><a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a></div><div><a href="145088.htm" title="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin.">Use of TESTSET with multibin</a></div><div><a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 145090</span><script type="text/javascript">var ti='145090';var tt='Use of TESTSET and SMC_TEST() test suites with multibin'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

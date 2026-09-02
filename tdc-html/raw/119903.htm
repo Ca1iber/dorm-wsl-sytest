@@ -1,0 +1,56 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to process an event</title></head><body id="_119903"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119903</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to process an event</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>When an unmasked event is retrieved, you can retrieve the attributes of this event and
+				log/print the needed information according to the event type. (See details of <a href="34651.htm" title="As explained in Data Logging Mechanism, an event record is immediately written to the data log stream for each event of a production test, for example:">Event types</a>.)</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>Retrieve each attribute of the event with <a href="34719.htm">DRLEventGetAttribute</a>.</span>
+			</li><li>
+				<span>Process the information of the attributes according to your needs. (See details of <a href="34671.htm" title="As described in EDF data organization, each event record body consists of a set of attribute records. These attribute records hold the characteristics describing the event. The number of attribute records and types of attributes that come with one event depend on the event type (see Event types).">Attribute types</a>.) For example, you can print out the information you are interested or
+					summarize the test result and save it in the output file.</span>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">void ProcessBinReachedEventAttributes(const DRLEventRec *event) 
+{
+  int number_of_attributes, i;
+  double yield;
+  DRLSiteIdAttr site_id;
+  DRLAttributeRec attribute_rec;
+  DRLBinAttr bin_attribute;
+  
+  number_of_attributes = DRLEventGetNoOfAttributes(event); 
+  for (i=0; i&lt;number_of_attributes; i++)
+  {
+    if (DRLEventGetAttribute(event,i,&amp;attribute_rec))
+    {
+      fprintf(stderr,"Error while reading attributes ");
+      fprintf(stderr," - skipping event.\n"); 
+      return;
+    }
+    switch (attribute_rec.type)
+    {
+      case BinAttrType:
+      bin_attribute = attribute_rec.data.bin_attr; 
+      break;
+      case SiteIdAttrType:
+      site_id = attribute_rec.data.site_id_attr; 
+      break;
+    }
+  }
+  tested_parts++;
+  if (bin_attribute-&gt;is_good_bin)
+  {
+    good_parts++;
+  }
+  yield = ((double)good_parts) / (double)tested_parts; 
+  fprintf(stderr,"Site %d binned to bin %2s(%2d). Yield = %d/%d = %.2f%%\n",
+          (int)site_id,bin_attribute-&gt;bin_name,bin_attribute-&gt;bin_number, good_parts,
+          tested_parts, 100*yield);
+}</pre><p>This
+				example processes the event of type BinReachedEventType and calculate and print out the
+				yield.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119903</span><script type="text/javascript">var ti='119903';var tt='How to process an event'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

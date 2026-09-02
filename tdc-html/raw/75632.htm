@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The following is a simple code example where the input for the second search task depends on the outcome of the first task. The numbers 1 through 4 on the left margin refer to the steps of Managing Search Conditions with Variables. Step 0 supplies the value for the variable s_v."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Code Example and Resulting Firmware Commands</title></head><body id="_75632"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 75632</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Code Example and Resulting Firmware Commands</h1>
+	
+	
+	<div><p>The following is a simple code example where the input for the second search task
+		depends on the outcome of the first task. The numbers 1 through 4 on the left margin refer to the
+		steps of <a href="70897.htm" title="Search conditions can be defined by using variables. If a testflow containing such a variable dependent parallel search is repeated in a loop, then the values of the variables may be different for each execution of the search. In this case a new search set would be created with each testflow execution, and the testflow would fall back on using only one search set after 126 loop repetitions.">Managing Search Conditions with Variables</a>. Step 0 supplies the value for the variable
+			<kbd class="userinput">s_v</kbd>.</p>
+		
+		<div></div><pre class="prettyprint linenums copyable">    SEARCH_FUNC_TASK t1, t2;
+
+<strong>0	</strong> t1.spec("f",TM::TIM).method(TM::Binary).start(30).stop(130);
+<strong>0	</strong> t1.execute();
+
+	 //Define input value for task2 from result of task1:
+<strong>	</strong> DOUBLE s_v = (t1.getPassValue() + t1.getFailValue()) / 2;
+	 // Define dummy search condition without variables:
+<strong>1	</strong> t2.spec("del",TM::TIM).method(TM::Binary).start(50).stop(150);
+	 // Download but do not execute dummy search condition:
+<strong>2	</strong> t2.setup();
+	 // Modify conditions using result of task1:
+<strong>3	</strong> t2.pin("O1").spec("del",TM::TIM).method(TM::Binary).
+			start(s_v).stop(s_v + 100);
+<strong>3	</strong> t2.pin("I1").spec("del",TM::TIM).method(TM::Binary).
+			start(s_v - 50).stop(s_v);
+	 // Download and execute modified conditions:
+<strong>4	</strong> t2.execute();
+</pre><div></div>
+		<p>The resulting firmware commands for the first two testflow executions will look as follows:</p>
+		<div></div><pre class="prettyprint linenums copyable"><strong>First execution:</strong>
+<strong>0</strong> &gt; DPSR 3,,,FUNC,#9000000019,TIM,"f",B,30,130,,
+<strong>0 </strong>&gt; EXSR 3
+. . .
+<strong>2 </strong>&gt; DPSR 4,,,FUNC,#9000000022,TIM,"del",L,50,150,1,
+<strong>4 </strong>&gt; DPSR 4,(I1),,FUNC,#9000000025,TIM,"del",L,1794,1944,1,
+<strong>4 </strong>&gt; DPSR 4,(O1),,FUNC,#9000000025,TIM,"del",L,1844,1944,1,
+<strong>4 </strong>&gt; EXSR 4
+. . .
+<strong>Restore </strong>&gt; DPSR 4,,,FUNC,#9000000022,TIM,"del",L,50,150,1,
+
+<strong>Second execution:</strong>
+<strong>0 </strong>&gt; EXSR 3;
+ . . .
+<strong>4 </strong>&gt; DPSR 4,(I1),,FUNC,#9000000023,TIM,"del",L,836,986,1,
+<strong>4 </strong>&gt; DPSR 4,(O1),,FUNC,#9000000023,TIM,"del",L,886,986,1,
+<strong>4 </strong>&gt; EXSR 4
+. . .
+<strong>Restore </strong>&gt; DPSR 4,,,FUNC,#9000000022,TIM,"del",L,50,150,1,</pre><div></div>
+		<p>The numbers indicate which of the steps described above issue the respective firmware commands.
+			Note that in the second testflow loop, only the modifications for the search conditions of
+				<kbd class="userinput">t2</kbd> are downloaded. At the end of both loops, the original dummy search
+			condition is restored. For more information on the firmware commands <kbd class="userinput">DPSR</kbd>
+			and <kbd class="userinput">EXSR</kbd>, see <a href="98574.htm" title="The DPSR command writes a search condition for one or more setup pins into a search set. The setup pins are the pins for which an edge is moved or a spec variable modified during the search.">DPSR, DPSR? - (Define Parallel SeaRch)</a> and <a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR - (EXecute SeaRch)</a>.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 75632</span><script type="text/javascript">var ti='75632';var tt='Code Example and Resulting Firmware Commands'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

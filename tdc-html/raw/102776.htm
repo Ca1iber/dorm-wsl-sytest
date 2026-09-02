@@ -1,0 +1,58 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Data scrambling is the conversion of data bits to account for inverse logic and different arrangements of the bits in a data word."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Data scrambling</title></head><body id="_102776"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102776</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Data scrambling</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="102914.htm" title="Data scrambling requires setting up a bit inversion or a bit ordering table (or both) in the device architecture file, referencing it in the APG pattern file, and adding data scrambling information to the device access file.">Setting up data scrambling</a></li></ol></div></nav>
+	
+	
+	<div><p>Data scrambling is the conversion of data bits to account for inverse logic and
+		different arrangements of the bits in a data word.</p>
+		<section class="section"><h2>Bit inversion</h2><p>Bit inversion is used to compensates for devices with
+				inverse logic, that is, devices where logical 0 is represented by physical 1 and vice
+				versa.</p><p>It is controlled by a bit inversion table with two columns: the first indicates
+				which bits to invert, the second is a flag that controls whether inversion happens: If it
+				evaluates to 1, the specified bits are inverted, if it evaluates to 0, they are not.</p><p>The
+				bit inversion table is described in <a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">Device architecture file syntax</a>.</p><div class="note"><span class="title">Note</span> The order in
+				which the bits are specified in the <span class="keyword">:bit:</span> column is immaterial; bit inversion
+				never reorders bits.</div></section>
+		<section class="section"><h2>Bit ordering</h2><p>Bit ordering rearranges the bits in a data word. It is most
+				commonly used to compensate for differences in the position of the most significant bit (that
+				is, to mirror the order of the bits in the data word) but can also be used to rearrange bits in
+				more complex ways.</p><p>Bit ordering is controlled by a bit ordering table with two columns:
+				the first specifies a new order of the bits, the second is a flag that controls which bit order
+				is used: If an expression evaluates to 1, the corresponding bit order is used. Entries in the
+				bit ordering table must always be made in pairs; the expression in the second row must always be
+				the logical inversion of that in the first row of the pair.</p><p>The bit ordering table is
+				described in <a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">Device architecture file syntax</a>.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Bit inversion</h3><p>This is a sample bit inversion table from the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>:</p><pre class="prettyprint linenums copyable">:bitInversion:
+{
+  :name: "bit inversion"
+  :table:
+  {
+    :format:
+    {  :bit:    :expression:  }
+    {  d[0..7]  x0            }
+  }
+}</pre><p>Given
+				this table, bit inversion would be applied to a sample data word like this:</p><div class="p"><figure class="fignone">
+					
+					<img src="68415.png" alt="Bit inversion description">
+				</figure></div><p>Only the bits specified in the table (bits 0 through 7) are inverted. (This assumes
+				that x0 has the value 1; otherwise there would be no inversion at all.)</p></div>
+		<div class="example"><h3>Bit ordering</h3><p>This is a sample bit ordering table from the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>:</p><pre class="prettyprint linenums copyable">:bitOrdering:
+{
+  :name: "bit ordering"
+  :table:
+  {
+    :format:
+    {  :bit:     :expression:  }
+    {  d[15..0]  "not x1"      }
+    {  d[0..15]  x1            }
+  }
+}</pre><p>This
+				table inverts the order of the bits when x1 is 0 (and therefore "not x1" is 1):</p><div class="p"><figure class="fignone">
+					
+					<img src="68411.png" alt="Bit ordering description">
+				</figure></div><p>If x1 is 1 (making "not x1" 0) the bits are left as is.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="103905.htm" title="Dynamic bus inversion (DBI) inverts data on a bus when a specified condition is met. Bus inversion is applied after scrambling.">Dynamic bus inversion</a></div><div><a href="68438.htm" title="The null data value is the value that the DUT interprets as a data word containing a logical zero.">Null data</a></div><div><a href="102775.htm" title="Address scrambling is the conversion of addresses to account for differences between the logical arrangement of memory cells and their physical arrangement. It is required, for example, to test for effects based on the physical proximity of cells.">Address scrambling</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102776</span><script type="text/javascript">var ti='102776';var tt='Data scrambling'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

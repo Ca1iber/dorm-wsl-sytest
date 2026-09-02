@@ -1,0 +1,137 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This data query command gets the last event of the specified category for the specified SmarTest session. If no event category is specified, the latest event independent of its category will be returned."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GetLastEvent</title><meta name="keywords" content="Get, Last, Event"></head><body id="_106214"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 106214</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GetLastEvent</h1>
+	
+	
+	<div><p>This data query command gets the last event of the specified category for the specified
+		SmarTest session. If no event category is specified, the latest event independent of its category
+		will be returned.</p>
+		<section class="section"><p>SUCCESS will be returned if no error occurs. Otherwise, an error object will be
+				returned indicating the error code, description and severity.</p><table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_106214__entry__1"><p>Code</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_106214__entry__2"><p>Typical Description</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_106214__entry__3"><p>Severity</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_106214__entry__1"><p>ILLEGAL_OPERATION</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_106214__entry__2"><p>The designated session ID "XXX" does not exist.</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_106214__entry__3"><p>RECOVERABLE</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Parameters</h2><table><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_106214__entry__7"><p>I/O</p>
+							</th>
+							<th class="colsep-1" id="_106214__entry__8"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_106214__entry__9"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_106214__entry__7"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_106214__entry__8"><p>SESSION_ID</p>
+							</td>
+							<td class="colsep-1" headers="_106214__entry__9"><p>The ID of the SmarTest session this event belongs to.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_106214__entry__7"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_106214__entry__8"><p>EVENT_NAME</p>
+							</td>
+							<td class="colsep-1" headers="_106214__entry__9"><p>The HVM event category. It can be <code>SESSION</code>,
+										<code>EXECUTION</code>, <code>CALIBRATION</code>, <code>DIAGNOSTIC</code> or
+										<code>ALARM.</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_106214__entry__7"><p>O</p>
+							</td>
+							<td class="colsep-1" headers="_106214__entry__8"><p>qrResults</p>
+							</td>
+							<td class="colsep-1" headers="_106214__entry__9"><p>The query results are represented by a ParamList object. It contains the following
+									members:</p>
+								<ul>
+									<li>EVENT_NAME: The HVM event category. It can be <code>SESSION</code>,
+											<code>EXECUTION</code>, <code>CALIBRATION</code>, <code>DIAGNOSTIC</code> or
+											<code>ALARM</code>.</li>
+									<li>TIME_STAMP_SEC: The second of time stamp when this event happens.</li>
+									<li>TIME_STAMP_USEC: The microsecond of time stamp when this event happens.</li>
+									<li>EVENT_BODY: The event parameters, including all other data of this event besides event
+										name and time stamp. </li>
+								</ul></td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Prototype</h2><pre class="prettyprint linenums copyable">ParamList qrResults;
+Status query("GetLastEvent", qrResults, ParamList(),sessionId);</pre></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">ParamList qrResults, qrParams;
+string sessionId = "session_rbzf";
+Status obj;
+//1) Get last alarm event:
+qrParams["EVENT_NAME"] = "ALARM";
+obj = query("GetLastEvent", qrResults, qrParams, sessionId);
+if( obj.isSuccess() )
+{
+  printf("Last alarm of SmarTest: \n");
+  printf("Alarm type: %s\n", qrResults["EVENT_NAME"]);
+  printf("Alarm time stamp(sec): %s\n", qrResults["TIME_STAMP_SEC"]);
+  printf("Alarm time stamp(usec): %s\n", qrResults["TIME_STAMP_USEC"]);
+  printf("Alarm severity: %s\n", qrResults["ALARM_SEVERITY"]);
+  printf("Alarm code: %s\n", qrResults["ALARM_CODE"]);
+  printf("Alarm description: %s\n", qrResults["ALARM_TEXT"]);
+} 
+else {
+  //error handling
+}
+//2) Get last execution event with API
+qrParams["EVENT_NAME"] = "EXECUTION";
+obj = query("GetLastEvent", qrResults, qrParams, sessionId);
+if(obj.isSuccess())
+{
+  printf("Last execution event of SmarTest: \n");
+  printf("Execution type: %s\n", qrResults["EVENT_NAME"]);
+  printf("Execution time stamp(sec): %s\n", qrResults["TIME_STAMP_SEC"]);
+  printf("Execution time stamp(usec): %s\n", qrResults["TIME_STAMP_USEC"]);
+  printf("Event state: %s\n", qrResults["EXECUTION_STATE"]);
+  if(qrResults[EXECUTION_STATE] == "DEVICE_CHANGE_COMPLETED")
+  {
+    printf("device path: %s\n", qrResults["DEVICE_PATH"]);
+    printf("device name: %s\n", qrResults["DEVICE_NAME"]);
+  }
+}
+//3) Get last event independent of type
+obj=query("GetLastEvent", qrResults, ParamList(), sessionId);
+if(obj.isSuccess())
+{
+  printf("Last event of SmarTest: \n");
+  printf("Event type: %s\n", qrResults["EVENT_NAME"]);
+  printf("Event time stamp(sec): %s\n", qrResults["TIME_STAMP_SEC"]);
+  printf("Event time stamp(usec): %s\n", qrResults["TIME_STAMP_USEC"]);
+  string lastEventType = qrResults["EVENT_NAME"];
+  string lastEventName;
+  if(lastEventType == "SESSION")
+  {
+    lastEventName = qrResults["SESSION_STATE"];
+  }
+  else if(lastEventType == "EXECUTION")
+ {
+    lastEventName = qrResults["EXECUTION_STATE"];
+  }
+ printf("    Last event is: %s\n", lastEventName);
+}
+else{
+  //error handling
+}</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 106214</span><script type="text/javascript">var ti='106214';var tt='GetLastEvent'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

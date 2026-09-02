@@ -1,0 +1,119 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To calculate the level configuration for a memory device without ODT similar steps are required as without ODT. Furthermore you need to consider the ODT resistance as additional load in the signal path."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Level configuration for memory devices operating with ODT</title><meta name="keywords" content="config"></head><body id="_81409"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 81409</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Level configuration for memory devices operating with ODT</h1>
+	
+	
+	<div><p>To calculate the level configuration for a memory device without ODT similar steps are
+		required as <em><a href="81408.htm" title="To calculate the level configuration for a memory device without ODT you need to determine the input logic high value (vih_D) out of the specified memory device input swing.">without ODT</a></em>. Furthermore you need to consider the
+		ODT resistance as additional load in the signal path.</p>
+		<div></div><pre class="prettyprint linenums copyable"> 1 EQNSET 4 "HSM3600"    # with ODT
+ 2
+ 3 MODECONTEXT "HSM3600"
+ 4
+ 5 SPECS
+ 6 Vddq         [V]
+ 7 swing_device [V]      # applied around Vref
+ 8 Z_ODT        [Ohm]    # ODT impedance
+ 9 VDQo_offset  [V]      # manual threshold offset
+10
+11 EQUATIONS             # put depend specs here
+12 Vref = 0.7*Vddq
+13 Z_T = 50              # V93000 transmission line impedance
+14 Z_load = (Z_T*Z_ODT)/(Z_T+Z_ODT)
+15 vih_D = Vref + swing_device/2 # device high input level
+16 vt_T = Vddq
+17 # high level programmed @tester to match device high input level
+18 vih_T = (vih_D-Z_T/(2*Z_ODT+Z_T)*Vddq)*(Z_T+Z_load)/Z_load - vt_T
+19 # low level programmed @tester to match device low input level
+20 vil_T = vih_T - (Z_load+Z_T)/Z_load*swing_device
+21
+22 LEVELSET 1 "basic"
+23 ...
+24
+25 # dual TL
+26 PINS DQi
+27 vih=vih_T
+28 vil=vil_T
+29
+30 # dual TL
+31 PINS DQo
+32 term on
+33 vt=vt_T
+34 vth=vth_T + VDQo_offset
+35</pre><div></div>
+		<p>From a logical perspective this level configuration can be transferred into a "loaded voltage
+			divider" (see following figure). </p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="81224.png" alt="Loaded voltage divider">
+			</figure></div>
+		<p>The value for <span class="keyword">vih_T</span> can be determined by transforming the "loaded voltage
+			divider" formula.</p>
+		<p>From the device spec, you derive:</p>
+		<div></div><pre class="prettyprint copyable singleline">Vih_D = Vref + swing_device / 2</pre><div></div>
+		<p>Assumptions:</p>
+		<div></div><pre class="prettyprint linenums copyable">Z<sub>T</sub> = Z<sub>i</sub> = Z<sub>o</sub>
+Z<sub>Load</sub> = Z<sub>T </sub>x Z<sub>ODT</sub> / (Z<sub>T</sub> + Z<sub>ODT</sub>)</pre><div></div>
+		<p>Using the superposition method you calculate:</p>
+		<div></div><pre class="prettyprint linenums copyable">vih_D = vih_T x Z<sub>Load</sub> / (Z<sub>T </sub>+ Z<sub>Load</sub>) + vt_T x (Z<sub>Load</sub> / Z<sub>T </sub>+ Z<sub>Load</sub>) +
+      V<sub>ddq </sub>x Z<sub>T </sub>/ 2 / (Z<sub>T</sub> /2 + Z<sub>ODT</sub>) </pre><div></div>
+		<p>Transformation to vih_T gives:</p>
+		<div></div><pre class="prettyprint copyable singleline">vih_T = ((vih_D - Z<sub>T</sub> / (Z<sub>T</sub> + 2xZ<sub>ODT</sub>) x (Z<sub>T </sub>+ Z<sub>Load</sub>) / Z<sub>Load</sub> )- vt_T</pre><div></div>
+		<p>For the low driver voltage vil_T use:</p>
+		<div></div><pre class="prettyprint copyable singleline">vil_T = vih_T - (Z<sub>Load</sub> + Z<sub>T</sub>) / Z<sub>Load</sub> x swing_device</pre><div></div>
+		<p>The variable names used in the above formula are described in the table below.</p>
+		<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_81409__entry__1"><p>Variable Name</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_81409__entry__2"><p>Description</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">vil_T</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>Input low voltage on test system side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">vih_D</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>Input high voltage at device side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">vih_T</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>Input high voltage on test system side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">vt_T</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>Termination voltage on test system side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">swing_device</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>Expected voltage swing between logic high and logic low on device side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">Z</span><sub>T</sub></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>Input/output resistor of test system</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__1"><p><span class="keyword">Z</span><sub>ODT</sub></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81409__entry__2"><p>On die termination resistor</p>
+						</td>
+					</tr>
+				</tbody></table>
+		
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 81409</span><script type="text/javascript">var ti='81409';var tt='Level configuration for memory devices operating with ODT'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

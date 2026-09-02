@@ -1,0 +1,78 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The action codes C and D, with which selective digital capture is triggered (C) or suppressed (D) must be used according to the following requirements:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Restrictions for selective digital capture</title></head><body id="_122740"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122740</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Restrictions for selective digital capture</h1>
+	
+	
+	<div><p>The action codes <span class="keyword">C</span> and <span class="keyword">D</span>, with which selective
+		digital capture is triggered (<span class="keyword">C</span>) or suppressed (<span class="keyword">D</span>) must be
+		used according to the following requirements:</p>
+		<ul>
+			<li id="_122740__d3799e19">If a waveform contains digital capture actions, its receive actions must be used
+				exclusively for digital capture, that is, the waveform must not contain any compare action.</li>
+			<li id="_122740__d3799e22">A waveform can contain more than one digital capture action, but
+					<span class="keyword">C</span> and <span class="keyword">D</span> cannot be combined within one waveform.</li>
+			<li id="_122740__d3799e31">If any waveform contains more than one digital capture action, all capture waveform
+				must contain the same number of actions and use the same edges. The first edge must be
+					<span class="keyword">r1</span>, and there must not be any numbering gaps.</li>
+		</ul>
+		
+		<section class="section"><h2>Differing rules for HRPF mode</h2><p>In HRPF mode, capture waveforms with more
+				than one capture edge must observe certain pairing rules as follows:</p><p>r1 must be combined
+				with r5</p><p>r2 must be combined with r6</p><p>r3 must be combined with r7</p><p>r4 must be
+				combined with r8</p><p>On the other hand, you may use different pairs in different capture
+				waveforms (which is not allowed with standard selective capture) as long as the total number of
+				edges is the same. Note that the pairing rule apply only on the receive edges of the capture
+				waveforms defined in your wavetable. The timing equations for these edges in your timing set
+				specify the edges in ascending order, that is, r1, r2, r3, and so on. See the following
+				example:</p></section>
+		<h2>Example</h2><div class="example"><p>This example shows the setup of digital capture in X8 mode. The digital capture
+				waveform is defined in the wavetable. The receive edges are specifies according to the pairing
+				rule mentioned above. However, the timing equations for these edges are specified in the timing
+				set in ascending order, that is, r1, r2, r3, r4, till
+				r8:</p><pre class="prettyprint linenums copyable"># WAVETABLE
+WAVETBL "X8Capt"
+...
+PIN SEROUT
+HRPF 0 "d1:0" 0
+1 "d1:1" 1
+2 "d1:Z r1:L"       L
+3 "d1:Z r1:H"       H
+4 "d1:Z r1:X"       X
+// receive edges in the capture waveform are defined according to the pairing rule
+5 "d1:Z r1:C r5:C r2:C r6:C r3:C r7:C r4:C r8:C"  CCCCCCCC 
+...
+# Timing
+EQNSET "X8CaptTim"
+...
+PIN SEROUT
+d1=0d2=0.5*Tcyc
+// receive edges for the digital capture are specified in ascending order
+r1=0.100*Tcyc
+r2=0.225*Tcyc
+r3=0.350*Tcyc
+r4=0.475*Tcyc
+r5=0.600*Tcyc
+r6=0.725*Tcyc
+r7=0.850*Tcyc
+r8=0.975*Tcyc</pre><p>The
+				following examples illustrate the restrictions for standard selective
+				capture:</p><pre class="prettyprint copyable singleline">0 "r1:L r2:C"   LC</pre><p>This will be rejected because digital
+				capture actions and standard compare actions are combined in one
+				waveform.</p><pre class="prettyprint copyable singleline">0 "r1:D r2:C"   DC</pre><p>This will be rejected because
+					<span class="keyword">C</span> and <span class="keyword">D</span> are combined in one
+				waveform.</p><pre class="prettyprint linenums copyable">0 "r1:C r3:C"   CC
+1 "r1:D r3:D"   DD</pre><p>This will be
+				rejected because of the edge numbering
+				gap.</p><pre class="prettyprint linenums copyable">0 "r2:C r3:C"   CC
+1 "r2:D r3:D"   DD</pre><p>This will be rejected
+				because the first edge is not
+				<span class="keyword">r1</span>.</p><pre class="prettyprint linenums copyable">0 "r1:C"        C
+1 "r1:D r2:D"   DD</pre><p>This
+				will be rejected because the two waveforms contain a different number of edges.</p><p>If,
+				however, the capture waveforms contain only one action, the edges are allowed to be
+				different:</p><pre class="prettyprint linenums copyable">0 "r1:C"   C
+1 "r2:D"   D</pre><p>This will be
+			accepted.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122740</span><script type="text/javascript">var ti='122740';var tt='Restrictions for selective digital capture'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

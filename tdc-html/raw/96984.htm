@@ -1,0 +1,49 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A burst label differs from a sequence of independent MAIN labels in two respects:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Burst labels</title><meta name="keywords" content="pattern vector label"></head><body id="_96984"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 96984</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Burst labels</h1>
+	
+	
+	<div><p>A burst label differs from a sequence of independent <span class="keyword">MAIN</span> labels in
+		two respects: </p>
+		<ul>
+			<li>If a <span class="keyword">MAIN</span> label is called directly (with <span class="keyword">FTST?</span>), a
+				certain amount of time is required for handling the activation of the primary sets. By default,
+				SmarTest does not activate the actual primary sets before actually starting the label if they
+				are already active. But even then it must check if activation can actually be suppressed. Also,
+				this optimization of primary activation can also be switched off, in which case the primary sets
+				will be activated even if they have not changed since the last test. This activation triggers an
+				even more time-consuming CTOF sequence. <p>In a burst label, the primary sets are activated only
+					once, at the beginning of the burst. These primary sets are used for all
+						<span class="keyword">MAIN</span> labels of the burst. Therefore, no CTOF sequence is required at the
+					start of the second and all following labels. Also, no check is performed between two labels of
+					a burst.</p></li>
+			<li>If a <span class="keyword">MAIN</span> label is called directly, and the number of its user cycles is
+				not a multiple of 8, it will be filled up with break cycles to the next multiple of 8. <p>In a
+					burst label, the last user cycle of the predecessor label will be followed immediately by the
+					first user cycle of the successor label.</p></li>
+		</ul>
+		<p>Especially the first point can enhances the throughput considerably as compared to a sequence
+			of independent <span class="keyword">MAIN</span> labels with the same primary sets. </p>
+		<p>A failing burst label returns one global FAIL result. If you want to identify the failing
+				<span class="keyword">MAIN</span> labels of a failing burst, you have two options:</p>
+		<ul>
+			<li>You can run the burst label in the so called <em>unburst</em> mode. In this mode, every main
+				label of the burst label is run separately, and data log data is generated for each of these
+				labels.</li>
+			<li>You can configure the overview error map in such a way that it returns one result for every
+				label of a burst. For more information see <a href="92000.htm" title="The overview Error Map compresses multiples of 16 cycles into one result. The compression factor is configurable. This allows you to get an overview of the whole test regardless of its size.">Compression factor for overview Error Map</a>.
+			</li>
+		</ul>
+		<p>A burst label has no special start instruction. It consists of a sequence of
+				<span class="keyword">CALL</span> instructions for the individual <span class="keyword">MAIN</span> labels of the
+			burst, and is terminated by the <span class="keyword">BEND</span> instruction.</p>
+		<h2>Example</h2><div class="example"><p>The following listing shows a burst
+				label:</p><pre class="prettyprint linenums copyable">SQPG 12,CALL,,"test_1",,(@)
+SQPG 13,CALL,,"test_2",,(@)
+SQPG 14,BEND,,,,(@)</pre><p>This
+				label calls the <span class="keyword">MAIN</span> labels <code>test_1</code> and
+					<code>test_2</code>. The definition of the burst label is as
+			follows:</p><pre class="prettyprint copyable singleline">SQLB "burst",BRST,12,14,"table1"</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 96984</span><script type="text/javascript">var ti='96984';var tt='Burst labels'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

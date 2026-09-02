@@ -1,0 +1,76 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Lets you create a source-synchronous test method and execute this test without using the MTP provided source-synchronous test method."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SOURCESYNC_TEST</title></head><body id="_143953"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 143953</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SOURCESYNC_TEST</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="143962.htm" title="Lets you select whether to use parallel or sequential copying method. If not specifying a copying method with this function, parallel method will be used by default.">SOURCESYNC_TEST.copyingMethod()</a></li><li><a href="143978.htm" title="Specifies application domains for source-sync tests.">SOURCESYNC_TEST.domain()</a></li><li><a href="144020.htm" title="Executes the handler operation which you have defined with SOURCESYNC_HANDLER.">SOURCESYNC_TEST.handle()</a></li><li><a href="143957.htm" title="Enables or disables the output of error maps. If not specifying with this function, no error maps will be output.">SOURCESYNC_TEST.outputErrorMap()</a></li><li><a href="143956.htm" title="Enables or disables the output of failure cycle edges. If not specifying with this function, no failure cycle edges will be output.">SOURCESYNC_TEST.outputFailCycleEdge()</a></li><li><a href="143958.htm" title="Enables or disables the output of histogram data. If not specifying with this function, no histogram data will be output.">SOURCESYNC_TEST.outputHistogram()</a></li><li><a href="143959.htm" title="Selects what kind of margin data to be output. If not specifying with this function, no margin data will be output.">SOURCESYNC_TEST.outputMargin()</a></li><li><a href="143963.htm" title="Specifies whether to execute a rapid source-sync test or not. If not specifying with this function, the rapid source-sync test will not be executed by default.">SOURCESYNC_TEST.rapidSourceSync()</a></li><li><a href="143966.htm" title="Specifies how many times each single step (shot) in a sweep test will be repeated.">SOURCESYNC_TEST.repeatSameTiming()</a></li><li><a href="143965.htm" title="Specifies how many times a sweep test will be repeated.">SOURCESYNC_TEST.repeatWholeSweep()</a></li><li><a href="143974.htm" title="Specifies the name of a sharing configuration file for use. If not specifying a file with this function, by default, the source-sync test will not use sharing configuration files.">SOURCESYNC_TEST.sharingConfigFile()</a></li><li><a href="143969.htm" title="Specifies the number of the tester cycle where to start a source-sync test.">SOURCESYNC_TEST.startCycle()</a></li><li><a href="143970.htm" title="Specifies the number of the tester cycle where to stop a source-sync test.">SOURCESYNC_TEST.stopCycle()</a></li><li><a href="143988.htm" title="Creates or references to a condition set that sets up a sweep test sweeping from the start to the stop cycles.">SOURCESYNC_TEST.test()</a></li><li><a href="143973.htm" title="Specifies a name for a source-sync test.">SOURCESYNC_TEST.testSet()</a></li><li><a href="143955.htm" title="Retrieves the pass/fail status of the test.">SOURCESYNC_TEST.getPass()</a></li><li><a href="143975.htm" title="Executes the defined source-sync test.">SOURCESYNC_TEST.execute()</a></li><li><a href="143976.htm" title="Judges and logs the results of source-sync tests.">SOURCESYNC_TEST.judgeAndLog()</a></li><li><a href="143977.htm" title="Prints out the results of source-sync tests.">SOURCESYNC_TEST.print()</a></li></ol></div></nav>
+	
+	
+	<div><p>Lets you create a source-synchronous test method and execute this test without using the
+		MTP provided <a href="94354.htm">source-synchronous test method</a>.</p>
+		<section class="section"><p>For the description of the source-synchronous test, see <a href="94354.htm">source-synchronous test method</a>.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/93000mts/mts/solution_tools/common/include/SOURCESYNC_TEST.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">SOURCESYNC_TEST();</pre><p>This constructor creates an object for the
+					<span class="keyword">SOURCESYNC_TEST</span> class.</p><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		<h2>Example</h2><div class="example"><p>Use the SOURCESYCE_TEST API to create a sourcsync
+			test.</p><pre class="prettyprint linenums copyable">#include "solution_tools.h"
+#include "testmethod.hpp"
+#include "mapi.hpp"
+class CSourceSyncTest: public testmethod::TestMethod
+{
+  virtual void run()
+  {
+    //Create a source sync test object.
+    SOURCESYNC_TEST ssTest;
+    // The following block only executes for the first site of multi-site setup
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+      // hand over the parameters to the test class.
+      ssTest.startCycle("1;200")
+            .stopCycle("10;220")
+            .testSet("Min Value,Max Value,Mean Value,Sigma Value");
+      // Create new test with name "Setup" and initialize it.
+      ssTest.test("Setup")
+            .edgeList("1,3,5,7")
+            .specVar("tSetup")
+            .sweepSpecVar("tsweep_a")
+             .sweepStart("0.5")
+             .sweepStop("0.7")
+             .sweepStepSize(0.1);
+      // Create new test with name "Hold" and initialize it.
+      ssTest.test("Hold")
+            .edgeList("2,4,6,8")
+            .specVar("tHold")
+            .sweepSpecVar("tsweep_b")
+            .sweepStart("2")
+            .sweepStop("2.5")
+            .sweepStepSize(0.1);
+      // Create new domain with name "domainA" and initialize it.
+      ssTest.domain("domainA")
+            .pins("DQA0_PS,DQA1_PS,DQA2_PS,DQA3_PS,DQS_A_p_PS,DQS_A_n_PS")
+            .bufferPins("DQA0_DUT,DQA1_DUT,DQA2_DUT");
+      // Create new domain with name "domainB" and initialize it.
+      ssTest.domain("domainB")
+            .pins("DQB0_PS,DQB1_PS,DQB2_PS,DQB3_PS,DQS_B_p_PS,DQS_B_n_PS")
+            .bufferPins("DQB0_DUT,DQB1_DUT,DQB2_DUT");
+      // execute the test
+      ssTest.execute();
+    }
+    ON_FIRST_INVOCATION_END();
+
+  // set result
+  ssTest.judgeAndLog();
+  // Print out in the UI Report Window.
+  ssTest.print();
+  // Print out specified testNameA in UI Report Window.
+  ssTest.test("Hold").print();
+  // Get statistic result of sepecifie test and domain.
+  double min;
+  min = ssTest.test("Setup").domain("domainA").getMin();
+  // User can extend HANDLER and use it to handle user-specified case.
+  SS_PRINT_HANDLER handler;
+  ssTest.handle(handler);
+  // User can extend HANDLER and use it to handle user-specified case of specified test.
+  }
+};</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="94354.htm">Source-synchronous class test methods</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.2.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 143953</span><script type="text/javascript">var ti='143953';var tt='SOURCESYNC_TEST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

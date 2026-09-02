@@ -1,0 +1,119 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The leakage test for shared lines differs from the leakage test used for non-shared lines."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Leakage test for shared lines</title></head><body id="_93421"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 93421</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Leakage test for shared lines</h1>
+	
+	
+	<div><p>The leakage test for shared lines differs from the leakage test used for non-shared
+		lines. </p>
+		<p>With non-shared lines the individual pin's leakage current is measured using the pin PMU in
+			force voltage, measure current mode. With shared lines you only can measure the sum of currents
+			flowing for all input pins that are tied together via the shared lines. If the shared lines are
+			parallel bus lines, they are tight together at the "cold" end of the termination resistor.
+			Therefore, you can measure the sum of the leakage currents for all pins belonging to this bus
+			only. For example, an address bus with 20 lines (bits) and a times 4 (x4) sharing has 4 times 20
+			device inputs on these lines which add up to 80 inputs. </p>
+		<p>On a daisy chain connection, the "cold" end of the termination resistor is connected to a
+			decoupling capacitor. This capacitor usually has the size of 100 nF. Therefore, an address bus
+			with 20 lines parallel is loaded with 20 times 100nF. The "cold" ends are also connected to a
+			voltage source providing the termination voltage Vterm at functional test. This voltage supply is
+			normally connected to a bulk capacitor in the size of several hundreds of micro Farad. </p>
+		<p>The leakage test method for shared drivers implements a measurement concept that takes account
+			for these conditions. </p>
+		<section class="section"><h2>Measurement</h2><p>This concept is explained in the figure below using an x2
+				sharing example with single shared line only. The DPS, that normally provides the termination
+				voltage, is used to force a voltage (V<sub>force</sub>) that charges the capacitors. If
+					V<sub>force</sub> is equal to GND the upper diode will start leaking. If V<sub>force</sub> is
+				equal to VDD lower diode's leakage current will flow. As soon as the DPS is disconnected from
+				the shared lines this leakage current will either charge or discharge the capacitors. The
+				voltage on the line will change (drop or increase). The change of voltage in a given time
+				interval is a measure of the leakage current. The pin PMU of the shared driver channel is used
+				to measure the voltage on the shared lines. The low current per line allows neglecting the
+				voltage drop on the 50 Ohms resistor. </p><div class="p"><figure class="fignone">
+					
+					<img src="93422.png" alt="Driver sharing leakage test example for one line with two sites">
+				</figure></div><p>The voltage on the lines will change over time in proportion to the amount of
+				leakage current. The voltage slew is inversely proportional to the total capacitance of the
+				lines. </p><div class="p"><figure class="fignone">
+					
+					<img src="98172.png" alt="Leakage test measurement for shared lines">
+				</figure></div><p>To achieve a good resolution at a reasonable short test time the capacitance
+					C<sub>term</sub> should be small. Therefore, the DPS bulk capacitor must be switched off during
+				leakage test.</p></section>
+		<section class="section"><h2>Calculation</h2><p>The total sum of all leakage currents for all shared lines
+				calculates by the
+				formula:</p><pre class="prettyprint copyable singleline">I<sub>leakage</sub> [A] = dV/dt [V/s] * C<sub>term</sub> [A*s/V]</pre><p>The
+				voltage will change faster the higher the leakage
+			current:</p><pre class="prettyprint copyable singleline">dV/dt [V/s] = I<sub>leakage</sub> [A] / C<sub>term</sub> [A*s/V]</pre></section>
+		<section class="section"><h2>Fault coverage </h2><p>If one site or both sites on the socket board are
+				faulty, the calculated current will be much bigger than the expected nominal. </p></section>
+		<section class="section"><h2>Fault diagnosis</h2><p>There is no way to tell which site within a sharing
+				group (socket board) is faulty or if both sites are faulty if the measured current is out of
+				range. Simply treat both sites as faulty.</p></section>
+		<section class="section"><h2>Test algorithm</h2><p>This test requires that both test sites are powered up to
+				make their test conditions are equal. Both test sites are tested for leakage current in one test
+				run. If there are more shared lines, they are tested in parallel.</p><ol>
+				<li>Disconnect all shared digital channels.</li>
+				<li>Disconnect the bulk capacitor, if your DUT board has this functionality.</li>
+				<li>Power up the device with V<sub>DD</sub>.</li>
+				<li>Connect DPS to charge the shared lines including the C<sub>term</sub> decoupling capacitor
+					and optional the bulk capacitor. Apply low or high force voltage. For low voltage choose GND.
+					For high voltage choose V<sub>DD.</sub></li>
+				<li>Wait until the lines are charged.</li>
+				<li>Disconnect DPS and optional the bulk capacitor via utility line.</li>
+				<li>Wait for a specific time (dt), which depends on your specific setup. The voltage on the line
+					will drop (dV), because of leakage currents.</li>
+				<li>Connect the PinPMU in high impedance mode (VM_HIZ) and measure the voltage on the line after
+					time interval dt. Use one PinPMU only if you have a shared bus setup.</li>
+				<li>Measure the voltage on the shared lines and calculate the voltage drop (dV).<div class="note"><span class="title">Note</span> The values measured will be approximately the sum of the nominal leakage currents
+						of all device inputs connected to the shared lines. For the example above expect a current
+						twice as high as nominal leakage current for one device input.</div>
+				</li>
+			</ol><p>You set a pass/fail limit for the calculated leakage current, considering:</p><ul>
+				<li>Waiting time dt.<p>This influences the throughput of your test. </p>
+					<div class="note"><span class="title">Note</span> The time interval must be chosen such that the voltage change is about 100mV.
+						Otherwise the leakage current of the opposing diode may distort the measurement.</div>
+				</li>
+				<li>Force voltage low and high.<ul>
+						<li>Expected ganged leakage (sum of all ganged input leakages). <p>This depends on the number
+								of pins connected to the shared lines on a bus. To calculate the number of pins, you take
+								the number of shared lines of a group, multiply by the sharing factor. For example, 20 bus
+								lines times x4 sharing equals to 80 inputs. </p></li>
+						<li>If all pins of a group are specified having the same nominal leakage current, you multiply
+							the leakage current with the number of inputs ganged to get the expected value for the total
+							leakage current within a group </li>
+						<li>Add margins to that current to get the limits for the leakage test method.</li>
+					</ul></li>
+			</ul></section>
+		<h2>Examples</h2><div class="example"><h3>Generic example</h3><p>The figure below shows an example for two shared lines
+				and x4 sharing. Notice, that the high frequency decoupling capacitors are connected in parallel,
+				because the shared lines are dotted at the "cold" end to connect their common termination
+				voltage (Vterm) supply (DPS).</p><div class="p"><figure class="fignone">
+					
+					<img src="98171.png" alt="Leakage test x4 sharing example">
+				</figure></div></div>
+		<div class="example"><h3>Calculation</h3><p>Given a voltage drop of 100 mV after 100 ms discharging
+				time:</p><p>For a total capacitance C<sub>term</sub> of 2 x 50 nF, the calculation results in a
+				total leakage current of 100 nA according
+				to:</p><pre class="prettyprint copyable singleline">I<sub>leakage</sub> = 100 mV / 100 ms * 100 nF = 1 V/s * 100 nA * s / V = 100 nA</pre><p>With
+				eight inputs connected to the two lines, you calculate the leakage current per device input
+				by:</p><pre class="prettyprint copyable singleline">I<sub>leakpin</sub> = I<sub>leakage</sub>/8 = 100 nA/8 = 12,5 nA</pre><p>This
+				represents a typical leakage current of a faultless diode.</p><p>The voltage change rate
+				calculates
+				as:</p><pre class="prettyprint copyable singleline">dV/dt [V/s] = Ileakage [A] / Cterm [A*s/V] =100 nA / 100 nF = 1 [V/s] </pre><p>A
+				typical leakage current of a faulty diode is about 10 to 1000 times higher. This results in a
+				much higher slew rate of the voltage
+				change.</p><p>For
+				a total capacitance C<sub>term</sub> plus bulk capacitor of 100 uF, the calculation results
+				again in a total leakage current of 100
+				nA.</p><pre class="prettyprint copyable singleline">I<sub>leakage</sub> = 0.1 mV / 100 ms * 100 µF = 0.001 V/s * 100 µA * s / V = 100 nA </pre><p>With
+				eight inputs connected to the two lines, you calculate the leakage current per device input
+				by:</p><pre class="prettyprint copyable singleline">I<sub>leakpin</sub> = I<sub>leakage</sub>/8 = 100 µA/8 = 12,5 nA</pre><p>The
+				voltage slew rate calculates
+				as:</p><pre class="prettyprint copyable singleline">dV/dt [V/s] = Ileakage [A] / Cterm [A*s/V] = 100 nA / 100 µF = 0.001 [V/s]</pre><p>It
+				is slower by a factor of thousand. This example shows that for a large bulk capacitor the
+				voltage drop is only 1 µV. Therefore, the resolution gets reduced by a factor of 1000 for the
+				same time interval. </p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98403.htm" title="Leakage test in a shared driver environment is supported by the SharedLeakage test method. The parameters for this test method are described in this topic.">SharedLeakage test method</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 93421</span><script type="text/javascript">var ti='93421';var tt='Leakage test for shared lines'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

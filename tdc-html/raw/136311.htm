@@ -1,0 +1,168 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A PS1600 card can be used to generate analog waveforms and digitize them. You can use a digital pin as AWG and another digital pin as digitizer."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to use PPMU as AWG and BADC as digitizer together</title><meta name="keywords" content="DGT parametric measurement unit per-pin PMU"></head><body id="_136311"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136311</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to use PPMU as AWG and BADC as digitizer together</h1>
+	
+	
+	<div><p>A PS1600 card can be used to generate analog waveforms and digitize them. You can use a
+		digital pin as AWG and another digital pin as digitizer.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The example below describes the steps of setting up the PPMU as AWG and using the BADC
+				as digitizer to measure the generated waveforms from PPMU. No DUT board is required.</p><p>The
+				example uses the internal DC rail to connect PPMU and BADC. If using an external interconnect
+				board, you must adapt the relay settings.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>A PS1600 card must be available in your tester. Remove any DUT board from the test
+				head.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Step1: prepare the pin configuration file</h3><ol>
+				<li>In the <span class="uicontrol">Pin Settings </span>editor, click the <span class="uicontrol">Digital
+						Pins</span> editor to define the following pins.<div class="p"><figure class="fignone">
+							
+							<img src="136901.png" alt="Pins for BADC and PPMU ports">
+						</figure></div></li>
+				<li>In the <span class="uicontrol">Ports</span> editor, define one port for the BADC to measure
+					waveforms and another port for the PPMU to generate waveforms.<div class="p"><figure class="fignone">
+							
+							<img src="136902.png" alt="BADC port">
+						</figure></div>
+					<div class="p"><figure class="fignone">
+							
+							<img src="136903.png" alt="PPMU port">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>Step2: prepare the timing and level setup files</h3><ol>
+				<li>Refer to <a href="124926.htm" title="The PS1600 card can have eight calibrated timing tri-state edges and, hence, uses the new edge definition syntax.">PS1600 timing and vector setup</a> to set up your timing
+					configuration.</li>
+				<li>Refer to <a href="124925.htm">PS1600 level setup</a> to set up your level configuration.</li>
+			</ol></section>
+		<section class="section"><h3>Step3: prepare the patterns</h3><ol>
+				<li>In the <span class="uicontrol">Pattern Explorer</span>, create main labels and sub-labels for your
+					BADC and PPMU ports. Refer to the description of Step 3 in <a href="136264.htm" title="With the PPMU of Smart Scale PS1600 channel card, you can generate analog waveforms.">PPMU as
+						AWG</a> and <a href="136310.htm">BADC as Digitizer</a>. </li>
+				<li>Create a Multi-Port burst label for your BADC and PPMU ports. In this way, generating a
+					waveform with the PPMU and measuring it with the BADC can be executed synchronously. <div class="p"><figure class="fignone">
+							
+							<img src="136905.png" alt="Multi-Port busrt Label for BADC and PPMU">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>Step4: create test methods </h3><p>The main part of the test method consists of
+				the following three steps:</p><ol>
+				<li>Waveform generation<ul>
+						<li>Happens once during first TM-Execution</li>
+					</ul></li>
+				<li>Test execution<ul>
+						<li>Connect instruments</li>
+						<li>Test execution</li>
+						<li>Disconnect instruments</li>
+					</ul></li>
+				<li>Result upload<ul>
+						<li>Upload results for all sites in parallel</li>
+						<li>Evaluate data (PUT_DEBUG)</li>
+					</ul></li>
+			</ol><p>Here is the example code for a voltage ramp waveform.</p><ul>
+				<li>Sub-function
+					definitions<div></div><pre class="prettyprint linenums copyable">  virtual void createPpmuRamp()
+  {
+     ANALOG_WAVEFORM ramp("ramp");
+     ramp.definition(TM::RAMP)
+         .direction(TM::POS)
+         .min(-1 V)
+         .max(5.5 V)
+         .samples(2048);
+
+     DC_WAVEFORM dcWaveform;
+     dcWaveform.vForce(ramp)
+               .vRange(6 V)
+               .iRange(1 mA)
+               .sampleVectorDistance(1024);
+
+     PATTERN_CONTROLLER patternControllerDcWaveForm;
+     patternControllerDcWaveForm.label("ppmuSubRamp","portPpmu").add(dcWaveform);
+     patternControllerDcWaveForm.setup();
+  }
+
+  virtual void createBadcMeasure()
+  {
+    BADC_MEASURE badcMeasure;
+
+    badcMeasure.pin("portBadc").numberOfSamples(32);
+
+    PATTERN_CONTROLLER patternControllerBadcMeasure;
+
+    patternControllerBadcMeasure.label("badcSubRampMeasure","portBadc").add(badcMeasure);
+    patternControllerBadcMeasure.setup();
+  }
+
+  virtual void connectInstruments()
+  {
+    PPMU_SETTING ppmuSetup;
+    BADC_SETTING badcSetting;
+    FLEX_RELAY   connect;
+    TASK_LIST    taskList;
+
+    ppmuSetup.pin("p1").vForce(-1 V).iRange(1 mA).min(0 mA).max(100 uA);
+    badcSetting.pin("p8").min(-2 V).max(6 V);
+
+    connect.pin("p1").set("DCPM");
+    connect.pin("p8").set("DC","PMU","MUX_VM_HIZ");
+    connect.wait(2 ms);
+
+    taskList.add(ppmuSetup).add(badcSetting).add(connect).execute();
+  }
+
+  virtual void disconnectInstruments()
+  {
+    FLEX_RELAY disconnectPpmu;
+
+    disconnectPpmu.pin("p1,p8").set("IDLE","OFF");
+    disconnectPpmu.execute();
+  }</pre></li>
+				<li>Main function
+					definition<div></div><pre class="prettyprint linenums copyable">  virtual void run()
+  {
+    DC_RESULT_ACCESSOR result;
+   /*** 1) Waveform generation ***/
+    if ( firstRun ) {                            
+      createBadcMeasure();
+      createPpmuRamp();
+      firstRun = false;
+    }
+   /*** 2) Test execution ***/
+    ON_FIRST_INVOCATION_BEGIN();
+      connectInstruments();
+      FUNCTIONAL_TEST();
+      disconnectInstruments();
+   /*** 3) Result upload ***/
+      result.uploadResult("p8",TM::RESULT_INDEX);
+    ON_FIRST_INVOCATION_END();
+
+    ARRAY_D waveform = result.getValues("p8");
+
+    if ( waveform.size() &gt; 0 )
+    {
+      PUT_DEBUG("p8","voltRamp",waveform);
+
+         ARRAY_D inl,dnl;
+      LINEARtype lin;
+
+      DSP_LINEAR(waveform, &amp;lin, dnl,inl, MIN_RMS);
+      PUT_DEBUG("voltRamp","dnl",dnl);
+      PUT_DEBUG("voltRamp","inl",inl);
+
+      cout &lt;&lt; "Site: " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " DNL: " &lt;&lt; lin.damax * 1000 &lt;&lt; " mV; " &lt;&lt; endl;
+      cout &lt;&lt; "Site: " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " INL: " &lt;&lt; lin.iamax * 1000 &lt;&lt; " mV; " &lt;&lt; endl;
+    }
+
+    return;
+  }</pre></li>
+			</ul></section>
+		<section class="section"><h3>Step5: create test suites to call the UTM</h3><p>Generate a testflow and insert
+				test suites, which use your prepared UTM codes from step 4. After running the code example
+				above, you can observe the result in the Signal Analyzer as shown below. </p><div class="p"><figure class="fignone">
+					
+					<img src="136946.png" alt="Voltage ramp result">
+				</figure></div></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You will see the generated waveform from the PPMU has been digitized by the BADC.
+			</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136264.htm" title="With the PPMU of Smart Scale PS1600 channel card, you can generate analog waveforms.">How to use PPMU as Arbitrary Waveform Generator (AWG)</a></div><div><a href="136310.htm">How to use the BADC as digitizer</a></div><div><a href="136314.htm" title="The DC instruments use the DC_WAVEFORM class to create voltage and current waveforms, and the waveforms are derived from analog waveforms.">DC_WAVEFORM</a></div><div><a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a></div><div><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></div><div><a href="122932.htm">PS1600 specifications</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136311</span><script type="text/javascript">var ti='136311';var tt='How to use PPMU as AWG and BADC as digitizer together'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

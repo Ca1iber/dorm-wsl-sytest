@@ -1,0 +1,52 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Explanation of the Syntax</title></head><body id="_30890"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 30890</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Explanation of the Syntax</h1>
+	
+	
+	<div><p></p>
+		<p>The syntax of the application model file as listed in <a href="30889.htm" title="The example below illustrates the syntax usage in an application model file.">Syntax Listing</a> is explained in
+			this topic. The numbers in brackets refer to the line numbers indicated in <a href="30889.htm" title="The example below illustrates the syntax usage in an application model file.">Syntax Listing</a>.</p>
+		<p>The first level (<kbd class="userinput">init</kbd>) specifies a dialog with the operator. They are
+			prompted for their ID and the cassette size (3-8). This section can be changed accordingly to
+			reflect the needs on your test floor - prompting the operator for a system identifier or a
+			machine name, for example. The test temperature must be entered by the engineer when they develop
+			the test; it must be either ambient temperature, or one of the numbers in the list of three(6).
+			This value is used to initialize the prober (19). The variable,<kbd class="userinput">
+				Cassette_size</kbd> (8), determines the size of a cassette and is used in the
+			GET_WAFERLIST expression (20) to limit the number of wafers that can be entered for each
+			cassette.</p>
+		<p>The prober call, <kbd class="userinput">ph_init</kbd> (19), downloads the prober setup and the step
+			pattern from the wafer description file. If necessary it sets the hotchuck to the specified
+			temperature. Using the GET_WAFERLIST (20) expression, the operator must enter the wafer numbers
+			manually. Alternatively, a procedure can be written that reads the wafer numbers from an
+			OCR-reader or from a file. The next lowest level is executed 4 times (21), allowing up to 4
+			cassettes per lot to be accommodated.</p>
+		<p>The cassette number is automatically incremented (24) when all wafers in a cassette have been
+			tested. The cassette number is used to get the wafer identifiers from the correct file (25).</p>
+		<p>On the wafer level the software reads the <kbd class="userinput">wafer_id</kbd> (30) from the file<em>
+				/tmp/waf_list&lt;n&gt;</em> (25).</p>
+		<p>The call <kbd class="userinput">ph_get_wafer</kbd> (31) unloads the current wafer (if there is one),
+			loads, aligns and profiles the next one, and positions the first die underneath the needles.
+			Probing then begins.</p>
+		<p>On the device level, the procedure <kbd class="userinput">ph_get_die_location</kbd> (36) gets the
+			actual die location and uses it for data logging purposes. The die is then tested. The
+				call <kbd class="userinput">ph_bin_die</kbd> (44) sends the pass/fail result to the prober. If an
+			inker is installed and enabled, it inks all bad dies. The bin command also causes the chuck to
+			move to the next die. When all dies have been tested, the prober responds with a message
+			indicating that the whole wafer has been tested. If a die falls into the reprobe bin, the
+			procedure <kbd class="userinput">ph_reprobe</kbd> (42) lowers and raises the chuck.</p>
+		<p>Back on the wafer level, the procedure <kbd class="userinput">ph_check_reference_wafer</kbd> (47)
+			checks if the <strong>REFERENCE</strong> button was pressed while in the PAUSE state. If it was, the
+			operator is requested to manually unload the last wafer and load the reference wafer. After
+			testing the reference wafer, the operator is asked to unload it and to install the previous one.
+			This part of the code will undoubtedly be subject to customization; for example, if only a few
+			dies on the reference wafer should be tested. Depending on the wafer prober type, it is also
+			possible to reduce the operator interaction when testing a reference wafer. </p>
+		<p>On the cassette level, the software checks if the output cassette is full (51). This should
+			only be used for probers with a separate output cassette. If the output cassette is full, or
+			there is no output cassette, the operator must load a new one. </p>
+		<p>Returning to the lot level, the procedure <kbd class="userinput">ph_exit</kbd> (55) aborts, then
+			closes the session. </p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 30890</span><script type="text/javascript">var ti='30890';var tt='Explanation of the Syntax'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This topic describes the linear search modes and the difference between the standard and the FASTSTOP mode."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Linear search modes</title></head><body id="_136531"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136531</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Linear search modes</h1>
+	
+	
+	<div><p>This topic describes the linear search modes and the difference between the standard and
+		the <span class="keyword">FASTSTOP</span> mode.</p>
+		<section class="section"><h2>Search types</h2><ul>
+				<li>Single transition:<ul>
+						<li>Pass/fail transition = right boundary</li>
+						<li>Fail/pass transition = left boundary</li>
+					</ul></li>
+				<li>Eye:<ul>
+						<li><em>Closed eye</em>: One or more pass results enclosed by fail results within the
+							measurement range, for example<p><code>F-F-P-P-P-P-P-F</code></p></li>
+						<li><em>Open eye</em>: One or more pass results enclosed by an open end and a fail result, for
+									example<p><code>P-P-P-P-P-F-F-F or</code></p>
+							<p><code>F-F-F-P-P-P-P-P</code></p></li>
+					</ul></li>
+			</ul><p>P = pass, F = fail, as seen when executing all linear steps</p></section>
+		<section class="section"><h2>Standard mode</h2><p>The linear search scans always the whole search range for
+				the largest eye. It first looks for closed eyes, but if there is none, it also considers open
+				eyes. </p></section>
+		<section class="section"><h2>FASTSTOP mode</h2><p>The <span class="keyword">FASTSTOP</span> mode stops the linear search as soon as the first valid
+			eye or single transition is returned:</p><ul>
+			<li id="_136531__d716e29">Requesting an eye, the linear search stops as soon as both edges of the first eye
+				are returned.<ul id="_136531__d716e31">
+					<li id="_136531__d716e33">It requires both, a fail/pass and a pass/fail transitions within the search
+						window.</li>
+					<li id="_136531__d716e36">It does not acknowledge an <em>open eye</em> as eye.</li>
+					<li id="_136531__d716e42">The number of the returned <span class="keyword">PASS</span> values does not matter.</li>
+				</ul></li>
+			<li id="_136531__d716e49">Requesting a single transition, the first two subsequent measurements (pass/fail or
+				fail/pass), which show the requested transition, stop the linear search.</li>
+			<li id="_136531__d716e52">If the requested condition is not fulfilled, it returns the same result as the
+				standard mode.</li>
+		</ul></section>
+		<h2>Examples</h2><div class="example"><h3>Scenario 1</h3><pre class="msgblock">P-P-P-P-F-F-P-F-F</pre><ul>
+				<li>Requesting an eye<ul>
+						<li>The standard mode scans the whole search range and returns the only closed eye as the
+							result (although the open eye is larger).</li>
+						<li>The <span class="keyword">FASTSTOP</span> mode stops the search at the second single transition and
+							also returns the only closed eye.</li>
+					</ul></li>
+				<li>Requesting a single transition and searching only for the right transition
+						(<code>P-F</code> with search type <span class="keyword">RB</span>)<ul>
+						<li>The standard mode scans the whole search range, finds exactly one closed eye and returns
+							the <code>P-F</code> transition of this eye.</li>
+						<li>The <span class="keyword">FASTSTOP</span> mode stops the search at the second <code>P-F</code>
+							transition from the left and returns this transition as
+							result.
+						</li>
+					</ul></li>
+			</ul></div>
+		<div class="example"><h3>Scenario 2</h3><pre class="msgblock">F-P-P-P-F-P-P-F</pre><p>Both search modes return
+				the first pass-region (<code>F-P-P-P-F</code>) as the eye. The only difference is that the
+					<span class="keyword">FASTSTOP</span> mode stops the search after the second single transition, whereas
+				the standard mode scans the whole search range.</p></div>
+		<div class="example"><h3>Scenario 3</h3><pre class="msgblock">F-P-F-P-P-P-P-F</pre><ul>
+				<li>Requesting an eye<ul>
+						<li>The standard mode scans the whole search range, acknowledges the second eye
+								(<code>F-P-P-P-P-F</code>) as the largest eye.</li>
+						<li>The <span class="keyword">FASTSTOP</span> mode stops the search at the second single transition and
+							returns the first, very small, eye (<code>F-P-F</code>), that is, it stops before it
+							finds the largest eye.</li>
+					</ul></li>
+				<li>Requesting a single transition and searching only for the right transition
+						(<code>P-F</code> with search type <span class="keyword">RB</span>)<ul>
+						<li>The standard mode scans the whole search range, acknowledges the second eye
+								(<code>F-P-P-P-P-F</code>) as the largest eye and returns the second
+								<code>P-F</code> transition from the left.</li>
+						<li>The <span class="keyword">FASTSTOP</span> mode stops the search at the first <code>P-F</code>
+							transition from the left and returns this transition as result.<p>The search stops before it
+								finds the largest eye.</p></li>
+					</ul></li>
+			</ul></div>
+		<div class="example"><h3>Scenario 4</h3><pre class="msgblock">P-P-P-P-F-F-F-F-F</pre><ul>
+				<li>Requesting an eye<ul>
+						<li>Both modes scan the whole search range, find no closed eye, and therefore return the open
+							eye as the result.</li>
+					</ul></li>
+				<li>Requesting a single transition and searching only for the right transition
+						(<code>P-F</code> with search type <span class="keyword">RB</span>)<ul>
+						<li>Both modes scan the whole search range, acknowledge the open eye as the only eye and
+							return the <code>P-F</code>
+							transition.
+						</li>
+					</ul></li>
+			</ul></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="123771.htm" title="On a Smart Scale system, you can adjust the timing to the actual behavior of the DUT by an embedded timing or level search.">Using embedded timing and level search on a Smart Scale system</a></div><div><a href="136530.htm" title="Controls the FASTSTOP mode.">TIMING_OFFSET_SEARCH_PINS.enableFastStop()</a></div><div><a href="124942.htm" title="TOCF and TOCF? define and query the configuration of an embedded timing or level search for the specified pins. The search is executed with the TORN? query.">TOCF, TOCF? - (Timing/Level Offset search ConFiguration)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.3</li><li>SmarTest 7.2.0: New FASTSTOP mode</li><li>SmarTest 7.3.2: The algorithm of the linear search in standard mode was assimilated to that of
+					FASTSTOP mode.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136531</span><script type="text/javascript">var ti='136531';var tt='Linear search modes'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In the pattern generation through the smartVec() class, SmartRDI allows the bit values 0, 1, and 2 specified by some APIs to match with 0, 1, Z or L, H, X device cycles (DVC) defined in your wavetable."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Relationship between bits and device cycles</title><meta name="keywords" content="devicecycle"></head><body id="_351019"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351019</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Relationship between bits and device cycles</h1>
+	
+	
+	<div><p>In the pattern generation through the smartVec() class, SmartRDI allows the bit values
+		0, 1, and 2 specified by some APIs to match with 0, 1, Z or L, H, X device cycles (DVC) defined in
+		your wavetable.</p>
+		<section class="section"><h2>Write APIs</h2><p>For the "write" type of commands, such as <a href="149044.htm" title="Writes bit data to a pattern.">writeBit()</a>, bits <span class="keyword">0</span>, <span class="keyword">1</span>, and <span class="keyword">2</span> in
+				the specified value are converted to <span class="keyword">0</span>, <span class="keyword">1</span>, and
+					<span class="keyword">Z</span> for corresponding with DVCs. That means SmartRDI always deals with
+					<span class="keyword">0</span>, <span class="keyword">1</span>, and <span class="keyword">2</span> for "0", "1", and "Z".
+				</p><p>The relationship between bits and DVCs for X1 and Xn modes are different:</p><div class="p">
+				<ul>
+					<li>X1 mode: bit 0 to DVC "0", 1 to "1", and 2 to "Z". </li>
+					<li>Xn mode: bits 0101 to DVC "0101" and bits 0112 to "011Z". </li>
+				</ul>
+			</div><div class="p">In the corresponding wavetable, waveform definitions must consecutive, ranging from
+				"00...0" to "11...1". For example, a wavetable for
+				x8-mode:<div></div><pre class="prettyprint linenums copyable">PhyIndex   Action      DevCyc
+
+0          "d1...d8"   00000000
+1          "d1...d8"   00000001
+...        ...         ...
+...        ...         ...
+...        ...         ...
+ff         "d1...d8"   11111111</pre></div>If
+			a waveform contains "Z" or "X", like "10Z1", it can have any physical index in the wavetable.<div class="p">
+				<table class="frame-topbot"><caption></caption><colgroup><col style="width:300pt"></colgroup><thead>
+							<tr>
+								<th class="rowsep-1" id="_351019__entry__1">Write-related APIs in smartVec() class</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="rowsep-1" headers="_351019__entry__1"><a href="149047.htm" title="The bits which are not covered by writeBit() and fillBit() in one pattern will be filled with the specified value of the defaultBit(). If you do not specify the defaultBit(), RDI will automatically specify those bits with &#34;f&#34; or the value of &#34;DEFAULT_STATUS_INDEX&#34; in the RDI_Configure file . The generic recommendation is to specify defaultBit() for each pin.">defaultBit()</a></td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351019__entry__1"><a href="149045.htm" title="Writes bit data to a pattern.">fillBit()</a></td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351019__entry__1"><a href="149044.htm" title="Writes bit data to a pattern.">writeBit()</a></td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351019__entry__1"><a href="149051.htm" title="Writes blocks of data to pattern.">writeData()</a></td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_351019__entry__1"><a href="149062.htm" title="X-mode is an operating mode of a tester in which a tester cycle contains multiple device cycles. The parameter in xMode() is specified by the number of device cycles in each tester cycle. For example, you specify xMode(4), which means that there are four device cycles in one tester cycle.">xMode()</a></td>
+							</tr>
+						</tbody></table>
+			</div></section>
+		<section class="section"><h2>Compare APIs</h2>
+			
+			<p>For the "compare" type of commands, such as <a href="149046.htm" title="Specifies the expected bit stream from the captured pin. If an ID and expectBit() are used together, the result of pass/fail per label will be retrieved.">expectBit()</a>, bits
+				<span class="keyword">0</span>, <span class="keyword">1</span>, and <span class="keyword">2</span> are converted to
+					<span class="keyword">L</span>, <span class="keyword">H</span>, and <span class="keyword">X</span> for corresponding with
+				DVCs. That means for "compare" APIs, SmartRDI always deals with <span class="keyword">0</span>,
+					<span class="keyword">1</span>, and <span class="keyword">2</span> for "L", "H", and "X". </p>
+			<p>The relationship between bits and DVCs for X1 and Xn modes are different:</p>
+			<div class="p">
+				<ul>
+					<li>X1 mode: bit 0 to DVC "L", 1 to "H", and 2 to "X".</li>
+					<li>Xn mode: 0101 to "LHLH" and 0112 to "LHHX".
+</li>
+				</ul>
+									<table class="frame-topbot"><caption></caption><colgroup><col style="width:300pt"></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_351019__entry__7">Compare-related APIs in smartVec() class</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_351019__entry__7"><a href="149046.htm" title="Specifies the expected bit stream from the captured pin. If an ID and expectBit() are used together, the result of pass/fail per label will be retrieved.">expectBit()</a></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_351019__entry__7"><a href="149056.htm" title="Specifies the expected data from the captured pin. If the expected data and an ID are used together, the result of pass/fail per label will be retrieved.">expectData()</a></td>
+									</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_351019__entry__7"><a href="149062.htm" title="X-mode is an operating mode of a tester in which a tester cycle contains multiple device cycles. The parameter in xMode() is specified by the number of device cycles in each tester cycle. For example, you specify xMode(4), which means that there are four device cycles in one tester cycle.">xMode()</a></td>
+							</tr>
+								</tbody></table></div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="17790.htm" title="If you look at a data sheet for a digital device, such as a microprocessor, you will see the various signals presented in the form of device cycles. An example of device cycles is shown in the figure below. It shows the read cycle on various pins of a commonly available microprocessor.">Device Cycles</a></div><div><a href="51666.htm" title="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex).">Wavetables</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351019</span><script type="text/javascript">var ti='351019';var tt='Relationship between bits and device cycles'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

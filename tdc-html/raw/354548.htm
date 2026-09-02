@@ -1,0 +1,413 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The XPS256 card supports voltage drop measurements that are also known as Kelvin measurements. Voltage drop measurement means that the voltage drop on the two force lines is measured to ensure that these connections to the DUT have a sufficiently low resistance. Voltage drop measurements are supported per channel for the force line (P#) and for the return line (common GND)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>XPS256 programming - Voltage drop measurement</title><meta name="keywords" content="XPS, 256"></head><body id="_354548"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 354548</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">XPS256 programming - Voltage drop measurement</h1>
+	
+	
+	<div><p>The XPS256 card supports voltage drop measurements that are also known as Kelvin measurements. Voltage drop measurement means that the
+		voltage drop on the two force lines is measured to ensure that these connections to the DUT have a sufficiently low resistance. Voltage drop
+		measurements are supported per channel for the force line (P#) and for the return line (common GND).</p>
+		<section class="section">
+			<p>In this context, "Force lines" means both the high force line (P#) and the common return line (GND). The high force line is also
+				referenced as "Force line".</p>
+		</section>
+		<section class="section" id="_354548__s_Measure_filters"><h2>Measurement filters</h2>
+			
+			<p>XPS256 channels feature programmable anti-aliasing, low-pass measurement filters for
+				all ADCs:</p>
+			<ul>
+				<li>Voltage measurement ADC of the PMU</li>
+				<li>Current measurement ADC of the PMU</li>
+				<li>Voltage drop measurements on the force line</li>
+				<li>Voltage drop measurements on the return line</li>
+			</ul>
+			
+			<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_354548__s_Measure_filters__entry__1" colspan="2">Measurement filter
+								characteristics</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__s_Measure_filters__entry__1">Minimum cutoff frequency:</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__s_Measure_filters__entry__1">10&nbsp;Hz</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__s_Measure_filters__entry__1">Maximum cutoff frequency:</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__s_Measure_filters__entry__1">500&nbsp;kHz</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__s_Measure_filters__entry__1">Default cutoff frequency:</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__s_Measure_filters__entry__1">30&nbsp;kHz</td>
+						</tr>
+					</tbody></table>
+			
+			<p>The dynamic behavior of the force output is independent of the measurement
+				filters.</p>
+		</section>
+		<section class="section" id="_354548__s_Averaging"><h2>Averaging</h2>
+			
+			<div id="_354548__d609e1061">
+				
+				
+				<p>All channels of the card feature hardware based averaging of measurements. The
+					average of multiple consecutive ADC samples is calculated and stored on board.
+					Hardware based averaging can be utilized for code‑based and
+					pattern‑based measurements.</p>
+				<table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+							<tr>
+								<th class="colsep-0 rowsep-1" id="_354548__d609e1061__entry__1" colspan="3">Hardware-based averaging</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__d609e1061__entry__1" colspan="2">Programmable range of
+									samples:</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__d609e1061__entry__1">1&nbsp;...&nbsp;262144 (any value supported)</td>
+							</tr>
+							
+							
+							
+							
+							
+							
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__d609e1061__entry__1" colspan="2">ADC sample
+									frequency:</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__d609e1061__entry__1"><span id="_354548__d609e1114">2 MHz</span><a href="#_354548__d609e1117"><sup>1)</sup></a></td>
+							</tr>
+						</tbody></table>
+				
+				<p>Some hints to consider:</p>
+				<div class="p">
+					<ul>
+						<li>The sample time for averaged measurements must be taken
+							into account.</li>
+						
+						<li>Pattern‑based measurements require a minimum number of vectors
+							after the trigger has been initiated.<span> For more
+								information, refer to <a href="153178.htm" title="A minimum execution time must be respected when using DC event based programming of DC Scale cards.">Timing of DC events</a> and the related
+								sub-topics.</span></li>
+						<li>The effective maximum sample frequency is the ADC sample frequency of
+								<span>2 MHz</span><a href="#_354548__d609e1117"><sup>1)</sup></a> divided by the number of
+							averaged samples.</li>
+						<li>The "measurement filter" may be used instead of averaging if a high
+							effective sample frequency is required. This filter behaves like a
+							simple RC filter. The settling time is to be considered but the filter
+							setting has no effect on the effective maximum sample frequency.</li>
+						<li>The dynamic behavior of the force output is independent of the settings
+							for averaging.</li>
+					</ul>
+				</div>
+			</div>
+		</section>
+		<section class="section"><h2>Voltage drop measurements in hardware view</h2>
+			
+			<div class="p">Voltage drop measurements are supported by the<ul>
+					<li><strong>Measure Voltage Drop</strong> button of the <a href="354249.htm#_354249__s_Hardware_view">Hardware view</a> in <a href="354249.htm" title="An XPS256 pin in the DPS operating mode can be programmed via level setups, APIs or SmartRDI.">DPS operating
+							mode</a> and by the</li>
+					<li><strong>Measure</strong> dialog of the <a href="354253.htm#_354253__s_Hardware_view">Hardware view</a> in <a href="354253.htm" title="In PMU operating mode, a pin is used like a standard PMU to temporarily supply power during the execution of a single test suite or a group of test suites.">PMU operating mode</a>.</li>
+				</ul></div>
+			<p>The latched maximum voltage drop can be read using the <strong>Max Voltage Drop</strong> button of the Hardware view in DPS operating mode and in
+				PMU operating mode. The latched value is automatically cleared after it has been read.</p>
+		</section>
+		<section class="section"><h2>Default voltage drop settings</h2>
+			
+			<div class="p">Several parameters related to the voltage drop settings can be defined as default values in the <a href="354611.htm#_354611__s_DC_Scale_Safety_editor">DC Scale Safety editor</a>. Applicable settings:<ul>
+					<li><a href="354611.htm#_354611__r_max_Vdrop"><span class="uicontrol">max Vdrop</span></a>: The maximum voltage drop.</li>
+					<li><a href="354611.htm#_354611__r_warn_Vdop"><span class="uicontrol">warn Vdrop</span></a>: The voltage drop warning threshold.</li>
+					<li><a href="354611.htm#_354611__r_Vdrop_hold_time"><span class="uicontrol">Vdrop Hold time</span></a>: Specifies the time to wait when the
+						maximum voltage drop is reached, before the <a href="354167.htm#_354167__r_Voltage_drop_force"><span>Voltage drop force</span></a> or <a href="354167.htm#_354167__r_Voltage_drop_return"><span>Voltage drop return</span></a> status flags are set.</li>
+					<li><a href="354611.htm#_354611__r_Vdrop_Disco"><span class="uicontrol">Vdrop Disco</span></a>: Specify whether to disconnect when the
+						programmed maximum force drop is exceeded.</li>
+					<li><a href="354611.htm#_354611__r_Open_loop_protection"><span class="uicontrol">Open Loop Protection</span></a>: Specifies how the internal
+						force to the sense connection is to be set in order to prevent an unintentionally established open control loop of the output
+						stage. </li>
+				</ul></div>
+		</section>
+		<section class="section"><h2>SmartRDI programming overview</h2>
+			
+			<p>The functionality of the Kelvin measurement unit is covered by the <span class="keyword">dc()</span> API of SmartRDI. Both the code‑based
+				mode and the pattern‑based mode are supported. For more information refer to <a href="141515.htm" title="SmartRDI supports both static and dynamic DC tests with DC Scale cards. Both the PMU (SIG) operating mode and the DPS operating mode are supported.">Setting up DC Scale pins with SmartRDI</a> and the related member
+				functions of the API.</p>
+			<table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_354548__entry__13" colspan="2">Functionality</th>
+							<th class="colsep-0 rowsep-1" id="_354548__entry__14">Member function</th>
+							<th class="colsep-0 rowsep-1" id="_354548__entry__15">Mode</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13">Set the maximum voltage drop on the force (P#) line</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13" rowspan="4">See section <a href="354548.htm#_354548__s_Status_flags">Status flags</a></td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14"><a href="344914.htm" title="Sets the maximum voltage drop on the force line. The pin gets automatically disconnected in case the voltage drop exceeds the programmed voltage.">rdi.dc().forceDropMax()</a></td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13">Set the maximum voltage drop on the common ground (GND) line</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14"><a href="344915.htm" title="Sets the maximum voltage drop on the return line. The pin gets automatically disconnected in case the voltage drop exceeds the programmed voltage.">rdi.dc().returnDropMax()</a></td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13">Set the warning threshold for the force (P#) line</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14"><a href="354661.htm" title="Sets a force drop voltage as a warning threshold for the force line.">rdi.dc().forceDropWarn()</a></td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13">Set the warning threshold for the common ground (GND) line</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14"><a href="354673.htm" title="Sets a return drop voltage as a warning threshold for the return line (GND).">rdi.dc().returnDropWarn()</a></td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13" colspan="2">Measure the voltage drop on the force (P#) line</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14">
+								<p><a href="344916.htm" title="Specifies a voltage drop measurement on the force line and initiates the transfer of an available measurement value from the front-end to the test processor.">rdi.dc().vMeasForceDrop()</a></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C + P</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13" colspan="2">Measure the voltage drop on the common ground (GND) line</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14">
+								<p><a href="344917.htm" title="Specifies a voltage drop measurement on the return line and initiates the transfer of an available measurement value from the front-end to the test processor.">rdi.dc().vMeasReturnDrop()</a></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C + P</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__13" colspan="2">Read and clear the latched maximum voltage drop</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__14">
+								<p><a href="105633.htm#_105633__dle_readMaxAbsVdropsParallel">HW_STATE.readMaxAbsVdropsParallel()</a></p>
+								<p>followed by</p>
+								<p><a href="105633.htm#_105633__dle_getMaxAbsVdrops">HW_STATE.getMaxAbsVdrops()</a></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354548__entry__15">C</td>
+						</tr>
+					</tbody></table>
+			<p>Mode: C = Code‑based, P = Pattern‑based.</p>
+		</section>
+		<section class="section"><h2>Test method API overview</h2>
+			
+			<div class="p">The functionality of the Kelvin measurement unit is covered by API <a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a>.<table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+							<tr>
+								<th class="colsep-0 rowsep-1" id="_354548__entry__38" colspan="3">Functionality</th>
+								<th class="colsep-0 rowsep-1" id="_354548__entry__39">Member function or parameter</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38 _354548__entry__39" colspan="4"><strong>XPS256 in PMU operating mode</strong></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the maximum voltage drop on the force (P#) line</td>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38" rowspan="4">See section <a href="354548.htm#_354548__s_Status_flags">Status flags</a>.</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="344345.htm" title="Sets the maximum voltage drop on the force line. The channel gets automatically disconnected in case the voltage drop exceeds the programmed voltage.">SPMU_PIN_TASK.forceDropMax()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the maximum voltage drop on the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="344346.htm" title="Sets the maximum voltage drop on the return line. The channel gets automatically disconnected in case the voltage drop exceeds the programmed voltage.">SPMU_PIN_TASK.returnDropMax()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the warning threshold for the force (P#) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="354701.htm" title="Set the warning threshold for the force line.">SPMU_PIN_TASK.forceDropWarn()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38">Set the warning threshold for the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__39"><a href="354702.htm" title="Set the warning threshold for the return line.">SPMU_PIN_TASK.returnDropWarn()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38 _354548__entry__39" colspan="3">The <a href="354548.htm#_354548__r_Open_loop_protection_PMU">open loop protection</a> must
+									be set to "NONE" if one of the parameters is set to a value&nbsp;≥&nbsp;0.5&nbsp;V.</td>
+							</tr>
+							<tr id="_354548__r_Open_loop_protection_PMU">
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38" colspan="2">Set the open loop protection</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">
+									<p><a href="355803.htm" title="Selects the open loop protection of a DC Scale pin.">SPMU_PIN_TASK.openLoopProtection()</a></p>
+									<p>If the open loop protection is set to "NONE", the <a href="354611.htm#_354611__r_Vdrop_Disco">Vdrop Disco</a>
+										parameter must be set to <span class="uicontrol">ON</span> in the <a href="354611.htm#_354611__s_DC_Scale_Safety_editor">DC Scale Safety editor</a>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38" colspan="2">Measure the voltage drop on the force (P#) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">Combination of <a href="131193.htm" title="This member function selects the execution mode of the DC measurement. The execution mode determines specifics, like if the measurement returns global or per pin pass/fail results or per pin values and other options.">SPMU_TASK.execMode()</a> and <a href="131275.htm" title="Sets the measurement mode, like fore current measure voltage or force voltage measure current and connects the BADC or PPMU if required.">SPMU_PIN_TASK.mode()</a> and <a href="144095.htm" title="Specifies a connection state. The connection state defines the mode of connecting a pin to the DUT or defines the bandwidth and reaction time of the pin.">SPMU_PIN_TASK.connectState()</a>:<ul>
+										<li>
+											<p>SPMU_PIN_TASK.mode(): Select a voltage measurement mode like <span class="keyword">"CFVM"</span> or
+													<span class="keyword">"VFVM"</span>.</p>
+										</li>
+										<li>
+											<p>SPMU_PIN_TASK.connectState(): Select <span class="keyword">"MEAS_KELVIN_HIGH"</span></p>
+										</li>
+									</ul></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38" colspan="2">Measure the voltage drop on the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">Combination of <a href="131193.htm" title="This member function selects the execution mode of the DC measurement. The execution mode determines specifics, like if the measurement returns global or per pin pass/fail results or per pin values and other options.">SPMU_TASK.execMode()</a> and <a href="131275.htm" title="Sets the measurement mode, like fore current measure voltage or force voltage measure current and connects the BADC or PPMU if required.">SPMU_PIN_TASK.mode()</a> and <a href="144095.htm" title="Specifies a connection state. The connection state defines the mode of connecting a pin to the DUT or defines the bandwidth and reaction time of the pin.">SPMU_PIN_TASK.connectState()</a>:<ul>
+										<li>SPMU_PIN_TASK.mode(): Select a voltage measurement mode like <span class="keyword">"IFVM"</span> or
+												<span class="keyword">"VFVM"</span>.</li>
+										<li>SPMU_PIN_TASK.connectState(): Select <span class="keyword">"MEAS_KELVIN_LOW"</span></li>
+									</ul></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38" colspan="2">Upload the measured value</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">
+									<p><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></p>
+									<p><a href="131197.htm" title="Returns the measured value of the specified pin. The unit depends on the type of measurement and can be either Ampere or Volt.">SPMU_TASK.getValue()</a></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38" colspan="2">Read and clear the latched maximum voltage drop</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">
+									<p><a href="105633.htm#_105633__dle_readMaxAbsVdropsParallel">HW_STATE.readMaxAbsVdropsParallel()</a></p>
+									<p>followed by</p>
+									<p><a href="105633.htm#_105633__dle_getMaxAbsVdrops">HW_STATE.getMaxAbsVdrops()</a></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38 _354548__entry__39" colspan="4"><strong>XPS256 in DPS operating mode</strong></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the maximum voltage drop on the force (P#) line</td>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38" rowspan="4">See section <a href="354548.htm#_354548__s_Status_flags">Status flags</a>.</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="16887.htm#_16887__max_voltage_drop_force">max_voltage_drop_force</a> parameter in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the maximum voltage drop on the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="16887.htm#_16887__max_voltage_drop_return">max_voltage_drop_return</a> parameter in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the warning threshold for the force (P#) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="16887.htm#_16887__warn_voltage_drop_force">warn_voltage_drop_force</a> parameter in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38">Set the warning threshold for the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__39"><a href="16887.htm#_16887__warn_voltage_drop_return">warn_voltage_drop_return</a> parameter in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38 _354548__entry__39" colspan="3">The <a href="354548.htm#_354548__r_Open_loop_protection_DPS">open loop
+										protection</a> must be set to <span class="keyword">none</span> if one of the parameters is set to a
+									value&nbsp;≥&nbsp;0.5&nbsp;V.</td>
+							</tr>
+							<tr id="_354548__r_Open_loop_protection_DPS">
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Set the open loop protection</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">
+									<p><a href="16887.htm#_16887__open_loop_protection">open_loop_protection</a> parameter in <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></p>
+									<p>If the open loop protection is set to <span class="keyword">none</span>, the <a href="354611.htm#_354611__r_Vdrop_Disco">Vdrop
+											Disco</a> parameter must be set to <span class="uicontrol">ON</span> in the <a href="354611.htm#_354611__s_DC_Scale_Safety_editor">DC Scale Safety editor</a>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Measure the voltage drop on the force (P#) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a> with the <a href="55665.htm#_55665__dle_measurementMode">measurementMode()</a> set to
+										<span class="keyword">TM::VOLTAGE_DROP_FORCE</span>.</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Measure the voltage drop on the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39"><a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a> with the <a href="55665.htm#_55665__dle_measurementMode">measurementMode()</a> set to
+										<span class="keyword">TM::VOLTAGE_DROP_RETURN</span>.</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Upload the measured value</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">
+									<p><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></p>
+									<p><a href="55630.htm#_55630__dle_getValue">DPS_TASK.getValue()</a></p>
+								</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38">Read and clear the latched maximum voltage drop</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__38"></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__39">
+									<p><a href="105633.htm#_105633__dle_readMaxAbsVdropsParallel">HW_STATE.readMaxAbsVdropsParallel()</a></p>
+									<p>followed by</p>
+									<p><a href="105633.htm#_105633__dle_getMaxAbsVdrops">HW_STATE.getMaxAbsVdrops()</a></p>
+								</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		<section class="section" id="_354548__s_Status_flags"><h2>Status flags</h2>
+			
+			<div class="p">The following <a href="354167.htm" title="The XPS256 card features several mechanisms for the self-protection of the card and for indicating the operating state, unusual operating conditions or test results.">XPS256 status flags</a> refer to the voltage drop measurement.<table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+							<tr>
+								<th class="colsep-0 rowsep-1" id="_354548__s_Status_flags__entry__1">Status flag</th>
+								<th class="colsep-0 rowsep-1" id="_354548__s_Status_flags__entry__2">Description</th>
+								<th class="colsep-0 rowsep-1" id="_354548__s_Status_flags__entry__3">API for reading the flag</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__1"><a href="354167.htm#_354167__r_Voltage_drop_force"><span>Voltage drop force</span></a></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__2">The voltage drop on the force (P#) line on the DUT board exceeds the user defined limit.</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__3"><a href="150044.htm" title="The member function retrieves the &#34;Voltage drop force&#34; accumulated power supply status flag from the test method cache.">DPS_AUX_TASK.getVoltageDropForce()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__1"><a href="354167.htm#_354167__r_Voltage_drop_return"><span>Voltage drop return</span></a></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__2">The voltage drop on the common return line (GND) on the DUT board exceeds the user defined limit.</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__3"><a href="150045.htm" title="The member function retrieves the &#34;Voltage drop return&#34; accumulated power supply status flag from the test method cache.">DPS_AUX_TASK.getVoltageDropReturn()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__1"><a href="354167.htm#_354167__r_V_drop_force_warning"><span>Voltage drop force
+												warning</span></a></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__2">The measured voltage drop on the force line (P#) exceeds the programmed warning threshold.</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__3"><a href="354727.htm" title="The member function retrieves the &#34;Voltage drop force warning&#34; accumulated power supply status flag from the test method cache.">DPS_AUX_TASK.getVoltageDropForceWarn()</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__1"><a href="354167.htm#_354167__r_V_drop_return_warning"><span>Voltage drop return
+												warning</span></a></td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__2">The measured voltage drop on the common return line (GND) referenced to the ground sense line (GS#)
+									exceeds the programmed warning threshold.</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__s_Status_flags__entry__3"><a href="354729.htm" title="The member function retrieves the &#34;Voltage drop return warning&#34; accumulated power supply status flag from the test method cache.">DPS_AUX_TASK.getVoltageDropReturnWarn()</a></td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		<section class="section"><h2>Test method API overview - DC events</h2>
+			
+			<div class="p">
+				<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+							<tr>
+								<th class="colsep-0 rowsep-1" id="_354548__entry__122">
+									<p>Functionality</p>
+								</th>
+								<th class="colsep-0 rowsep-1" id="_354548__entry__123">
+									<p>Member function</p>
+								</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__122">Measure the voltage drop on the force (P#) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__123"><a href="343992.htm" title="The EVENT_FDM class provides the functionality to define events doing force drop measurements. The force voltage drop depends on the actual current and the impedance of the connection to the DUT.">EVENT_FDM</a></td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__122">Measure the voltage drop on the common ground (GND) line</td>
+								<td class="colsep-0 rowsep-1" headers="_354548__entry__123"><a href="343993.htm" title="The EVENT_RDM class provides the functionality to define events doing return drop measurements. The return voltage drop depends on the actual current and the impedance of the connection to the DUT.">EVENT_RDM</a></td>
+							</tr>
+						</tbody></table>
+			</div>
+		</section>
+		
+
+		
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="353409.htm" title="The XPS256 card supports voltage drop measurements that are also known as Kelvin measurements. Voltage drop measurement means that the voltage drop on the two force lines is measured to ensure that these connections to the DUT have a sufficiently low resistance. Voltage drop measurements are supported per channel for the force line (P#) and for the return line (common GND).">XPS256 voltage drop measurement</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.1</li></ol></div><div class="fs"><div class="p"><a id="_354548__d609e1117"><sup>1)</sup></a>  The sample frequency of 2
+										MHz applies only to the hardware based averaging.
+										Transferring the averaged values to the test processor
+										memory is supported for a sample frequency of maximum 1.5
+										MHz.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 354548</span><script type="text/javascript">var ti='354548';var tt='XPS256 programming - Voltage drop measurement'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

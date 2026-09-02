@@ -1,0 +1,111 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The parameter type SpecVariable is defined to represent the spec variables defined in the level and timing setup files in universal test method. It contains the information of spec type, equation set number, spec name and unit of the spec variable. Its value is in the format of &#34;specType.equationSetNumber.specName[unit]&#34;."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SpecVariable</title><meta name="keywords" content="Spec, Variable"></head><body id="_115042"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 115042</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SpecVariable</h1>
+	
+	
+	<div><p>The parameter type SpecVariable is defined to represent the spec variables defined in
+		the level and timing setup files in universal test method. It contains the information of spec
+		type, equation set number, spec name and unit of the spec variable. Its value is in the format of
+			"<code>specType.equationSetNumber.specName[unit]</code>".</p>
+		<section class="section"><p>For example, it can be:</p><p><code>"LEV.1.fooSpec[mV]"</code> means the spec
+				variable is <code>fooSpec</code> in equation set 1 of level file, with the unit
+					<code>[mV]</code>.</p><p><code>"TIM.3.barSpec@port1[A]"</code> means the spec variable
+				is <code>barSpec</code> in equation set 3 for port <code>port1</code> of timing file,
+				with unit <code>[A]</code>.</p><p>A SpecVariable parameter includes the following
+				fields:</p><p><code>mFullName</code>: The full name of the SpecVariable
+					parameter.</p><p><code>mType</code>: The type of the spec
+					variable.</p><p><code>mEquationSetId</code>: The equation set number the spec variable
+				belongs to.</p><p><code>mName</code>: The spec variable name.</p><p><code>mUnit</code>:
+				The unit of the spec variable.</p><p>You can call the value of a field with th format
+					"<code>SpecVariable.field</code>". For example the parameter name is <code>spec</code>,
+					<code>spec.mUnit</code> calls the unit of the spec variable.</p><p>There are three member
+				functions defined for SpecVariable. These functions can be used in the test method to process
+				and change the SpecVariable parameter. </p></section>
+		<section class="sectiontitlefake"><h2>Member function</h2></section>
+		<section class="section"><h3>parseFullName()</h3><pre class="prettyprint copyable singleline">void parseFullName();</pre><p>This
+				function parses the input string to fill in the specific field of a SpecVariable parameter,
+				including type, equation set number, spec name and unit.</p></section>
+		<section class="section"><h3>Reset()</h3><pre class="prettyprint copyable singleline">void Reset();</pre><p>This function resets the
+				value of a SpecVariable to empty.</p></section>
+		<section class="section"><h3>operator =
+				</h3><pre class="prettyprint copyable singleline">SpecVariable&amp; operator = (const SpecVariable&amp; rhl) </pre><p>This
+				function sets the value for a SpecVariable parameter by copying from another SpecVariable
+				parameter.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">rhl</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The SpecVariable parameter to copy from.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<h2>Example</h2><div class="example"><p>The following example shows how to define a SpecVariable parameter and how to use it
+				in the test method. Some functions used in the run() function are defined in the file
+					<span class="filepath">SpecSearchUtil.hpp</span>. This example is intercepted from SpecSearch test in
+				the AC test method
+			library.</p><pre class="prettyprint linenums copyable">//for testmethod framework interfaces
+#include "testmethod.hpp"
+//for testmethod API interfaces
+#include "mapi.hpp"
+
+#include "SpecSearchUtil.hpp"
+class SpecSearch: public testmethod::TestMethod
+{
+protected:
+  testmethod::SpecVariable spec;
+  ...
+  
+protected:
+  /**
+   *Initialize the parameter interface to the testflow.
+   *This method is called just once after a testsuite is created.
+   */
+  virtual void initialize()
+  {
+    addParameter("spec",
+                 "SpecVariable",
+                 &amp;spec)
+    .setComment("this parameter's format like:\n"
+                "LEV.1.fooSpec[mV]\n"
+                "type is LEV, equationSetId is 1\n"
+                "name is fooSpec, unit is mV");
+    ...
+  }
+
+  /**
+   *This test is invoked per site.
+   */
+  virtual void run()
+  {
+    static SpecSearchUtil::SpecSearchUtilParam param;
+    
+    SpecSearchUtil::SpecSearchUtilResult result;
+    
+    /*----------------------------
+     * 1. prepare for test
+     *----------------------------
+     */
+    ON_FIRST_INVOCATION_BEGIN();
+      /*process all parameters needed in test*/
+      SpecSearchUtil::processParameters(spec.mName,
+                                        spec.mType,
+                                        setupPinlist,
+                                        spec.mUnit,
+                                        method,
+                                        min,
+                                        max,
+                                        step,
+                                        resolution,
+                                        resultPinlist,
+                                        param);
+    ON_FIRST_INVOCATION_END();
+    ...
+  
+    return ;
+  }
+};
+
+REGISTER_TESTMETHOD("AcTest.SpecSearch", SpecSearch);</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98956.htm" title="This topic shows how to create a test method class step by step in SmarTest.">How to create a universal test method class</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 115042</span><script type="text/javascript">var ti='115042';var tt='SpecVariable'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

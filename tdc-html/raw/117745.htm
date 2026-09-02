@@ -1,0 +1,49 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Suppose that all data transitions at the output pins of a source synchronous device are expected to occur at multiples of an UI. Suppose further that the output clock and the output data exhibit the same moderate common drift. Since this is acceptable, the device should pass a protocol engine test if no other errors occur."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Forwarding the clock</title></head><body id="_117745"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117745</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Forwarding the clock</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="117746.htm" title="Clock forwarding is one-many, that is, the adjustment information of one source pin can be passed to several sink pins.">Implementation details of clock forwarding</a></li></ol></div></nav>
+	
+	
+	<div><p>Suppose that all data transitions at the output pins of a source synchronous device are
+		expected to occur at multiples of an UI. Suppose further that the output clock and the output data
+		exhibit the same moderate common drift. Since this is acceptable, the device should pass a
+		protocol engine test if no other errors occur.</p>
+		<p>Now a central feature of the tracking mechanism is that it adjusts the observation window when
+			it recognizes a drift in the output data. But it can recognize a drift only by a transition
+			within the current window; if no transition occurs, the next window will not be adjusted.
+			Therefore, if no transitions occur over a longer stretch of UI's, several small, acceptable
+			deviations may be accumulated in such a way that the test reports an error although the device
+			should pass. </p>
+		<p>For the little scenario above, this means that tracking the drift of the output clock should
+			present no problem, because the clock signal is periodic and can be expected to supply a
+			transition with every UI. But the data signals can be steady for a considerable period of time,
+			and therefore the tracker may come to wrong conclusions if it bases its adjustment decisions on
+			an analysis of this signal.</p>
+		<p>The clock forwarding feature of the protocol engine allows you to circumvent this problem by
+			transferring the adjustments made for the output clock to the data pins. The tracking of the data
+			signals will then be based on the tracking of the output clock, and not on an analysis of the
+			data signals themselves. The pin whose tracking information is transferred is called the
+				<em>source</em>, the pin to which it is passed is called the <em>sink</em>.</p>
+		<p>Clock forwarding is configured in a clock forwarding set, which is defined with the
+				<span class="keyword">CFDF</span> and <span class="keyword">CFCF</span> commands. Clock forwarding is activated by
+			defining a primary clock forwarding set with <span class="keyword">CFPR</span>. In order to inactivate
+			clock forwarding again, issue <span class="keyword">CFPR ""</span>.</p>
+		<section class="section"><h2>Related Test Method APIs</h2><ul>
+				<li><a href="114958.htm" title="The CLOCKFORWARDING_SET class is a container representing a clock forwarding set. A clock forwarding set is composed of the clock forwarding domains that are used together. The associated clock forwarding domains will be specified via this class. For more information on clock forwarding see Forwarding the clock.">CLOCKFORWARDING_SET</a></li>
+				<li><a href="114959.htm" title="This CLOCKFORWARDING_DOMAIN contains the properties of the clock forwarding domain. It is a sub-class of CLOCKFORWARDING_SET. You cannot directly create an object with it.">CLOCKFORWARDING_DOMAIN</a></li>
+			</ul></section>
+		<h2>Example</h2><div class="example"><p>In order to simplify the graphics, the following examples illustrate the operation
+				mode by 1 UI observation windows. But note that in the actual implementation, the observation
+				window actually consists of 3 UI (= 12 samples); see <a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a>.</p><div class="p"><figure class="fignone">
+					
+					<img src="117829.png" alt="Forwarding adjustment information to another pin">
+				</figure></div><p>This example shows how an independent analysis of the signal of the sink (indicated
+				by the light blue coloring) would lead to a fatal BC transition (jump by 2) in the
+					8<sup>th</sup> observation window (marked by red font). The reason for this is that two 1/4 UI
+				shifts to the left are accumulated to a 1/2 UI shift to the left due to the stretch of 26 L's.
+				</p><p>It is assumed that the 9<sup>th</sup> window (marked by red font) starts at sample C of
+				the current window (it could also start two samples after the current window). For more details
+				on BC transitions see <em><a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a></em>.</p><p>By using the tracking information of
+				the source, the signal can be analyzed correctly.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117745</span><script type="text/javascript">var ti='117745';var tt='Forwarding the clock'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

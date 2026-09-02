@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The recommended solution to avoid the pass or fail site dependency for Pin Scale systems is the Multibin SmartDisconnect test suite or the Special test suite bin_disconnect for devices which require Keeping the Clock Alive. However, the following tips show workarounds for Pin Scale systems."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Workarounds to avoid the pass or fail site dependency</title></head><body id="_113567"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113567</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Workarounds to avoid the pass or fail site dependency</h1>
+	
+	
+	<div><p>The recommended solution to avoid <a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">the pass or fail site
+			dependency</a> for Pin Scale systems is the <a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a> or the <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a> for devices which require <a href="37524.htm" title="SmarTest always activates the actual primary timing and level sets when a connect sequence is executed (as, for example, at the start of every test flow). By default, it also activates them before the start of a functional test whenever necessary. Finally, new timing or level sets are activated within a functional test when CTIM or CLEV sequencer instructions occur in the sequencer program of the test.">Keeping the Clock Alive</a>. However, the
+		following tips show workarounds for Pin Scale systems.</p>
+		<section class="section"><h2>Making test suites self-contained</h2><p>The most straightforward
+				workaround is to make all the test suites in your test flow <a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">Self-contained</a>. Non-self-contained test suites are one reason for
+				causing this issue, as explained in <a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">the pass or fail site
+					dependency</a>.</p><p>Pros:</p><ul>
+				<li>Test suite can be placed at any location in the test flow.</li>
+			</ul><p>Cons:</p><ul>
+				<li>A significant test time penalty may arise for devices that require PLL
+					keep-alive as each test suite needs to include a full initialization and the
+					synchronization to the clock pin.</li>
+			</ul></section>
+		<section class="section"><h2>Workarounds for non-self-contained test suites: Using global_overon flag and
+				overon bins</h2><p>Setting the test flow flag
+					<span class="uicontrol">global_overon</span> to "on" and activating the
+					<span class="uicontrol">Overon </span>flag in the relevant bin will delay the binning of
+				a failing device to later bins in the test flow.</p><p>Pros:</p><ul>
+				<li>Easy to do. Setting the <span class="uicontrol">global_overon </span>flag allows the
+					test flow to continue after stop bins that are marked as
+						<span class="keyword">overon</span> bins. Binning happens at a later stage in the test
+					flow.</li>
+			</ul><p>Cons:</p><ul>
+				<li>Usually introduces a test time penalty (more information in <a href="42687.htm" title="If you activate the Overon flag in the relevant bin, any failing devices are assigned bin details (bin code, bad part, bin number, and so on) but are not switched off (that is, no SQST OFF command is given) until a failing device enters a bin that does not have the Overon flag activated, later in the flow.">Overon Enable</a>) because failing devices still need to run through
+					subsequent test suites. </li>
+			</ul></section>
+		<section class="section"><h2>Workarounds for non-self-contained test suites: Delaying binning with test
+				flow variables</h2><p>This workaround assigns variables to failing sites and
+				checks them later in the test flow so that failing sites needn't run through all the
+				test suites the same way as passing sites do.</p><p>Pros:</p><ul>
+				<li>No big test time penalty, and flexible when compared with the
+						<span class="keyword">overon</span> method.</li>
+			</ul><p>Cons:</p><ul>
+				<li>If the rest of your test flow contains several match loops, time is wasted
+					waiting for failing sites within the match loops.</li>
+				<li>Use of the variables with the <span class="keyword">overon</span> flags and user procedure
+					could result in a complex test flow. For more details, refer to topics:<ul>
+						<li><a href="42689.htm" title="This strategy also ensures a failing site will stay alive through the flow; the figure below shows schematically the solution. If a device fails a testsuite, that site is assigned a variable. The testflow then continues - including as many similar constructs as necessary - until the point is reached where binning can take place. Here, if ... then constructs are used to bin the variables.">Delay Binning II - Assign Variables to Failing
+								Parts</a></li>
+						<li><a href="42690.htm" title="One potential drawback with Solution II - Assign Variables to Failing Parts is that if the rest of your testflow contains several match loops, for example, you waste time waiting for failing sites within the match loops. The figure below offers a solution to this.">Delay Binning III - Assign Variables and Activate Overon Enable</a></li>
+						<li><a href="42692.htm" title="This solution - shown schematically in the figure below - takes the failing sites from testsuite 1 and assigns a variable to them. An if...then condition separates the failing sites which continue to Testsuite 2. Sites which pass, however, are subject to a user procedure which opens the relays for the drive pins for the duration of testsuite 2. Sites which then pass testsuite 2 together with those that passed testsuite 1 pass on to testsuite 3.">Delay Binning IV - Assigning Variables &amp; User Procedures</a></li>
+						<li><a href="42693.htm" title="As Solution IV - Assigning Variables &amp; User Procedures offers quite a complicated solution which also involves user procedures, you might consider writing one user procedure for the whole construct.">Delay Binning V - user procedure instead of test suite</a>.</li>
+					</ul></li>
+			</ul></section>
+		<section class="section"><h2>User-defined disconnect sequence: Removing SQST and DLSO</h2><p>For
+				devices that Do not use shared pins in a multi-site test, this workaround can solve
+				the site dependency issue while keeping PLL alive.</p><p>Pros:</p><ul>
+				<li>Allows replacing <a href="113093.htm" title="When the test system resources are disconnected from the DUT and the tester is set to the &#34;disconnect&#34; state, a standard disconnect sequence is used within SmarTest by default.">Standard disconnect sequence</a> with a <a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">user
+						defined sequence</a> just by removing the sequencer commands
+						<span class="keyword">SQST</span> and <span class="keyword">DLSO</span>.</li>
+			</ul><p>Cons:</p><ul>
+				<li>Hot-switching of AC-relays takes place because neither <span class="keyword">SQST</span>
+					nor <span class="keyword">DLSO</span> are executed to put the relevant channels into high
+					impedance. This could potentially damage both the DUT and the mechanical relays
+					on the channel cards.</li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">Description and analysis of the pass or fail site dependency</a></div><div><a href="113365.htm">Implementing bin_disconnect to overcome the pass or fail site dependency issue</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113567</span><script type="text/javascript">var ti='113567';var tt='Workarounds to avoid the pass or fail site dependency'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

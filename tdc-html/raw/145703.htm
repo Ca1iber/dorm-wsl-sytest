@@ -1,0 +1,886 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="PROTOCOL_TEST is an abstract class that contains the common member functions of several derived classes each of which represents a different kind of protocol based test. Two such classes are SYNCHRONIZED_TEST and SERIAL_LINK_TEST. You cannot create a PROTOCOL_TEST object directly, but only through a derived class."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PROTOCOL_TEST</title></head><body id="_145703"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 145703</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PROTOCOL_TEST</h1>
+	
+	
+	<div><p><code>PROTOCOL_TEST</code> is an abstract class that contains the common member
+		functions of several derived classes each of which represents a different kind of protocol based
+		test. Two such classes are <span class="keyword">SYNCHRONIZED_TEST</span> and
+			<span class="keyword">SERIAL_LINK_TEST</span>. You cannot create a <span class="keyword">PROTOCOL_TEST</span> object
+		directly, but only through a derived class.</p>
+		<section class="section"></section>
+		<section class="section"><h2>Using the SmartCalc framework for protocol tests</h2><p>The SmartCalc framework
+				can be used for result processing of protocol tests. In principle, all you have to do is to set
+				the protocol test into background processing mode with the <span class="keyword">smcArm()</span> member
+				function. However, the following prerequisites must be fulfilled:</p><ul>
+				<li>In a multi-site setup, <span class="keyword">smcArm()</span> must be called within the
+						<span class="keyword">FOR_EACH_SITE</span> block.</li>
+				<li><span class="keyword">smcArm()</span> must be called before calling <span class="keyword">SMC_ARM()</span>.</li>
+				<li>The protocol test must be defined dynamically within the <span class="keyword">run()</span> function,
+					otherwise it may no longer exist when the background process needs it to retrieve the
+					results.</li>
+				<li>Bulk upload must be enabled (see the <span class="keyword">enableBulkUploadMode()</span>
+					function).</li>
+				<li>If the test object is reused, <span class="keyword">smcArm()</span> must be called every time it is
+					executed. </li>
+			</ul><p>For a code example, see
+				below.</p><p>This
+				API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/ProtocolTest.h</span>.</p></section>
+		<section class="section"><h2>Syntax</h2><pre class="prettyprint linenums copyable">static Boolean reserveTransactionMemory(const STRING &amp;port, INT sizeInBytes = TM::PROTOCOL_TEST_AUTO);
+
+static STRING dumpCacheCounters();
+
+static void resetAllCacheCounters();
+
+void resetCacheCounters();
+
+UINT64 getCacheHits();
+
+UINT64 getCacheUpdates();
+
+UINT64 getCacheMisses();
+
+void enableBulkUploadMode(Boolean enable);
+
+void smcArm(Boolean enable);
+
+TRANSACTION_SEQUENCE&amp; add(DOUBLE delayTime);
+TRANSACTION_SEQUENCE&amp; add(INT delayCycles = 0);
+
+TRANSACTION_SEQUENCE&amp; addVolatile(DOUBLE delayTime);
+TRANSACTION_SEQUENCE&amp; addVolatile(INT delayCycles = 0);
+
+PROTOCOL_TEST&amp; setDelayTime(INT sequenceIndex, DOUBLE delayTime);
+
+PROTOCOL_TEST&amp; setDelayCycles(INT sequenceIndex, INT delayCycles);
+
+TRANSACTION_SEQUENCE&amp; getTransactionSequence(INT sequenceIndex);
+TRANSACTION&amp; transaction(const STRING&amp; transactionName);
+
+INT getLength();
+
+TRANSACTION_ITERATOR getTransactions();
+
+STRING dump();
+
+UINT64 getResult(const STRING&amp; resultName);
+STRING getResult(const STRING&amp; resultName, TM::format format);
+
+Boolean hasProtocolError();
+
+TRANSACTION_ITERATOR getProtocolErrorTransactions();
+
+Boolean hasFailed();
+
+TRANSACTION_ITERATOR getFailedTransactions();
+
+const STRING&amp; getName();
+
+Boolean getFirstFailedLoop(TM::LOOP_CONDITION condition, INT32 &amp;firstLoopIndex, INT32 &amp;transactionSequenceIndex);
+Boolean hasPattern(void);
+
+UINT64 getTransactionResult(const STRING&amp; transactionIdString);
+STRING getTransactionResult(const STRING&amp; transactionIdString, TM::FORMAT format);
+UINT64 getRawTransactionResultArray(const STRING&amp; transactionIdString, std::vector&lt;UINT8&gt; &amp; resultData);
+</pre></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>reserveTransactionMemory()</h3><pre class="prettyprint copyable singleline">static Boolean reserveTransactionMemory(const STRING &amp;port, INT sizeInBytes = TM::PROTOCOL_TEST_AUTO)</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__2"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__3"><p>Identifier of the port to be used.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__2"><p><span class="keyword">sizeInBytes</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__3"><p>Memory size in Byte.</p>
+								<p>If omitted: <code>PROTOCOL_TEST_AUTO</code>, enables the uses up to all available
+									channel memory.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__2"><p><span class="keyword">boolean</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__3"><p><span class="keyword">TRUE</span>, if memory could successfully be reserved.</p>
+								<p><span class="keyword">FALSE</span>, if memory could not be reserved.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Sets the maximum memory <span class="keyword">size</span> to be used for vector fragments of
+				protocol test transactions per channel resource on the given <span class="keyword">port</span>.</p><p>The
+				size will be automatically increased to the closest size that is integer-dividable by 64 bit. If
+				this function is called for several ports with overlapping channel resources, the memory size is
+				applied per port, i.e. the size valid for a channel resource is finally determined by the sum of
+				all ports definitions that contain the channel resource.</p><p>Calling
+					<code>reserveTransactionMemory()</code> will internally clear the tester memory utilization
+				log, but leave logging in its current state.</p><p>Execution of this method will perform a
+				cleanup of all memory entries and a deletion of all patterns generated through protocol tests.
+				Thus the pattern cannot be accessed from the pattern editor
+				anymore.</p><p>If
+				no <span class="keyword">sizeInByte</span> is specified, the default
+					<code>TM::PROTOCOL_TEST_AUTO</code> will be used. In this case the protocol test
+				transaction memory with its cache will grow up to the maximum available free channel memory.
+				However, this could mean that subsequent tests may not get sufficient memory, for example, for result
+				storage, if the transaction memory grows into their demanded memory area. In this particular
+				case the system will dynamically increase the size of reserved transaction memory needed until
+				it reaches the system limit.</p><p>Defining a distinct transaction memory size reserves the
+				according memory immediately and ensures its size does not grow beyond.</p></section>
+		<section class="section"><h3>dumpCacheCounters()</h3><pre class="prettyprint copyable singleline">static STRING dumpCacheCounters();</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__13"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__14"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__15"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__13"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__14"><p><span class="keyword">string</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__15"><p>String containing all cached protocol objects.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Provides a string with concatenated information of all cached protocol test objects
+				with their name, their cache hits, their cache updates and their cache misses.</p></section>
+		<section class="section"><h3>resetAllCacheCounters()</h3><pre class="prettyprint copyable singleline">static void resetAllCacheCounters();</pre><p>There
+				are no parameters associated with this function.</p><p>Resets all counters for cache misses,
+				updates and hits across of all cached protocol test objects.</p></section>
+		<section class="section"><h3>resetCacheCounters()</h3><pre class="prettyprint copyable singleline">void resetCacheCounters();</pre><p>There
+				are no parameters associated with this function.</p><p>Resets counters for cache misses, updates
+				and hits of current protocol test object.</p></section>
+		<section class="section"><h3>UINT64 getCacheHits()</h3><pre class="prettyprint copyable singleline">UINT64 getCacheHits();</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__19"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__20"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__21"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__19"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__20"><p><span class="keyword">UINT64</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__21"><p>Number of cache hits to up to max 64 bit.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Returns the cache hits counter of the current protocol test object.</p><p>The counter
+				will start at zero, incrementing by one for each flush operation if:</p><ul>
+				<li>the current object and a previously flushed object are identical and</li>
+				<li>the previous object already resides in the cache.<div class="note"><span class="title">Note</span> If the counter overflows
+						the 64 bit value range, it will start again at 0 without further notice.</div>
+				</li>
+			</ul></section>
+		<section class="section"><h3>getCacheUpdates()</h3><pre class="prettyprint copyable singleline">UINT64 getCacheUpdates();</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__25"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__26"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__27"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__25"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__26"><p><span class="keyword">UINT64</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__27"><p>Number of cache updates up to max 64 bit.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Returns the number of cache updates of current protocol test object.</p><p>The counter
+				will start at zero, incrementing by one for each flush operation if:</p><ul>
+				<li>the current object and a previously flushed object are identical with</li>
+				<li>the exception of their input/output parameter values and</li>
+				<li>are already residing in the cache.<div class="note"><span class="title">Note</span> If the counter overflows the 64 bit
+						value range, it will start again at 0 without further notice.</div>
+				</li>
+			</ul></section>
+		<section class="section"><h3>getCacheMisses()</h3><pre class="prettyprint copyable singleline">UINT64 getCacheMisses();</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__31"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__32"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__33"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__31"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__32"><p><span class="keyword">UINT64</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__33"><p>Number of cache misses up to max 64 bit.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Returns the counter of cache misses of current protocol test object.</p><p>The counter
+				will start at zero, incrementing by one for each flush operation if:</p><ul>
+				<li>a difference, other than input/output parameter values, has been determined between the
+					current and a previously flushed object or</li>
+				<li>there is no protocol test object with identical name in the cache at all when this function
+					is executed.<div class="note"><span class="title">Note</span> If the counter overflows the 64 bit value range, it will start
+						again at 0 without further notice.</div>
+				</li>
+			</ul></section>
+		<section class="section"><h3>enableBulkUploadMode()</h3><pre class="prettyprint copyable singleline">void enableBulkUploadMode(Boolean enable);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__37"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__38"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__39"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__37"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__38"><p><span class="keyword">enable</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__39"><p>If TRUE, bulk upload is enabled (default).</p>
+								<p>If FALSE, bulk upload is disabled.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Uploads all required output parameters from the protocol test object in a
+				bulk.</p><p>This means, that all data -across all transactions and sites- will be uploaded at
+				the first attempt to access the results of the object, respectively its derivate.</p><p>If the
+				parameter <span class="keyword">enable</span> is set to <span class="keyword">TRUE</span>, all data will be upload
+				at the first attempt to access results of the object.</p><p>This data is cached for later
+				reference within the test method layer.</p></section>
+		<section class="section"><h3>smcArm()</h3><pre class="prettyprint copyable singleline">void smcArm(Boolean enable);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__43"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__44"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__45"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__43"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__44"><p><span class="keyword">enable</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__45"><p>If TRUE, the test is put into background processing mode.</p>
+								<p>If FALSE, the test runs in standard mode. This is the default..</p>
+							</td>
+						</tr>
+					</tbody></table><p>This function serves to prepare the protocol test for result processing within the
+				SmartCalc framework. For more information see <a href="142493.htm" title="The SmartCalc framework can be used for result processing of protocol tests (not for the upload from the hardware). In principle, all you have to do is to set the protocol test into background processing mode with the smcArm() member function of the PROTOCOL_TEST class. However, the following prerequisites must be fulfilled:">Using the SmartCalc framework for protocol tests</a>.</p></section>
+		<section class="section"><h3>add()</h3><pre class="prettyprint linenums copyable">TRANSACTION_SEQUENCE&amp; add(DOUBLE delayTime);
+TRANSACTION_SEQUENCE&amp; add(INT delayCycles = 0);</pre><p>This
+				function adds an empty sequence of transactions to the end of the test. The new transaction
+				sequence is not synchronized to another port but may have an associated delay specified in
+				cycles or seconds. </p><p>A transaction sequence must contain at least one transaction if the
+				delay is 0. But it is allowed to be empty if the delay is &gt; 0.</p><p>This member function
+				uses the caching mechanism for transactions. This may prolong the test unnecessarily if the
+				parameter values for the protocol change very often. In this case it is recommended to use
+					<span class="keyword">addVolatile()</span>.</p><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__49"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__50"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__51"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__49"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__50"><p><span class="keyword">delayTime</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__51"><p>Specifies the delay time in s of the new transaction sequence to be added.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__49"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__50"><p><span class="keyword">delayCycles</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__51"><p>Specifies the delay of the new transaction sequence in X-cycles (<em>not</em> tester
+									cycles). The system inserts the smallest number of tester cycles such that the number of
+									X-cycles contained in these tester cycles is ≥ <span class="keyword">delayCycles</span>.</p>
+								<p>For more information on X-cycles see <a href="106829.htm" title="If no timing set change is executed within a label (pattern), the tester cycle length remains the same throughout the label. But even then it is possible to accelerate or slow down the test execution from the standpoint of the DUT. Acceleration is realized with tester waveforms that comprise the actions of several DUT waveforms (x-mode), a slowdown with tester waveforms that contain only a part of the actions belonging to one DUT waveform and which must be combined in a certain order to produce one slow DUT waveform (fractional x-mode). Both acceleration and slowdown can be realized within the same label. It is also possible to use different (integer or fractional) x-modes for different pins.">Representing a pattern in device orientation</a>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>addVolatile()</h3><pre class="prettyprint linenums copyable">TRANSACTION_SEQUENCE&amp; addVolatile(DOUBLE delayTime);
+TRANSACTION_SEQUENCE&amp; addVolatile(INT delayCycles = 0);</pre><p>Adds
+				an empty sequence of transactions to the end of the test. The new sequence of transactions is
+				not synchronized to another port but may have an associated delay specified in cycles or time
+				[s].</p><p>A transaction sequence must contain at least one transaction if the delay is 0. But
+				it is allowed to be empty if the delay is &gt; 0.</p><p>Transaction sequences defined with this
+				member function do not use the standard caching mechanism for transactions. This can shorten the
+				test time if the values of the transaction parameters change very often between
+				executions.</p><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__58"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__59"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__60"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__58"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__59"><p><span class="keyword">delayTime</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__60"><p>Specifies the delay time in s of the new transaction sequence to be added.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__58"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__59"><p><span class="keyword">delayCycles</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__60"><p>Specifies the delay of the new transaction sequence in X-cycles (<em>not</em> tester
+									cycles). The system inserts the smallest number of tester cycles such that the number of
+									X-cycles contained in these tester cycles is ≥ <span class="keyword">delayCycles</span>.</p>
+								<p>For more information on X-cycles see <a href="106829.htm" title="If no timing set change is executed within a label (pattern), the tester cycle length remains the same throughout the label. But even then it is possible to accelerate or slow down the test execution from the standpoint of the DUT. Acceleration is realized with tester waveforms that comprise the actions of several DUT waveforms (x-mode), a slowdown with tester waveforms that contain only a part of the actions belonging to one DUT waveform and which must be combined in a certain order to produce one slow DUT waveform (fractional x-mode). Both acceleration and slowdown can be realized within the same label. It is also possible to use different (integer or fractional) x-modes for different pins.">Representing a pattern in device orientation</a>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setDelayTime()</h3><pre class="prettyprint copyable singleline">PROTOCOL_TEST&amp; setDelayTime(INT sequenceIndex, DOUBLE delayTime)</pre><p>Sets
+				the <span class="keyword">delayTime</span> in seconds to delay the transaction sequence specified by
+					<span class="keyword">sequenceIndex</span>. The delay time is applied after any synchronization to
+				another port by adding additional idle vector repeats that are at least the length of the
+				specified time.</p><p>A transaction sequence must contain at least one transaction if the delay
+				is 0. But it is allowed to be empty if the delay is &gt; 0.</p><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__67"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__68"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__69"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__67"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__68"><p><span class="keyword">sequenceIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__69"><p>Index of sequence to which the delay time shall be applied.</p>
+								<p>Valid range: 0 to <code>getLength()-1</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__67"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__68"><p><span class="keyword">delayTime</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__69"><p>Specifies the delay time in s.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setDelayCycles()</h3><pre class="prettyprint copyable singleline">PROTOCOL_TEST&amp; setDelayCycles(INT sequenceIndex, INT delayCycles)</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__76"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__77"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__78"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__76"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__77"><p><span class="keyword">sequenceIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__78"><p>Index of sequence to which the delay time shall be applied.</p>
+								<p>Valid range: 0 to <code>getLength()-1</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__76"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__77"><p><span class="keyword">delayCycles</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__78"><p>Specifies the delay in X-cycles, not tester cycles. The system inserts the smallest
+									number of tester cycles such that the number of X-cycles contained in these tester cycles
+									is ≥ <span class="keyword">delayCycles</span>.</p>
+								<p>For more information on X-cycles see <a href="106829.htm" title="If no timing set change is executed within a label (pattern), the tester cycle length remains the same throughout the label. But even then it is possible to accelerate or slow down the test execution from the standpoint of the DUT. Acceleration is realized with tester waveforms that comprise the actions of several DUT waveforms (x-mode), a slowdown with tester waveforms that contain only a part of the actions belonging to one DUT waveform and which must be combined in a certain order to produce one slow DUT waveform (fractional x-mode). Both acceleration and slowdown can be realized within the same label. It is also possible to use different (integer or fractional) x-modes for different pins.">Representing a pattern in device orientation</a>.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Sets a specific number of <span class="keyword">delayCycles</span> to delay the transaction
+				specified by <span class="keyword">sequenceIndex</span>.</p><p>The delay cycles are applied after any
+				synchronization to another port and to any delay time (if set).</p><p>A transaction sequence
+				must contain at least one transaction if the delay is 0. But it is allowed to be empty if the
+				delay is &gt; 0.</p></section>
+		<section class="section"><h3>getTransactionSequence()</h3><pre class="prettyprint copyable singleline">TRANSACTION_SEQUENCE&amp; getTransactionSequence(INT sequenceIndex)</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__85"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__86"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__87"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__85"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__86"><p><span class="keyword">sequenceIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__87"><p>Index identifying a transaction sequence.</p>
+								<p>Valid range: 0 to <code>getLength()-1</code></p>
+							</td>
+						</tr>
+					</tbody></table><p>Returns the transaction sequence at the specified index
+					(<span class="keyword">sequenceIndex</span>).</p></section>
+		<section class="section"><h3>transaction()</h3><pre class="prettyprint copyable singleline">TRANSACTION&amp; transaction(const STRING&amp; transactionName);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__91"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__92"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__93"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__91"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__92"><p><span class="keyword">transactionName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__93"><p>Name of the transaction to be add to the last available sequence or a new
+									transaction sequence.</p>
+							</td>
+						</tr>
+					</tbody></table><p>This method is a shortcut for adding transactions to the end of the test.</p><p>It
+				internally adds a transaction with the specified name (<span class="keyword">transactionName</span>) to
+				the last available transaction sequence or creates a new transaction sequence containing that
+				transaction.</p><p>Using this shortcut allows to set up simple unsynchronized transaction
+				sequences.</p><div class="note"><span class="title">Note</span> For more complex scenarios, where multiple transaction sequences
+				are synchronized to different vectors use the <code>TRANSACTION_SEQUENCE</code>
+				class.</div></section>
+		<section class="section"><h3>getLength()</h3><pre class="prettyprint copyable singleline">INT getLength();</pre><table id="_145703__d198e22" class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr id="_145703__d198e37" class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__d198e37__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__d198e37__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__d198e37__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr id="_145703__d198e58" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__d198e37__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d198e37__entry__2"><p><span class="keyword">int</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d198e37__entry__3"><p>Number of currently available transactions.</p>
+							</td>
+						</tr>
+					</tbody></table><p id="_145703__d198e79">Returns the number of currently available transactions.</p><p id="_145703__d198e81">This
+				value is the upper boundary (range limit) for inserting transactions at a specific index or
+				accessing transactions already added.</p></section>
+		<section class="section"><h3>getTransaction()</h3><pre class="prettyprint copyable singleline">TRANSACTION_ITERATOR getTransactions();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p id="_145703__d6557e24">Returns an iterator over all
+				transactions in the sequence.</p><p id="_145703__d6557e26">The returned object can be used to loop through all
+				transactions that were previously added to the protocol test.</p><div class="note" id="_145703__d6557e28"><span class="title">Note</span> The
+				iterator will become invalid if the transaction sequence is modified. In this case it will not
+				return any further transactions.</div></section>
+		<section class="section"><h3>dump()</h3><pre class="prettyprint copyable singleline">STRING dump();</pre><p id="_145703__d3557e22">There are no
+				parameters.</p><p id="_145703__d3557e24">Dumps the transaction sequence to a human readable format. This can be
+				used for data log or debugging purposes.</p></section>
+		<section class="section"><h3>getResult()</h3><pre class="prettyprint linenums copyable">UINT64 getResult(const STRING&amp; resultName);
+STRING getResult(const STRING&amp; name, TM::FORMAT format);</pre><table id="_145703__d766e22" class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr id="_145703__d766e37" class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__d766e37__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__d766e37__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__d766e37__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr id="_145703__d766e58" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__2"><p><span class="keyword">resultName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__3"><p>Name of a result area that has been used in a capture action
+										(<span class="keyword">capture()</span> function of the <span class="keyword">TRANSACTION</span> class). </p>
+							</td>
+						</tr>
+						<tr id="_145703__d766e83" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__2"><p><span class="keyword">format</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__3"><p>Specifies the format of the returned sting.</p>
+								<p>Possible formats are:</p>
+								<p><code>TM::HEX</code> hexadecimal literal prefixed with 0x</p>
+								<p><code>TM::BIN</code> binary literal prefixed with 0b</p>
+								<p><code>TM::SCS</code> the captured bits without any prefix</p>
+								<p><code>TM::SYMBOL</code> symbolic value, if the parameter was set up with symbolic
+									values</p>
+							</td>
+						</tr>
+						<tr id="_145703__d766e125" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__2"><p><span class="keyword">UINT64</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__3"><p>Result access with a max length of 64 bit.</p>
+							</td>
+						</tr>
+						<tr id="_145703__d766e144" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__2"><p><span class="keyword">string</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d766e37__entry__3"><p>Result access with a length more than 32 bit.</p>
+							</td>
+						</tr>
+					</tbody></table><p id="_145703__d766e165">This function returns the result data of the specified result area. If the
+					<span class="keyword">enableBulkUploadMode()</span> member function of the
+					<span class="keyword">PROTOCOL_TEST</span> class is set to <span class="keyword">TRUE</span> (which is the
+				default), the capture results are uploaded for all sites in parallel into a cache on the work
+				station by the first call of <span class="keyword">getResult()</span>; all later calls within the same
+				test method access this cache. This is independent of whether or not the first call is placed
+				within the <span class="keyword">ON_FIRST_INVOCATION</span> block. If
+					<span class="keyword">enableBulkUploadMode()</span> is set to <span class="keyword">FALSE</span>,
+					<span class="keyword">getResult()</span> only returns the result of the site that has the query focus; in
+				this case, <span class="keyword">getResult()</span> must be placed outside the
+					<span class="keyword">ON_FIRST_INVOCATION</span>
+				block.</p><p id="_145703__d766e198">The <span class="keyword">UINT64</span> version allows at most 64 bit values to be reconstructed.
+				If larger parameter values should be read then the alternative syntax must be used.</p><p id="_145703__d766e203">The <span class="keyword">string</span> version should be used if expecting more than 32 bit
+				length of result data. In this case the format of the returned string has to be specified! If
+				the format is set to <span class="keyword">SYMBOL</span> and the captured value does not match any
+				symbolic value the operation will return an empty
+				string.</p><p id="_145703__d766e211">Exceptions will occur if:</p><ul id="_145703__d766e213">
+				<li id="_145703__d766e215">called for an empty transaction object, respectively if no valid results are
+					available, i.e. no test executed yet or results already invalidated again</li>
+				<li id="_145703__d766e218">the parameter identified by <span class="keyword">name</span> was not set up to be
+					captured.</li>
+			</ul></section>
+		<section class="section"><h3>hasProtocolError()</h3><pre class="prettyprint copyable singleline">Boolean hasProtocolError();</pre><table id="_145703__d7116e22" class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr id="_145703__d7116e37" class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__d7116e37__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__d7116e37__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__d7116e37__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr id="_145703__d7116e58" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__d7116e37__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d7116e37__entry__2"><p><span class="keyword">boolean</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__d7116e37__entry__3"><p><span class="keyword">TRUE</span> is returned if a protocol violation occurred.</p>
+								<p><span class="keyword">FALSE</span> is returned if the transaction has not been executed.</p>
+							</td>
+						</tr>
+					</tbody></table><p id="_145703__d7116e86">Returns <span class="keyword">TRUE</span> if the latest execution of this transaction
+				has encountered a protocol violation. The function will return <span class="keyword">FALSE</span> if the
+				transaction was not yet executed.</p><div class="note" id="_145703__d7116e94"><span class="title">Note</span> Protocol violations are bits
+				received from the DUT that do not match the specified fixed fields in a protocol frame.</div></section>
+		<section class="section"><h3>getProtocolErrorTransactions()</h3><pre class="prettyprint copyable singleline">TRANSACTION_ITERATOR getProtocolErrorTransactions();</pre><p>There
+				are no parameters associated with this function.</p><p>Returns an iterator over all transactions
+				with protocol violations.</p><p>The iterator becomes invalid if the test is executed again or
+				transactions are modified. In this case it will not return any further
+			transactions.</p></section>
+		<section class="section"><h3>hasFailed()</h3><pre class="prettyprint linenums copyable">Boolean hasFailed();
+Boolean hasFailed(const STRING&amp; transactionIdString);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__124"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__125"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__126"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__124"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__125"><p><span class="keyword">transactionIdString</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__126"><p>Specifies the transaction ID of the transaction whose result is to be
+									retrieved.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__124"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__125"><p><span class="keyword">Boolean</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__126"><p><span class="keyword">TRUE</span> is returned if a protocol error occurred or if the data
+									read from the DUT does not match the expected data.</p>
+								<p><span class="keyword">FALSE</span> is returned if all received data matched the expected data, but
+									also if the transaction has not been executed.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Returns <span class="keyword">TRUE</span> if either the specified transaction or any transaction
+				of this protocol test failed during the latest execution of the test. The function will return
+					<span class="keyword">FALSE</span> if the specified transaction was not yet executed or none of the
+				already executed transactions has failed.</p><p>A transaction is considered failing if any of
+				its received fields did not match the expected parameter value or if a protocol error
+				occurred.</p></section>
+		<section class="section"><h3>getFailedTransactions()</h3><pre class="prettyprint copyable singleline">TRANSACTION_ITERATOR getFailedTransactions();</pre><p>There
+				are no parameters associated with this function.</p><p>Returns an iterator over all transactions
+				that failed the latest execution.</p><p>The iterator becomes invalid if the test is executed
+				again or transactions are modified. In this case it will not return any further
+				transactions.</p></section>
+		<section class="section"><h3>getName()</h3><pre class="prettyprint copyable singleline">const STRING&amp; getName();</pre><p>There are
+				no parameters associated with this function.</p><p>Returns the name of the current
+					<code>PROTOCOL_TEST</code> object. This method is particularly useful if the name is
+				automatically generated.</p></section>
+		<section class="section"><h3>getFirstFailedLoop()</h3><pre class="prettyprint copyable singleline">Boolean getFirstFailedLoop(TM::LOOP_CONDITION condition, INT32 &amp;firstLoopIndex, INT32 &amp;transactionSequenceIndex);</pre><p>This
+				function identifies the first failed loop of a certain type within a protocol test. Currently,
+				only match loops are supported. It returns <span class="keyword">TRUE</span> if a loop of the specified
+				type failed, otherwise <span class="keyword">FALSE</span>.</p><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__133"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__134"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__135"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__133"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__134"><p><span class="keyword">condition</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__135"><p>The loop type. Currently, only <span class="keyword">CONTINUE_ON_PASS</span> and
+										<span class="keyword">CONTINUE_ON_FAIL</span>, that is, only match loops are supported. For more
+									information on match loops in protocol patterns see <a href="125388.htm" title="The transaction sequence class is used to set up a sequence of transactions that is to be executed consecutively without intermediate synchronization. It cannot be instantiated directly, but can only be accessed by the add() and transaction() member functions of the PROTOCOL_TEST class, and the syncTransaction() function of the SYNCHRONIZED_TEST class.">TRANSACTION_SEQUENCE</a>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__133"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__134"><p><span class="keyword">firstLoopIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__135"><p>Returns the index (counted from 0) of the first failing match loop of the
+									respective subtype.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__133"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__134"><p><span class="keyword">transactionSequenceIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__135"><p>Returns the index of the transaction sequence that was translated into the first
+									failing match loop.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>hasPattern()</h3><pre class="prettyprint copyable singleline">Boolean hasPattern(void);</pre><p>This
+				function returns TRUE if a protocol pattern exists for the respective protocol test. The
+				function has no parameters.</p></section>
+		<section class="section"><h3>getTransactionResult()</h3><p>This function returns the result of the
+				transaction that is associated with the specified string. If the return value comprises more
+				than 64 bit, the version that returns a string must be used.</p><p>This function requires that
+				the transaction has only one result. This is in contrast to the <span class="keyword">getResult()</span>
+				function of the <span class="keyword">TRANSACTION</span> class, where each result is associated with a
+				different result
+				area.</p><pre class="prettyprint linenums copyable">UINT64 getTransactionResult(const STRING&amp; transactionIdString);
+STRING getTransactionResult(const STRING&amp; transactionIdString, TM::FORMAT format);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__145"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__146"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__147"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__145"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__146"><p><span class="keyword">transactionIdString</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__147"><p>The transaction ID of the transaction the result of which is to be retrieved. If
+									the transaction ID is unique within the test method, you can simply specify this string.
+									But since you can use the same transaction ID for transactions in different transaction
+									sequences, this ID alone will not always be sufficient to identify the transaction within
+									the test method. A similar situation arises when the same persistent pattern (precompiled
+									transaction sequence) is used more than once in a test.</p>
+								<p>Whenever such an ambiguity exists, the transaction instance must be identified by the
+									compound string</p>
+								<p><span class="keyword">persistent_pattern_name</span>:<span class="keyword">occurrence_no</span>:<span class="keyword">transactionIdString</span>,</p>
+								<p>where </p>
+								<ul>
+									<li><span class="keyword">__MAPI_GENERATED_TS__</span> must be specified for
+											<span class="keyword">persistent_pattern_name</span> if an transaction ID is used more than once in
+										the test method code, </li>
+								</ul><p>and</p>
+								<ul>
+									<li><span class="keyword">occurrence_no</span> counts <ul>
+											<li>either the instances of the persistent pattern, </li>
+											<li>or the MAPI generated transaction sequences containing the specified transaction
+												ID</li>
+										</ul></li>
+								</ul><p> within the test method, starting from 0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__145"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__146"><p><span class="keyword">format</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__147"><p>Specifies the format of the returned string.</p>
+								<p>Possible formats are:</p>
+								<p><code>TM::HEX</code> hexadecimal literal prefixed with 0x</p>
+								<p><code>TM::BIN</code> binary literal prefixed with 0b</p>
+								<p><code>TM::SCS</code> the captured bits without any prefix</p>
+								<p><code>TM::SYMBOL</code> symbolic value, if the parameter was set up with symbolic
+									values</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getRawTransactionResultArray()</h3><pre class="prettyprint copyable singleline">UINT64 getRawTransactionResultArray(const STRING&amp; transactionIdString, std::vector&lt;UINT8&gt; &amp; resultData);</pre><p>This
+				function returns an array of binary result data for the transaction with the specified
+				transaction ID. It returns the length of the array containing the results.</p><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_145703__entry__154"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__155"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_145703__entry__156"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__154"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__155"><p><span class="keyword">transactionIdString</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__156"><p>The transaction ID of the transaction the result of which is to be retrieved. If
+									the transaction ID is unique within the test method, you can simply specify this string.
+									But since you can use the same transaction ID for transactions in different transaction
+									sequences, this ID alone will not always be sufficient to identify the transaction within
+									the test method.</p>
+								<p>Whenever such an ambiguity exists, the transaction instance must be identified by the
+									compound string</p>
+								<p><span class="keyword">persistent_pattern_name</span>:<span class="keyword">occurrence_no</span>:<span class="keyword">transactionIdString</span>,</p>
+								<p>where </p>
+								<ul>
+									<li><span class="keyword">__MAPI_GENERATED_TS__</span> must be specified for
+											<span class="keyword">persistent_pattern_name</span> if an transaction ID is used more than once in
+										the test method code, </li>
+								</ul><p>and</p>
+								<ul>
+									<li><span class="keyword">occurrence_no</span> counts either <ul>
+											<li>the instances of the persistent pattern, or </li>
+											<li>the MAPI generated transaction sequences containing the specified transaction ID</li>
+										</ul></li>
+								</ul><p> within the test method, starting from 0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__154"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__155"><p><span class="keyword">resultData</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_145703__entry__156"><p>The array into which the result data is written. The length of the array depends on
+									the size of the data.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<h2>Example</h2><div class="example"><p>The following code fragment shows the use of the Smartcalc framework for a single-site
+				synchronized
+			test:</p><pre class="prettyprint linenums copyable">class Mdio_SMC: public testmethod::TestMethod {
+
+protected:
+
+. . .
+
+  virtual void run()
+  {
+    FW_TASK("DCRT RAM, (Po01)");
+
+    // Declare the synchronized test dynamically:
+       SYNCHRONIZED_TEST *mdioTest = new SYNCHRONIZED_TEST("Po01");
+
+    const int numReads = 100;
+
+    ON_FIRST_INVOCATION_BEGIN();
+
+      SYNCHRONIZED_TEST::unlink();
+      for(int i=0; i&lt;numReads; i++) {
+        stringstream resultId;
+        resultId &lt;&lt; "read" &lt;&lt; i;
+        STRING resultIdStr = resultId.str();
+        mdioTest-&gt;transaction("read").set("phyaddr", 0x0F)
+                                     .set("regaddr", 0x15)
+                                     .capture("data", resultIdStr);
+      }
+      if (!mdioTest-&gt;flush()) {
+        cerr &lt;&lt; "flush error \n";
+        ERROR_EXIT(TM::ABORT_FLOW);
+      }
+      SMC_FUNCTIONAL_TEST();
+
+      // Call smcArm() before SMC_ARM():
+      mdioTest-&gt;smcArm(true);
+
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM(numReads, mdioTest);
+  }
+
+public:
+  void SMC_backgroundProcessing(const int&amp; numReads, SYNCHRONIZED_TEST* mdioTest)
+  {
+    UINT64 *results = new UINT64[numReads];
+
+    for(int i=0; i&lt;numReads; i++) {
+        stringstream resultId;
+        resultId &lt;&lt; "read" &lt;&lt; i;
+        STRING resultIdStr = resultId.str();
+        results[i] = mdioTest-&gt;getResult(resultIdStr);
+        UINT64 expectedResult = i;
+        SMC_TEST("","", (results[i] == expectedResult) ? TM::Pass : TM::Fail, 0, TRUE);
+    }
+    bool testFailed = mdioTest-&gt;hasFailed();
+    SMC_TEST("","", testFailed ? TM::Fail : TM::Pass, 0, TRUE);
+    bool testError = mdioTest-&gt;hasProtocolError();
+    SMC_TEST("","", testError ? TM::Fail : TM::Pass, 0, TRUE);
+
+    delete(mdioTest);
+    return;
+  }
+
+  . . .
+
+};</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125390.htm" title="The SYNCHRONIZED_TEST class sets up a synchronized test within a test method. It is derived from the PROTOCOL_TEST class.">SYNCHRONIZED_TEST</a></div><div><a href="125406.htm" title="Returns transaction iterator objects of protocol tests for">TRANSACTION_ITERATOR</a></div><div><a href="125388.htm" title="The transaction sequence class is used to set up a sequence of transactions that is to be executed consecutively without intermediate synchronization. It cannot be instantiated directly, but can only be accessed by the add() and transaction() member functions of the PROTOCOL_TEST class, and the syncTransaction() function of the SYNCHRONIZED_TEST class.">TRANSACTION_SEQUENCE</a></div><div><a href="136021.htm" title="The INDEPENDENT_TEST class supplies protocol tests that are executed independently of the simulation ports. It is derived from the PROTOCOL_TEST class. Like a synchronized protocol test, an independent test consists of one or more transaction sequences each of which contains one or more transactions.">INDEPENDENT_TEST</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.3.1: It is now possible to query the result of a transaction by its transaction
+					ID.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 145703</span><script type="text/javascript">var ti='145703';var tt='PROTOCOL_TEST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

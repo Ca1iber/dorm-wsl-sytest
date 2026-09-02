@@ -1,0 +1,90 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The MVCU (Modify Vector variable Configuration Usage) command modifies the usage defined for a Vector Variable Configuration (VVC), using the same parameters as DVCU (see DVCU, DVCU? - (Define Vector variable Configuration Usage) for more information."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>MVCU - (Modify Vector variable Configuration Usage)</title><meta name="keywords" content="config"></head><body id="_99062"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99062</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">MVCU - (Modify Vector variable Configuration Usage)</h1>
+	
+	
+	<div><p>The <span class="keyword">MVCU</span> (Modify Vector variable Configuration Usage) command
+		modifies the usage defined for a Vector Variable Configuration (VVC), using the same parameters as
+			<span class="keyword">DVCU</span> (see <a href="99060.htm" title="The DVCU command connects a source label to a vector variable configuration (VVC). When the source label is a DSRC label, it also allocates the required number of frames for this label. When the source label is a main label (flat setup), DVCU expects that the required amount of memory has already been allocated. This command also downloads the static data, if requested.">DVCU, DVCU? - (Define Vector variable Configuration Usage)</a> for more information.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">MVCU</span> {<span class="keyword">label name</span>}, {<span class="keyword">VVC name</span>}, {<span class="keyword">vector offset</span>}, {<span class="keyword">Init Discard Frames</span>}, {<span class="keyword">Number Of Frames</span>}, {<span class="keyword">VarNameDef</span>}, {<span class="keyword">InitStaticData</span>}</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">label name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Name of the label for which usage is to be modified.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">VVC name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Name of the Vector Variable configuration. Refer to <a href="99059.htm" title="The DVVC (Define Vector Variable Configuration) command defines the vector variable configuration (VVC) for digital source. The VVC is used in combination with the vector label.">DVVC, DVVC? - (Define Vector Variable Configuration)</a> for more
+									information.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">Vector offset</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This is the offset in the label where usage needs to be modified. Vector offset is
+									the logical vector number in the label. A usage with this combination of parameters {label
+									name, VVC name, Vector offset} should already exist in the system, when defined by
+										<span class="keyword">DVCU</span>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">Init Discard Frames</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This is a reserved parameter. For future use.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">Number Of Frames</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Number Of Frames to which this usage refers. If the label is
+										<span class="keyword">DSRC</span>, usage <em>allocates</em> this many frames. If the label is a main
+									label, usage <em>refers</em> to this many frames.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">VarNameDef</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This parameter specifies the vector variable names for the variable names defined
+									in VVC. This parameter is a string.</p>
+								<p>Syntax:</p>
+								<p><code>"VVC_NAME=VEC_VAR_NAME[,VVC_NAME=VEC_VAR_NAME[,.....]]"</code></p>
+								<p>There is no need to have aliases (vector variable names) for all the variables in
+									VVC.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">InitStaticData</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This parameter is either TRUE or FALSE.</p>
+								<p>TRUE: Static data will be downloaded on definition of usage.</p>
+								<p>FALSE: Static data will not be downloaded.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Digital source memory application.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated for the following reasons:</p><ul>
+				<li>Not enough memory.</li>
+				<li>Usage does not exist with the combination of label, VVC and offset.</li>
+				<li>Overlapping with other usages, but with a frame pattern that is different from the existing
+					one.</li>
+				<li>Given vector variable already exists.</li>
+			</ul></div>
+		
+		
+		<h2>Example</h2><div class="example"><p>The following example modifies the usage to change vector variable names. This usage
+				is defined for the label "src" using VVC "AC97" at offset 0.</p><p>VVC "AC97" looks
+			like:</p><pre class="prettyprint linenums copyable">ATTR DIGDATA
+  VARIABLES LEFT,RIGHT
+  PINS ser_in
+     SOURCE_DATA_TEMPLATE LEFT[0-19]; RIGHT[0-19]
+     MAPPING
+         0 low
+         1 high
+&gt;MVCU"src_ramp","AC97",0,0,1024,"LEFT=Sine,
+ RIGHT=Ramp",TRUE
+&gt;DVCU? ALL,ALL,ALL
+&lt;DVCU "src_ramp","AC97",0,0,1024,"LEFT=Sine,
+ RIGHT=Ramp",TRUE</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99062</span><script type="text/javascript">var ti='99062';var tt='MVCU - (Modify Vector variable Configuration Usage)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

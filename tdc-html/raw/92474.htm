@@ -1,0 +1,84 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The b2a tool restores the (or creates an) ASCII timing and ASCII vector setup from a SmarTest timing and a SmarTest vector setup file. A prerequisite is that the timing is equation based. The reconstruction is performed for pairs of label (pattern) and timing specification (determined by equation set and specset). Such pairs are typically defined in the testsuites of a testflow. Accordingly the pairs, as well as the names of the setup files, are normally passed to b2a by specifying a testflow file. But all this information can also be supplied in a special configuration file (*.bcf)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Basic Operation of b2a</title><meta name="keywords" content="b, 2, a"></head><body id="_92474"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 92474</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Basic Operation of b2a</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="121831.htm" title="If the base wavetable of a pattern contains a STATEMAP section, b2a can convert a pattern (label) into an ASCII vector file using only the base wavetable. The main difference between this option and a standard call of b2a is that no testflow or *.bcf file may be specified. Instead, you must specify the name of the vector setup file (option -V), the pattern name (option -P), a timing setup file (option -t), and the base wavetable (option -w) as command line parameters. The global output name -o must also be specified in order to supply a name for the log file.">STATEMAP section and pattern conversion</a></li></ol></div></nav>
+	
+	
+	<div><p>The<strong> b2a</strong> tool restores the (or creates an) ASCII timing and ASCII vector setup
+		from a SmarTest timing and a SmarTest vector setup file. A prerequisite is that the timing is
+		equation based. The reconstruction is performed for pairs of label (pattern) and timing
+		specification (determined by equation set and specset). Such pairs are typically defined in the
+		testsuites of a testflow. Accordingly the pairs, as well as the names of the setup files, are
+		normally passed to <strong>b2a</strong> by specifying a testflow file. But all this information can also be
+		supplied in a special configuration file (<kbd class="userinput">*.bcf</kbd>).</p>
+		<p><strong>b2a</strong> performs the reconstruction in two steps. In the first step it creates an ASCII
+			timing from the timing setup file and the pin configuration file. This ASCII timing consists of </p>
+		<ul>
+			<li>one ASCII timing file (<kbd class="userinput">*.dvc</kbd>) for the whole testflow</li>
+			<li>one global configuration file (<kbd class="userinput">*.aic</kbd>) for the whole testflow</li>
+			<li>separate main timing map files (<kbd class="userinput">*.tmf</kbd>) for every label of the testflow
+				and separate second level timing map files for every timing set used in the label.<p>The used
+					timing sets are </p><ul>
+					<li>the primary timing set, which is specified for the testsuite in the testflow file, and </li>
+					<li>the timing sets that are activated in the sequencer program of the label with a
+							<span class="keyword">CTIM</span> instruction. </li>
+				</ul></li>
+		</ul>
+		<p>Note that the timing reconstruction must also have access to the vector setup file in order</p>
+		<ul>
+			<li>to retrieve the pattern names for the global configuration file, and</li>
+			<li>to determine the timing sets that are activated with <span class="keyword">CTIM</span>.</li>
+		</ul>
+		<p>Two main points must be observed in connection with the reconstruction of the ASCII timing:</p>
+		<ul>
+			<li>The timing translator of the ASCII interface inserts a comment line starting with
+					<span class="keyword">#USED WAVEFORMS</span> into the timing sets for every pin. These comments list the
+				waveforms of the respective pin which are derived from the same ASCII device cycle as the
+				respective timing set. If <strong>b2a</strong> finds such a comment line, then its default behavior is to
+				process only the waveforms listed in this comment for the respective pin and timing set. <p>This
+					is reasonable for setup files that have been created with the ASCII Interface and have not been
+					changed by the user. If you have created your timing manually or have modified the setup by
+					defining additional waveforms, then you must tell <strong>b2a</strong> to ignore the comments and to
+					process every waveform in the wavetable. This can be done by setting the <span class="keyword">-Fw</span>
+					flag in the call of <strong>b2a</strong>. </p>
+				
+			</li>
+			<li><strong>b2a</strong> tries to restore the original ASCII period and the x-mode factor of the timing.
+				For <em>standard</em> pins, the reconstruction is based on <ul>
+					<li>the <span class="keyword">period</span> statement of the timing set, and</li>
+					<li>the device cycle names. 
+						<p>The x-mode factor is reconstructable from the <span class="keyword">period</span> statement only if
+							the period is specified in the format <span class="keyword">n</span> * <span class="keyword">expression</span>,
+							where <span class="keyword">expression</span> can be simply the name of a spec variable or even a
+							constant, but also something more complex. <strong>b2a</strong> takes <span class="keyword">n</span> to be the
+							x-mode factor.</p>
+						<p>The x-mode factor is reconstructable from the device cycle names if these have been created
+							by <strong>ait</strong> with the option <span class="keyword">-Fx</span>.</p>
+						<p><strong>b2a</strong> considers both options. If the reconstructed x-mode factors are different, the
+							value inferred from the device cycle names prevails.</p>
+						<p>For <em>fast</em> pins, the x-mode factor is reconstructed from the
+								<span class="keyword">period_div</span> statement in the timing set. </p>
+						<p>Note that <strong>b2a</strong> does <em>not</em> create an x-mode control file
+								(<kbd class="userinput">*.cmb</kbd>). You may have to create such a file manually if you want to
+							translate the reconstructed ASCII timing with the ASCII interface.</p></li>
+				</ul></li>
+		</ul>
+		<p>The following figure illustrates these points:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="92770.png" alt="ASCII Timing Reconstruction by b2a">
+			</figure></div>
+		<p>In the second step, <strong>b2a</strong> uses the timing map files created in the first step to convert
+			the binary vector setup of the respective label into an ASCII vector file. A separate ASCII
+			vector file is created for every label of the testflow.</p>
+		
+		<p>The following figure illustrates the vector retranslation:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="92794.png" alt="ASCII Vector Reconstruction by b2a">
+			</figure></div>
+		<p>Note that the timing map file is used by <strong>b2a</strong> and <strong>aiv</strong> in opposite directions.
+				<strong>b2a</strong> looks it up to find the state character for a given waveform index (not the index for
+			a given state character).</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 92474</span><script type="text/javascript">var ti='92474';var tt='Basic Operation of b2a'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Clock forwarding is one-many, that is, the adjustment information of one source pin can be passed to several sink pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Implementation details of clock forwarding</title></head><body id="_117746"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117746</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Implementation details of clock forwarding</h1>
+	
+	
+	<div><p>Clock forwarding is one-many, that is, the adjustment information of one source pin can
+		be passed to several sink pins. </p>
+		<p>A source pin together with its associated sink pins is called a <em>forwarding domain</em>.
+			Several domains can be active at the same time. The set of domains that are to be active at the
+			same time is defined in a <em>forwarding set</em> (with the <span class="keyword">CFDF</span> and
+				<span class="keyword">CFCF</span> commands, or with the <span class="keyword">CLOCKFORWARDING_DOMAIN</span> and
+				<span class="keyword">CLOCKFORWARDING_SET</span> APIs).</p>
+		<p>There are a number of restrictions to be observed when using the clock forwarding feature:</p>
+		<ul>
+			
+			<li>For the PS1600 digital card: <p>The PS1600 can pass the clock phase information only to
+					slaves within the same logical boards. A PS1600 card combines 8 channel modules
+					or 8 logical boards. Each logical boards represents one pogo block, when using
+					the <a href="123089.htm" title="The E8030PSD long pogo cable assembly connects the 128 channels of a PS1600 card via 8 standard-density (SD) pogo blocks to the DUT board.">standard (compatible) 8x16 pogo assembly</a>. When
+					using the <a href="352305.htm" title="The E8030PHD pogo cable assembly connects the 128 channels of a PS1600 card via 4 high-density (HD) pogo blocks to the DUT board.">high-density 4x32 pogo assembly</a>, it
+					represents either the inner rows of each pogo block, for example 101, or the
+					outer pin rows, for example 501.</p></li>
+			<li>The domains of a forwarding set must be separate, that is, no pin must belong to more than
+				one of them.</li>
+			<li>If the pins of one forwarding domain belong to different ports, all these ports must belong
+				to the same sequencing group and must have the same tester cycle length.<p>For more information
+					on sequencing groups see <a href="55334.htm" title="When different ports of a multi-port setup are executed at different speed their user vectors can be synchronized exactly in the sense that they are started simultaneously after each timing set change (CTIM instruction). This includes the internal CTIM, which is by default executed at the start of a functional test. To synchronize these ports exactly, they need to be included in the same sequencing group (see Defining sequencing groups for details).">Synchronization within sequencing groups</a>.</p></li>
+			<li>All pins of one forwarding domain must run with the same x-mode (all with x4-mode or all with
+				x6-mode). </li>
+			<li>24 consecutive received bits must not be longer than 24 1/4 UIs, and not shorter than 23 3/4
+				UIs of the programmed UI length.<p>This requirement sharpens one of the restrictions listed in
+						<a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a>.</p></li>
+		</ul>
+		<p>If too many adjustments are made on the source pin in too short a time, the tracking
+			information cannot be forwarded fast enough to the sink pins any more. This may compromise the
+			clock forwarding fatally. You can guard against this problem in two steps:</p>
+		<ol>
+			<li>Check with the <span class="keyword">CFCF</span> command (or the <span class="keyword">speed()</span> function of
+				the <span class="keyword">CLOCKFORWARDING_DOMAIN</span> API) whether the transfer rate you need is
+				supported by the hardware under the actual boundary conditions (for example, the master clock
+					period).<p>This is done as follows:</p><ol type="a">
+					<li>Specify the required maximum transfer rate.</li>
+					<li>Execute your functional test.<p>If the requested transfer rate is too high, execution of
+							the functional test will be aborted and an error message be issued which informs you about
+							the maximum speed that is supported by the hardware under the current boundary conditions.
+							The functional test must be started in order that SmarTest can determine these current
+							boundary conditions.</p></li>
+				</ol></li>
+			<li>If it is too high, try to distribute the forwarding domains on the channel boards in such a
+				way that the transfer can be executed in parallel for all domains. </li>
+		</ol>
+		<h2>Example</h2><div class="example"><div class="p"><figure class="fignone">
+					
+					<img src="117755.png" alt="Defining clock forwarding domains for two sites">
+				</figure></div><p>This example shows an optimal distribution of two forwarding domains for two
+				sites.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="352865.htm" title="The PS1600 is the Smart Scale generation digital base card. With 128 channels per card it supports higher pin count and higher multisite testing, which enables smaller infrastructure usage and cost.">PS1600 pogo pin assignment</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117746</span><script type="text/javascript">var ti='117746';var tt='Implementation details of clock forwarding'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

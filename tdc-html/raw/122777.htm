@@ -1,0 +1,61 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Reducing settling (wait) times to a minimum can save test time."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Reduce Wait time</title></head><body id="_122777"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122777</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Reduce Wait time</h1>
+	
+	
+	<div><p>Reducing settling (wait) times to a minimum can save test time.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The following gives you a simple test method API to determine how short your wait time
+				can be. </p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2><ol>
+				<li>This procedure can be used to check to see whether settling time is relevant, or to reduce
+					it to a minimum.</li>
+				<li>The idea is to find the minimum time for stable and repetitive results.</li>
+				<li>The figure below shows how to check and reduce the settling time accordingly so long as your
+					results are stable and repetitive.<div class="p"><figure class="fignone">
+							
+							<img src="102957.png" alt="Checking Whether Settling Time is Required">
+						</figure></div></li>
+			</ol><p>Explanations:</p><ul>
+				<li>WAIT_TIME(x); //where x is a delay</li>
+				<li>Reduce WAIT_TIME as long as results are stable and repetitive</li>
+				<li>The above WAIT_TIME of 5 ms has been chosen empirically</li>
+			</ul></section>
+		<section class="section"><h3>Using the "wait" Settling Time Within a DPS_TASK</h3><p>It is possible to set a
+				custom wait/settling-time within a DPS_TASK by using <strong>wait </strong>instead of the <strong>WAIT_TIME</strong>
+				test method API</p><p>The <strong>wait</strong> test method API feature offers the possibility of adding
+				wait time <em>directly </em>before the measurement is performed. </p><p>This helps to stabilize
+				the measurements and allows you to reduce the wait time to a minimum. </p><p>This is, for
+				example, especially useful after any necessary range-switching or un-ganging of channels is
+				performed, especially where large capacitances are present.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>1) The conventional method before release 6.3.3 was as
+				follows:</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+    mydpsTask.pin("dpsPin").min(0).max(1 mA);
+    mydpsTask.samples(512).execMode(TM::PVAL);
+    FUNCTIONAL_TEST(); //to set the device into the right test mode
+    WAIT_TIME(5 ms);
+    mydpsTask.execute();
+ON_FIRST_INVOCATION_END();
+cout &lt;&lt; mydpsTask.getValue("dpsPin");</pre><p>The
+				result of this is as follows:</p><div class="p"><figure class="fignone">
+					
+					<img src="105284.png" alt="Using a Test Method WAIT_TIME">
+				</figure></div><p>2) The recommended method for release 6.3.3 and subsequent releases using "wait" in
+				a DPS task API is as
+				follows:</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+    mydpsTask.pin("dpsPin").min(0).max(1 mA);
+    mydpsTask.samples(512).execMode(TM::PVAL);
+    mydpsTask.wait(5 ms);
+    FUNCTIONAL_TEST(); //to set the device into the right test mode
+    mydpsTask.execute();
+ON_FIRST_INVOCATION_END();
+cout &lt;&lt; mydpsTask.getValue("dpsPin");</pre><p>The
+				result of this is as follows:</p><div class="p"><figure class="fignone">
+					
+					<img src="105285.png" alt="Using &#34;wait&#34; within a DPS_TASK">
+				</figure></div><p>Here, you see that the wait time is applied directly before the measurement which
+				is preferable, especially if you have done any range-switching or un-ganging of
+			channels.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="55630.htm" title="The DPS_TASK API enables you to set up and execute measurements and to retrieve the measured value for DPS channels or DC Scale cards in DPS operating mode.">DPS_TASK</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122777</span><script type="text/javascript">var ti='122777';var tt='Reduce Wait time'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

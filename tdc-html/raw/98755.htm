@@ -1,0 +1,106 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SSAC command defines the pins whose associated channels are to be used as buffers for source synchronous testing. It mainly specifies the read mode and the number of results that are to be stored in the channel."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SSAC, SSAC? - (Source Synchronous testing: Add Configuration)</title><meta name="keywords" content="config, SSAC_"></head><body id="_98755"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98755</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SSAC, SSAC? - (Source Synchronous testing: Add Configuration)</h1>
+	
+	
+	<div><p>The <span class="keyword">SSAC</span> command defines the pins whose associated channels are to be
+		used as buffers for source synchronous testing. It mainly specifies the read mode and the number
+		of results that are to be stored in the channel. </p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span> Rapid source sync is not supported on the EXA Scale test
+					systems. SmarTest will give the following error: "ERROR: SSAC - RSS is not supported on EXA
+					Scale machine type." and the execution of SSAC is blocked if used while running on this
+					system.</div>
+			<p>The read mode defines whether the data of the channel is inverted by the <a href="98756.htm" title="The SSCT command combines source synchronous test result data of several source channels and transfers the result to a target channel. The source data is combined by AND, that is, the combined result is 1 if and only if the result of all source channels is 1. The source channels can be associated with the pins to be tested, but they can also be buffer channels which are used in source synchronous testing for accumulating global cycle results (see Exploiting hardware resources for performance enhancement).">SSCT</a> command before it is processed. This is necessary, for example, for
+				the source buffer channel in order to get an accumulated PASS result with
+					<span class="keyword">SSCT</span> if only one of the source channels contains PASS. For details see <a href="85197.htm" title="Source synchronous testing is rather time consuming. First, it requires multiple executions of the same functional test. Second, the results of each execution (shot) must be combined with the already existing global results for the previous shots. Finally, if this result accumulation is executed on the workstation, the results must be uploaded after each shot.">Exploiting hardware resources for performance enhancement</a>.</p><p>The number of results can be specified explicitly or by defining a
+				reference pin. The intended application of the latter option is to run a preliminary functional
+				test for the pins to be tested in order to determine the required memory size. In a second step,
+				the buffer channels are then configured by reference to one of these pins. This is the
+				recommended way to define the buffer size. </p><p>Note that certain restrictions exist with
+				respect to the location of the channels that are used as buffer channels. For details see <a href="85281.htm" title="Result accumulation in the hardware is only possible if the channels involved in the data transfer satisfy the following requirements:">Hardware restrictions for result accumulation</a>.</p><p>The <span class="keyword">SSAC?</span> query returns the configuration of the
+				specified buffer pins.</p></section>
+		<div class="syntax"><h2>SSAC</h2><pre class="prettyprint copyable singleline"><span class="keyword">SSAC</span> [<span class="keyword">read_mode</span>],[<span class="keyword">nr_of_results</span>],[(<span class="keyword">ref_pin</span>}],{(<span class="keyword">pinlist</span>)}</pre></div><div class="syntax"><h2>SSAC?</h2><pre class="prettyprint copyable singleline"><span class="keyword">SSAC?</span></pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">SSAC</span> {<span class="keyword">read_mode</span>},[<span class="keyword">nr_of_results</span>],[(<span class="keyword">ref_pin</span>}],{(<span class="keyword">pinlist</span>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="3"><p><span class="keyword">read_mode</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Possible read modes are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">NORM</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Channel data is processed as it is stored in the source
+									channels. This is the default.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">INV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>Channel data is inverted internally before it is processed.
+									The channel data itself is not changed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">nr_of_results</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Specifies the size of the area
+									to be used for buffering cycle/edge data for source synchronous testing. If this parameter
+									is omitted you must specify a reference pin. </p>
+								<p>The number to be specified here must be calculated as </p>
+								<p><em>result_granularity</em> * <em>number_of_cycles.</em></p>
+								<p>The result granularity is the number of results per cycle. It can be 1 (one global
+									result), in which case you must specify the number of cycles, or 8 (one result for every
+									edge), in which case you must specify 8 * <em>number_of_cycles</em>.</p>
+								<p>The number of bytes required to store the specified number of results must be a multiple
+									of 8. If this requirement is not satisfied, the number of results will be
+									auto-corrected.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">ref_pin</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>The pin that defines the size of
+									the buffer area. If this parameter is omitted, you must specify the number of results. If a
+									reference pin is defined, the <span class="keyword">nr_of_results</span> parameter is ignored.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>The pins that are to be
+									configured as buffer pins.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Errors</h2><p>An error is generated if the requested number of results exceeds
+				the available result area size.</p>
+			<p>Rapid source sync is not supported on the EXA Scale test systems. SmarTest will
+				give the following error: "ERROR: SSAC - RSS is not supported on EXA Scale machine type." and
+				the execution of SSAC is blocked if used while running on this system.</p>
+		</div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><p>The following example shows how the buffer channels are configured by using a
+				reference pin:
+				</p><pre class="prettyprint linenums copyable">&gt; DCGM ALL,STRT,NONE
+&gt; DCRT RAM,(@)
+&gt; SSRC (@)
+&gt; SVLR TIM,1,1,"sweep",2.4
+&gt; FTST?
+&gt; SSAC INV,,(D1),(SB)
+&gt; SSAC NORM,,(D1),(G1,G2)
+&gt; SSCT IMM,NORM,,(SB),(D1,D2,D3,CL)
+&gt; SSCT ACC,NORM,,(G1),(SB)
+&gt; SVLR TIM,1,1,"sweep",2.5
+&gt; FTST?
+. . .</pre><p>First
+				the detailed Error Map is configured for source synchronous testing (recording mode
+					<span class="keyword">ALL</span>, location in RDRAM). Next the existing buffer configurations are
+				removed. Then the sweep variable is set, and the first functional test executed. Subsequently
+				the buffer channels are configured using <kbd class="userinput">D1</kbd> as the reference pin. Then
+				the results of the first functional test are processed. Finally, the sweep variable is
+				incremented and the next functional test executed. </p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98755</span><script type="text/javascript">var ti='98755';var tt='SSAC, SSAC? - (Source Synchronous testing: Add Configuration)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

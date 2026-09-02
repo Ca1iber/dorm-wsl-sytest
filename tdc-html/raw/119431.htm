@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Controlling high-Z behavior of digital pins while the sequencers are OFF</title></head><body id="_119431"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119431</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Controlling high-Z behavior of digital pins while the sequencers are OFF</h1>
+	
+	
+	<div><p></p>
+		<div class="note"><span class="title">Note</span> The support for fixed level setups is discontinued with SmarTest version
+			7.4.1T. We recommend using the <a href="16859.htm" title="The goal of a level setup is to assign values to the level resources like drive levels, compare levels, load currents, power supply voltage.">Equation based level setup</a> for all releases of SmarTest 7.2 or higher
+			versions.</div>
+		<p>Digital pins in high-Z are floating to an arbitrary voltage because of +/- leakage current
+			(RIL) from the comparators of the Pin Electronics (PE). This floating voltage, which can be
+			different for every pin, is limited by the voltage rails or driver clamps. It can be anywhere
+			between the voltage rails or the maximum positive and negative clamp voltage.</p>
+		<p>The floating voltage for digital pins in high-Z is controlled by the active level set. When the
+			sequencers are in the <span class="keyword">RUN</span> or <span class="keyword">BRK</span> state, this is a
+			user-defined level set. When they are in the <span class="keyword">OFF</span> state, the predefined level
+			set 0 (zero) is the active level set.</p>
+		
+		<p>In addition to control the high-Z behavior use the level set 0 as well to <a href="352969.htm" title="Use the pull-down function to pull the input voltage to a defined level and to prevent an undefined state at the input of a pin of the digital card.">control the engagement
+			of the 14 kΩ pull-down resistor of the PS1600 card</a>.</p>
+		<p>Programming of level set 0 is supported by the relevant firmware commands
+				<span class="keyword">TERM</span> and <span class="keyword">CLMP</span>. However, these firmware commands are only
+			effective when the sequencers are at least in the <span class="keyword">BRK</span> state. Therefore, the
+			following sequence of steps must be observed:</p>
+		<ol>
+			<li>Load the level setup file.<p>This must be done before you program level set 0, because
+					otherwise level set 0 will be reset.</p></li>
+			<li>Program level set 0 with <span class="keyword">TERM</span> and <span class="keyword">CLMP</span>.</li>
+			<li>Put the sequencers into the <span class="keyword">BRK</span> state to let the firmware commands come
+				into effect.</li>
+		</ol>
+		<p>These three steps need to be performed only once, at the start of the testflow. Step 2 and 3
+			can be interchanged.</p>
+		<p>Thereafter, level set 0 is activated whenever the sequencers are put into the
+				<span class="keyword">OFF</span> state (or <span class="keyword">DLSO</span> is issued), and inactivated whenever
+			the sequencers are put into the <span class="keyword">BRK</span> state.</p>
+		<p>Level set 0 is subject to the following restrictions:</p>
+		<ul>
+			<li>It cannot be defined in an equation based level setup. You must use a fixed level setup for
+				this feature.</li>
+			<li>It cannot be selected as the primary level set with <span class="keyword">SPRM</span>.</li>
+			<li>It is not included in the <span class="keyword">ALL</span> parameter of <span class="keyword">TERM</span> and
+					<span class="keyword">CLMP</span>. </li>
+			<li>It only admits a proper subset of the available termination modes.</li>
+		</ul>
+		<p>The following recommendations should also be observed:</p>
+		<ul>
+			<li>The firmware commands referring to level set 0 are best embedded into a test method which is
+				executed once at the start of the testflow.</li>
+			<li>Do not enter firmware commands referring to level set 0 into the levels setup file. They will
+				be overwritten when the level setup is saved from within SmarTest. Furthermore, level set 0 is
+				not supported by the setup management tool.</li>
+			<li>Do not put firmware commands referring to level set 0 into the connect sequence. These
+				commands need not be executed with every connect, but only once, after the level setup file has
+				been loaded. </li>
+			<li>When you download a new level setup file, level set 0 is reset. In this case you must issue
+				the firmware commands again and re-initialize the set as
+				described.
+			</li>
+		</ul>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">CLMP 0,ON,vcl,vch,(@)
+TERM 0,A,vcom,iol,ioh,,,(@)
+SQST BRK
+SQST OFF</pre><p>The
+					<span class="keyword">CLMP</span> command sets the default off-level set clamp levels to
+					<span class="keyword">vcl</span> and <span class="keyword">vch</span> mV for all pins. The <span class="keyword">TERM</span>
+				command sets the active load to <span class="keyword">vcom</span> mV commutation voltage and
+					<span class="keyword">iol</span>, <span class="keyword">ioh</span> µA load current, again for all pins. The switch
+				to <span class="keyword">BRK</span> initializes the set. Finally, the values are activated by the switch
+				from <span class="keyword">BRK</span> to <span class="keyword">OFF</span>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="121827.htm" title="This test method allows you to change the clamp settings and active load settings of level set 0 (high-z state).">SetupLevelSet0</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119431</span><script type="text/javascript">var ti='119431';var tt='Controlling high-Z behavior of digital pins while the sequencers are OFF'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

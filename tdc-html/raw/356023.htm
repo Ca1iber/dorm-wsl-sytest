@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Pin Scale 5000 card can drive and receive single-ended or differential signals up to data rates of 5.0 Gbit/s. For this purpose, you to need to set up various termination configurations and, depending on the speed of data you wish to transfer, one of the two operating modes: &#34;Standard&#34; (std) or &#34;Fast&#34; (FAST). The timing (and level) setup with FAST pins must be equation based."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Pin Scale 5000 timing setup</title><meta name="keywords" content="PinScale PS5000 PS 5000"></head><body id="_356023"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 356023</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Pin Scale 5000 timing setup</h1>
+	
+	
+	<div><p>The Pin Scale 5000 card can drive and receive single-ended or differential signals up to
+		data rates of 5.0 Gbit/s. For this purpose, you to need to set up various termination
+		configurations and, depending on the speed of data you wish to transfer, one of the two operating
+		modes: "Standard" (<span class="keyword">std</span>) or "Fast" (<span class="keyword">FAST</span>). The timing (and
+		level) setup with FAST pins must be equation based.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span> FAST mode is a pre-release version on SmarTest 7.10.3 and has been enabled only
+				for evaluation purposes.</div>
+		</section>
+		<section class="section"><h2>Timing setup</h2><p>The timing setup of the Pin Scale 5000 provides the following features:</p><ul>
+			<li>Use of contexts (modecontext).</li>
+			<li>Introduction of a <span class="keyword">FAST</span> mode.</li>
+			<li>256 waveforms (<span class="keyword">std</span> and <span class="keyword">FAST</span> pins).</li>
+			<li>8 drive (all tri-state capable), 8 receive edges (<span class="keyword">std</span> and
+						<span class="keyword">FAST</span> pins).</li>
+			<li>Device cycle names up to 16 characters.</li>
+			<li>X-mode definition per pin via <span class="keyword">period_div</span> keyword. This applies to
+						<span class="keyword">FAST</span> pins only.</li>
+			<li>Supported x-modes for <span class="keyword">FAST</span> pins are: x1, x2, x3, x4, x6, x8 (see
+					below).</li>
+			<li>Special support for differential signals in wavetables and pattern debug tool.</li>
+		</ul></section>
+		
+		<section class="section"><h2>Defining timing edges in the equation</h2>
+			
+			<div class="p">You can define the timing edges in the following ways:<div class="note"><span class="title">Note</span> For FAST mode, only
+					the option 2 is possible.</div><ol>
+					<li>By defining every offset.<div></div><pre class="prettyprint linenums copyable"># Timing equation
+...
+Period = 10
+PINS P1
+  d1 = 0.0
+  d2 = 2.5
+  d3 = 5.0
+  d4 = 7.5</pre></li>
+					<li>By specifying the <a href="349983.htm" title="You can set the keyword period_div to the values -1 (for standard pins), 2, 3, 4, 6, 8 (only for fast pins).">period divisor</a> using the keyword
+							<span class="keyword">period_div</span> and together defining the d1 edge. This will result in four
+						equidistant distributed edges. <div class="note"><span class="title">Note</span> For <span class="keyword">FAST</span> mode, only this
+							option is possible.</div><div class="p">
+							<div></div><pre class="prettyprint linenums copyable"># Timing equation
+...    
+period = 10
+PINS p1
+  period_div = 4
+  d1 = 0.0</pre><div></div>
+						</div></li>
+					<li>By specifying the period divisor using the keyword <span class="keyword">period_div</span> and
+						together defining the d1 and d5 edges. This will result in two sets of four equidistant
+						distributed edges. <div></div><pre class="prettyprint linenums copyable"># Timing equation
+...    
+period = 10
+PINS p1
+  period_div = 4
+  d1 = 0.0
+  d5 = 2.0</pre></li>
+				</ol></div>
+		</section>
+		
+		<section class="section"><h2>Possible X-Modes in the FAST mode</h2>
+			
+			<p>In the <span class="keyword">FAST</span> mode the, Pin Scale 5000 card uses a multiplexing architecture
+				between the test processor and the front-end. This has the following impact:</p>
+			<ul>
+				<li>Possible programmable X-modes are: X1, X2, X3, X4, X6, X8.</li>
+				<li>Because of this architecture, in principle only even x-modes are possible but the X1 and
+					X3-modes are derived from an internally programmed X2 and X6-mode, respectively. As the maximum
+					X-mode is X8, it is not possible to program X5 and X7-modes. </li>
+			</ul>
+			<p>You use the keyword <span class="keyword">period_div</span> (see <a href="349983.htm" title="You can set the keyword period_div to the values -1 (for standard pins), 2, 3, 4, 6, 8 (only for fast pins).">Period divisor (period_div)</a>) to define the
+				X-mode in the timing equation set. This is shown below for an X4 mode. Setting
+					<span class="keyword">period_div</span> is mandatory in <span class="keyword">FAST</span> mode.</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable"># Timing equation
+...
+PINS A0,A0-        # I-pins
+     
+   period_div=4   # Accepted values: 1,2,3,4,6,8
+   d1=...</pre><div></div>
+			</div>
+			<p>In the figure above, the differential pins have been defined as <kbd class="userinput">PINS A0,
+				A0-</kbd>.</p>
+			<p>To give the same result, you could also use the shorthand notation to specify just one of the
+				differential pins (A0) as <kbd class="userinput">PINS A0@diff</kbd>, see <a href="349984.htm" title="You can use the special @diff pin syntax in the timing file.">Differential pins - @diff</a>.</p>
+		</section>
+		
+		<section class="section"><h2>Receive Edge Positioning</h2><p>In the <span class="keyword">FAST</span> mode, the receiver uses a re-timing technique. Due to the
+				re-timing, only 1 receive edge can be programmed - others are equidistantly distributed over the
+				test system period according to the specified X-mode.</p></section>
+
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="17774.htm" title="This section gives you the information you need to set up the timing for your tested device: background information, interface descriptions, and task related information.">Timing Setup Tool</a></div><div><a href="345538.htm" title="Card channels can be connected to your DUT pins either in a single-ended or differential connection.">How to set up differential connections</a></div><div><a href="56198.htm" title="A mode context specifies, for every defined pin, the type (input or output or both) and operating mode. Every test is associated with a mode context, and every execution of the CONF command applies to exactly one mode context. If you use user defined mode contexts in the pin configuration and timing setup, you must also define the timing for these contexts.">Mode context in timing setup</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 356023</span><script type="text/javascript">var ti='356023';var tt='Pin Scale 5000 timing setup'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

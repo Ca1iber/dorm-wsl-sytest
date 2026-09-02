@@ -1,0 +1,82 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FAQ</title></head><body id="_113354"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113354</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FAQ</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><h2>What is STIL? </h2><p>Standard Test Interface Language (STIL) is a standard
+				language that provides an interface between digital test generation tools and test equipment.
+				STIL may be directly generated as an output language of many test generation tools, or it may be
+				used as an intermediate format for subsequent processing. STIL is a representation of
+				information needed to define digital test operations in manufacturing tests. </p></section>
+		<section class="section"><h2>Where can I find the STIL specifications? </h2><p>IEEE Std 1450-1999 is
+				available from the IEEE Standards Association. The standard can be found under the Test
+				Technology Standards reference. In addition, a Representative BNF for IEEE Std 1450-1999 (PDF
+				format) is available. This BNF was generated with the goal of providing a simplified
+				introduction to STIL. As such, it is an incomplete representation of the language, and the
+				Standard Document must be used to completely specify the language. Still, this serves to orient
+				newcomers to the constructs of STIL. Also, the Clarifications for IEEE Std 1450-1999 (PDF
+				format) is available on the following website:
+					</p><p><span class="filepath">http://grouper.ieee.org/groups/1450/index.html</span> </p></section>
+		<section class="section"><h2>How do I know what extensions my STIL file is using? </h2><p>You can see which
+				extension you are using in the STIL statement of the STIL file:
+					</p><pre class="prettyprint linenums copyable">STIL 1.0 {
+    ( <span class="keyword">&lt;extension_name&gt;&lt;extension_version</span>&gt;; )
+}</pre><p><span class="keyword">&lt;extension_name&gt;</span>
+				means:</p><ul>
+				<li>Design: Extension 1 is included</li>
+				<li>DCLevels: Extension 2 is included</li>
+			</ul></section>
+		<section class="section"><h2>What are STIL extensions? </h2><p>A series of dotted extension projects have
+				been created to address issues identified to be outside the scope of the initial project:</p><ul>
+				<li>1450.0-1999: Standard Test Interface Language(STIL) for Digital Test Vectors </li>
+				<li>1450.1-2005: Extensions to STIL for Semiconductor Design Environments </li>
+				<li>1450.2-2002: Extensions to STIL for DC Level Specification </li>
+				<li>P1450.3: Extensions to STIL for Tester Target Specification </li>
+				<li>P1450.4: Extensions to STIL for Test Flow Specification </li>
+				<li>P1450.5: Extensions to STIL for Semiconductor Test Method Specification </li>
+				<li>1450.6-2005: Extensions to STIL for Core Test Language </li>
+				<li>P1450.7: Extensions to STIL for Analog and Mixed Signal </li>
+				<li>P1450.8: Extensions to STIL for Design Information - path delay, physical layout, and
+					more.</li>
+			</ul></section>
+		<section class="section"><h2>What is a "2-state ambiguity" and how can it be fixed? </h2><p>Assigning
+				different waveform characters to the same signal in one vector creates an ambiguity. By default,
+				STILReader uses the data from the last assignment. For example, the following STIL statement
+				will cause ambiguity if the <span class="keyword">D0</span> signal is a member of both the
+					<span class="keyword">pi</span> and <span class="keyword">po</span> signal
+				groups:</p><pre class="prettyprint copyable singleline">V { "_pi"=\r12 0 ; "_po"=\r10 X ; }</pre><p>This ambiguity will
+				cause STIL Reader to generate a warning:
+				</p><pre class="msgblock">Warning: [line 183] Unable to resolve 2-states ambiguity ( _pi=&gt;0, 
+_po=&gt;X ) for signal D0.
+ (  Using state 'X' )</pre><p>There
+				is only an initial warning and subsequent instances are suppressed.</p><p>In STIL 1450.1, the
+					<span class="keyword">WFCMap</span> construct was added in order to resolve such conflicts. If
+					<span class="keyword">WFCMap</span> is present in the STIL file, it is used to resolve the ambiguity, and
+				no warning is generated. </p><p>For the example above,the WFC map would be:
+				</p><pre class="prettyprint linenums copyable">D0 In {
+  WFCMap {
+    0X-&gt;0; // Resolve D0=0; D0=X; assignment to 0
+  }
+}</pre><p>The
+				order of appearance of WFCs in the <span class="keyword">WFCMap</span> object is important; it must match
+				the order of assignments in the STIL vector.</p><p>Such ambiguities can also be fixed be
+				including mapping settings in the setup file using the <span class="keyword">stil_wfc_map</span> parameter
+				(see <a href="118728.htm" title="The translation-related options in a STIL Reader setup file let you control the output of the translation process, in particular to accommodate variations between the input and the resulting output.">Translation-related STIL Reader setup options</a>).</p></section>
+		<section class="section"><h2>Where does STIL Reader get timing when it is in advanced mode ?</h2><p>The
+				advanced mode is intended for incremental generation of multiple patterns sharing the same
+				timing. </p><p>After processing the first pattern in normal mode, STIL Reader generates a
+				special file (<span class="filepath">.tmf</span>) is generated in the working directory. The file
+				contains a mapping of STIL timing to V93000 waveform index. Each pattern, processed in advanced
+				mode, will use those mappings. Time definitions not found in the TMF file are not allowed and
+				are recognized as an error condition.</p></section>
+		<section class="section"><h2>Why are there two files for configuring the tool, setup and settings
+				files?</h2><p>The setup file template is created by calling the tool using the
+					<span class="keyword">-template</span> parameter. The template is used to run the tool. It contains the
+				path to the files required to run the tool and specifies the path to the output files.</p><p>The
+				settings file is automatically created by STIL Reader in the working directory
+					(<span class="filepath">output</span> by default) and contains flags that define the operation modes of
+				the tool.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113354</span><script type="text/javascript">var ti='113354';var tt='FAQ'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

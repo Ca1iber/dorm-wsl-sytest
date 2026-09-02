@@ -1,0 +1,85 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The JSWF? query returns the offset sequence of the jitter waveforms for the specified pins in dependence of a specified clock resolution. The clock resolution enters into the calculation of the offset sequence in two ways:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>JSWF? - (Jitter Set WaveForm)</title><meta name="keywords" content="wave form waveform table, JSWF_, Wave, Form"></head><body id="_119599"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119599</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">JSWF? - (Jitter Set WaveForm)</h1>
+	
+	
+	<div><p>The <span class="keyword">JSWF?</span> query returns the offset sequence of the jitter waveforms
+		for the specified pins in dependence of a specified clock resolution. The clock resolution enters
+		into the calculation of the offset sequence in two ways:</p>
+		<section class="section"><ul>
+				<li>The distance between two items of the offset list must be an integer multiple of 4 *
+						<span class="keyword">clock_resolution</span>.</li>
+				<li>If the second of two consecutive items is smaller than the first, the maximum allowed
+					difference <span class="keyword">max_diff</span> between the two depends on the clock resolution as
+					follows <p> <span class="keyword">max_diff</span> = <span class="keyword">clock_resolution</span>/2 - 410 ps. </p>
+					<p>If this restriction is not observed in a user defined waveform, <span class="keyword">JSWF?</span>
+						will correct the list.</p></li>
+			</ul><p>With this command you configure setups of those sites that have the setup focus: For
+			more information, see also: <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC, PSFC?</a>.</p><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<section class="section"><h2>Predependencies</h2><p>A jitter waveform must have been defined with
+					<span class="keyword">JSCF</span>. In the case of a predefined waveform, amplitude and period must also
+				have been defined.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">JSWF?</span> {"<span class="keyword">jitter_set_name</span>"}, {<span class="keyword">clock_resolution</span>}, {(<span class="keyword">pinlist</span>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">JSWF</span> {"<span class="keyword">jitter_set_name</span>"}, {"<span class="keyword">offset_sequence</span>"}, {(<span class="keyword">pinlist</span>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">jitter_set_name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Specifies the name of a jitter set that must have been defined with
+										<span class="keyword">JSDF</span>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">clock_resolution</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Specifies the clock resolution on which the calculation will be based. The admitted
+									range is between 880 and 1750 ps.</p>
+								<p>You can retrieve the clock resolution for a specification with the <span class="keyword">CLKR?
+										EXACT</span> query.</p>
+								<p>Note that the unit is pico seconds, not nano seconds.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">offset_sequence</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The list of the calculated offsets that is returned.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Specifies the pins for which the offset sequence is calculated.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Jitter injection.</p></div>
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">&gt; jscf? "test",,(IO0)
+&lt; JSCF "test",WAVEFORM,SINUS,(IO0)
+&lt; JSCF "test",PERIOD,20,(IO0)
+&lt; JSCF "test",AMPLITUDE,100,(IO0)
+&gt; CLKR? EXACT,101,(@)
+&lt; CLKR 101,2.4,1.2,(@)
+&gt; jswf? "test",1200,(IO0)
+&lt; JSWF "test","0,29,47,47,29,0,-30,-48,-48,-30,-1,29,47,47,29,0,
+  . . .
+  -1,-30,-48,-48,-30,0,29,47,47,29,0,-30,-48,-48,-30",(IO0)</pre><p>This
+				example first queries the jitter waveform for pin <code>IO0</code>, and also the clock
+				resolution for timing specification 101. It then calculates the offset sequence for this
+				waveform and clock resolution. Note that <span class="keyword">CLKR?</span> returns the clock resolution
+				as nano seconds, but that <span class="keyword">JSWF?</span> expects it to be specified as pico seconds.
+				The reply is displayed in abbreviated form. The total length of the sequence is about 500 items.
+			</p></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">&gt; JSCF? "test",WAVEFORM,(IO1)
+&lt; JSCF "test",WAVEFORM,"150,110,80,70,0"
+&gt; JSWF? "test",880,(IO1)
+&lt; JSWF "test","150,120,90,70,40",(IO1)</pre><p>This
+				example shows how <span class="keyword">JSWF?</span> corrects the offset list if the second of two
+				consecutive items is smaller than the first, and the maximum difference is exceeded.
+			</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119599</span><script type="text/javascript">var ti='119599';var tt='JSWF? - (Jitter Set WaveForm)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

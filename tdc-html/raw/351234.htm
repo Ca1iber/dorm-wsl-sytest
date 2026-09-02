@@ -1,0 +1,411 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Multi port match loops can be set up using the EPRC delay. EPRC (Error Propagation Repetition Count) means how often a block of buffer vectors must be repeated before execution of a conditional jump. The vectors within this block are called EPRC vectors in this use case."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to set up a multiport EPRC match loop</title><meta name="keywords" content="matchloop multi-port"></head><body id="_351234"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351234</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to set up a multiport EPRC match loop</h1>
+	
+	
+	<div><p>Multi port match loops can be set up using the EPRC delay. EPRC (Error Propagation
+		Repetition Count) means how often a block of buffer vectors must be repeated before
+		execution of a conditional jump. The vectors within this block are called EPRC vectors in
+		this use case.</p>
+		<p>For more information on EPRC vectors, refer to firmware command <a href="98591.htm" title="The EPRC? query serves to calculate how often a block of buffer vectors must be repeated before execution of a conditional jump (JMPE instruction). These buffer vectors are required to ensure that the internal error flag on which the jump depends is set correctly (see Calculating the buffer vectors for JMPE and RETC (and match loops)).The calculation is based on the current primary sets. In particular, the currently active timing set (as defined by SPRM) is used to determine the tester period.">EPRC? - (Error Propagation Repetition Count)</a>.</p>
+		<section class="section">
+			<dl>
+				
+					<dt class="dlterm">Overview</dt>
+					<dd><ul>
+							<li><a href="351234.htm#_351234__dle_Problem_statement">Goal</a></li>
+							<li><a href="351234.htm#_351234__dle_Overview_of_a_match_loop">Overview of a match loop on the 93000 system</a></li>
+							<li><a href="351234.htm#_351234__dle_Multiport_match_example_setup">Multiport match example setup</a></li>
+							<li><a href="351234.htm#_351234__dle_The_green_box">The green box: The match vectors</a></li>
+							<li><a href="351234.htm#_351234__dle_The_blue_box_EPRC_vectors">The blue box: The EPRC vectors</a></li>
+							<li><a href="351234.htm#_351234__dle_The_blue_box_How_long">How long is the blue box?</a></li>
+							<li><a href="351234.htm#_351234__dle_Putting_the_2_important_points_together">Putting the two important points together …</a></li>
+							<li><a href="351234.htm#_351234__dle_What_if_the_blue_box_length_is_too_long">What if the blue box length I choose is too long..?</a></li>
+							<li><a href="351234.htm#_351234__dle_What_if_the_blue_box_length_is_too_short">What if the blue box length I choose is too short..?</a></li>
+							<li><a href="351234.htm#_351234__dle_Common_questions">Common questions</a></li>
+							<li><a href="351234.htm#_351234__dle_Summary_of_BFLM_MATCH-related_restrictions">Summary of BFLM MATCH-related restrictions</a></li>
+						</ul>
+						<p>If you are looking for the "give it to me in one slide" version, refer to <a href="351234.htm#_351234__dle_Putting_the_2_important_points_together">Putting the two important points together …</a>.</p></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_Problem_statement">Goal</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<p>Perform a match loop across two or more vector ports,
+												even if one or more of the ports have no strobes and
+												keep them synchronized.</p>
+											<p>"Synchronized" means that the ports are aligned both
+												within the match itself and coming out of the match
+												and they chose the same direction meaning they go
+												back to the top of the match (green box in the
+												graphics below) or they go to the bottom linear
+												vectors box… all together and synchronized.</p>
+											<p>Note that throughout this use case, two ports are
+												used to keep thing simple, but the concept is
+												extendable to N ports.</p></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_Overview_of_a_match_loop">Overview of a match loop on the 93000 system</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure></td>
+										<td class="colsep-0 rowsep-0"><div class="p">A match is composed of<ul>
+												<li>the match vectors (green) which are the strobe
+												vector(s) and …</li>
+												<li>the match loop latency (blue) which cannot
+												have strobes.</li>
+												</ul>The blue vectors are run after each loop, even
+												if match passes the 1st time.</div>
+											<p>The blue vectors represent the "hardware delay", this
+												is the time that it takes for the system to evaluate
+												the match loop results in that port and decide if it
+												"tries again" or proceeds to the pink vectors. It is
+												NOT a function of the device latency.</p>
+											<div class="p">Matches loops have basically two possibilities:
+												"Continue on fail" or abort (default) if the
+												condition is not met after the user specified number
+												of attempts:<ul>
+												<li>Abort means that the entire label is aborted,
+												NOT just that slice.</li>
+												<li>"Continue on fail" is specified via an
+												optional argument in the vector editor or via the
+												AIF: See sequencer instruction <a href="98749.htm#_98749__r_MACT">MACT</a>.</li>
+												</ul></div></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0" colspan="2">
+											<p>A third option, the "match on fail" is supported with
+												SmarTest 7.5.0 and newer version. The option is set
+												up using parameter values
+												<span class="keyword">TIL_FAIL_....</span>.</p>
+											<p>There are other rules about the match loop such as
+												the 7 vectors before the match must not have
+												strobes.</p>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_Multiport_match_example_setup">Multiport match example setup</dt>
+					<dd><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-1 rowsep-0" colspan="2">
+											<p>Assume that we have two ports involved in the match:
+												<var class="varname">pASYNC</var> and
+												<var class="varname">pNON‑ASYNC</var>:</p>
+											<ul>
+												<li>The <var class="varname">pASYNC</var> port has no
+												strobes, it is just a tester provided clock.</li>
+												<li>The <var class="varname">pNON‑ASYNC</var> port is
+												where the real strobes are located.</li>
+											</ul>
+											<p>However, you will soon see that a match on this ASYNC
+												port is critical to making this work, even if you
+												think it seems not necessary at this point.</p>
+											<p>The period of port <var class="varname">pASYNC</var> is 10 ns
+												and port <var class="varname">pNON‑ASYNC</var> is 100
+												ns, meaning a 10:1 ratio.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-1 rowsep-0">
+											<p><var class="varname">pASYNC</var> @ 10ns</p>
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure>
+										</td>
+										<td class="colsep-0 rowsep-0">
+											<p><var class="varname">pNON‑ASYNC</var> @ 100ns</p>
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_The_green_box">The green box: The match vectors</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure></td>
+										<td class="colsep-0 rowsep-0"><div class="p">The length (in terms of time) of the green box
+												must be the same for all ports to make this work:<ul>
+												<li>This is not a tester requirement, but a
+												requirement to use MATCH.</li>
+												<li>Since the ratio is 10:1 in this example, if
+												the number of vectors in port
+												<var class="varname">pNON‑ASYNC</var> is say 500
+												vectors, the number of vectors in port
+												<var class="varname">pASYNC</var> must be 10x that number
+												to maintain alignment.</li>
+												<li>This makes sense no matter how you think of
+												it, the length of time spent in the "match
+												vectors" must be the same.</li>
+												<li>We WILL have a MATCH statement in port
+												<var class="varname">pASYNC</var> that is just the
+												clock!</li>
+												<li>There are restrictions in terms of the number
+												of vectors in the green box for <a href="98524.htm#_98524__r_BFLM">BFLM</a>, but not for
+												<a href="98524.htm#_98524__r_LMAP">LMAP</a>.</li>
+												<li>For <span class="keyword">BFLM</span> the number must be
+												a %8 for all ports.</li>
+												</ul></div></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0" colspan="2">
+											<div class="note"><span class="title">Note</span> 
+												<p id="_351234__p_IMPORTANT_POINT_1"><strong>IMPORTANT POINT
+												#1:</strong></p>
+												<p>The P/F info of all ports is SHARED in a given
+												sequencing group. This means that fails during a
+												match in the green block of port
+												<var class="varname">pASYNC</var>, even though it does not
+												have strobes, also are recognized as fails in port
+												<var class="varname">pNON‑ASYNC</var>.</p>
+												<p>This means that a match on port
+												<var class="varname">pASYNC</var> will actually "see"
+												fails!</p>
+											</div>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_The_blue_box_EPRC_vectors">The blue box: The EPRC vectors</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure></td>
+										<td class="colsep-0 rowsep-0"><p>The 93000 system requires time to figure out if
+												all pins passed or failed the match and whether or
+												not to go back around and try again, and also to
+												fill up the vector queue for the chosen direction
+												after evaluation.</p>
+											<p>This is called the "hardware delay" or the "EPRC delay".</p>
+											<div class="p">This is the blue box:<ul>
+												<li>The blue box cannot have strobes.</li>
+												<li>This time is NOT ZERO. It is a function of many things, including the period of the
+														port, the hardware type, SCLK, etc.</li>
+												<li>Length is also a function of site match!<ul>
+												<li>"Site match" is an optional feature whereby
+												each site is independent. Without site match,
+												every site will "move together". It is activated
+												via suite flags or the <a href="98760.htm" title="The STME command defines the state of the site match function. The site match function controls if all sites are started simultaneously (option OFF), or successively with a slight delay (option ON). The command does nothing if a single site is configured.">STME</a> firmware command.</li>
+												<li>Using site match makes the blue box bigger, if
+												the site count is&nbsp;&gt;&nbsp;2.<p>Note: FAST
+												match is not usable in these applications due to
+												SHMEM layout.</p></li>
+												<li>For details on site match, see <a href="10665.htm" title="When you execute a multisite test in parallel, you can either start all sites simultaneously, or you can start them one after the other successively, each with a small offset. This is controlled by the setting of the Site Match test suite flag. If this flag is set to OFF, all sites are started simultaneously; if it set to ON, they are started successively.">Controlling the site match function</a>.</li>
+												<li>With <a href="98524.htm#_98524__r_BFLM">BFLM</a>
+												mode, the blue box must be %8 in length on all
+												ports.</li>
+												</ul></li>
+												</ul></div></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_The_blue_box_How_long">How long is the blue box?</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" colspan="2">
+											<div class="p">The length of the blue box holding the EPRC vectors
+												cannot be calculated and must be determined by
+												running the pattern:<ul>
+												<li>The length is a function of many things, including the period of the port, the
+														hardware type, SCLK, site match, etc.</li>
+												<li>Use the <a href="98591.htm" title="The EPRC? query serves to calculate how often a block of buffer vectors must be repeated before execution of a conditional jump (JMPE instruction). These buffer vectors are required to ensure that the internal error flag on which the jump depends is set correctly (see Calculating the buffer vectors for JMPE and RETC (and match loops)).The calculation is based on the current primary sets. In particular, the currently active timing set (as defined by SPRM) is used to determine the tester period.">EPRC?</a>
+												firmware command, offline or online, after running
+												the pattern to determine the number of vectors
+												that are needed by the system:<table class="ly"><caption></caption><colgroup><col style="width:0.5cm"><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-0 rowsep-0">
+												<div></div><pre class="prettyprint copyable singleline">EPRC? {no_of_vectors}, {(port_list)}</pre><div></div>
+												<p>returns:</p>
+												<div></div><pre class="prettyprint copyable singleline">EPRC {no_of_vectors}, {no_of_repetitions}, {(port)}</pre><div></div>
+												</td>
+												</tr>
+												</tbody></table></li>
+												<li>If the length of the user defined EPRC vectors in the blue box is less than the
+														reported EPRC vector length, the blue box is repeated as many times as needed to
+														fulfil the hardware requirement.<p>For example, if the EPRC delay is 1100 and the
+															length of the user defined EPRC vectors in the blue box is 500, the blue box will be
+															repeated ceiling (1100/500) = 3 times.</p><p>If we cannot control how many times the
+															user defined EPRC vectors in the blue box are repeated, we cannot synchronize the
+															ports!</p></li>
+												</ul></div>
+											<div class="note"><span class="title">Note</span> 
+												<p id="_351234__p_IMPORTANT_POINT_2"><strong>IMPORTANT POINT
+												#2:</strong></p>
+												<p>If you make the blue box long enough such that it
+												is ALWAYS greater than the EPRC delay for every
+												case AND you make it the same length on each port
+												(in terms of time), the effective length in time
+												of the blue box is the key to synchronize the
+												ports.</p>
+											</div>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_Putting_the_2_important_points_together">Putting the two important points together …</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" colspan="2">
+											<div class="p">The two important points:<ul>
+												<li><a href="351234.htm#_351234__p_IMPORTANT_POINT_1">IMPORTANT POINT #1</a> tells us that we can
+												force <var class="varname">pASYNC</var>, a clock port, to
+												"see" the results of the
+												<var class="varname">pNON‑ASYNC</var> port.<p>This
+												means that <var class="varname">pASYNC</var>'s match is
+												almost like an extension of the
+												<var class="varname">pNON‑ASYNC</var> port even
+												though it is a different port. BUT, to make the
+												whole thing work…</p></li>
+												<li><a href="351234.htm#_351234__p_IMPORTANT_POINT_2">IMPORTANT POINT #2</a> tells us that if we
+												understand the EPRC (blue box) delays, we can
+												force the system to only run the blue box <strong>ONCE
+												only</strong> and we can therefore control
+												synchronization of the ports.</li>
+												</ul></div>
+											<p><strong>Putting these together, it means that we have a
+												match on both ports (<var class="varname">pASYNC</var> and
+												<var class="varname">pNON‑ASYNC</var>) and the
+												match on the <var class="varname">pASYNC</var> port looks
+												just like an extension of the
+												<var class="varname">pNON‑ASYNC</var> port even
+												though it has no strobes!</strong></p>
+											<p><strong>If we master the understanding of the EPRC delays,
+												we can create a full synchronized environment with
+												MATCH across ports!</strong></p>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_What_if_the_blue_box_length_is_too_long">What if the blue box length I choose is too long..?</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure></td>
+										<td class="colsep-0 rowsep-0"><p>There is no real harm in that, other than the
+												polling interval for the match will be slower. The
+												"polling interval" is basically the length of the
+												green + blue boxes.</p>
+											<p>If the blue box is too big, it just means that
+												polling the device for P/F is slower. This could
+												have an impact on test time, but it may not be easy
+												to predict or understand since we do not precisely
+												know where the device transitions within the blue
+												box.</p></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_What_if_the_blue_box_length_is_too_short">What if the blue box length I choose is too short..?</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" colspan="2">
+											<p>This would cause an alignment issue.</p>
+											<p>If the length is too small, the system will repeat
+												the blue box perhaps only on one port and therefore
+												the ports would be out of synchronization.</p>
+											<p>This would be hard to troubleshoot unless you used an
+												external oscilloscope or completely understood the
+												<span class="keyword">EPRC</span> firmware command.</p>
+											<p>What could be done is to write code to determine the
+												EPRC delay on the first run and compare it to the
+												length and see if this could happen.</p>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_Common_questions">Common questions</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" colspan="2">
+											<p>I have to do a matchloop on a clock (for example,
+												<var class="varname">pASYNC</var>) port. Is this is a
+												mistake?</p>
+											<div class="p">
+												<ul>
+												<li>It is no mistake. The reason should be clear
+												from <a href="351234.htm#_351234__p_IMPORTANT_POINT_1">IMPORTANT POINT #1</a>: The ports all see the
+												same P/F results.</li>
+												</ul>
+											</div>
+											<div class="p">Do I need "site match" and why is the EPRC delay
+												longer if I use it?<ul>
+												<li>If you want each site to work independently on
+												the match, yes.</li>
+												<li>The reason is that the V93000 bus is shared and to make independent results per
+														site, the sites have to time share that bus<p>This means that the sites are actually
+															started in a staggered fashion and that the blue box is longer since each site will
+															serially access the bus one at a time.</p><div class="p">
+															<figure class="fignone">
+																<img src="351236.png" alt="How to set up a multiport match loop - Timing">
+															</figure>
+														</div></li>
+												</ul></div>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_351234__dle_Summary_of_BFLM_MATCH-related_restrictions">Summary of BFLM MATCH-related restrictions</dt>
+					<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<figure class="fignone">
+												<img src="351235.png" alt="How to set up a multiport match loop - Structure">
+											</figure></td>
+										<td class="colsep-0 rowsep-0">
+											<ul>
+												<li>
+												<div class="p">The green box must start at a %8 cycle count
+												relative to the start of the BURST… not just that slice.<ul>
+												<li>A <code>WAIT 1</code> can be used to force
+												alignment.</li>
+												<li>This is because a <code>WAIT 1</code> will
+												run break vectors and snap to the next %8
+												cycle.</li>
+												<li>Note this can introduce a small port-skew.
+												This skew is anywhere from 1 to 7 cycles.</li>
+												</ul></div>
+												</li>
+												<li>
+												<p>The green box length must be %8.</p>
+												</li>
+												<li>
+												<p>The blue box length must be %8.</p>
+												</li>
+												<li>
+												<p>None of these rules apply to LMAP mode.</p>
+												</li>
+											</ul>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+			</dl>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98591.htm" title="The EPRC? query serves to calculate how often a block of buffer vectors must be repeated before execution of a conditional jump (JMPE instruction). These buffer vectors are required to ensure that the internal error flag on which the jump depends is set correctly (see Calculating the buffer vectors for JMPE and RETC (and match loops)).The calculation is based on the current primary sets. In particular, the currently active timing set (as defined by SPRM) is used to determine the tester period.">EPRC? - (Error Propagation Repetition Count)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351234</span><script type="text/javascript">var ti='351234';var tt='How to set up a multiport EPRC match loop'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

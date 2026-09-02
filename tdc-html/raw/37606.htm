@@ -1,0 +1,49 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When executing the SCAN instructions of a pattern, the scan instances for these instructions are read from the associated scan area segment in sequential order; successive SCAN instructions use successive data. This principle of reading the instance data sequentially also holds for patterns containing calls of scan subroutines. This has two main consequences:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Understanding Scan Subroutines</title></head><body id="_37606"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37606</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Understanding Scan Subroutines</h1>
+	
+	
+	<div><p>When executing the <kbd class="userinput">SCAN </kbd>instructions of a pattern, the scan
+		instances for these instructions are read from the associated scan area segment in sequential
+		order; successive <kbd class="userinput">SCAN </kbd>instructions use successive data. This principle of
+		reading the instance data sequentially also holds for patterns containing calls of scan
+		subroutines. This has two main consequences:</p>
+		<ul>
+			<li>Scan subroutines have no scan area segment of their own. All data for the
+					<kbd class="userinput">SCAN</kbd> instructions they contain (parallel parts <em>and</em> template
+				instances) is stored in the scan area segments of the <em>calling</em> patterns according to the
+				position of the subroutine call within the sequencer program of these patterns.</li>
+			<li>When a pattern calls a scan subroutine <em>n</em> times in a counted loop
+					(<kbd class="userinput">JSUB</kbd> and<strong> </strong><kbd class="userinput">RPTJ</kbd> instructions), the data for
+				the <kbd class="userinput">SCAN</kbd> instructions of the subroutine must be stored<em> n</em> times in
+				the scan area segments of the calling pattern.</li>
+		</ul>
+		<p>Thus, the data for any <kbd class="userinput">SCAN</kbd> instruction within a scan subroutine is
+			stored at a different location for every call of the subroutine. Since each of these different
+			scan area sections must be associated with a different instance number, the "instance number"
+			specified with a <kbd class="userinput">SCAN</kbd> instruction of the subroutine cannot be the actual
+			instance number any more. Rather, the real instance numbers are calculated as the sum of</p>
+		<ul>
+			<li>a <em>major instance offset</em>, which must be specified with the call of the subroutine (see
+				the format of the <kbd class="userinput">JSUB </kbd>instruction in <a href="37568.htm" title="If the ASCII vector file only consists of n ASCII vectors, the body of the resulting sequencer program will only contain one instruction, which sends the n corresponding binary vectors to the DUT once. If, for example, you want to send a sequence of vectors repeatedly, or change the level setup within the pattern, you must insert the respective instructions into the ASCII vector files at the appropriate places.">Inserting Sequencer Instructions</a> ), </li>
+			<li>the "instance number" of the <kbd class="userinput">SCAN</kbd> instruction, which is now called the
+					<em>minor instance offset</em>, and </li>
+			<li>a <em>loop index</em>, which starts from 0 and is incremented by 1 after each call in a counted
+				loop.</li>
+		</ul>
+		<p>If the major and the minor instance offsets are suitably chosen, then this sum will in fact be
+			different for all these different scan area sections. </p>
+		<p>The following figure illustrates the principles:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46126.png" alt="Calculating the Instance Numbers for Scan Subroutines">
+			</figure></div>
+		<p>Observe that all this only holds for the <em>scan instances</em> of the subroutine. With respect
+			to the <em>parallel vectors</em>, scan subroutines do not differ from ordinary
+				<kbd class="userinput">SVEC</kbd> subpatterns. Each of them has its own parallel area segment where
+			its parallel vectors are stored. The start address of this segment is specified in the
+				<kbd class="userinput">STVA</kbd> instruction, which is the first instruction of the subroutine
+			sequencer program.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37606</span><script type="text/javascript">var ti='37606';var tt='Understanding Scan Subroutines'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

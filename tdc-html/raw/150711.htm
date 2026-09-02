@@ -1,0 +1,55 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The MCT handlers are supported with GPIB interface."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>MCT Handlers</title></head><body id="_150711"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 150711</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">MCT Handlers</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="150712.htm" title="This section describes the default driver configuration and GPIB communication flow designed for the MCT handlers.">GPIB driver configuration</a></li></ol></div></nav>
+	
+	
+	<div><p>The MCT handlers are supported with GPIB interface. </p>
+		<section class="section"><h2>Strip testing</h2><p>To enable the MCT handler to handle strip tests, you must
+				add a strip level in the application model file.</p><p>The strip level will allow STDF data log
+				files to be generated, which contain the wafer sort information such as wafer ID and both x and
+				y coordinates. If you need to show the test results in the wafer map view, specify a wafer
+				description file in the test program as well as add <code>SET_DIE_X_Y()</code> into the
+				model file for being called in testing.</p><p>The following example demonstrates a piece of the
+				strip level to be added into the application model
+			file.</p><pre class="prettyprint linenums copyable">START_DIALOG
+
+{ 
+   Test_program:
+
+ACTIONS
+PROB_HND_CALL(ph_driver_start);
+SET_DIE_X_Y(0,0);
+
+{
+  STRIP strip:
+
+    SCREEN_DIALOG
+           * Lot_id        = DIALOG_INPUT     / REGEXP(string);
+           * Operator_id   = DIALOG_INPUT     / REGEXP(string);
+
+        ACTIONS
+           PROB_HND_CALL(ph_strip_start);
+           WAFER_ID = PROB_HND_CALL(ph_get_id strip);
+
+        { 
+          DEVICE device:
+            ACTIONS
+                package_id = AUTOINCREMENT;
+                SET_PACKAGE_ID({package_id});
+                PROB_HND_CALL(ph_device_start);
+                {
+                    DEVICE_TEST
+                }
+                REPROBE_ACTION = PROB_HND_CALL(ph_reprobe);
+            ACTIONS
+                PROB_HND_CALL(ph_device_done);
+        }
+        ACTIONS
+        PROB_HND_CALL(ph_strip_done);
+}
+    ACTIONS
+        PROB_HND_CALL(ph_driver_done);
+}</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.3</li><li>SmarTest 7.4.3: Supporting strip tests.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 150711</span><script type="text/javascript">var ti='150711';var tt='MCT Handlers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

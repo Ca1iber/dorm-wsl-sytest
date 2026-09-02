@@ -1,0 +1,100 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using execution contexts</title></head><body id="_135848"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 135848</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using execution contexts</h1>
+	
+	
+	<div><p>Execution contexts allow you to run subsets of one or even more than one multiport burst
+		independently and in parallel. Such an execution context consists of a port list that is
+		associated with a name. In order to activate it, you must specify the name when you start the
+		test. Generally, the ports of the context must be a subset of the ports in the current start
+		label.</p>
+		<p>Another option to execute only a proper subset of the ports in a multiport setup is to define
+			an incomplete multiport burst (see <a href="119902.htm" title="Usually, both the timing and the vector ports of a multi-port setup will include all configured pins. But it is also possible to work with incomplete setups, where either the timing ports or the vector ports or both do not cover all pins. Note, however, that some combinations must be used with care.">Incomplete multi-port setups</a>). Execution contexts, however, are
+			more flexible, because you do not have to create a new multi-port burst for every port subset.
+			But their main advantage is that they allow you to execute different sequencer tasks in parallel,
+			which is not possible with an incomplete multi-port burst. </p>
+		<p>Thus you can, for example, first select a multi-port burst <code>mu_burst1</code> as the
+			start label and start an execution context <code>c1</code> with a subset of the ports in
+				<code>mu_burst1</code>, then change the start label to the multi-burst
+				<code>mu_burst2</code> and start an execution context <code>c2</code> referring to
+				<code>mu_burst2</code>. If <code>c1</code> is still running when <code>c2</code> is
+			started (and all boundary conditions are satisfied), both contexts will then run in parallel.
+			This example will be shown in detail below.</p>
+		<div class="note"><span class="title">Note</span> Incomplete multi-port bursts and execution contexts do not exclude each other.
+			You can also define and run an execution context for a port subset of an incomplete multi-port
+			burst.</div><p>The usage of execution contexts is subject to several restrictions. This holds in particular for
+			systems that are not pure Smart Scale systems, but contain also DC Scale
+			channels.</p>
+		
+		<section class="section"><h2>Restrictions</h2><p>The usage of execution contexts is restricted by the
+				following conditions:</p><ul>
+				<li>An execution context can only be run if all its ports are included in the current start
+						label.<p>Note that protocol ports are an exception to this. Protocol ports are <em>not</em>
+						allowed to occur in the start label. This also holds if the protocol port is contained in a
+						context. For details see <a href="125042.htm" title="Independent tests serve to run a protocol pattern asynchronously to the simulation patterns. Typically, the simulation ports will be started before the protocol port. The execution of the protocol port may or may not overlap with the execution of the simulation ports. The asynchronicity is needed, for example, for trimming.">Independent protocol test</a>. </p></li>
+				<li>Two execution contexts can run in parallel only if they share no channel.<p>If an execution
+						context A is running and you try to start another execution context B that shares a channel
+						with A, an error message to this effect will be issued, and B will not be started. A will
+						continue to run. </p></li>
+				<li>Two execution contexts can run in parallel only if the context that is started first is
+					executed in with <span class="keyword">SQST RUN</span> (or the test method API
+						<span class="keyword">START_TEST()</span>). If it is started with <span class="keyword">FTST()</span> (or one of
+					the test method APIs <span class="keyword">FUNCTIONAL_TEST()</span> or
+					<span class="keyword">EXECUTE_TEST()</span>), the second context will only be started after the first one
+					has returned its global PASS/FAIL result.</li>
+				<li>Recalculation of the master clock period will stop all user defined sequencer tasks.
+					Therefore, changes of the primary timing involving such a recalculation must be avoided between
+					the start of two execution contexts that are to run in parallel.</li>
+				<li>If two execution contexts both contain a port with a DC Scale channel,
+					they cannot be run in parallel.<p>If an execution context A that contains a
+						DC Scale channel is running, and you try to start another context B for which this also holds,
+						then an error message to this effect will be issued, and B will not be started. A will
+						continue to run.</p></li>
+			</ul></section>
+		<section class="section"><h2>Related firmware commands</h2><p>An execution context is defined with the
+					<span class="keyword">SQEC</span> command and started by adding its name to the command/query that
+				executes the test (for example <span class="keyword">FTST?</span> or <span class="keyword">SQST RUN</span>).
+				Execution contexts are deleted with the <span class="keyword">SQRC</span> command.</p><p>There are two
+				queries that inform about the execution contexts that were started last.
+					<span class="keyword">SQLC?</span> retrieves this information per port, <span class="keyword">SQSC?</span> returns
+				it over all ports.</p></section>
+		<section class="section"><h2>Related Test Method APIs</h2><p>Execution contexts can be programmed with the
+				following APIs:</p><p><a href="136815.htm" title="The SEQUENCER_CONTEXT class supplies objects that serve to manage one or more SEQUENCER_CONTEXT_ITEM objects (execution contexts). In particular, it must be used to download these context items to the firmware.">SEQUENCER_CONTEXT</a></p><p><a href="137373.htm" title="This class creates a single execution context, but only on the test method level. In order to be downloaded to the firmware, the object must be included in a SEQUENCER_CONTEXT object, and be activated by the apply() member function of this SEQUENCER_CONTEXT object.">SEQUENCER_CONTEXT_ITEM</a></p><p><a href="136021.htm" title="The INDEPENDENT_TEST class supplies protocol tests that are executed independently of the simulation ports. It is derived from the PROTOCOL_TEST class. Like a synchronized protocol test, an independent test consists of one or more transaction sequences each of which contains one or more transactions.">INDEPENDENT_TEST</a> (Protocol Aware)</p></section>
+		<h2>Example</h2><div class="example"><p>For a test method example, see the description of <a href="136815.htm" title="The SEQUENCER_CONTEXT class supplies objects that serve to manage one or more SEQUENCER_CONTEXT_ITEM objects (execution contexts). In particular, it must be used to download these context items to the firmware.">SEQUENCER_CONTEXT</a>.</p><p>The
+				following firmware example first displays the current start label, then shows its definition and
+				that of another multi-port burst, then defines two execution contexts each of which is related
+				to one of the two multi-port bursts, and finally executes these two contexts, changing the start
+				label after starting the first
+				context:</p><pre class="prettyprint linenums copyable">&gt; SQSL?
+&lt; SQSL "mu_burst1"
+&gt; SQLB? "mu_burst1",MPBU,(@@)
+&lt; SQLB "mu_burst1",MPBU,6,7,,(PA)
+&lt; SQLB "mu_burst1",MPBU,6,7,,(PB)
+&lt; SQLB "mu_burst1",MPBU,10,11,,(PC)
+&lt; SQLB "mu_burst1",MPBU,4,5,,(PD)
+&gt; SQLB? "mu_burst2",MPBU,(@@)
+&lt; SQLB "mu_burst2",MPBU,3,4,,(PX)
+&lt; SQLB "mu_burst2",MPBU,8,9,,(PY)
+&gt; SQEC "c1",(PA,PD)
+&gt; SQEC "c2",(PY)
+&gt; SQST RUN,"c1"
+&gt; SQSL "mu_burst2"
+&gt; SQST RUN,"c2"</pre><p>If
+					<code>c1</code> has not yet been finished when <code>c2</code> is started,
+					<code>c1</code> and <code>c2</code> will now run in parallel, provided that the ports
+					<code>PA</code>, <code>PD</code>, and <code>PY</code> are disjunct, and at least
+				one of the two contexts contains only Smart Scale channels.</p><p>Note also the following points
+				in this example:</p><ul>
+				<li>The primary timing has not been changed between the start of <code>c1</code> and
+						<code>c2</code>. If it had, then most probably the master clock period would have been
+					recalculated, and this would have stopped <code>c1</code>.</li>
+				<li>The first context is started with <span class="keyword">SQST RUN</span>, not <span class="keyword">FTST?</span>.
+					This is required for parallel execution; using <span class="keyword">FTST?</span> would block the
+					firmware interface until execution of <code>c1</code> is finished and
+						<span class="keyword">FTST?</span> has returned its global PASS/FAIL result. </li>
+				<li>If both contexts contain DC Scale channels, <code>c2</code> will not
+					be started, and an error message will be issued. <code>c1</code> will continue to run.</li>
+			</ul></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 135848</span><script type="text/javascript">var ti='135848';var tt='Using execution contexts'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

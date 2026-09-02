@@ -1,0 +1,46 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Register operation is to read a complete register and compare to an expected value with or without a mask."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Register compare</title></head><body id="_351501"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351501</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Register compare</h1>
+	
+	
+	<div><p>Register operation is to read a complete register and compare to an expected value with
+		or without a mask. </p>
+		<section class="section">
+			<p>If you do not use an ID in your register compare operation, you can only retrieve the global
+				pass/fail result. </p>
+			<p>If you use the same ID in both the <span class="keyword">compare</span> command and the result retrieval
+				command, you can retrieve the compare result for the specific register compare operation.</p>
+			<p>You can still put a read operation in the same RDI_BEGIN/RDI_END block. </p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			
+			<p>Register compare without ID.</p>
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  reg.PERIPHERAL0().REGISTER0().setValue(0x55).compare();
+  // or
+  // RA_COMPARE(0x1234, 0x55);
+  // RA_COMPARE(0x1234, 0x55, 0xFE);       // 0xFE is mask.
+  ...
+RDI_END();
+
+bool pf = GET_FUNCTIONAL_RESULT();  // Only global pass/fail.</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<div class="p">Register compare with the same ID in the compare command and the result retrieval
+				command.<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  reg.PERIPHERAL0().REGISTER0().setValue(0x55).compare("COMP_ID");
+  // or
+  RA_COMPARE("COMP_ID", 0x1234, 0x55);
+  // or
+  RA_COMPARE("COMP_ID", 0x1234, 0x55, 0xFE); // 0xFE is mask.
+  
+  RA_READ("READ_ID", 0x1234 ); // READ can be used in the same block.
+  ...
+RDI_END();
+const CompareResult&amp; cr = RA_GET_COMPARE_RESULT("COMP_ID"); // the same ID with the compare command.
+// cr.getPassFail();  cr.getExpectedValue();  cr.getReceivedValue()</pre></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351501</span><script type="text/javascript">var ti='351501';var tt='Register compare'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

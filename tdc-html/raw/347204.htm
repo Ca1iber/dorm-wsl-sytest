@@ -1,0 +1,157 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmartCalc "Thread per site" and "Common thread"</title><meta name="keywords" content="smart calc smartcal, Smart, Calc"></head><body id="_347204"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 347204</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmartCalc "Thread per site" and "Common thread"</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="347965.htm" title="An SMC thread per site requires the implementation of SMC_ARM() outside of the ON_FIRST_INVOCATION block. A separate thread is created for each active site. The processed site is defined by the site that is in focus when the thread is created and can be read by SMC_SITE_NUMBER().">SmartCalc thread per site example</a></li><li><a href="347966.htm" title="A common SMC thread requires the implementation of SMC_ARM() inside of the ON_FIRST_INVOCATION block. The thread is created once for all sites. Site handling within the thread requires the transfer of an array that holds all active sites.">SmartCalc common thread example</a></li></ol></div></nav>
+	
+	
+	<div><p>SmartCalc (SMC) uses multi thread capabilities of the system controller for
+		minimizing the test time. Setting up multi threading is supported as separate thread per
+		site or as common thread for all sites that is also known as single thread.</p>
+		<div class="p">Each call of function <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> and the similar
+			functions <a href="149774.htm" title="Arms the SMC_backgroundProcessing() method and passes the name of another test suite and data to it. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS()</a>, <a href="348107.htm" title="Arms the SMC_backgroundProcessing() method, passes the specified data to it, and passes also a list of the sites to be processed to the SmartCalc framwork.">SMC_ARM_FOR_SITES()</a> and <a href="348109.htm" title="Arms the SMC_backgroundProcessing() method, passes the name of another test suite and data to it, and passes also a list of the sites to be processed to the SmartCalc framwork. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS_FOR_SITES()</a>
+			creates a new thread. The performed actions of this thread is to be defined by function
+				<a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> of the related test method.</div>
+		<p>Multi-core CPUs are able to perform several of these threads in parallel. This feature will
+			minimize the test time as long as the overhead for calling functions and the handling of
+			threads does not exceed the time gained by the parallel execution: Each function call
+			and each thread creates some time overhead for preparation and cleanup. The overhead
+			depends also on the ratio of function calls and threads and the number of available CPU
+			cores. The overhead will significantly increase for a thread per site configuration on
+			high-site-count applications with low number of available CPU cores.</p>
+		<p>The SmartCalc framwork allows therefore defining the background processes in two
+			different ways:</p>
+		<ul>
+			<li>The "Thread per site" is armed <strong>outside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block.</li>
+			<li>The "Common thread" (or "single thread") is armed <strong>inside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block.</li>
+		</ul>
+		<div class="p">
+			<table class="frame-none"><caption></caption><colgroup><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"><col style="width:33.33333333333333%"></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="bg_grey colsep-1 rowsep-1">Thread per site</td>
+							<td class="bg_grey colsep-0 rowsep-1">Common thread</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Recommended use:</td>
+							<td class="colsep-1 rowsep-1">Low site count</td>
+							<td class="colsep-0 rowsep-1">High site count</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Position of the arming function:</td>
+							<td class="colsep-1 rowsep-1"><strong>Outside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block</td>
+							<td class="colsep-0 rowsep-1"><strong>Inside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Arming functions:</td>
+							<td class="colsep-1 rowsep-1">
+								<p><a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a></p>
+								<p><a href="149774.htm" title="Arms the SMC_backgroundProcessing() method and passes the name of another test suite and data to it. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS()</a></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p><a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a></p>
+								<p><a href="149774.htm" title="Arms the SMC_backgroundProcessing() method and passes the name of another test suite and data to it. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS()</a></p>
+								<p><a href="348107.htm" title="Arms the SMC_backgroundProcessing() method, passes the specified data to it, and passes also a list of the sites to be processed to the SmartCalc framwork.">SMC_ARM_FOR_SITES()</a></p>
+								<p><a href="348109.htm" title="Arms the SMC_backgroundProcessing() method, passes the name of another test suite and data to it, and passes also a list of the sites to be processed to the SmartCalc framwork. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS_FOR_SITES()</a></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Synchronizing all threads of a flow</td>
+							<td class="colsep-0 rowsep-1" colspan="2">For synchronizing all threats of a flow regardless
+								of the use model, refer to <a href="119876.htm#_119876__s_Synchronize_a_test_flow_with_any_use_model">Synchronize a test flow with any use model</a>
+								in <a href="119876.htm" title="Consider these general recommendations to ensure optimal performance of the SMC framework.">SmartCalc recommendations</a>.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Sites assigned by the SmartCalc framework:</td>
+							<td class="colsep-1 rowsep-1">Site in focus</td>
+							<td class="colsep-0 rowsep-1">The sites that are assigned depend on the used API:<ul>
+									<li>
+										<p><span class="keyword">SMC_ARM()</span> and
+												<span class="keyword">SMC_ARM_OTHER_TS()</span>:</p>
+										<p>All active sites.</p>
+									</li>
+									<li>
+										<p><span class="keyword">SMC_ARM_FOR_SITES()</span> and
+												<span class="keyword">SMC_ARM_OTHER_TS_FOR_SITES()</span>:</p>
+										<p>The processed sites are to be defined by mandatory
+											parameter <var class="varname">sites</var>.<a href="#_347204__fn_Sites_paarameter"><sup>1)</sup></a></p>
+									</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Reading the current site in thread:</td>
+							<td class="colsep-1 rowsep-1">
+								<p>The site can be read by <a href="120083.htm" title="Returns the site number of the test that your SMC_backgroundProcessing() method is executing.">SMC_SITE_NUMBER()</a>.</p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p><span class="keyword">SMC_SITE_NUMBER()</span> cannot be used in the common
+									thread.</p>
+								<p>The transferred list of sites to be processed must therefore be
+									used for site handling.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Site loop in thread:</td>
+							<td class="colsep-1 rowsep-1">One thread is started per site. No loop over sites is
+								required.</td>
+							<td class="colsep-0 rowsep-1">A loop over all sites to be processed is to be implemented using
+								a transferred list of sites.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Data transfer from test method to new thread:</td>
+							<td class="colsep-1 rowsep-1">Optional parameters of the arming function and
+									<span class="keyword">SMC_backgroundProcessing()</span> or member
+								variables of the test method class.</td>
+							<td class="colsep-0 rowsep-1"><p>Optional parameters of the arming function and
+										<span class="keyword">SMC_backgroundProcessing()</span> or member
+									variables of the test method class.</p>
+								<div class="p">Minimum a list of the sites to be processed must be transferred:<ul>
+										<li>
+											<p><span class="keyword">SMC_ARM()</span> and
+												<span class="keyword">SMC_ARM_OTHER_TS()</span>:</p>
+											<p>List of all active sites.</p>
+										</li>
+										<li>
+											<p><span class="keyword">SMC_ARM_FOR_SITES()</span> and
+												<span class="keyword">SMC_ARM_OTHER_TS_FOR_SITES()</span>:</p>
+											<p>User defined list of sites to be processed. This list must be equal to the list that
+												has been defined by mandatory parameter
+												<var class="varname">sites</var><a href="#_347204__fn_Sites_paarameter"><sup>1)</sup></a>.</p>
+										</li>
+									</ul></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="2">Judging and lodging of test results by API <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a>:</td>
+							<td class="colsep-1 rowsep-0">
+								<p>Use the standard version of the API:</p>
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<p>Use the extended version of the API that allows you specifying
+									the site:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><code>void&nbsp;SMC_TEST(const&nbsp;STRING&amp;&nbsp;pin,&nbsp;...</code></td>
+							<td class="colsep-0 rowsep-1"><code>void&nbsp;SMC_TEST(INT&nbsp;site,&nbsp;const&nbsp;STRING&amp;&nbsp;pin,&nbsp;...</code></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Minimizing test time by executing the run() function only
+								once:</td>
+							<td class="colsep-1 rowsep-1">Not supported</td>
+							<td class="colsep-0 rowsep-1"><a href="151603.htm" title="The run() function of test suites is usually called for each active site. The setStopSiteLoop() API enables you to call the run() function on the first active site only to minimize the test time.">setStopSiteLoop()</a></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">Example:</td>
+							<td class="colsep-1 rowsep-1"><a href="347965.htm" title="An SMC thread per site requires the implementation of SMC_ARM() outside of the ON_FIRST_INVOCATION block. A separate thread is created for each active site. The processed site is defined by the site that is in focus when the thread is created and can be read by SMC_SITE_NUMBER().">SmartCalc thread per site example</a></td>
+							<td class="colsep-0 rowsep-1"><a href="347966.htm" title="A common SMC thread requires the implementation of SMC_ARM() inside of the ON_FIRST_INVOCATION block. The thread is created once for all sites. Site handling within the thread requires the transfer of an array that holds all active sites.">SmartCalc common thread example</a></td>
+						</tr>
+					</tbody></table>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149335.htm" title="SmartRDI can be used in combination with the SmartCalc (SMC) framework. This allows you to move time consuming calculations and uploads of test results to separate background threads and executing them in parallel.">Using SmartCalc (SMC) with SmartRDI</a></div><div><a href="151603.htm" title="The run() function of test suites is usually called for each active site. The setStopSiteLoop() API enables you to call the run() function on the first active site only to minimize the test time.">setStopSiteLoop()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.2</li></ol></div><div class="fs"><div class="p"><a id="_347204__fn_Sites_paarameter"><sup>1)</sup></a>  The mandatory parameter
+												<span class="keyword">sites</span> defines the sites that
+												are assigned to the thread by the framework. A site
+												loop in the thread needs the same information
+												transferred as optional parameter or as member
+												variable of the test method class.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 347204</span><script type="text/javascript">var ti='347204';var tt='SmartCalc "Thread per site" and "Common thread"'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

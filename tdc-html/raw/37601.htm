@@ -1,0 +1,54 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The physical waveform DC/DC power units for the parallel part are by default created from the single state characters that occur in the first line of the ASCII scan instance. They are determined by creating n-tuples of the respective character, where n is the x-mode factor, and looking up these n-tuples in the timing map file."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Creation of the Waveform DC/DC power units for the Parallel Part</title><meta name="keywords" content="DCDC DC/DC converter wave form waveform table"></head><body id="_37601"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37601</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Creation of the Waveform DC/DC power units for the Parallel Part</h1>
+	
+	
+	<div><p>The physical waveform DC/DC power units for the parallel part are by default created from the
+		single state characters that occur in the first line of the ASCII scan instance. They are
+		determined by creating <em>n</em>-tuples of the respective character, where <em>n</em> is the x-mode
+		factor, and looking up these <em>n</em>-tuples in the timing map file.</p>
+		<p>The following figure shows an example:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46188.png" alt="Vector Translation of Scan Instances for x2-Mode">
+			</figure></div>
+		<section class="section"><h2>The SCAN_PAD option</h2><p>The vector that is repeated in the scan section on
+				the parallel pins can be modified with the <span class="keyword">SCAN_PAD</span> statement. This statement
+				defines a padding character for a pin. If such a padding character is defined, the waveform
+				index of the respective pin is determined from a state character sequence which starts with one
+				occurrence of the character that is specified in the parallel part of the ASCII scan instance.
+				The rest of the sequence consists of <span class="keyword">n</span>-1 occurrences of the padding character
+				(where <span class="keyword">n</span> is the x-mode factor), as defined with <span class="keyword">SCAN_PAD</span>.
+				When the test is executed, this vector is repeated as often as required. As an example, consider
+				the following ASCII vector
+				file:</p><pre class="prettyprint linenums copyable">FORMAT CP SI SO SE I1 I2 I3 O1;
+HORIZONTAL_SCAN;
+SCAN_TYPE STANDARD;
+
+R2 sc_par  1 n n 0 0 1 1 H;
+R3 sc_par  1 n n 0 1 0 0 L;
+
+SCAN_TEMPLATE T1 10;
+SCAN_PORT T1 IN SI;
+SCAN_PORT T1 OUT SO;
+
+SCAN T1 sc_par 1 - - 1 n n n H;
+SCAN_PAD sc_par O1 X;
+PIN SI 10 01 10 01 10;
+PIN SO XX XX XX XX XX;
+
+R3 sc_par  1 n n 0 0 1 1 L;
+
+SCAN T1 sc_par 1 - - 1 n n n H;
+PIN SI ZZ ZZ ZZ ZZ ZZ;
+PIN SO HL LH HL LH HL;</pre><p>If
+				this file is translated with an x-mode factor of 3, the template length must be corrected from
+				10 to 12, and one padding vector must be added at the end of each of the scan instances.
+				Therefore, the vector for the parallel pins must be repeated 4 times. In the expanded view of
+				the pattern tool, this will look as follows:</p><div class="p"><figure class="fignone">
+					<img src="124047.png" alt="SCAN_PAD example">
+				</figure></div><p>Note that the waveform for pin O1 is <span class="keyword">HXX</span> (not
+					<span class="keyword">HHH</span>), as defined with <span class="keyword">SCAN_PAD</span>.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37601</span><script type="text/javascript">var ti='37601';var tt='Creation of the Waveform DC/DC power units for the Parallel Part'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

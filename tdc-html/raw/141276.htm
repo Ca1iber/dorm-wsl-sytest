@@ -1,0 +1,195 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based mode of SmartRDI."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>RDI_BEGIN()</title></head><body id="_141276"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 141276</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">RDI_BEGIN()</h1>
+	
+	
+	<div><p><span class="keyword">RDI_BEGIN()</span> and <span class="keyword">RDI_END()</span> define and enclose an
+		RDI block. The RDI block marks a section in a test method to set up and execute tests in the
+		pattern‑based mode of SmartRDI.</p>
+		<section class="section"><p><span class="keyword">RDI_BEGIN()</span> and <a href="141277.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based of SmartRDI.">RDI_END()</a> are intended to be
+				used in the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block and must always be
+				implemented together.</p>
+			<div class="p">For the first run, SmartRDI creates corresponding pattern from the code within the RDI block.
+				Depending on the value of parameter <var class="varname">mode</var>, the single patterns or a pattern
+				burst that contains all generated patterns for the RDI block are executed for the first and all
+				subsequent runs.<ul>
+					<li>
+						<p>The code inside <span class="keyword">RDI_BEGIN()/RDI_END()</span> is only executed in the first run
+							after build. This is required for generating pattern content.</p>
+					</li>
+					<li>
+						<p>In the following runs, the code inside <span class="keyword">RDI_BEGIN()/RDI_END()</span> is skipped!
+							This is because the pattern content is already available.</p>
+					</li>
+					<li>
+						<p>DO NOT put any code that you would like to run in EACH execution into
+								<span class="keyword">RDI_BEGIN()/RDI_END()</span>.</p>
+					</li>
+					<li>
+						<p>For debugging a project: At the line where RDI_END() is located, the pattern which has been
+							created in the first run is executed.</p>
+					</li>
+				</ul></div></section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+RDI_BEGIN(mode);</pre><div></div>
+			<table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_141276__entry__1">
+								<p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_141276__entry__2">
+								<p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_141276__entry__1">
+								<p><var class="varname">mode</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_141276__entry__2">
+								<p>The optional execution mode. It can be:</p>
+								<ul>
+									<li>
+										<p><span class="keyword">TA::BURST</span>: Pattern-based execution
+											mode. This is the default mode.</p>
+									</li>
+									<li>
+										<p><span class="keyword">TA::SINGLE</span>: Single step execution mode
+											for debugging.</p>
+									</li>
+									<li>
+										<p><span class="keyword">TA::PROD</span>: Production mode. No new
+											setups will be generated. The saved setups from the
+											pattern‑based mode will be used.</p>
+									</li>
+								</ul>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		<section class="section"><h2>Execution modes in RDI_BEGIN()</h2>
+			
+			<dl>
+				
+					<dt class="dlterm">Burst Mode (<span class="keyword">TA::BURST</span>)</dt>
+					<dd><p>This is the target mode for developing tests. This mode is the default
+							mode if parameter <var class="varname">mode</var> is not specified.</p>
+						<ul>
+							<li>First run after build:<ul>
+									<li>
+										<p>One or more patterns are generated for all RDI commands
+											of the RDI block.Note:</p>
+										<p>RDI commands are enclosed by <span class="keyword">rdi.</span><a href="142069.htm#_142069__ul_Supported_classes">class()</a>
+											and <a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a>.</p>
+									</li>
+									<li>A pattern burst, containing all generated patterns for the
+										RDI block, is generated.</li>
+								</ul></li>
+							<li>First run after build and all subsequent runs:<ul>
+									<li>The pattern burst runs at the end of the RDI block when
+											<a href="141277.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based of SmartRDI.">RDI_END()</a> is executed.</li>
+								</ul></li>
+						</ul></dd>
+				
+				
+					<dt class="dlterm">Single Mode (<span class="keyword">TA::SINGLE</span>)</dt>
+					<dd><p>This mode should be used only for debugging.</p>
+						<div class="p">The Single Mode works similar to the Burst Mode but utilizes more pattern bursts:<ul>
+								<li>In Burst Mode, one pattern burst is executed per RDI block.</li>
+								<li>In Single Mode, one pattern burst is executed per RDI command
+									that is enclosed by <span class="keyword">rdi.</span><a href="142069.htm#_142069__ul_Supported_classes">class()</a> and
+										<a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a>.</li>
+							</ul>The Single Mode allows you therefore, using the debugger to execute
+							the RDI commands within an RDI block step by step.</div></dd>
+				
+				
+					<dt class="dlterm">Production Mode (<span class="keyword">TA::PROD</span>)</dt>
+					<dd><p>The non-generation mode for production.</p><ul>
+							<li>Works similarly as <span class="keyword">TA::BURST</span>, but WITHOUT setup
+								generation.</li>
+							<li>SmartRDI just follows the naming rules to run the needed
+								setups.</li>
+							<li>User still needs to keep alignment between the code and the setup.
+								Result retrieval information is still based on the code.</li>
+						</ul><p>SmartRDI does not create any pattern or setup in Production Mode.
+							You must therefore ensure, that the following requirements are met:</p><ul>
+							<li>Pattern in RDI block:<ul>
+									<li>A pattern setup file must be available.</li>
+									<li>Required pattern of the RDI blocks are to be generated by
+										SmartRDI with parameter <var class="varname">mode</var> of the RDI
+										blocks set to <span class="keyword">TA::BURST</span>.</li>
+									<li>The pattern setup file must be saved after it has been
+										modified by SmartRDI: The modified file is marked by an
+										asterisk "*" in the Test Program Explorer.</li>
+									<li>The pattern setup file must be added to the <a href="99274.htm" title="This page displays the primary setup files used in the currenct testflow. Invalid setup files are highlighted with yellow (the setup files have not been loaded or do not exist).">Setups page</a> of the Flow Data Editor.</li>
+								</ul></li>
+							<li>Analog setups:<div class="p">Setups for analog cards (AWG and DGT) are automatically generated by
+									SmartRDI. Minimum an analog control file must be available. AWG
+									setups also require an analog waveform file.<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a></div><ol>
+									<li>Add both the analog control file and (for AWG tests) the
+										analog waveform file in the <a href="99274.htm" title="This page displays the primary setup files used in the currenct testflow. Invalid setup files are highlighted with yellow (the setup files have not been loaded or do not exist).">Setups page</a> of the
+										Flow Data Editor.</li>
+									<li>Ensure that parameter <a href="146692.htm#_146692__row_SETUP_UPTODATE">SETUP_UPTODATE</a>
+										in file <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a> is set to
+											<span class="keyword">FALSE</span>.</li>
+									<li>Reload all setups.</li>
+									<li>Ensure that all required files are loaded: Analog control
+										file and (for AWG tests) the analog waveform file.</li>
+									<li>Start the full flow with parameter <var class="varname">mode</var>
+										of the RDI blocks set to <span class="keyword">TA::BURST</span> to
+										allow SmartRDI generating the setup and the waveform.</li>
+									<li>Verify that both the analog control file and (for AWG tests)
+										the analog waveform file are marked by an asterisk "*".</li>
+									<li>Save both the analog control file and (for AWG tests) the
+										analog waveform file.</li>
+								</ol></li>
+						</ul><p>The following error messages a shown in the
+								<span class="uicontrol">ui_report</span> window if a setup file is missing
+							in production mode:</p><ul>
+							<li>Pattern file missing: <samp class="sysout">ERROR:[1] label(...) on
+									port(...) not found in PROD mode!</samp></li>
+							<li>Analog setup missing: <samp class="sysout">ERROR:[1] Analog set(...) is NOT
+									found in Production mode!</samp></li>
+							<li>Analog waveform missing: <samp class="sysout">ERROR: FLSH - Waveform label
+									... not yet filled with waveform data, but accessed in sequencer
+									program ... for ... in analog set ...</samp>.</li>
+						</ul></dd>
+				
+			</dl>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Minimum code</h3>
+			
+			<p>The following example shows the minimum code for a RDI block. The ellipses ("...")
+				are to be replaced with your code.</p>
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+    ...
+    ...
+RDI_END();</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2: Optional curly brackets</h3>
+			
+			<p>The example utilizes an optional pair of curly brackets "{" and "}". These optional
+				curly brackets are used for simplifying the correct indentation with assistance of
+				the related Eclipse tool.</p>
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+{
+    ...
+    ...
+}
+RDI_END();</pre><div></div>
+			<div class="note"><span class="title">Note</span> The two use options (with or without curly brackets) should not be mixed in one
+				test method class.</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="141277.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based of SmartRDI.">RDI_END()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  Creating a new
+										analog control file will invalidate an already loaded analog
+										waveform file and vice versa. We recommend therefore
+										following sequence:<ol>
+											<li>Create a new analog control file but do not fill it
+												with context at all.</li>
+											<li>Create a new analog waveform file.</li>
+											<li>Reload both files.</li>
+										</ol></div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 141276</span><script type="text/javascript">var ti='141276';var tt='RDI_BEGIN()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>APG program file</title></head><body id="_67572"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 67572</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">APG program file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="102025.htm" title="The syntax in the APG program file differs from that of the MTL configuration files. It is closely related to that of the C programming language.">APG program file syntax</a></li></ol></div></nav>
+	
+	
+	<div><p>The APG program file contains the actual code from which the test pattern is compiled.
+		It may also contain reusable maintenance operations.</p>
+		<div class="p"><figure class="fignone">
+				<img src="102176.png" alt="Miniature scheme of file dependencies with .prog file highlighted">
+			</figure></div>
+		<p>The program file has the <span class="filepath">.prog</span> file name extension. It is referenced from
+			the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> with the <span class="keyword">:apgProgram:</span> keyword.</p>
+		<p>The code is written in a subset of the C language, as described in <a href="102025.htm" title="The syntax in the APG program file differs from that of the MTL configuration files. It is closely related to that of the C programming language.">APG program file syntax</a>. The
+			available operators are described in <a href="101459.htm" title="The MTL compiler supports most of the operators available in C. There are, however, some restrictions as to their usage.">Operators</a>.</p>
+		<p>The program file must contain one <code>main()</code> function and can contain any number
+			of subroutines that are called by name from <code>main()</code>. It can also contain device
+			parameters from the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>.</p>
+		<div class="note"><span class="title">Note</span> Exception: If a program contains just a subfunction that is not passed any
+			parameters, you can use it to compile a reusable maintenance operation, as described
+			below.</div>
+		<section class="section"><h2>Maintenance routines</h2><p>Maintenance routines are subroutines that are
+				called for <a href="75895.htm" title="Maintenance operations are procedures that need to be performed regularly during the testing of a device, most commonly refreshes.">refresh maintenance operations</a>. They are defined in the
+				APG program file like normal subroutines. Maintenance routines must not expect parameters to be
+				passed to them.</p><p>If an APG program file contains just a maintenance routine (that is, no
+					<code>main()</code> function), this routine is compiled into a <a href="103645.htm" title="In addition to compiling maintenance operations together with the main() routine, they can also be compiled separately and called from other routines.">reusable maintenance routine</a>.</p></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">// solid.prog
+
+#include "../../device_defs/access_defs/ddr3_operations.inc"
+#include "../basic_access_sequences.inc"
+
+main () 
+{
+
+// for debugging purposes un-comment the next 3 lines for a small core...
+#define zStop 4
+// #define yStop 64
+// #define xstop 128
+
+   for (bank=zStart; bank&lt;zStop; bank+=1)
+   {
+      WriteBackground(bank,DW1,DW2,DW3,DW4,DW5,DW6,DW7,DW8);
+      ReadBackground(bank,DW1,DW2,DW3,DW4,DW5,DW6,DW7,DW8);
+   }
+
+   for (bank=zStart; bank&lt;zStop; bank+=1)
+   {
+      WriteBackground(bank,IDW1,IDW2,IDW3,IDW4,IDW5,IDW6,IDW7,IDW8);
+      ReadBackground(bank,IDW1,IDW2,IDW3,IDW4,IDW5,IDW6,IDW7,IDW8);
+   }
+
+  pad(EndProgPad){}
+}
+
+//*************************************************/
+//**** Subroutines ********************************/
+//*************************************************/
+
+EndProgPad()
+{
+  CLK(); CTRL(1,1); DES(); DBUS_IDLE(); 
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="101915.htm">MTL Configuration Files</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 67572</span><script type="text/javascript">var ti='67572';var tt='APG program file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

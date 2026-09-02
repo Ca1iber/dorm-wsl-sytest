@@ -1,0 +1,177 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to use the test suite control API</title><meta name="keywords" content="testsuite"></head><body id="_111198"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 111198</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to use the test suite control API</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>To control the test suites with the test suite control APIs, you need to create a C++
+				program and build the program to create a client.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 6.5.2 or later versions.</p><p>You must build your
+				program from within the run shell. To activate the run shell, execute the following
+					command:</p><p><kbd class="userinput">$/opt/hp93000/soc/system/bin/run -S</kbd></p></section>
+		<section class="sectiontitlefake"><h2>Procedure</h2><ol>
+				<li>Create a C++ program to control the test suites with the test suite control APIs.<p>Include
+						the header file <span class="filepath">testsuitecontrol_api.hpp</span> and use the name space
+							<code>testsuitecontrol</code> in the program.</p></li>
+				<li>Build the C++ program to create a client.<div class="p"><strong>For a 32-bit system</strong>, use the following compilation and link options:<div class="note"><span class="title">Note</span> For
+							a 64-bit system, use <kbd class="userinput">-m64</kbd> to replace <code>-m32</code> or do not
+							use the option at all.</div></div><p><strong>Compilation options:</strong>
+						<kbd class="userinput">-I/opt/hp93000/soc/prod_com/include/ -m32</kbd></p><p>The compiling command
+						is like:</p><p><kbd class="userinput">g++ -I/opt/hp93000/soc/prod_com/include/ -m32 -c -o main.o
+							main.cpp</kbd></p><p><strong>Link options:</strong>
+						<kbd class="userinput">-m32 -L /opt/hp93000/soc/prod_com/sh_lib/ -Wl,-rpath
+							/opt/hp93000/soc/prod_com/sh_lib/ -ltestsuitecontrol_api</kbd></p><p>The linking
+						command is like:</p><p><kbd class="userinput">g++ -m32 -L /opt/hp93000/soc/prod_com/sh_lib/ -Wl,-rpath
+							/opt/hp93000/soc/prod_com/sh_lib/ -ltestsuitecontrol_api -o t1.exe.
+							main.o</kbd></p><p><strong>For Red Hat 3</strong>, use the following compilation and link
+						options:</p><p><strong>Compilation options:</strong>
+						<kbd class="userinput">-I /opt/hp93000/soc/prod_com/include/ -I
+							/opt/openoffice.org/OpenOffice.org2.0_SDK/include/stl/
+							-DGXX_INCLUDE_PATH=/usr/include/c++/3.2.3/</kbd></p><p>The compiling command is
+						like:</p><p><kbd class="userinput">g++ -I /opt/hp93000/soc/prod_com/include/
+							-I/opt/openoffice.org/OpenOffice.org2.0_SDK/include/stl/
+							-DGXX_INCLUDE_PATH=/usr/include/c++/3.2.3/ -c -o main.o main.cpp</kbd></p><p><strong>Link
+							options:</strong>
+						<kbd class="userinput">-L /opt/hp93000/soc/prod_com/sh_lib/ -Wl,-rpath /opt/hp93000/soc/prod_com/sh_lib/
+							-ltestsuitecontrol_api</kbd></p><p>The linking command is like:</p><p><kbd class="userinput">g++ -L
+							/opt/hp93000/soc/prod_com/sh_lib/ -Wl,-rpath /opt/hp93000/soc/prod_com/sh_lib/
+							-ltestsuitecontrol_api -o t1.exe main.o</kbd></p></li>
+				<li>Execute the client to as below:<p><kbd class="userinput">/opt/hp93000/soc/system/bin/run -x
+							user_executable_program</kbd></p></li>
+			</ol></section>
+		<h2>Examples</h2><section><h3>Executing an existing test suite</h3><p>The following example executes an
+				existing test suite in the current test
+			flow.</p><pre class="prettyprint linenums copyable">#include "testsuitecontrol_api.hpp"
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+ 
+using namespace std;
+using namespace testsuitecontrol;
+ 
+int main(int argc, char** argv)
+{
+int nRet = -1;
+ 
+try
+{
+initializeSession(); 
+TestsuiteProxy ts = getTestsuite("mysuite");
+//execute it on site 1,3,5
+set&lt;int&gt; sites;
+sites.insert(1);
+sites.insert(3);
+sites.insert(5);
+setActiveSites(sites);
+ 
+ts.executeActiveSites();
+ 
+for(set&lt;int&gt;::const_iterator it = sites.begin(); it != sites.end(); ++it)
+{ 
+int siteNum = *it;
+if (ts.isPass(siteNum))
+{
+cout&lt;&lt;"\"mysuite\" was executed on site"&lt;&lt;siteNum&lt;&lt;": PASSED."&lt;&lt;endl;
+}
+else
+{
+cout&lt;&lt;"\"mysuite\" was executed on site"&lt;&lt;siteNum&lt;&lt;": FAILED."&lt;&lt;endl;
+}
+}
+detachSession();
+nRet = 0;
+}
+catch(runtime_error&amp; error)
+{
+cerr&lt;&lt;error.what()&lt;&lt;endl;
+}
+return nRet;
+}</pre></section>
+		<section><h3>Create, Setup and execute a test suite </h3><p>The following example creates a
+				floating test suite, setup and execute the floating test
+			suite.</p><pre class="prettyprint linenums copyable">#include "testsuitecontrol_api.hpp"
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt; 
+ 
+using namespace std;
+using namespace testsuitecontrol;
+ 
+int main(int argc, char** argv)
+{
+int nRet = -1; 
+try
+{ 
+//default session: the SmarTest session of the current display
+//default UTM executor: the first one (i.e. TestMethodManager).
+initializeSession(); 
+
+TestsuiteProxy ts = createFloatingTestsuite("floating");
+ts.attachTestmethod("ac_tml.AC_TEST.FunctionalTest");
+ 
+//setup this testsuite
+ts.setEquationBasedLevel("2","1","3");
+ts.setEquationBasedTiming("3","2","2");
+ts.setSequencerLabel("\"MATCH_LOOP\"");
+ 
+//execute it on currently active site
+ts.executeActiveSites();
+set&lt;int&gt; sites = getActiveSites();
+for(set&lt;int&gt;::const_iterator it = sites.begin(); it != sites.end(); ++it)
+{ 
+int siteNum = *it;
+if (ts.isPass (siteNum))
+{
+cout&lt;&lt;"\"mysuite\" was executed on site"&lt;&lt;siteNum&lt;&lt;": PASS."&lt;&lt;endl;
+}
+else
+{
+cout&lt;&lt;"\"mysuite\" was executed on site"&lt;&lt;siteNum&lt;&lt;": FAILED."&lt;&lt;endl;
+}
+}
+detachSession();
+nRet = 0;
+} 
+catch(runtime_error&amp; error)
+{
+cerr&lt;&lt;error.what()&lt;&lt;endl;
+}
+ 
+return nRet;
+}</pre></section>
+		<section><h3>Delete a test suite</h3><p>The following example deletes a floating test
+				suite.</p><pre class="prettyprint linenums copyable">#include "testsuitecontrol_api.hpp"
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt; 
+ 
+using namespace std;
+using namespace testsuitecontrol;
+ 
+int main(int argc, char** argv)
+{
+int nRet = -1; 
+try
+{ 
+initializeSession(); 
+bool isRemoved =deleteFloatingTestsuite("dummy");
+if (isRemoved)
+{
+cout&lt;&lt;"\"dummy\" testsuite was removed: succeed."&lt;&lt;endl;
+}
+else
+{
+cout&lt;&lt;"\"dummy\" testsuite was removed: failed."&lt;&lt;endl;
+}
+ 
+detachSession();
+nRet = 0;
+} 
+catch(runtime_error&amp; error)
+{
+cerr&lt;&lt;error.what()&lt;&lt;endl;
+}
+ 
+return nRet;
+ </pre><p>}</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="111200.htm" title="Test suite control API provide functionalities.">Test suite control API reference</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li><li>SmarTest 6.5.3:  New API detachSession().</li><li>SmarTest 6.5.3:  terminateSession() is removed.</li><li>SmarTest 7.3.2: Added run shell guidance.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 111198</span><script type="text/javascript">var ti='111198';var tt='How to use the test suite control API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

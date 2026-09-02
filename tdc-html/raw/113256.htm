@@ -1,0 +1,62 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>User-defined disconnect sequence</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_113256"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113256</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">User-defined disconnect sequence</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="113289.htm" title="Replacing the standard disconnect sequence with a user-defined disconnect sequence needs systematic knowledge to avoid damage to your device or to the test system.">Effects of user-defined disconnect sequence</a></li><li><a href="113295.htm" title="This section explains how to use the test method together with the user-defined disconnect sequence in order to implement a conditional final disconnect.">Implementing a conditional final disconnect with disconnect.user_def</a></li></ol></div></nav>
+	
+	
+	<div><p>The behavior of the <a href="113093.htm" title="When the test system resources are disconnected from the DUT and the tester is set to the &#34;disconnect&#34; state, a standard disconnect sequence is used within SmarTest by default.">Standard disconnect sequence</a> can be changed by providing a user-defined
+		disconnect sequence.</p>
+		<p>For test situations where you want to define a particular disconnect sequence (see examples
+			below), it can be done by creating a command file. This optional user-defined disconnect command
+			file must be named <span class="filepath">disconnect.user_def</span>, and placed in the folder
+				<span class="filepath">testfunc</span> of your device directory.</p>
+		<p>Use a user-defined disconnect sequence in the following cases:</p>
+		<ul>
+			<li>If there are shared power pins across multi-sites and you want to disconnect the site related
+				power pins separately.</li>
+			<li>If test suites within a test flow are not <a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">self-contained</a>, and
+				some test suites require a continuously running clock or require the current state
+				of a device control pin to be maintained.</li>
+			</ul>
+		<div class="note"><span class="title">Note</span> On startup SmarTest always performs a standard disconnect.</div><div class="note"><span class="title">Note</span> Use only firmware commands that make use of the site focus. That means
+			you have to set the site focus before you can execute the command. For a list of all
+			possible firmware commands, see <a href="143608.htm" title="This topic lists the firmware commands, which make use of the site focus. That means you have to set the site focus before you can execute the command. For more information, see the Focus section in The states of the sites.">Site dependent firmware commands</a>.</div>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>This is one example of how to use a user-defined disconnect
+				sequence for switching power pins in a pin
+			list:</p><pre class="prettyprint linenums copyable"><a href="98564.htm" title="The DLSO command activates level set 0 for the channels of those sites that have the setup focus (for level set 0, see Controlling the high-Z behavior of digital pins with level set 0). By default, this means that they are switched to high-impedance.">DLSO</a> (@NONSHARED@)
+<a href="98503.htm" title="The CHRS command serves to control the behavior of SmarTest with respect to inconsistent routing requests. The CHRS? query returns the current setting.">CHRS</a> OFF
+<a href="99061.htm" title="The following commands for utility lines do not immediately set the hardware. Instead they are buffered in the MCD (Message Concentrator and Distributor).">FLSH</a> MUX
+<a href="99082.htm" title="The WSDN (Wait Setup DoNe) command waits until downloading the settings in the readiness analog set and routing settings triggered by the FLSH command are completed.">WSDN</a>
+<a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST</a> OFF
+<a href="99085.htm" title="Depending on the card type, the CNCT (CoNneCT/disCoNneCT) command connects or disconnects all output pins of the specified module.">CNCT</a> OFF,(@NONSHARED@)
+<a href="10738.htm" title="A binding instance is a controlling object which represents a set of wireless resources and the ordered relationship between them. Runtime changes are usually made to the bindings that represent resources, and not to the resources themselves.">BCMD</a> "",ACTION,"Update",
+<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST</a> OFF,(pinlist for DPS2)
+<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST</a> OFF,(pinlist for DPS1)
+<a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> IDLE,OFF,(@NONSHARED@)
+</pre></div>
+		<div class="example"><h3>Example 2</h3><p>This is the recommended user-defined disconnect sequence to
+				avoid <a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">the pass or fail site dependency behavior</a> and keep the clock
+				running:</p><pre class="prettyprint linenums copyable"><a href="98564.htm" title="The DLSO command activates level set 0 for the channels of those sites that have the setup focus (for level set 0, see Controlling the high-Z behavior of digital pins with level set 0). By default, this means that they are switched to high-impedance.">DLSO</a> (@NONSHARED@)
+<a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> IDLE,OFF,(@NONSHARED@)
+<a href="98503.htm" title="The CHRS command serves to control the behavior of SmarTest with respect to inconsistent routing requests. The CHRS? query returns the current setting.">CHRS</a> OFF
+<a href="99061.htm" title="The following commands for utility lines do not immediately set the hardware. Instead they are buffered in the MCD (Message Concentrator and Distributor).">FLSH</a> MUX
+<a href="99082.htm" title="The WSDN (Wait Setup DoNe) command waits until downloading the settings in the readiness analog set and routing settings triggered by the FLSH command are completed.">WSDN</a>
+<a href="99085.htm" title="Depending on the card type, the CNCT (CoNneCT/disCoNneCT) command connects or disconnects all output pins of the specified module.">CNCT</a> OFF,(@NONSHARED@)
+<a href="10738.htm" title="A binding instance is a controlling object which represents a set of wireless resources and the ordered relationship between them. Runtime changes are usually made to the bindings that represent resources, and not to the resources themselves.">BCMD</a> "",ACTION,"Update",
+<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST</a> OFF
+</pre><p>Compared
+				with the standard disconnect sequence, the above user-defined sequence has the following three
+				major differences:</p><ul>
+				<li>Removal of "SQST OFF" from the standard disconnect sequence, so that the clock keeps
+					running.</li>
+				<li>Usage of "@NONSHARED@" pin group in the disconnect sequence, so that Smartest will
+					disconnect site related pins correctly.</li>
+				<li>Moving the "RLYC" command up to the second position after "DLSO", so that potential hot
+					switching is avoided.</li>
+			</ul><div class="note"><span class="title">Note</span> When the above user-defined disconnect sequence is used, SmarTest cannot
+				automatically distinguish between shared and non-shared pins, but applies the same sequence
+				throughout the entire test flow. This leaves <a href="113289.htm" title="Replacing the standard disconnect sequence with a user-defined disconnect sequence needs systematic knowledge to avoid damage to your device or to the test system.">shared pins connected</a>
+				which may impact on the DUT under certain circumstances.</div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113093.htm" title="When the test system resources are disconnected from the DUT and the tester is set to the &#34;disconnect&#34; state, a standard disconnect sequence is used within SmarTest by default.">Standard disconnect sequence</a></div><div><a href="52816.htm" title="SmarTest provides you with the flexibility to modify the behavior of the standard connect/disconnect sequence.">Defining connect/disconnect sequences</a></div><div><a href="116387.htm" title="SmarTest uses the disconnect sequence to separate the test system resource from the DUT. This also sets the test system to the &#34;disconnect&#34; state independent of the previous test system state.">Comparing the disconnect methods</a></div><div><a href="113289.htm" title="Replacing the standard disconnect sequence with a user-defined disconnect sequence needs systematic knowledge to avoid damage to your device or to the test system.">Effects of user-defined disconnect sequence</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.3: SmarTest startup behavior changed</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113256</span><script type="text/javascript">var ti='113256';var tt='User-defined disconnect sequence'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,326 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Speeding Test Program Development with a Code Re-use Library</title><meta name="keywords" content="testprogram"></head><body id="_120455"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120455</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Speeding Test Program Development with a Code Re-use Library</h1>
+	
+	<div>
+		<p>Rick Crist, Verigy</p>
+		<p>Paper-ID: 120455 April 2010</p>
+		<section class="section"><h2>Abstract</h2><p>Developing a test program for each new device is too
+				time-consuming for today's fast-paced mobile device industry. Using a library of validated test
+				methods that have a consistent interface and been throughput optimized for multi-site testing
+				can greatly speed test program development, validation and release to production. This paper
+				discusses the creation and implementation of a code re-use library for a family of RF
+				transceivers.</p><p>The paper will discuss the problems associated with the previous test
+				program development methodology. It will detail the creation of a code re-use library featuring
+				a full suite of test methods for a family of RF transceivers including DC, RF to baseband and
+				baseband to RF tests. The library will take advantage of new features in SmarTest, including
+				test tables (i.e., <a href="118940.htm" title="TMLimits is a high-level implementation of test tables that can be accessed both through the SmarTest Work Center and programmatically through test methods.">TMLimits</a>), universal test methods, analog setup
+				APIs, SmartCalc, etc. It will also make use of the dynamic to static (D2S) library introduced at
+				VOICE 2008. The library will be made up of test methods that have been validated using existing
+				devices and have been optimized for throughput and multi-site operation. The paper will then
+				show how the code re-use library was used for a new test program development and how it solved
+				problems of the previous development methodology.</p><p><strong>Key Words</strong>: Test Program
+				Development, Code Re-use, Library</p></section>
+		<section class="section"><h2>Introduction</h2><p>Developing a new test program for each device takes too
+				long. To provide an idea of the scale of the task, an existing RF transceiver test program
+				contains more than 50 test methods. These test methods have more than 1000 test items and
+				require approximately 50,000 lines of code. The process of developing, debugging and optimizing
+				the code can easily take several man-years. A common method to deal with this is to use the test
+				program for a previous device as a template for the next one. This can also be inefficient
+				unless the previous program was written in such a way so that it can more easily be
+				re-used.</p><p>This paper focuses mainly on the development of test methods. Recent developments
+				in SmarTest allow more of the test program to be defined in C++ code. This paper will attempt to
+				capitalize on this to extend code re-use to analog instrument setups. A previous VOICE paper
+				explores collaborative development and code re-use at the test program level. [1]</p><p>Code
+				re-use, or test method libraries (TML), have been included with SmarTest since Rel. 5.2. [2]
+				These libraries were introduced to provide more flexible and optimized methods to replace test
+				functions; sometimes referred to as "yellow windows". [3]</p><p>The code for these libraries is
+				included in /opt/hp93000/soc/TestMethod for classic test methods (CTM) and
+					<span class="filepath">/opt/hp93000/soc/testmethod</span> for universal test methods (UTM). There are
+				libraries for DC tests (<code>DC_TML</code>), AC tests (<code>AC_TML</code>), per-pin
+				time interval analyzer tests (<code>PPTIA_TML</code>) and scan tests
+					(<code>SCAN_TML</code>).</p><p>While these provide a fairly complete set of methods for
+				testing digital devices, they do not include methods for mixed-signal or RF tests. Mixed-signal
+				and RF test methodologies tend to vary more from one device to the next. This makes it difficult
+				to develop libraries that can be applied to a wide range of devices.</p><p>This paper describes
+				the process of developing a code re-use library for a family of RF transceivers. The same
+				approach can be applied to any family of mixed-signal or RF devices where test methodologies can
+				be re-used.</p></section>
+		<section class="section"><h2>Developing the Code Re-use Library</h2><p>The code re-use library will be used
+				by multiple test programs, each of which may only use a portion of the methods available. The
+				test programs provide reference implementations so users can see how the library works with
+				other aspects of the test program including the pin configuration, levels, timing, vectors and
+				test flow.</p><p>Within a given test engineering environment, there is usually a lot of
+				similarity from device to device within a family. Judiciously architecting test setups and
+				methods can greatly enhance their re-use from test program to test program.</p><p>This will be a
+				living library, which will be continually updated and grow over time. As changes are made, they
+				can be validated using existing test programs. This validation builds confidence in the library
+				for applications on new devices and therefore speeds development time.</p><p>Many of the
+				conventions that follow were first developed and implemented in Verigy's Application Exchange
+				(ApEx) library. [4] ApEx libraries were developed for several device market segments including
+				baseband, DC, high speed digital and RF. These libraries, which are more generic in nature, can
+				provide a starting point for development of a more specific library for a particular family of
+				devices.</p></section>
+		<section class="section"><h2>Overall Conventions</h2><p>The code re-use library is a set of test programs
+				that run on the V93000. Each test program must:</p><ul>
+				<li>Run online and produce passing results with a golden device.</li>
+				<li>Run offline and produce passing results using simulated offline data included in the test
+					method and/or hardware response data captured previously when the program was run on-line.
+					SmarTest includes a hardware response emulation feature that allows measurement data to be
+					captured in a set of special files while on-line. This data can then be used off-line to
+					simulate hardware responses. [5]</li>
+				<li>Support multi-site testing. The number of sites should not be fixed, but should easily be
+					configurable from one to eight.</li>
+				<li>The test program directory should contain working technology, model, pogo map and license
+					files.</li>
+				<li>Be archived using subversion. [6]</li>
+				<li>Use standard approaches described in SmarTest manuals.</li>
+				<li>The code should compile and link without errors or warnings.</li>
+				<li>Use setup API's for all analog tests.</li>
+				<li>Use the pin alias function to allow easy import/export.</li>
+			</ul></section>
+		<section class="section"><h2>Test Result Processing</h2><p>Typically in SmarTest, limits are defined as part
+				of each test suite. This can make managing test limits difficult as they are dispersed
+				throughout the program. It can also be challenging when more than one set of limits is needed
+				for different variations of the test program; for example final test and quality
+				assurance.</p><p>An improved mechanism for handling limits was developed by Verigy's Application
+				Development Center (ADC). TMlimits is included in a support library, which includes several
+				useful functions described in this paper. With <a href="118940.htm" title="TMLimits is a high-level implementation of test tables that can be accessed both through the SmarTest Work Center and programmatically through test methods.">TMlimits</a> it is
+				possible to manage all test program limits in a single spreadsheet. Multiple sets of limits can
+				be defined in the spreadsheet. Which set of limits to use is specified with a testflow variable.
+				[7]</p><p>TMLimits was merged into SmarTest beginning with Rev. 6.5.2, where is it is sometimes
+				referred to as test tables. [3]</p><p>The test method libraries included with SmarTest do not
+				currently support TMlimits although this is planned for a future release. In the meantime, it
+				would not be difficult to create a modified version of the test method libraries including this
+				capability.</p></section>
+		<section class="section"><h2>User Messages</h2><p>Debug messages can be controlled by the TMMsgStream
+				capability included in the support library developed by the Verigy ADC. The TMMsgStream class
+				provides a flexible way of reporting errors, warnings and debugging messages. Four levels of
+				debugging messages are provided, allowing the verbosity of the messages to be controlled by a
+				testflow variable. [8]</p><p>One drawback of using a testflow variable for controlling the
+				verbosity of debug messages is that it affects the entire test flow. At the higher debug levels,
+				it can be difficult to locate relevant information, especially when debugging a single test
+				method. To make this more useful, a standard parameter has been added to each test method in the
+				code re-use library to make it possible to set the debug messages to a different level for that
+				method only.</p></section>
+		<section class="section"><h2>Firmware Interface</h2><p>As with any test program, the use of low-level
+				firmware commands should be avoided. Whenever possible, SmarTest APIs should be used instead.
+				When it is necessary to use firmware commands, the TMFirmware class, included with the support
+				library developed by the Verigy ADC, will used instead of the <code>FW_TASK()</code> API.
+				The TMFirmware class provides an easier to use stream-based interface and automatically
+				tokenizes firmware responses. [9]</p></section>
+		<section class="section"><h2>Code Formatting</h2><p>C++ code that has a consistent structure is easier for
+				others to read and maintain. Artistic Style (Astyle) is available as a plug-in for Eclipse is a
+				source code indenter, formatter, and beautifier. By using a code formatting tool, it is easy for
+				a development team to maintain a consistent code structure. [10]</p><p>Beginning with SmarTest
+				Rel. 6.5.2, the C/C++ Development Tool (CDT) plug-in provided with the SmarTest Work Center
+				includes a code formatter. The code formatter includes several predefined styles, which can be
+				selected in the C/C++ Code Style preferences dialog. [11] Developers should agree in advance on
+				which style to use so that it is applied consistently across the library.</p></section>
+		<section class="section"><h2>Utility Relay Control</h2><p>SmarTest includes several different ways to
+				control DUT board relays. When the number of relays is relatively small they can easily be
+				controlled by name using the Routing.util API. Relay names are defined in the pin configuration
+				file.</p><p>When a larger number of relays are used, groups of relays can be controlled together
+				using the <code>Routing.uti_purpose</code> API. Relay group names, and their function are
+				also defined in the pin configuration file. Utility purpose can be more useful for code re-use
+				because it does more to hide the implementation of the relays on the DUT board other than just
+				giving them a name. For example, a utility purpose is defined to set up the relays for a specific
+				test. For one application, this might involve two relays, one on and the other off. For another
+				application, which uses a different DUT board, three relays are needed, two on and one off. By
+				using the same utility purpose name for both applications, a single command can be used to setup
+				the relays for each of the applications to perform the test. [12]</p><p>By choosing a method for
+				controlling relays, either individually or by group, and using a consistent naming scheme,
+				utility relay control can be simplified and applied more consistently in the code re-use
+				library.</p><p>Some developers prefer to use routing sets, which may allow test methods to be
+				more generic. The problem with routing sets is that they must be referred to by number, which is
+				not meaningful. A separate tool must be used to edit routing sets, which makes it more difficult
+				to determine how the relays have been configured.</p></section>
+		<section class="section"><h2>Writing and Reading Device Registers</h2><p>In order to set up for a test, it is
+				usually necessary to write to registers within the DUT. While Digital Source Memory (DSM) or
+				local memory modification using the <code>VEC_LABEL_EDIT()</code> API can be used for this
+				purpose, these methods are not desirable for production as they can be slow. The dynamic to
+				static (D2S) library solves this problem. [13]</p><p>The D2S library provides three operating
+				modes: Engineering, Learning and Production. In Engineering mode, the
+					<code>VEC_LABEL_EDIT()</code> API is used to dynamically modify a template pattern which
+				has been setup to read or write a device register.</p><p>Once the test method has been debugged,
+				D2S can be switched to learning mode which will automatically create static patterns to perform
+				the register reads and writes. In learning mode, D2S will also create pattern bursts for
+				performing multiple sequential register reads and/or writes. Finally, switching to production
+				mode uses the static patterns to provide the best throughput.</p></section>
+		<section class="section"><h2>Universal Test Methods</h2><p>Test program development for complex devices is
+				usually a collaborative effort between two or more Engineers. Previously, simultaneous
+				development using classic test methods (CTMs) could be problematic due to conflicts created by
+				changes to the <em>magic</em> files. Universal test methods (UTMs) solve this problem creating an
+				interface where standard C++ code is written and built into shared object files. [14]</p><p>By
+				placing each test method in it's own class file, a library of re-usable functions can easily be
+				created. It is also possible to have different variations of a method; for example one for
+				characterization and one for production.</p></section>
+		<section class="section"><h2>Analog Setup APIs</h2><p>Previously, developing RF to baseband (receive) or
+				baseband to RF (transmit) tests in SmarTest could be challenging as three different tools are
+				required. The analog setup tool would be used to create the baseband setup, the RF perspective
+				in Eclipse would be used to create the RF setup and then the overall test setup, execution and
+				results processing would be done in a test method. This also hampered code re-use as not all the
+				code needed to implement a test was included in one place.</p><p>Beginning with SmarTest Rel.
+				6.5.0, a set of analog setup APIs was introduced to program and maintain analog setups. This
+				capability was further enhanced in SmarTest Rel. 6.5.2 with the introduction of a similar set of
+				RF setup APIs.</p></section>
+		<section class="section"><h2>Multi-Site</h2><p>For the code re-use library, test methods should be written
+				in such a way to make them easy to extend from single-site to multi-site. The number of sites
+				should not be fixed but typically will be in the range of single to octal-site.</p><p>The
+				MAX_SITES parameter can be used to define the maximum number of sites for a particular test
+				program.</p><p>When an array is needed to hold per-site values, the <span class="keyword">ARRAY_I</span>,
+					<span class="keyword">ARRAY_D</span> or <span class="keyword">ARRAY_COMPLEX</span> SmarTest classes should be used
+				instead of simple integer, double or <span class="keyword">COMPLEX</span> arrays. These classes make it
+				easier to re-size and initialize the arrays. They also make it easier to avoid errors caused by
+				overrunning the bounds of the array.</p><p>Quad-site testing of RF transceivers often requires
+				eight digitizers; one for I and Q for each of the four devices. The V93000 MVAV8 instrument is
+				typically configured with four arbitrary waveform generators (AWGs) and four digitizers.
+				Therefore, efficient quad-site testing of RF transceivers requires the test system to be
+				configured with two MBAV8s.</p><p>To accommodate systems with only a single MBAV8, the DUT board
+				and test program can be setup for semi-parallel testing. In semi-parallel test relays on the DUT
+				board are used to connect the digitizers to the first two sites. Once tested, the relays are
+				toggled connecting the digitizers to the second set of sites.</p><p>A testflow variable can be
+				used to select between semi-parallel and parallel testing.</p></section>
+		<section class="section"><h2>Code Structure</h2><p>Device specific setup code, such as register reads and
+				writes, should be separated into function calls, or otherwise distinguished from more generic
+				parts of the test method code using comments. The idea is to make it easier for someone re-using
+				the test method to customize it for the next device.</p><p>Retrieval and processing of results
+				should be included in separate methods. This helps break the code up into more manageable parts
+				which are easier to maintain.</p><p>The code re-use library should not have any hard-coded
+				values. Instead, appropriately named variables should be used to make it easier for a person
+				re-using the library to understand their meaning.</p><p>Where constants are needed, a C++
+				constant type cast (i.e. <code>const double myVariable = 15.1;</code>) should be defined.
+				This way, the compiler provides better error checking than using defines.</p><p>The test method
+				body should not be more than about 100 lines of code. If more lines are needed, function calls
+				should be used. Keeping functions short makes them easier to understand and therefore,
+				maintain.</p><p>Local functions should be used inside their respective classes for simplifying
+				code readability.</p></section>
+		<section class="section"><h2>Throughput</h2><p>Test Methods in the code re-use library will be optimized for
+				throughput.</p><p>For computationally intensive Test Methods in multi-site applications,
+				SmartCalc can be used. For SmartCalc to be effective in quad-site applications a workstation
+				with four cores, such as the HP xw8400 or HP Z800, should be used. [15] [16]</p></section>
+		<section class="section"><h2>DUT Board Calibration Factors</h2><p>Many RF transceiver tests must compensate
+				for losses in the DUT board. Calibration factors can be stored in the DUT board EEPROM. [17] A
+				test method in the beginning of the test flow reads the EEPROM and populates a global
+				calibration structure which can be used by subsequent measurement methods as needed. By setting
+				a parameter passed to the test method, it can program the EEPROM by reading the calibration
+				values from a spreadsheet developed by the Test Engineer.</p></section>
+		<section class="section"><h2>Development Phases</h2><p>Phase 1: Refactor existing code for devices that have
+				common intellectual property (IP) blocks using the rules discussed previously.</p><p>Phase 2:
+				Documentation of <em>extract</em> and <em>import</em> for moving IP from verified applications to
+				new target ones.</p><p>Phase 3: Breaking up most commonly used IP blocks into re-useable stand
+				alone applications for easy import.</p></section>
+		<section class="section"><h2>Validating the Code Re-use Library</h2><p>The code re-use library will be
+				validated using one, or more, existing test programs.</p><p>Since the code re-use library is a
+				living library that will change and grow over time, changes made to accommodate a new device or
+				methodology can be checked using existing test programs. Here is where a source code control
+				system, like Subversion can help. When changes are made to the code re-use library for a new
+				development, subversion can be used to apply the changes to an existing device program. This way
+				the change can be fully or at least partially tested. Subversion also provides a way to tag
+				versions of a program. For example, it is a good idea to tag versions of the program that have
+				been released to production. This makes it easy to revert back to a previously working version
+				when a change to the library causes a problem. [6]</p><p>If an existing device test program
+				cannot be used to validate a new test method, simulated offline data should be provided. The
+				simulated data can be used to test the result processing and logging of the method. It may also
+				prove useful during silicon debug by providing an example of expected data from the
+			device.</p></section>
+		<section class="section"><h2>Repeatability</h2><p>Test methods in the code re-use library should be written
+				to produce reliable, repeatable measurements. A procedure should be developed to test the
+				reliability by testing a set of golden devices.</p></section>
+		<section class="section"><h2>Checking Test Time</h2><p>The test time tool (TTT) developed by Verigy's
+				installed base application team (IBAT) can be used to check device test time. The tool runs the
+				test program in production mode, looping a specified number of times in both single and
+				multi-site modes. The results can be used to calculate multi-site efficiency. TTT makes it
+				easier to measure test time consistently. [18]</p><p>The <code>TMMsgStream</code> class
+				discussed in section on user message has the ability to profile execution time within a test
+				method. This can provide additional granularity for test time profiling beyond what is available
+				by setting the debug testflow flag to level three. [8]</p></section>
+		<section class="section"><h2>Software Versions</h2><p>Some of the SmarTest features employed by the code
+				re-use library, such as the RF setup APIs, require a minimum of SmarTest Rel. 6.5.2.</p><p>To
+				make it easier to deploy to subcontract manufacturing, the code re-use library will initially
+				run under Red Hat Enterprise Linux 3 (Update 7). It will also be validated to run under Red Hat
+				Enterprise Linux 5 (Update 3).</p></section>
+		<section class="section"><h2>Applying the Code Re-use Library to a New Device</h2><p>Once the code re-use
+				library has been developed and validated using an existing device, it is then time to apply it
+				to a new device. Here is where the code structure becomes more important. One suggested
+				structure
+				is:</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+    myVariable = 0.0;  // Device specific variables
+    ON_FIRST_INVOCATION_BEGIN();
+        hardwareSetup();
+        deviceSetup();  // Device specific
+        execution();
+    ON_FIRST_INVOCATION_END();
+
+    getResults();
+    processResults();
+
+    ON_FIRST_INVOCATION_BEGIN();
+       deviceReset();  // Device specific
+       hardwareReset();
+    ON_FIRST_INVOCATION_END();
+    // Judge and log device specific results.
+    return;
+}</pre><p>The
+				test method class file will be specific for each device and will include the device specific
+				setup and reset methods.</p><p>The more generic hardware setup, test execution, result
+				retrieval, result processing and hardware reset functions can be placed in a separate project
+				directory which will make it easier to apply them to other device programs. For example, the UTM
+				directory might be organized as:</p><p><span class="filepath">UTMprojects</span></p><p> <span class="filepath">DC DC
+					test library</span></p><p> <span class="filepath">BBtoRF Baseband to RF (transmit)
+				library</span></p><p> <span class="filepath">RFtoBB RF to baseband (receive)
+					library</span></p><p> <span class="filepath">myDevice Device specific test methods</span></p><p>The
+				library developer may provide a template test method class file for new devices, or a Test
+				Engineer may simply copy the test method class file for the test they are developing from a
+				previous device and modify it as needed. Since the test method class file is made up of the
+				device specific code, it is smaller and therefore easier to manage.</p><p>Device specific
+				variables can be passed into the test method as parameters or declared at the top of the run
+				method. It may be desirable to use a combination of these to avoid having to pass too many
+				parameters to the test method. By including variable declarations at the top of the run method,
+				it is easier to include more descriptive comments about its purpose.</p><p>In the process of
+				re-using the library for a new device, it may be necessary to extend the existing generic
+				library methods or add new ones. Extending generic library methods should be done so they can
+				still be used with previous devices. This can be valuable as part, or all of the method can be
+				revalidated using existing devices before silicon for the new device is available.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>At the time this paper was written, the code re-use library
+				has been developed, validated and is in the process of being applied to new
+				devices.</p><p>Development of the test program for the previous pair of devices has taken a
+				year. This included:</p><ul>
+				<li>Initial development of a single-site test program</li>
+				<li>Extending the program to run quad-site</li>
+				<li>Test time reduction</li>
+				<li>Modification for the code re-use library</li>
+			</ul><p>After release of the initial single-site test program, it has also been necessary to
+				monitor the program in production and make changes to the program to add new tests, improve
+				yield, etc.</p><p>The goal we are working towards with the code re-use library is to have a
+				screening program covering 90% of the test list available within 30 days of receiving a new
+				device and DUT board.</p></section>
+		<section class="section"><h2>References</h2><p>[1] T. McPheeters and D. Blair, "Collaborative Test and IP
+				Libraries Improve the Test Development Process on ATE", Proceedings of VOICE 2006, Verigy User's
+				Group (2006)</p><p>[2] T. Jiang, O. Poppe and K. Hilliges, "TestMethod to be Consolidated as a
+				Pervasive Interface", Proceedings of VOICE 2006, Verigy User's Group (2006)</p><p>[3] Verigy
+				V93000 Test Method Reference, 6.5.2 Edition, September 16, 2009. Refer to the section on "Test
+				Method Library" (topic 81296).</p><p>[4] Verigy ApEx Implementation Guidelines, (2007)</p><p>[5]
+				Verigy V93000 Test Setup Volume 1 Manual, 6.5.2 Edition, September 21, 2009. Refer to the
+				section on "The function of the Hardware Response Emulator" (topic 71221).</p><p>[6] S. Ledford,
+				"Using Version Control (Subversion) to Manage V93000 Application Device Directories",
+				Proceedings of VOICE 2006, Verigy User's Group (2006)</p><p>[7] Verigy Limits Table Document,
+				(2007)</p><p>[8] Verigy TMMsgStream Interface Document, (2007)</p><p>[9] Verigy Firmware
+				Interface Document, (2007)</p><p>[10] Artistic Style web sites, http://astyle.sourceforge.net/
+				and http://astyleclipse.sourceforge.net/</p><p>[11] Eclipse C/C++ Development User
+				Guide</p><p>[12] Verigy V93000 Test Setup Volume 2 Manual, 6.5.2 Edition, September 16, 2009.
+				Refer to the sections on "Utility Purpose" (topic 97855) and "Working with Utility Purposes"
+				(topic 97800).</p><p>[13] N. Burger, G. Lombardi and D. Blank, "The ‘d2s-framework': Targeting
+				the TTM and TTV Challenges of Complex SOC DUT Register Programming", Proceedings of VOICE 2008,
+				Verigy User's Group (2008)</p><p>[14] O. Poppe and T. Jiang, "Being more productive with the new
+				style Test Method Interface", Proceedings of VOICE 2007, Verigy User's Group (2007)</p><p>[15]
+				L. Sassoon, J. Smith, M. Engelhardt and J. Kelly, "Multithreading on V93000 Reduces Multi-Site
+				RF Test Time on Intel Front-End Transceiver", Proceedings of VOICE 2008, Verigy User's Group
+				(2008).</p><p>[16] K. Hatabu and M. Dresler, "Hiding Calculation Time with Multi-Threaded Test
+				Program on V93000", Proceedings of VOICE 2008, Verigy User's Group (2008).</p><p>[17] J.
+				Lemaire, "Verigy V93000 SOC DUT Board ID EEPROM Quick Reference Guide", 2003-10-28.</p><p>[18]
+				J. Kelly, "Multi-Site Efficiency and Throughput", (2009)</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120455</span><script type="text/javascript">var ti='120455';var tt='Speeding Test Program Development with a Code Re-use Library'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

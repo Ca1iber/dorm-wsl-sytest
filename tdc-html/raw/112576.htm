@@ -1,0 +1,280 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The example codes below covers the tasks of BLC environment resetting and initializing, API return status checking, SmarTest status processing, input file parsing, setup loading, variable definition and level controlling."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Example codes of the most often used tasks</title></head><body id="_112576"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 112576</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Example codes of the most often used tasks</h1>
+	
+	
+	<div><p>The example codes below covers the tasks of BLC environment resetting and initializing,
+		API return status checking, SmarTest status processing, input file parsing, setup loading,
+		variable definition and level controlling.</p>
+		<section class="section"><p>The following variables are defined to be used in the
+			examples.</p><pre class="prettyprint linenums copyable">ParamList inputParam, outputParam;
+Status retVal;</pre></section>
+		<h2>Examples</h2><div class="example"><h3>Clear and reset the BLC environment</h3><p>The function below is used in other
+				examples to clear and reset the BLC
+			environment.</p><pre class="prettyprint linenums copyable">inline void cleanup()
+{
+  syncCommand("ResetBLCProfile", ParamList(), LOCAL_SESSION_ID);
+}</pre></div>
+		<div class="example"><h3>Process the return status</h3><p>The function below processes the return status
+				of an API call. It is to be used in other examples after each API
+			call.</p><pre class="prettyprint linenums copyable">inline void processStatus(Status &amp;s)
+{
+  if(s.isError())
+  {
+    cout&lt;&lt;"****************ERROR**************\n"
+        &lt;&lt;"Code:\"" &lt;&lt;s.code() &lt;&lt; "\"\n"
+        &lt;&lt;"Text:\"" &lt;&lt;s.text() &lt;&lt; "\"\n"
+        &lt;&lt;"***********************************"&lt;&lt;endl;
+    cleanup();
+    exit(1);
+  }
+}</pre></div>
+		<div class="example"><h3>Check the status</h3><p>The function below checks and responds to the SmarTest
+				PAUSE status. It is used after the testflow
+			execution.</p><pre class="prettyprint linenums copyable">inline void checkPauseState()
+{
+  ParamList inputParam, outputParam;
+  Status retVal;
+  retVal = query("IsPaused", outputParam, inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+  if(outputParam["IS_PAUSED"] == "TRUE")
+  {
+    //Issue the TESTPROGRAM_EXEC_PAUSED HVM event
+    inputParam.clear();
+    inputParam["EXECUTION_STATE"] = "TESTPROGRAM_EXEC_PAUSED";
+    inputParam["TESTPROGRAM_NAME"] = "BLC";
+    retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+    processStatus(retVal);
+
+    //Call the ph_pause_start PH driver function 
+    inputParam.clear();
+    inputParam["FUNCTION_NAME"] = "ph_pause_start";
+    retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+    processStatus(retVal);
+
+    while(true)
+    {
+      //Enter a infinite loop until the PAUSE state is cleared
+      outputParam.clear();
+      retVal = query("IsPaused", outputParam, inputParam, LOCAL_SESSION_ID);
+      processStatus(retVal);
+      if(outputParam["IS_PAUSED"] == "FALSE") break;
+     }
+
+     //Call the ph_pause_done PH driver function 
+     inputParam.clear();
+     inputParam["FUNCTION_NAME"] = "ph_pause_done";
+     retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+     processStatus(retVal);
+
+     //Issue the TESTPROGRAM_EXEC_RESUMED event
+     inputParam.clear();
+     inputParam["TESTPROGRAM_NAME"] = "BLC";
+     inputParam["EXECUTION_STATE"] = "TESTPROGRAM_EXEC_RESUMED";
+     retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+     processStatus(retVal);
+  }
+}</pre></div>
+		<div class="example"><h3>Initialize the BLC environment</h3><p>The following example sets the BLC
+				environment for a package test with the implicit event generation enabled on the local SmarTest
+				session.</p><pre class="prettyprint linenums copyable">inputParam["TEST_TYPE"] = "PACKAGE_TEST";
+inputParam["ENABLE_IMPLICIT_EVENT"] = "TRUE"; 
+retVal = syncCommand("SetBLCProfile", inputParam, LOCAL_SESSION_ID);
+
+if(retVal.isError() &amp;&amp; retVal.text()=="the SmarTest state is not IDLE")
+{
+  //if the current SmarTest state is not IDLE, clear up first
+  cleanup();
+
+  retVal = syncCommand("SetBLCProfile", inputParam, LOCAL_SESSION_ID);
+  if(s.isError())
+  {
+    cout&lt;&lt;"****************ERROR**************\n"
+        &lt;&lt;"Code:\"" &lt;&lt;s.code() &lt;&lt; "\"\n"
+        &lt;&lt;"Text:\"" &lt;&lt;s.text() &lt;&lt; "\"\n"
+        &lt;&lt;"***********************************"&lt;&lt;endl;
+    cleanup();
+    exit(1);
+  }
+}</pre></div>
+		<div class="example"><h3>Parse the input file</h3><p>The following example parses the BLC input file
+			</p><pre class="prettyprint linenums copyable">//check if there are input file provided
+if(argc&lt;=1)
+{
+  cout&lt;&lt;"Please specify a BLC input file!!!"&lt;&lt;endl;
+  cleanup();
+  exit(1);
+}
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Parse the BLC input file:"&lt;&lt;argv[1]&lt;&lt;""&lt;&lt;endl;
+retVal = evalBLCInputFile(argv[1], outputParam);
+processStatus(retVal);
+string phLib = outputParam["PH_LIB"];
+string phConfig = outputParam["PH_CONFIG"];
+string testflow = outputParam["TESTFLOW"];
+string eiLib = outputParam["EI_LIB"];
+string dbLib = outputParam["DB_LIB"];</pre></div>
+		<div class="example"><h3>Load the setups</h3><p>The following example loads the testflow setups,
+				prober/handler driver, execution input library and data bridge
+			library.</p><pre class="prettyprint linenums copyable">cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Download test flow:"&lt;&lt;testflow&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["TESTFLOW_NAME"] = testflow;
+retVal = syncCommand("DownloadTestflowSync", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+
+//Load the Prober Handler Driver
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Load the PH driver:"&lt;&lt;phLib&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["PH_DRIVER_LIB"] = phLib;
+inputParam["PH_DRIVER_CONFIG_FILE"] = phConfig;
+retVal = syncCommand("LoadPHDriverLib", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+
+//Load the execute input lib 
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Load the execute input lib:"&lt;&lt;eiLib&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["EXEC_INPUT_LIB"] = eiLib;
+retVal = syncCommand("LoadExecInputLib", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+
+//Load the data bridge lib
+cout&lt;&lt;"&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;&gt;Load the data bridge lib:"&lt;&lt;dbLib&lt;&lt;""&lt;&lt;endl;
+inputParam.clear();
+inputParam["DATA_BRIDGE_LIB"] = dbLib;
+retVal = syncCommand("LoadDataBridgeLib", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);</pre></div>
+		<div class="example"><h3>Define the variables</h3><p>The following example adds the variable
+					<code>Operator_id</code> and <code>Tester_id</code> and their values to the shared
+				memory.</p><pre class="prettyprint linenums copyable">inputParam.clear();
+inputParam["VARIABLE_NAME"] = "Operator_id";
+inputParam["VARIABLE_VALUE"] = "operator1";
+retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+
+inputParam.clear();
+inputParam["VARIABLE_NAME"] = "Tester_id";
+inputParam["VARIABLE_VALUE"] = "tester1";
+retVal = syncCommand("SetApplicationVar", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);</pre></div>
+		<div class="example"><h3>Issue level event information</h3><p>The example below shows how to send out
+				the device level start event manually with the <code>IssueEDLEvent</code>
+			API.</p><pre class="prettyprint linenums copyable">inputParam.clear();
+inputParam["EVENT_TYPE"] = "ApplModelLevelStartEventType";
+inputParam["LEVEL_TYPE"] = "DEVICE_LEVEL";
+inputParam["LEVEL_NAME"] = "package";
+retVal = syncCommand("IssueEDLEvent",inputParam,LOCAL_SESSION_ID);</pre></div>
+		<div class="example"><h3>Maintain the level structure and call the prober/handler driver functions with BLC
+				APIs</h3><p>The following example shows how to start a package level, execute the testflow
+				and complete the package level with BLC
+			API.</p><pre class="prettyprint linenums copyable">//start the package level
+inputParam.clear();
+inputParam["LEVEL_TYPE"] = "DEVICE_LEVEL";
+inputParam["LEVEL_NAME"] = "package";
+retVal = syncCommand("StartLevel", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);
+
+while(true)
+{//Enter the package level loop
+  retVal = syncCommand("LoopLevel", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  //Call the ph_device_start PH driver function
+  inputParam.clear();
+  inputParam["FUNCTION_NAME"] = "ph_device_start";
+  retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  //check if the operator interrupts the BLC execution
+  if(checkAbortState())
+  {
+    //leave the current level
+    break;
+  }
+
+  //Query if the level_end index is set by the driver
+  outputParam.clear();
+  retVal = query("IsDeviceDone", outputParam, ParamList(), LOCAL_SESSION_ID);
+  processStatus(retVal);
+  //If all devices are finished, break the loop
+  if(outputParam["IS_DEVICE_DONE"] == "TRUE") break;
+
+  //update the header and subheader of the result display window
+  static int packageNum = 1;
+  char sPackageNum[10] = "";
+  sprintf(sPackageNum, "%d", packageNum);
+  inputParam.clear();
+  inputParam["HEADER"] = "PACKAGE TEST";
+  inputParam["SUBHEADER"] = string("PACKAGE#") + sPackageNum;
+  retVal = syncCommand("UpdateResultDisplay", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  //Set the package ID to something like 1.1, 1.2 etc. 
+  inputParam.clear();
+  inputParam["PACKAGE_ID"] = sPackageNum;
+  retVal = syncCommand("SetPackageID", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+  packageNum++;
+
+  //Get the site setup information in order to issue the DIE_STARTED/DIE_COMPLETED HVM events
+  outputParam.clear();
+  retVal = query("GetSiteSetup", outputParam, ParamList(), LOCAL_SESSION_ID);
+  string siteID = outputParam["SITE_ID_FOR_SITES"];
+  string siteSetup = outputParam["SITE_SETUP_FOR_SITES"];
+  string packageID = outputParam["PACKAGE_ID_FOR_SITES"];
+  processStatus(retVal);
+
+  //Issue the PACKAGE_STARTED HVM event
+  inputParam.clear();
+  inputParam["EXECUTION_STATE"] = "PACKAGE_STARTED";
+  inputParam["LOT_ID"] = lotID;
+  inputParam["SITE_ID_FOR_SITES"] = siteID;
+  inputParam["SITE_SETUP_FOR_SITES"] = siteSetup;
+  inputParam["PACKAGE_ID_FOR_SITES"] = packageID;
+  retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  /************************
+  * Execute the testflow *
+  ************************/
+
+  //check if the operator interrupts the BLC execution
+  if(checkAbortState())
+  {
+  //leave the current level before the testflow execution
+  break;
+  }
+
+  inputParam.clear();
+  retVal = syncCommand("ExecTestflowSync", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  //Check if the operator pauses the BLC execution
+  checkPauseState();
+
+  //Call the ph_device_done PH driver function
+  inputParam.clear();
+  inputParam["FUNCTION_NAME"] = "ph_device_done";
+  retVal = syncOperation("CallPHDriverFunc", outputParam, inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+
+  //Issue the PACKAGE_COMPLETED HVM event
+  inputParam.clear();
+  inputParam["EXECUTION_STATE"] = "PACKAGE_COMPLETED";
+  inputParam["LOT_ID"] = lotID;
+  inputParam["SITE_ID_FOR_SITES"] = siteID;
+  inputParam["SITE_SETUP_FOR_SITES"] = siteSetup;
+  inputParam["PACKAGE_ID_FOR_SITES"] = packageID;
+  retVal = syncCommand("IssueHVMExecutionEvent", inputParam, LOCAL_SESSION_ID);
+  processStatus(retVal);
+} //end of package level loop
+
+/******************************
+ * complete the package level *
+******************************/
+retVal = syncCommand("CompleteLevel", inputParam, LOCAL_SESSION_ID);
+processStatus(retVal);</pre></div>
+		<div class="example"><h3>Dialog input</h3><p>Refer to the template implementing the dialog with GTK+ in
+				the dicretory
+					<span class="filepath">/opt/hp93000/soc/applic_models/blc_templates/package_test/blc_with_level_gui</span>.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li><li>SmarTest 7.1.0:  GDF logging with BLC API is obsolete.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 112576</span><script type="text/javascript">var ti='112576';var tt='Example codes of the most often used tasks'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

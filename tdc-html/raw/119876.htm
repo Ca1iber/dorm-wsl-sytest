@@ -1,0 +1,216 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Consider these general recommendations to ensure optimal performance of the SMC framework."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmartCalc recommendations</title><meta name="keywords" content="smart calc smartcal, Smart, Calc"></head><body id="_119876"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119876</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmartCalc recommendations</h1>
+	
+	
+	<div><p>Consider these general recommendations to ensure optimal performance of the SMC
+		framework.</p>
+		<section class="section">
+			<p>The following topics are covered:</p>
+			<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0">
+								<ul>
+									<li><a href="119876.htm#_119876__s_Exception_handling">Exception handling</a></li>
+									<li><a href="119876.htm#_119876__s_Hide_analog_and_digital_data_upload">Hide data upload</a></li>
+									<li><a href="119876.htm#_119876__s_Use_the_multibin_feature">Multibin</a></li>
+									<li><a href="119876.htm#_119876__s_Passing_data_to_the_background_process">Passing data to the background process</a></li>
+									<li><a href="119876.htm#_119876__s_Using_SmartCalc_with_result_areas">Result areas</a></li>
+									<li><a href="119876.htm#_119876__s_Synchronize_a_test_flow_with_any_use_model">Synchronize with any use model</a></li>
+									<li><a href="119876.htm#_119876__s_TMLimits_within_the_SMC_framework">TMLimits</a></li>
+								</ul>
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<p>Examples:</p>
+								<ul>
+									<li><a href="119876.htm#_119876__ex_Exception_handling">Exception handling</a></li>
+								</ul>
+							</td>
+						</tr>
+					</tbody></table>
+		</section>
+		<section class="section" id="_119876__s_Exception_handling"><h2>Exception handling</h2>
+			
+			<p>Exception handling of external functions called from within the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method have to be implemented
+				manually. This is because all exceptions unknown to the
+					<span class="keyword">SMC_backgroundProcessing()</span> method will cause the
+					<span class="keyword">SIGABRT</span> signal and termination of the test method
+				process.</p>
+			<p>Therefore an exception of an external function has to be caught and always be re-thrown to the
+					<span class="keyword">catch()</span> block in the calling
+					<span class="keyword">SMC_backgroundProcessing()</span> method by
+					<span class="keyword">throw()</span>.</p>
+			<p>For an example, refer to <a href="119876.htm#_119876__ex_Exception_handling">Exception handling</a> below.</p>
+		</section>
+		<section class="section" id="_119876__s_Hide_analog_and_digital_data_upload"><h2>Hide analog and digital data upload</h2>
+			
+			<p>It is possible to upload digital capture information to the workstation, while the
+				next test already performs another digital or analog capture test.</p>
+			
+			
+			
+			
+			<div class="note"><span class="title">Note</span> <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> will, if not already done, immediately perform
+				your <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method without a trigger
+				from a SMC wrapper API.</div>
+			<div class="note"><span class="title">Note</span> Your <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method can only
+			contain thread safe APIs like <span class="keyword">SMC_...</span> , <span class="keyword">DSP_...</span>,
+				<span class="keyword">TESTSET</span> and <span class="keyword">Wave</span> class APIs to ensure the
+			SmartCalc framework is working properly.</div>
+			<p>Both, analog and digital data upload can be hidden behind these APIs:</p>
+			<ul>
+				<li><a href="120082.htm" title="Waits for the end of the execution of the next statement during the time specified by the parameter.">SMC_WAIT_TIME()</a></li>
+				<li><a href="120062.htm" title="Waits for the test to complete and allows hidden upload of data controlled by SmartCalc. It has to be used in conjunction with START_TEST.">SMC_WAIT_TEST_DONE()</a></li>
+				<li><a href="120068.htm" title="Executes a test by starting the digital sequencer from the specified start label and waits until the digital and analog sequencers have stopped or the specified timeout is reached. It allows hidden upload of data controlled by SmartCalc.">SMC_EXECUTE_TEST()</a></li>
+				<li><a href="120090.htm" title="Executes a functional test that will pass only if all device output data matches the expected data, else this test will fail. This API allows parallel upload of data from the tester under control of SmartCalc.">SMC_FUNCTIONAL_TEST()</a></li>
+				<li><a href="120076.htm" title="Executes a test which contains digital capture by starting the digital sequencer and waits for the test to complete or till the specified timeout is reached (except for AWG). It allows hidden upload of data controlled by SmartCalc.">SMC_DIGITAL_CAPTURE_TEST()</a></li>
+			</ul>
+		</section>
+		<section class="section" id="_119876__s_Use_the_multibin_feature"><h2>Use the multibin feature</h2>
+			
+			
+			<p>Multibins are required when using Smartcalc to correctly bin a DUT.</p>
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<figure class="fignone">
+									<img src="119877.png" alt="Multibin feature">
+								</figure></td>
+							<td class="colsep-0 rowsep-0">
+								<p>For details, see <a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a>.</p>
+								<p>For using multibins in combination with SmartCalc, refer to <a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a> and <a href="145090.htm" title="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin.">Use of TESTSET and SMC_TEST() test suites with multibin</a>.</p>
+							</td>
+						</tr>
+					</tbody></table>
+			<p>To ensure a correct termination of SmartCalc, the <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a> should always be
+				executed after the binning, see <a href="118933.htm" title="If hidden calculation is used, it may happen that one of the tests is failing, while SMC threads are still running. In this case SMC may not be terminated correctly and may cause errors during the next test program execution.">Terminate SmartCalc threads after binning</a>.</p>
+		</section>
+		<section class="section" id="_119876__s_Passing_data_to_the_background_process"><h2>Passing data to the background process</h2>
+			
+			<dl>
+				
+					<dt class="dlterm">Avoid passing large structures by value</dt>
+					<dd>Ensure not to pass large structures by value to your <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method as the time needed
+						to copy the parameters would negatively impact the performance of <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>.</dd>
+				
+				
+					<dt class="dlterm">Avoid passing parameters as reference</dt>
+					<dd>
+						<p>The content of the variable is actually copied except for references
+							created with <code>boost::ref()</code>. However in the latter case
+							the allocated memory of the <span class="keyword">run()</span> function variables
+							will be freed up after execution (and possibly before the memory is
+							accessed by the SmartCalc background function).</p>
+					</dd>
+				
+				
+					<dt class="dlterm">Avoid using static variables in the SMC_backgroundProcessing() method</dt>
+					<dd>Static variables are not thread safe and could cause problems in your code.
+							<a href="120092.htm" title="Marks the start of a SMC_SERIAL_EXECUTION block which forces SmartCalc to execute tests within your SMC_backgroundProcessing() method in serial.">SMC_SERIAL_EXECUTION_BEGIN()</a> / <a href="120094.htm" title="Marks the end of a SMC_SERIAL_EXECUTION block which forces SmartCalc to execute tests in serial within your SMC_backgroundProcessing() method.">SMC_SERIAL_EXECUTION_END()</a> APIs forces the code
+						within the block to be executed serially. This way modification of a static
+						variable will have no effect on other running threads.</dd>
+				
+				
+					<dt class="dlterm">Define structures and parameters as class members</dt>
+					<dd>This makes them visible for both methods <span class="keyword">run()</span> and <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> throughout the whole test
+						flow execution while being fast and providing proper memory access.</dd>
+				
+				
+					<dt class="dlterm">Avoid modification of member variables during test</dt>
+					<dd><p>Member variables of the test method class that are used in a background process must not
+							be changed while the background process is running. If you read and
+							write commonly accessible variables in a multi-thread environment you
+							need to guard them with a mutual exclusion
+							(<span class="keyword">mutex</span>).</p><div class="p">
+							<div class="caution"><span class="title">CAUTION</span> Parallel access to member variables of a test
+								method class through the <span class="keyword">run()</span> function and a
+								background process may result in invalid data or in a crash of the
+								test method and is therefore not allowed.</div>
+						</div>This restriction also applies to test method parameters defined in the
+							<span class="keyword">initialize()</span> function of a test method class and
+						assigned to member variables of the class: SmarTest initializes these
+						parameters for each execution of the <span class="keyword">run()</span> function to
+						ensure that the conditions are the same for all sites. Although the memory
+						address of this parameters remains valid during the entire access by
+						SmarTest, simultaneous read access by a background process can result in the
+						read data being invalid.</dd>
+				
+			</dl></section>
+		<section class="section" id="_119876__s_Using_SmartCalc_with_result_areas"><h2>Using SmartCalc with result areas</h2><p id="_119876__d7115e20">A result area
+				only holds the results from one functional, capture, or DC test. The most recent test overwrites
+				all previous results.</p><p id="_119876__d7115e22">Before you re-use a result area in a testflow use <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> to upload all results. For semi-parallel execution, ensure that you allocate
+				individual result areas for each semi-parallel group execution. If you would use only a single
+				result area for all groups SmarTest will only hold the results from the last
+			group.</p></section>
+		<section class="section" id="_119876__s_Synchronize_a_test_flow_with_any_use_model"><h2>Synchronize a test flow with any use model</h2>
+			
+			<p>Background threads of SmartCalc can be implemented as <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">"thread per site"
+					or as "common thread"</a> (also known as "single thread"). To properly synchronize a test
+				flow with both implementations and also a mixture of both, you must use a combination of APIs
+					<a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> and <a href="151642.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM().">SMC_SYNCHRONIZE_WITHOUT_BINNING()</a> in your synchronizing test suite:</p>
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    ON_FIRST_INVOCATION_BEGIN()
+    {
+        SMC_SYNCHRONIZE_WITHOUT_BINNING(0,true);
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_SYNCHRONIZE();
+
+    return;
+}</pre><div></div>
+			<p><span class="keyword">SMC_SYNCHRONIZE_WITHOUT_BINNING()</span> in the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> waits for the end of the execution of all threads.
+					<span class="keyword">SMC_SYNCHRONIZE()</span> executes the queued <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a>
+				statements to perform the data logging and binning for all active sites. See also
+				test method <a href="354258.htm" title="The test method waits for the end of the execution of all threads which have been started using test method API SMC_ARM() on any site.">SMC__SYNCHRONIZE_ALL</a> of the <span class="keyword">smartCalc</span> test method
+				library.</p>
+		</section>
+		<section class="section" id="_119876__s_TMLimits_within_the_SMC_framework"><h2>TMLimits within the SMC framework</h2>
+			<p>If you use TMLimits within the SMC framework together with background processing (as described in
+					<a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a>), the following rules must be observed:</p><ul>
+				<li>The functions <a href="110432.htm#_110432__dle_getLimit">getLimit()</a>, <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, and <a href="110432.htm#_110432__dle_getLimitObj">getLimitObj()</a> for retrieving data from the TMLimits table are threadsafe.</li>
+				<li>Ensure that the TMLimits table is loaded into the memory before calling <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>, for
+					example:<div></div><pre class="prettyprint linenums copyable">tmLimits.load("tmuVerify_limits.csv");
+SMC_ARM(XXX);</pre></li>
+				<li>Ensure that all required settings are done before an SMC background process is armed.</li>
+			</ul>
+			<div class="caution"><span class="title">CAUTION</span> You must not change or reload a TMLimits table while an SMC background
+				process is armed or running. Violating this rule may result in invalid data or the
+				crash of the test method.</div>
+		</section>
+		<h2>Example</h2><div class="example" id="_119876__ex_Exception_handling"><h3>Exception handling</h3>
+			<p>The following example shows how a customized
+				exception handling can be coded in the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method using
+					<span class="keyword">catch()</span>.</p><pre class="prettyprint linenums copyable">void SMC_backgroundProcessing()
+{
+    ...
+    try
+    {
+        ...
+        call my_function_that_throws();
+        ...
+    }
+    <strong>catch(myException&amp; e)</strong>
+    {
+        //
+        // Always catch user-defined exceptions
+        // and do what is needed in this specific error.
+        ...
+    }
+    ...
+}
+
+class myException {};
+
+void my_function_that_throws()
+{
+    if (...)
+    {
+        <strong>throw myException()</strong>;
+    }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a></div><div><a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a></div><div><a href="122907.htm" title="The template class &#34;Wave&#34; provides the complete functionality for digital signal processing including:">Wave</a></div><div><a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.1.4: The Wave class has been made thread safe.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119876</span><script type="text/javascript">var ti='119876';var tt='SmartCalc recommendations'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

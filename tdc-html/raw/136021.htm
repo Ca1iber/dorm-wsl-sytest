@@ -1,0 +1,303 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The INDEPENDENT_TEST class supplies protocol tests that are executed independently of the simulation ports. It is derived from the PROTOCOL_TEST class. Like a synchronized protocol test, an independent test consists of one or more transaction sequences each of which contains one or more transactions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>INDEPENDENT_TEST</title></head><body id="_136021"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136021</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">INDEPENDENT_TEST</h1>
+	
+	
+	<div><p>The <span class="keyword">INDEPENDENT_TEST</span> class supplies protocol tests that are executed
+		independently of the simulation ports. It is derived from the <span class="keyword">PROTOCOL_TEST</span>
+		class. Like a synchronized protocol test, an independent test consists of one or more transaction
+		sequences each of which contains one or more transactions.</p>
+		<section class="section"><p>Since the simulation ports and the protocol port are to run asynchronously, they must
+				be started from different execution contexts. The protocol context is started by the
+					<span class="keyword">INDEPENDENT_TEST</span> object. The simulation context can be started, for
+				instance, with the <span class="keyword">START_TEST</span> (which must be used if the two contexts are to
+				run in parallel) or <span class="keyword">FUNCTIONAL_TEST</span> APIs. For more information on execution
+				contexts see <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a>.</p><p><span class="keyword">INDEPENDENT_TEST</span> provides two
+				member functions for starting an execution context. One of them blocks the interface until the
+				test result is returned, the other allows you to start another context while the first is still
+				running, thus enabling overlapping execution of the protocol port with the simulation
+				ports.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/IndependentTest.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Syntax</h2></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">INDEPENDENT_TEST(const STRING&amp; port);
+INDEPENDENT_TEST(const STRING&amp; port, const STRING &amp;wavetable, const STRING&amp; name);</pre></section>
+		<section class="section"><h3>Member
+			functions</h3><pre class="prettyprint linenums copyable">virtual Boolean run();
+virtual Boolean run(const STRING &amp;seqCtxtItemName);
+virtual Boolean run(const SEQUENCER_CONTEXT_ITEM &amp;item);
+virtual Boolean start();
+virtual Boolean start(const STRING &amp;seqCtxtItemName);
+virtual Boolean start(const SEQUENCER_CONTEXT_ITEM &amp;item);
+VOID waitDone(DOUBLE timeout=360000);
+INT getStatus (INT siteNumber = -1);
+Boolean getStatus (ARRAY_I &amp;siteStatus);
+static UINT64 getResult(const STRING&amp; test, const STRING&amp; resultName);
+static STRING getResult(const STRING&amp; test, const STRING&amp; resultName, TM::FORMAT format);
+INDEPENDENT_TEST&amp; clear(VOID);
+Boolean empty(VOID);</pre></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">INDEPENDENT_TEST(const STRING&amp; port);
+INDEPENDENT_TEST(const STRING&amp; port, const STRING &amp;wavetable, const STRING&amp; name);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_136021__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__2"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__3"><p>The protocol port.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__2"><p><span class="keyword">wavetable</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__3"><p>(Optional) The wavetable to be used for the creation of the protocol pattern. If it
+									is not specified, the wavetable that is associated with the protocol port in the current
+									primary timing specification will be used.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__2"><p><span class="keyword">name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__3"><p>(Optional) The name to be given to the protocol pattern. If it is not specified, it
+									will be assembled from the names of the current test suite, the current start label and the
+									protocol port..</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>run()</h3><pre class="prettyprint linenums copyable">virtual Boolean run();
+virtual Boolean run(const STRING &amp;seqCtxtItemName);
+virtual Boolean run(const SEQUENCER_CONTEXT_ITEM &amp;item);</pre><p>This
+				member function runs an execution context in such a way that the firmware interface is blocked
+				(using the <span class="keyword">FTST?</span> firmware query). A new context can only be run after the
+				current context has returned its global PASS/FAIL result. If the context contains the protocol
+				port, its protocol is first converted into a pattern. </p><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_136021__entry__13"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__14"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__15"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__13"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__14"><p><span class="keyword">seqCtxtItemName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__15"><p>(Optional) The name of the context to be run. The context must have been defined
+									either as an <span class="keyword">SEQUENCER_CONTEXT_ITEM</span> object or on the firmware level. </p>
+								<p>In the former case, this must be the name specified as the <span class="keyword">name</span>
+									parameter of the <span class="keyword">SEQUENCER_CONTEXT_ITEM</span> object. Furthermore, the context
+									item must have been integrated into a <span class="keyword">SEQUENCER_CONTEXT</span> object.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__13"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__14"><p><span class="keyword">item</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__15"><p>(Optional) The name of an <span class="keyword">SEQUENCER_CONTEXT_ITEM</span> object. This
+									object must have been integrated into a <span class="keyword">SEQUENCER_CONTEXT</span> object.</p>
+							</td>
+						</tr>
+					</tbody></table><p>If <span class="keyword">run()</span> is called without a parameter, the name of the execution
+				context is assumed to be identical with the port name.</p></section>
+		<section class="section"><h3>start()</h3><pre class="prettyprint linenums copyable">virtual Boolean start();
+virtual Boolean start(const STRING &amp;seqCtxtItemName);
+virtual Boolean start(const SEQUENCER_CONTEXT_ITEM &amp;item);</pre><p>This
+				member function starts an execution context containing the protocol port in such a way that the
+				firmware interface is not blocked (using the <span class="keyword">SQST RUN</span> firmware command). A
+				new context can be started while the current context is still running. If the context contains
+				the protocol port, its protocol is first converted into a pattern.</p><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_136021__entry__22"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__23"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__24"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__22"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__23"><p><span class="keyword">seqCtxtItemName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__24"><p>(Optional) The name of the context to be started. The context must have been
+									defined either with the <span class="keyword">SEQUENCER_CONTEXT_ITEM</span> API or on the firmware
+									level. </p>
+								<p>In the former case, this must be the name specified as the <span class="keyword">name</span>
+									parameter of the <span class="keyword">SEQUENCER_CONTEXT_ITEM</span> object. Furthermore, the context
+									item must have been integrated into a <span class="keyword">SEQUENCER_CONTEXT</span> object and been
+									activated on the firmwar level with the <span class="keyword">apply()</span> function of this
+										<span class="keyword">SEQUENCER_CONTEXT</span> object.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__22"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__23"><p><span class="keyword">item</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__24"><p>(Optional) The name of an <span class="keyword">SEQUENCER_CONTEXT_ITEM</span> object. This
+									object must have been integrated into a <span class="keyword">SEQUENCER_CONTEXT</span> object and
+									been activated on the firmware level with the <span class="keyword">apply()</span> function of this
+										<span class="keyword">SEQUENCER_CONTEXT</span> object.</p>
+							</td>
+						</tr>
+					</tbody></table><p>If <span class="keyword">start()</span> is called without a parameter, the name of the execution
+				context is assumed to be identical with the port name.</p></section>
+		<section class="section"><h3>waitDone()</h3><pre class="prettyprint copyable singleline">VOID waitDone(DOUBLE timeout=360000);</pre><p>This
+				member function waits for the contexts started from the independent test object to be finished.
+				If the timeout is exceeded, and some context is still running, the function sets its state to
+					<span class="keyword">BRK</span>. This can be used to ensure that a test that was started with
+					<span class="keyword">start()</span> (not <span class="keyword">run()</span>) has actually been completed before
+				result queries are issued.</p><p>The function expects that at least one context has been started
+				with <span class="keyword">start()</span> before it is called. If this is not the case, it will issue an
+				error message.</p><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_136021__entry__31"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__32"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__33"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__31"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__32"><p><span class="keyword">timeout</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__33"><p>Timeout value in seconds.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getStatus()</h3><pre class="prettyprint linenums copyable">INT getStatus (INT siteNumber = -1);
+Boolean getStatus (ARRAY_I &amp;siteStatus);</pre><p>This
+				member function returns the status of the independent test. You can either request the status of
+				one site or the status of all active sites. The returned integer value(s) must be interpreted
+				according to the mapping defined in <span class="filepath">independentTest.h</span>. The possible states
+				are:</p><pre class="prettyprint linenums copyable"><span class="keyword">SITE_NOT_ACTIVE</span>
+<span class="keyword">NOT_EXECUTED</span>
+<span class="keyword">TRANSLATION_ERROR</span>
+<span class="keyword">EXECUTED</span>
+<span class="keyword">TIMEOUT</span></pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_136021__entry__37"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__38"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__39"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__37"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__38"><p><span class="keyword">siteNumber</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__39"><p>(optional) The site the status of which is to be returned. If no site number is
+									specified the function will return the status of the site that currently has the query
+									focus.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__37"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__38"><p><span class="keyword">siteStatus</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__39"><p>(Optional) A predefined integer array into which the function will write the status
+									of all active sites.</p>
+								<p>With this parameter type, the function will return <span class="keyword">TRUE</span> if all active
+									sites have passed.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>get
+				Result()</h3><pre class="prettyprint linenums copyable">static UINT64 getResult(const STRING&amp; test, const STRING&amp; resultName);
+static STRING getResult(const STRING&amp; test, const STRING&amp; resultName, TM::FORMAT format);</pre><p>This
+				member function returns the capture results of a specified independent test that are associated
+				with the specified result identifier for the site that has the query focus. It is a static
+				version of the <span class="keyword">getResult()</span> function of <span class="keyword">PROTOCOL_TEST</span>, and
+				allows you to retrieve the read results of an independent test even if the test object does not
+				exist anymore.</p><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_136021__entry__46"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__47"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_136021__entry__48"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__46"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__47"><p><span class="keyword">test</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__48"><p>The name of an independent test.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__46"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__47"><p><span class="keyword">resultName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__48"><p>Identifier of read results, as specied for a capture transaction.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__46"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__47"><p><span class="keyword">format</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__48"><p>Specifies the format of the returned string.</p>
+								<p>Possible formats are:</p>
+								<p><code>TM::HEX</code> Hexadecimal literal prefixed with 0x</p>
+								<p><code>TM::BIN</code> Binary literal prefixed with 0b</p>
+								<p><code>TM::SCS</code> The captured bits without any prefix</p>
+								<p><code>TM::SYMBOL</code> Symbolic value, if the parameter was set up with symbolic
+									values</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__46"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__47"><p><span class="keyword">UINT64</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__48"><p>Result access with a max length of 64 bit.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__46"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__47"><p><span class="keyword">string</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_136021__entry__48"><p>Result access with a length of more than 32 bit.</p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> If return values are required larger than 64 bit, use the
+					<code>static STRING getResult()</code> method.</div></section>
+		<section class="section"><h3>clear()</h3><pre class="prettyprint copyable singleline">INDEPENDENT_TEST&amp; clear();</pre><p>This member
+				function clears the transaction sequence buffer of the independent test object. However, results
+				will still be available until next run. The function has no parameters.</p></section>
+		<section class="section"><h3>empty()</h3><pre class="prettyprint copyable singleline">Boolean empty();</pre><p>This member function
+				returns TRUE is the transaction sequence buffer of the independent test object is empty. The
+				function has no parameters.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="145703.htm" title="PROTOCOL_TEST is an abstract class that contains the common member functions of several derived classes each of which represents a different kind of protocol based test. Two such classes are SYNCHRONIZED_TEST and SERIAL_LINK_TEST. You cannot create a PROTOCOL_TEST object directly, but only through a derived class.">PROTOCOL_TEST</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136021</span><script type="text/javascript">var ti='136021';var tt='INDEPENDENT_TEST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

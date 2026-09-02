@@ -1,0 +1,159 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Scaled window in Smartest API</title></head><body id="_125099"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125099</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Scaled window in Smartest API</h1>
+	
+	<div>
+		<p>Ge Liang, Verigy</p>
+		<p>Paper-ID: 125099 January 2011</p>
+		<section class="section"><h2>Introduction</h2><p>In analog applications, if the captured signal is with
+				non-integral number of cycles, FFT results in a smearing or leakage of energy from your actual
+				frequency to all other frequencies. Applying a window will reduce the size of the discontinuity
+				and reduce spectral leakage. But, windowing will also change the overall amplitude of the
+				signal. To keep the calculated amplitude or power not changed, Smartest API provided "scaled"
+				window, whose amplitude is changed from standard window function. We would like to introduce and
+				discuss the scaled window in this paper.</p></section>
+		<section class="section"><h2>Scaled Window</h2><p>The standard window has 1.0 as the biggest value. For
+				example, the standard equation of HANNING window is</p><p>w(n)= 0.5-0.5cos( 2πn/N)
+				(1)</p><p>According to the equation, the biggest value of standard HANNING is 1.0. It is also
+				true for other windows. Figure 1 shows different windows in MATLAB. We can see that the top of
+				all window function is 1.0.</p><div class="p"><figure class="fignone">
+					<img src="125100.png" alt="Window functions in Matlab">
+				</figure></div><p><strong>Figure 1 Window Functions in Matlab</strong></p><p>Then let's take a look at the
+				window functions in Smartest. In Figure 2, we showed standard HANNING window and HANNING windows
+				in Smartest API.</p><div class="p"><figure class="fignone">
+					<img src="125101.png" alt="HANNING window in Smartest">
+				</figure></div><p><strong>Figure 2 HANNING Window in Smartest</strong></p><p>The pink one is standard window;
+				the yellow one is from DSP_FFT and blue one is from DSP_RF_FFTW. We can see that the biggest
+				value is 1.0 for standard window, 2.0 for DSP_FFT window and about 1.6 for DSP_RF_FFTW window.
+				It is obvious that the amplitude of the window functions in Smartest is changed, or "scaled", as
+				(2). This scaling is to compensate the amplitude change caused by windowing.</p><p>W(n) =
+				Scale_factor * w(n) (2)</p><p>The w(n) is standard window while W(n) is scaled window.</p><p>We
+				can also see in Figure 2, scale factor is not same. IN Smartest API, they are for 2 types of
+				scaled window, scale for "Coherent Gain" and scale for "Power".</p></section>
+		<section class="section"><h2>Scale for "Coherent Gain"</h2><p>The "Coherent Gain" is defined as "normalized
+				DC gain". The equation is</p><p><img src="125102.png" alt=": HANNING window in Smartest"> (3)</p><p>The w(n) is the time domain window function. The N is the point number of
+				window.</p><p>To understand the practical meaning, let see Figure 3</p><div class="p"><figure class="fignone">
+					<img src="125103.png" alt="Coherent Gain Explanations">
+				</figure></div><p><strong>Figure 3 Coherent Gain Explanations</strong></p><p>Figure 3 shows one coherent tone's
+				spectrum in VOLT. The yellow one is with RECT window while the blue one is with HANNING window.
+				The <strong>A1/A2</strong> is the value of Coherent Gain (although actually it is loss). If we enlarge
+				HANNNING window by A2/A1, then the central bin will have same amplitude as no
+				windowing.</p><p>So the scale factor will be set to the reciprocal of Coherent Gain. After
+				scaling, windowed coherent signal's the biggest bin will have the same value as non-windowed
+				one.</p><p>Table 1 shows the Coherent Gain and corresponding scale factor of each type of
+				window.</p><table class="frame-none"><caption><span>Table 1 Scaled Factor for Coherent Gain</span></caption><colgroup><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_125099__entry__1"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__2"><p>RECT</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__3"><p>HANNING</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__4"><p>NAMMING</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__5"><p>FLATTOP</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__1"><p>Coherent Gain</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__2"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__3"><p>0.5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__4"><p>0.54</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__5"><p>0.22</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__1"><p>Scaled Factor</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__2"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__3"><p>2</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__4"><p>1.852</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__5"><p>4.5455</p>
+							</td>
+						</tr>
+					</tbody></table><p>In Smartest, the <strong>DSP_FFT</strong> and <strong>DSP_SPECTRUM</strong> have this type of scaled
+				window.</p></section>
+		<section class="section"><h2>Scale for "Power"</h2><p>Another type of scaling is for power loss. Obviously,
+				applying a standard window with 1.0 as top will lower total signal power. Then, to let user get
+				right power result, window can be scaled for power loss. This kind of scaled window will keep
+				the calculated power not changed by windowing.</p><p>The equation of Power Gain (actually
+				loss)</p><p><img src="125104.png" alt=": Coherent Gain Explanations"> (4)</p><p>The scale factor is equal to the reciprocal value of square root of power
+				gain.</p><p><img src="125105.png" alt=": Coherent Gain Explanations"> (5)</p><p>Table 2 shows the Power Gain and corresponding scale factor of each type of
+				window.</p><table class="frame-none"><caption><span>Table 2 Scaled Factors for Power</span></caption><colgroup><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_125099__entry__16"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__17"><p>RECT</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__18"><p>HANNING</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__19"><p>NAMMING</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125099__entry__20"><p>FLATTOP</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__16"><p>Power Gain</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__17"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__18"><p>0.375</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__19"><p>0.3966</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__20"><p>0.1825</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__16"><p>Scale Factor</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__17"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__18"><p>1.633</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__19"><p>1.588</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125099__entry__20"><p>2.34</p>
+							</td>
+						</tr>
+					</tbody></table><p>In Smartest, the <strong>DSP_RF_FFTW</strong>, <strong>DSP_RF_SPECTRUM</strong> and
+					<strong>DSP_RF_MOD_POWER</strong> have this type of scaled window</p></section>
+		<section class="section"><h2>Scaled Window Benefit</h2><p>With the scaled window provided by Smartest, some
+				DSP jobs get straightforward. Users Do not need to make the post compensation by themselves. Here
+				are 2 examples.</p><p><strong>Example 1</strong></p><p>As we know the FLAT_TOP window can keep the biggest
+				bin amplitude same as the tone, no matter coherent or not. Actually, this works only when the
+				window is scaled by Coherent Gain. If user goes with DSP_FFT, it works. Otherwise, without post
+				compensation, user will not get the right amplitude.</p><p><strong>Example 2:</strong></p><p>With RF
+				application, sometimes we sum up the bins of a WATT spectrum to get the power. This only works
+				that the window is scaled for power. If user apply the DSP_RF_FFTW or DSP_RF_MOD_POWER, the
+				bin-sum power is right. Otherwise, without post compensation, user will not get right
+			power.</p></section>
+		<section class="section"><h2>Application Consideration</h2><p>As we discussed, the window functions in
+				Smartest FFT API are scaled. The window in DSP_FFT / DSP_SPECTRUM is scaled for Coherent Gain.
+				The window in DSPRF_FFTW / DSP_RF_SPECTRUM / DSP_RF_MOD_POWER is scaled for power loss. Here we
+				would like to discuss the consideration when applying window in application</p><p>When the
+				result is non-relative value, like amplitude or power, user will need to pay attention to the
+				scaling of window when choosing FFT API. For example, if you use the FLAT_TOP to get the tone
+				amplitude, the DSP_FFT is the right choice. If we sum the power bins to get the total power, the
+				DSP_RF_SPECREUM or DSP_RF_MOD_POWER is the right one. For other case, user can pick up right FFT
+				API based on the introduction we have in last chapter.</p><p>If user takes the standard window
+				function, to get the right result, he should apply the correction value we provided in this
+				paper to make compensation. For example, user applies the standard HANNING in FFT and sum up the
+				power bins to get the power. The result shall be multiply by 1/0.375.</p><p>In other cases with
+				relative value like THD, SNR, ACLR etc, user Do not need to care about the scaling. The scaled
+				factor will be removed in dividing.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>In Smartest FFT API, the window function is scaled for
+				compensation. There are 2 types of scaled window in different FFT API. User need to understand
+				and choose the right one for calculation.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125099</span><script type="text/javascript">var ti='125099';var tt='Scaled window in Smartest API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

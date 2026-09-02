@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When different ports of a multi-port setup are executed at different speed their user vectors can be synchronized exactly in the sense that they are started simultaneously after each timing set change (CTIM instruction). This includes the internal CTIM, which is by default executed at the start of a functional test. To synchronize these ports exactly, they need to be included in the same sequencing group (see Defining sequencing groups for details)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Synchronization within sequencing groups</title><meta name="keywords" content="sync"></head><body id="_55334"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 55334</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Synchronization within sequencing groups</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="104675.htm" title="If two ports are to be members of the same sequencing group, the pattern sequences that are associated with them in a multi-port burst must fulfill certain requirements.">Sequencing groups and pattern structure</a></li></ol></div></nav>
+	
+	
+	<div><p>When different ports of a multi-port setup are executed at different speed their user
+		vectors can be synchronized exactly in the sense that they are started simultaneously after each
+		timing set change (<span class="keyword">CTIM</span> instruction). This includes the internal
+			<span class="keyword">CTIM</span>, which is by default executed at the start of a functional test. To
+		synchronize these ports exactly, they need to be included in the same <em>sequencing group</em> (see
+				<em><a href="104320.htm" title="Sequencing groups are identified by sequencing group names. They can be defined in the timing specification as timing sequencing groups, or in the vector setup (with the Multiport Burst setup tool or the SQLB command) as synchronization groups.">Defining sequencing groups</a></em> for details).</p>
+		<section class="section" id="_55334__section_Default_sequencing_group"><h2>Default sequencing group</h2>
+			
+			<p>Ports that are not explicitly associated with a sequencing group belong to the
+				default sequencing group. In particular, if you do not define any sequencing groups
+				at all, then all ports of the setup belong to the default sequencing group and will
+				be synchronized as indicated above.</p>
+		</section>
+		<section class="section"><h2>The synchronization mechanism</h2><p>In detail, the synchronization after a
+					<span class="keyword">CTIM</span> instruction works as follows:</p><p>Every timing set change is
+				associated with a so-called CTOF (Change Timing On the Fly) sequence, which consists of</p><ol>
+				<li>a certain number of break vectors with the old timing,</li>
+				<li>a hold period during which no signals are sent to the DUT and the new timing is activated,
+					and</li>
+				<li>a certain number of break vectors with the new timing (their number depends on the new
+					period length).</li>
+			</ol><p>During the hold period, the new timing becomes valid for all ports of the sequencing
+				group at the same system clock (SCLK) edge. The system clock is the reference clock which
+				coordinates the operation of the channels. For more information see <a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">Changing the timing set</a>.</p><p>The new period lengths can be different for different
+				ports. But then these ports will usually not (no longer) be synchronized after the CTOF
+				sequence. In order to (re-)synchronize them, SmarTest inserts further synchronization break
+				vectors before the (re)start of the user vectors. But adding break vectors may not always be
+				sufficient to exactly synchronize the ports. In this case, SmarTest will insert an additional
+					<em>fine adjustment</em>, which is smaller than the new period length, for one or more of the
+				ports in order to ensure a simultaneous (re)start of the user vectors.</p></section>
+		<section class="section"><h2>Synchronizing user vectors after a level set change</h2><p>Level set changes
+				within a pattern are executed with the <span class="keyword">CLEV</span> instruction. The execution of
+					<span class="keyword">CLEV</span> is also associated with a CTOF sequence. However, you cannot
+				resynchronize the restart of the user vectors after a level set change by simply putting the
+				respective ports into the same sequencing group. As a workaround, you can insert a
+					<span class="keyword">CTIM</span> instruction activating the current timing set again immediately after
+				the <span class="keyword">CLEV</span> instructions.</p></section>
+		<h2>Example</h2><div class="example"><p>The following figure illustrates the algorithm by a sequencing group consisting of two
+				ports:</p><div class="p"><figure class="fignone">
+					
+					<img src="104692.png" alt="Synchronization After CTIM Within One Sequencing Group">
+				</figure></div><p>The variables <em>j</em>, <em>k</em>, <em>m</em>, <em>n</em>, are integers.</p><p>Observe
+				that the synchronization is based on the simultaneous change to the new period within the CTOF
+				sequence which is triggered by a <span class="keyword">CTIM</span> instruction. Therefore, the user
+				vectors can only be synchronized exactly at the start of a functional test if a timing set is
+				activated before the first user vector. By default, this condition is satisfied for any
+				sequencing group that contains more than one port (even if the primary sets are the same as
+				before). But if this activation is suppressed with the <span class="keyword">FTCG</span> firmware command
+				(option <span class="keyword">ON</span>), exact synchronization is not
+				possible.</p><p>The
+				following figure shows a "macroscopic" view of a multi-port burst for three ports that belong to
+				the same sequencing group:</p><div class="p"><figure class="fignone">
+					
+					<img src="104678.png" alt="Execution of CTIM commands within a sequencing group">
+				</figure></div><p>Observe that the user vectors start synchronously not only at the start of the
+				testsuite, but also after the <span class="keyword">CTIM</span> instruction that occurs in the sequencer
+				programs of all three ports.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 55334</span><script type="text/javascript">var ti='55334';var tt='Synchronization within sequencing groups'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

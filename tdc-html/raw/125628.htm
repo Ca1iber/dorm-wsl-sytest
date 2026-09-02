@@ -1,0 +1,172 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="For AC parameter testing the card provides a Time Measurement Unit (TMU) per pin, which enables full parallel AC measurement with a minimum test time."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PS1600 TMU (Time Measurement Unit) per pin</title><meta name="keywords" content="Pin Scale 1600 PinScale 1600, PS, 1600"></head><body id="_125628"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125628</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PS1600 TMU (Time Measurement Unit) per pin</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="124941.htm" title="When doing measurements on the PS1600, several kinds of overrun errors can occur.">Pin Scale 1600 TMU overrun errors</a></li></ol></div></nav>
+	
+	
+	<div><p>For AC parameter testing the card provides a Time Measurement Unit (TMU) per
+		pin, which enables full parallel AC measurement with a minimum test time. </p>
+		<div class="note"><span class="title">Note</span> The N5866U license is required to access this feature.</div>
+		<p>For an overview of all licensed V93000 products by Product ID, as they are referenced on the
+			Entitlement Certificates, see <a href="130665.htm">Licensed V93000 products</a>.</p>
+		
+		<p>The Time Measurement Unit (TMU) per pin allows you to accurately measure frequency,
+			period length, pulse width, rise and fall times, edge times, jitter and propagation delay (skew)
+			of periodic and non-periodic output signals. It requires one or more licenses. See, <a href="125212.htm" title="The Time Measurement Unit (TMU) per Pin functionality is integrated into the test processor of the Smart Scale cards. It provides a fast and easy way to accurately measure the period (frequency), jitter, pulse width, and rise/fall time of periodic and non-periodic output signals.">Overview of the TMU per pin</a>.</p>
+		<p>The TMU measures the time elapsed between the arming (activation of the TMU) and the
+			occurrence of a certain event. Events are defined by a slope (rising or falling edge) of the DUT
+			signal, and by a voltage threshold. The event occurs at every rising or falling slope of the DUT
+			signal when the voltage threshold is crossed. </p>
+		<div class="p"><figure class="fignone" id="_125628__d2631e31">
+				<img src="125368.png" alt="ppTMU principle of operation">
+			</figure></div>
+		<div class="p">
+			<div class="note"><span class="title">Note</span> The TMU on the Pin Scale 1600 card can also be used on the high voltage
+				channels.</div>
+		</div>
+		<p>For details on defining voltage thresholds for differential signals with Smart Scale
+			cards see <a href="56925.htm" title="The comparator receives the output signals of the DUT's o and io pins. It generates a high/low level compare signal (difference of the actual signal of the DUT and the compare threshold(s) specified in the level setup). You can program the compare thresholds with the keywords vol and voh on PS1600 and PS5000 cards, and with the vth keyword on PS5000 cards.">Comparing output signals</a> and <a href="124925.htm">PS1600 level setup</a>.</p>
+		<h2>Examples</h2><div class="example"><h3>TMU setup example</h3><p id="_125628__d2631e81">In single-ended receive mode.
+				the TMU is activated (armed) by the pattern when special waveforms are detected that contain the
+					<span class="keyword">ARM</span> keyword. The wavetable example below defines receive edge
+					<span class="keyword">r7</span> in waveform 2 to generate the arming signal:</p><table class="ly" id="_125628__d2631e89"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr id="_125628__d2631e99">
+							<td id="_125628__d2631e101" class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable">WAVETBL "tmu_wavetable"
+&nbsp;
+PINS std_o
+&nbsp;
+0 "d1:F00" 0
+1 "d1:F10" 1 
+2 "d1:Z r7:ARM" arm 
+3 "d1:Z d2:Z" Z
+brk ""</pre></td>
+							<td class="colsep-0 rowsep-0"><div class="p"><figure class="fignone" id="_125628__d2631e107">
+										
+										<img src="125374.png" alt="ppTMU setup in Pattern Explorer">
+									</figure></div>
+							</td>
+						</tr>
+					</tbody></table><p id="_125628__d2631e123">This timing set (see excerpt below) specifies the exact time (in device cycle)
+				when the TMU (<span class="keyword">r7</span>) is to be activated
+				(armed).</p><pre class="prettyprint linenums copyable">EQNSET 1 "tmu_example_eqn"
+...
+TIMINGSET 1 "tmu_example_tim"
+
+PINS std_o
+d1 = ...
+d2 = ...
+r7 = 6</pre><p id="_125628__d2631e130">In this example, the delay of <span class="keyword">r7</span> is set to 6. Executing waveform 2
+				will activate (arm) the TMU 6 ns after the start of the device cycle. </p><div class="note" id="_125628__d2631e135"><span class="title">Note</span> A wavetable containing the ARM keyword can also be used for other functional tests,
+				with the following exceptions: - This wavetable cannot be used for window compare or transition
+				tests. - Neither the activating (arming) receive edge nor its upper neighbor can be used for any
+				compare
+			actions.</div></div>
+		<div class="example"><h3>TMU differential setup</h3>
+			
+			<div class="p">The following excerpt shows the pin configuration for the differential pins (single
+				site):<div></div><pre class="prettyprint linenums copyable">DFPN 10101,"",(drv1)
+DFPN 10102,"",(rcv1)
+DFPN 10103,"",(drv2)
+DFPN 10104,"",(rcv2)
+DFPN 10105,"",(drv3)
+DFPN 10106,"",(rcv3)
+DFPN 10107,"",(drv4)
+DFPN 10108,"",(rcv4)
+PSTE 1
+CONF I,F160,(drv1)
+CONF O,F160,(rcv1)
+CONF I,F160,(drv2)
+CONF O,F160,(rcv2)
+CONF I,F160,(drv3)
+CONF O,F160,(rcv3)
+CONF I,F160,(drv4)
+CONF O,F160,(rcv4)
+</pre></div>
+			<div class="p">The level set (see excerpt below) specifies the exact voltage levels to apply on the DUT as
+				well as the voltage levels to use for comparing against its output. It shows the double compare
+				voltage thresholds <span class="keyword">vol</span> and <span class="keyword">voh</span> (commented out in this
+				example) as well as the differential threshold compare voltage level <span class="keyword">vth</span> and
+				the commutation voltage <span class="keyword">vt</span> for the center tap termination. Note that you can
+				use either the double compare thresholds <span class="keyword">vol</span> and <span class="keyword">voh</span> or
+				the differential compare threshold <span class="keyword">vth</span> but not
+				both:<div></div><pre class="prettyprint linenums copyable">EQNSET 2 "eqn2"
+LEVELSET 1 "lst1"
+PINS drv1@diff drv3@diff
+vil=0.0
+vih=1.5
+PINS rcv1@diff rcv3@diff
+term center_tap
+#vol=svol
+#voh=svoh
+vth=0
+vt=0.75</pre></div>
+			<p>In the differential measurement mode, the TMU is activated (armed) by the pattern when special
+				waveforms are detected that contain the <span class="keyword">ARM</span> keyword. The wavetable example
+				below defines receive edge <span class="keyword">r7</span> in waveform 2 to generate the arming signal.
+				The qualifier <span class="keyword">@diff</span> is added only to the positive pin of the differential
+				pair. The negative pin is omitted because the waveforms for the negative pin will then be
+				created automatically. Note that, the label <span class="keyword">AARRMM</span> was appended to the end of
+				the waveform 2 to distinguish that the setup is for differential measurement mode:</p>
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><pre class="prettyprint linenums copyable">
+WAVETBL "wavetable1_diff"
+ 
+PINS rcv1@diff rcv3@diff
+0 "r3:E0 r4:E0 r5:E0 r6:E0" ZZEERR
+1 "r1:X r2:X r3:X r4:X r5:X r6:X" XXXXXX
+2 "r1:X r2:X r3:X r4:X r5:X r6:X r7:ARM " AARRMM
+                                </pre><div></div>
+								<div></div><pre class="prettyprint linenums copyable">PINS drv1@diff drv3@diff
+0 "d1:F00 d2:F00" ZZ
+1 "d1:F10 d2:F10" OO
+2 "d1:F00 d2:F10" ZE
+3 "d1:F10 d2:F00" ON 
+brk "d1:F00"</pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-0"><div class="p"><figure class="fignone">
+										<img src="152806.png" alt="embedded - per pin TMU (1)">
+									</figure></div>
+							</td>
+						</tr>
+					</tbody></table>
+			<div class="p">This timing set (see excerpt below) specifies the exact time (in device cycle) when the TMU
+					(<span class="keyword">r7</span>) is to be activated (armed). The qualifier <span class="keyword">@diff</span> is
+				added to the positive pins of the differential pair. The timing for the negative pins will be
+				automatically generated:
+				<div></div><pre class="prettyprint linenums copyable">EQNSET 3 "teq3"
+SPECS 
+per [ns]
+     
+EQUATIONS
+     
+TIMINGSET 1 "tim3"
+period = per/2
+PINS drv1@diff drv3@diff
+period_div = 6 
+d1 = 0
+     
+     
+PINS rcv1@diff  rcv3@diff
+period_div = 6 
+r7 = 1.8
+</pre></div>
+			<div class="p">In this example, the delay of <span class="keyword">r7</span> is set to 1.8. Executing waveform 2 will
+				activate (arm) the TMU 1.8 ns after the start of the device cycle.<div class="note"><span class="title">Note</span> A wavetable
+					containing the <span class="keyword">ARM</span> keyword can also be used for other functional tests, with
+					the following exceptions: <ul>
+						<li>This wavetable cannot be used for window compare or transition tests.</li>
+						<li>Neither the activating (arming) receive edge nor its upper neighbor can be used for any
+							compare actions.</li>
+					</ul></div></div>
+		</div>
+		
+		<section class="section"><h2>License overview</h2>
+			<p>The N5866U license is required to access this feature.</p>
+			<p>For an overview of all licensed V93000 products by
+				Product ID, as they are referenced on the Entitlement Certificates, see <a href="130665.htm">Licensed V93000 products</a>.</p>
+		</section>
+		
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125212.htm" title="The Time Measurement Unit (TMU) per Pin functionality is integrated into the test processor of the Smart Scale cards. It provides a fast and easy way to accurately measure the period (frequency), jitter, pulse width, and rise/fall time of periodic and non-periodic output signals.">TMU per Pin overview</a></div><div><a href="125467.htm" title="TSCF and TSCF? serve to define and query the TMU test configuration for the specified pins. The specified TMU set must have been defined with TSDF. For more information on TMU tests see TMU per Pin overview.">TSCF, TSCF? - (TMU Set ConFiguration)</a></div><div><a href="125551.htm" title="The TSMD? query serves to determine if the TMU measurement has finished or is still running for the specified pins.">TSMD? - (TMU Set Measurement Done)</a></div><div><a href="125518.htm" title="TSPR defines the primary TMU set. This is the set that will actually be used for testing. You can also undefine the primary TMU set by specifying the empty string. TSPR? returns the current primary set.">TSPR, TSPR? - (TMU Set PRimary set)</a></div><div><a href="125500.htm" title="The TSRS? query is used to compute and upload either the mean of the periods of the time stamps or the individual periods and their descriptive statistics. It can query one site or all sites.">TSRS? - (TMU Set ReSults)</a></div><div><a href="125519.htm" title="The TSRW? query uploads raw results (time stamps) from one site or all sites.">TSRW? - (TMU Set RaW results)</a></div><div><a href="56925.htm" title="The comparator receives the output signals of the DUT's o and io pins. It generates a high/low level compare signal (difference of the actual signal of the DUT and the compare threshold(s) specified in the level setup). You can program the compare thresholds with the keywords vol and voh on PS1600 and PS5000 cards, and with the vth keyword on PS5000 cards.">Comparing output signals</a></div><div><a href="124925.htm">PS1600 level setup</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.3.2:  Support of PS1600B</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125628</span><script type="text/javascript">var ti='125628';var tt='PS1600 TMU (Time Measurement Unit) per pin'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

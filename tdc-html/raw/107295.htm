@@ -1,0 +1,290 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Programming guidelines for relay switching: Avoid excessive relay stressing of V93000 digital cards</title><meta name="keywords" content="93k V93000 V93k board 93k 93000, V, 93000"></head><body id="_107295"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 107295</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Programming guidelines for relay switching: Avoid excessive relay stressing of V93000
+		digital cards</h1>
+	
+	<div>
+		<p>Li Tong, Verigy</p>
+		<p>Paper ID: 107295 May 2011</p>
+		<section class="section"><h2>Abstract</h2><p>During test program development and optimization, test
+				engineers typically focus on aspects such as stability and repeatability, or throughput, while
+				paying less attention to things such as "gentle" treatment of tester hardware. One example for
+				gentle treatment of tester hardware is the application of correct relay switching. By doing the
+				correct way of programming, we can prolong the relay lifetime, improve MTBF and increase
+				throughput. This paper describes the do's and Do nots as best practice and gives guidelines for
+				good relay programming. When you have a program in production causing high relay module
+				consumption, you can refer to the following paper and review the program. There is a SADC Escort
+				tool will be released in June 2010, which you can use to run a TP checking for hot switching or
+				excessive relay stressing. The link of the tool will be provide when it's ready.</p></section>
+		<section class="section"><h2>Key Words</h2><p>relay, hot switching, glitch, MTBF, life time, pre-charge,
+				clamp.</p></section>
+		<section class="section"><h2>SmarTest Release &amp; Test System Configuration Used</h2><ul>
+				<li>P/C/Ce</li>
+				<li>Pin Scale 800/3600</li>
+				<li>Pin Scale 400</li>
+			</ul></section>
+		<section class="section"><h2>1. Introduction</h2><p>This paper focuses on the correct relay switching of
+				V93000 digital cards, i.e. PPMU, AC and DC relays. Note, however, similar recommendations hold
+				true for Analog/ high speed/DPS card relays and DUT board relays, which are not included in this
+				paper.</p></section>
+		<section class="section"><h2>2. General considerations with respect to relay switching</h2></section>
+		<section class="section"><h2>The relays in the V93000 digital channel board</h2><p>Generally, both
+				mechanical relays (reed relays) and solid state relays are used in V93000 platform.</p><p>A reed
+				relay is a mechanical relay operated by an applied magnetic field. There are different reed
+				relays used in V93000 channel board. They all have a similar life time. For this type of reed
+				relay, it is typically 1000 million switching cycles at 1V and 10mA. Hot switching with a
+				current larger than 10mA can lead to aging of the relay. Below is a typical spec of the reed
+				relay used in Pin Scale 800.</p><div class="p"><figure class="fignone">
+					<img src="122510.png" alt="Clipboard01">
+				</figure></div><p><strong>Table 1: Spec of the reed relay</strong></p><p>A solid state relay (SSR) is a solid
+				state electronic component that provides a similar function to the mechanical relay, but does
+				not have any moving components. This gives it a much longer life time and improved reliability.
+				Also hot switching does not lead to aging of the solid state relay.</p><p>Below is a table of
+				the different relay types used in a digital channel board:</p><table class="frame-none"><caption><span>Table 2: Relays used in digital channel boards.</span></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-1 rowsep-1" id="_107295__entry__1"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-1 rowsep-1" id="_107295__entry__2"><p>DC relay</p>
+							</th>
+							<th class="colsep-1 rowsep-1" id="_107295__entry__3"><p>AC relay</p>
+							</th>
+							<th class="colsep-1 rowsep-1" id="_107295__entry__4"><p>PPMU relay</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__1"><p>P/C/Ce</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__2"><p>reed relay</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__3"><p>reed relay</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__4"><p>reed relay</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__1"><p>Pin Scale 800/3600</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__2"><p>reed relay</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__3"><p>reed relay</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__4"><p>reed relay</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__1"><p>Pin Scale 400</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__2"><p>reed relay</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_107295__entry__3" colspan="2"><p>SSR</p>
+							</td>
+						</tr>
+					</tbody></table><div class="p"><figure class="fignone">
+					<img src="107296.png" alt="Relays in the digital channel board">
+				</figure></div><p><strong>Figure 2: Relays in the digital channel board</strong></p></section>
+		<section class="section"><h2>What to avoid during relay switching</h2><p>If the relay switching is not done
+				in a proper way in the test program, there might be some effect should be avoid.</p><p><strong>Hot
+					switching</strong></p><p>The term hot switching here indicates that a switch (relay) is actuated
+				while having a voltage difference across its contacts. This means that a current will flow
+				immediately when the contacts are closed.</p><p>For the V93k, a special case is forcing a
+				current with PPMU, with the PPMU relay open and no clamps activated. In this case, the output of
+				PPMU will go to a high voltage, which will cause hot switching when the relay is
+				closed.</p><p>In addition, when the relay is opened while a current is flowing, arcing may
+				result when the current is interrupted.</p><p>For example, when closing the PPMU relay in IFVM
+				mode without clamp and pre-charge, currents as large as 200mA can be observed in a Pin Scale 800
+				digital channel system. And on a single-density system, the current can be as large as 77mA due
+				to different hardware design. This can reduce the lifetime of the relays.</p><p>If large
+				capacitors on the DUT board are connected to the channel, the transient current for charging the
+				capacitors will be even higher when closing the relay with hot switching.</p><p>Hot switching
+				with big current eventually damages the relay, for example, increase the relay
+					impedance.</p><p><strong>Glitch</strong></p><p>The term glitch here indicates a spike or sudden change in
+				voltage. In some cases, glitch happens with hot switching.</p><p>Glitch might lead to yield or
+				quality problems.</p><p><strong>Unnecessary relay switching</strong></p><p>In some test programs, a lot of
+				disconnect/connect, or relay switching commands are used, which are not really necessary. This
+				wastes test time and reduces the life time of the relays. In one example, this resulted in 1.8
+				million relay switches per-day in production.</p></section>
+		<section class="section"><h2>Programming guidelines</h2><p>You should carefully follow Verigy's guidelines
+				for relay switching. This will ensure longest lifetime of the relays and can improve the
+				throughput.</p><p>Here are some general guidelines, further details are given below in later
+				chapters.</p><ul>
+				<li>Use clamp or do pre-charge for DC force and measure, especially for large currents.</li>
+				<li>Set digital channels to high-Z status (using DLSO or SQST OFF) or disable Active Load before
+					switching AC relays.</li>
+				<li>Merge the DC tasks to minimize the relay switching times. </li>
+				<li>Avoid unnecessary DISCONNECT/CONNECT in the test program.</li>
+			</ul></section>
+		<section class="section"><h2>Detailed guidelines for specific situations</h2></section>
+		<section class="section"><h2>PPMU relay</h2><p>When the PPMU is in IFVM mode, it tries to reach the
+				programmed force current by increasing its voltage.</p><p>If at the beginning, the PPMU relay is
+				open, the programmed current will not be reached, so the voltage will go up to the maximum
+				possible value the PPMU can provide, even when the specified force current is 0 (force 0 current
+				actually means force 5% of the current range).</p><p>When the PPMU relay is then closed, there
+				will be a current spike until the current settles to the programmed value. This is one of the
+				most critical cases, because it produces both glitch and hot switching.</p><p>In Figure 2 and
+				Figure 3, a 10 Ohm resistor is connected between the DUT and a PS800 digital channel. The traces
+				have been captured during forcing a small current and measure voltage. The current flow can be
+				calculated by knowing the voltage drop across the resistor.</p><p>In Figure 2, with pre-charge,
+				no hot switching and glitch is present.</p><div class="p"><figure class="fignone">
+					<img src="107298.png" alt="Current flow when PPMU relay is closed after pre-charge">
+				</figure></div><p><strong>Figure 2: Current flow when PPMU relay is closed after pre-charge</strong></p><p>As
+				in Figure 3, the test is done in a wrong way that the channel is set to IFVM mode before closing
+				the PPMU relay. A glitch of 1630 mV can be seen, which indicates a 163 mA current flowing with
+				hot switching. The resolution of the timing is 1 μs /grid.</p><div class="p"><figure class="fignone">
+					<img src="107297.png" alt="Current flow when PPMU relay is closed with hot switching">
+				</figure></div><p><strong>Figure 3: Current flow when PPMU relay is closed with hot
+				switching</strong></p><p>The term pre-charge here means supplying the same voltage from the digital
+				channel to the DUT pin and then closing the relay before any further action. The way it is done
+				on the Pin Scale system is different to how it is done on the single-density setup. This is
+				described later in this paper.</p><p>Opening the PPMU relay in IFVM mode also causes hot
+				switching. If the current is large, add one more step to force a small current or force a
+				correct voltage before open the PPMU relay.</p><p>When the PPMU is in VFIM mode, and if the
+				current is larger than 10mA, it is also not good to close and open the PPMU relay. In this case,
+				do a pre/post-charge.</p><p>For example, for an IOL test, the test limit is min/max = 20 mA / 40
+				mA.</p><p><strong>Original approach</strong>:</p><ol>
+				<li>vforce (0.5 V)</li>
+				<li>relay close</li>
+				<li>measure</li>
+				<li>relay open<p>There is hotswitching with 20 ~ 40 mA</p></li>
+			</ol><p><strong>Suggested approach</strong>:</p><ol>
+				<li>vforce (5 mV)</li>
+				<li>relay close</li>
+				<li>vforce(0.5 V)</li>
+				<li>measure</li>
+				<li>vforce(5 mV)</li>
+				<li>relay open<p>There is no hotswitching</p></li>
+			</ol><p>For the Standard Testmethod/DC_TML such as "OutputDC", the pre-charge is automatically
+				included. For "General PMU", you need to specifically specify it.</p><div class="p"><figure class="fignone">
+					<img src="107308.png" alt="General PMU Standard Testfunction/DC_TML with pre-charge">
+				</figure></div><p><strong>Figure 4: General PMU Standard Testmethod/DC_TML with
+			pre-charge</strong></p></section>
+		<section class="section"><h2>AC relay</h2><p>When the active load is enabled and the defined
+					I<sub>ol</sub>/I<sub>oh</sub> values are lager than 10mA, hot switching becomes critical. To
+				avoid this, use DLSO or SQST OFF to set the channel to a high-Z status before switching the
+				relay as is done in the default DISCONNECT/CONNECT sequence.</p><p>In some cases, DLSO or SQST
+				OFF is not used before switching the relay in user defined DISCONNECT/CONNECT sequence for some
+				reason. This is not the proper way.</p><p>In the DC_TML/Standard Testmethods, some DPS and PMU
+				functions do switch the AC relay and in some cases, with improper settings, cause hot
+				switching.</p><p>If the following DPS functions: Operating Current, Standby Current and
+				Production Iddq, are performed without termination, or with a disconnect pin list, the AC relay
+				will open. In this case, if Active Load is enabled, there will be hot switching.</p><p>So, if
+				these actions carried out in a non-termination mode, try to use them without the Active Load
+				enabled. For example, define a new level set with Active Load set to "OFF". Figures 6 to 8 show
+				the Standard Testmethod and DC_TML parameters.</p><div class="p"><figure class="fignone">
+					<img src="107309.png" alt="Operating Current Standard Testfunction/DC_TML with termination">
+				</figure></div><p><strong>Figure 5: Operating Current Standard Testmethod/DC_TML with termination</strong></p><div class="p"><figure class="fignone">
+					<img src="107300.png" alt="Standby Current Standard Testfunction">
+				</figure></div><p><strong>Figure 6: Standby Current Standard Testmethod/DC_TML parameters</strong></p><div class="p"><figure class="fignone">
+					<img src="107301.png" alt="Production Iddq Standard Testfunction">
+				</figure></div><p><strong>Figure 7: Production Iddq Standard Testmethod/DC_TML parameters</strong></p><p>For
+				some PMU functions, for example, General PMU, Output DC and HighZ, generally, it's recommended that you
+				set the Active Load to "OFF" for non-terminated measurements.</p><div class="p"><figure class="fignone">
+					<img src="107302.png" alt="General PMU Standard Testfunction">
+				</figure></div><p><strong>Figure 8: General PMU Standard Testmethod/DC_TML parameters</strong></p><div class="p"><figure class="fignone">
+					<img src="107304.png" alt="Output DC Standard Testfunction">
+				</figure></div><p><strong>Figure 9: Output DC Standard Testmethod/DC_TML parameters</strong></p><p>For Output
+				DC, when using PPMU and SPMU no term modes, set Active Load to "OFF".</p><div class="p"><figure class="fignone">
+					<img src="107306.png" alt="High Z Standard Testfunction">
+				</figure></div><p><strong>Figure 10: High Z Standard Testmethod/DC_TML parameters</strong></p><ul>
+				<li>For the high Z test Standard Test function, the AC relay is initially opened and then the
+					PPMU relay is closed.</li>
+				<li>For High Z test TML, the BBM, MBB and PARALLEL modes are available.</li>
+				<li>For the BBM mode, the AC relay opens and then the PPMU relay closes.</li>
+				<li>For the MBB mode, the PPMU relay closes and then the AC relay opens.</li>
+				<li>For the PARALLEL mode, close PPMU relay and open AC relay at the same time.</li>
+			</ul><p>So, for the High Z Standard Testmethod all the modes, the Active Load should be set to
+				"OFF".</p></section>
+		<section class="section"><h2>DC relay</h2><p>Hot switching can become problematic with the DC relay when
+				using the SPMU if the current exceeds 10mA. In this case, add one more step to force 10mA before
+				opening the relay. An enhancement included in SmarTest 6.3.5 and above version has been
+				implemented like this in SPMU_TASK API.</p><p>Example
+				code:</p><pre class="prettyprint linenums copyable">//*************************************************************
+// Force 0 current before open DC relay when force a big current with SPMU
+//*************************************************************
+SPMU_TASK task_iForce, task_iForce10mA ;
+
+task_iForce.pin("p1").settling(10 ms).relay("NO").iForce(100 mA).clamp(Vclamp).min(0 V).max(Vclamp);
+task_iForce10mA.pin("p1").settling(10 ms).relay("TERM").iForce(10 mA).clamp(Vclamp).min(0 V).max(Vclamp);
+
+task_iForce1m0A .execMode(TM::FORCE_ON) .execute();
+task_iForce .execMode(TM::PVAL) .execute();
+task_iForce10mA .execMode(TM::FORCE_ON) .execute();
+task_iForce10mA .execMode(TM::FORCE_OFF) .execute();</pre><p>Closing
+				the relay also can cause hot switching, but this is not particularly critical, because of the
+				SPMU current clamp.</p></section>
+		<section class="section"><h2>Perform the pre-charge differently on Single Density and Pin Scale
+			Setups</h2><p>The hardware design of the Pin Scale PPMU and single-density is different. So
+				to carry out pre-charging is different.</p><p>If the program is run on both systems, do a
+				pre-charge in the branches with your own code, or use the DC_TML General PMU in the branch that
+				is implemented. If the wrong sequence is used, there can be a glitch or hot switching.</p><p>For
+					single-density, before the PPMU relay connects, the PPMU is programmed in force voltage mode to
+				the pre-charge voltage and switched to the force current mode after the PPMU relay has
+				connected.</p><p>So the IFVM sequence with pre-charge for single-density is as follows:</p><ol>
+				<li>Force a "PPMU Rail pre-charge voltage" (PPMU is in V force / I measure Mode). The pre-charge
+					voltage should be close to the expected settled voltage when performing the voltage
+					measurement.</li>
+				<li>Close PPMU Relay &amp; open AC relay</li>
+				<li>Switch PPMU to I-force / V-measure mode.</li>
+				<li>Set pass/fail thresholds (limits for the measurements)</li>
+				<li>Take voltage measurement</li>
+				<li>Open PPMU Relay / close AC relay</li>
+			</ol><p>For Pin Scale, a clamp circuit is used instead of the pre-charge action for the P/Ce
+				models. There can be a glitch when changing between force voltage and force current modes
+				without the clamp. So the clamps must be programmed to the pre-charge voltage before the PPMU
+				relay connects.</p><p>So the IFVM sequence with pre-charge for Pin Scale is as follows:</p><ol>
+				<li>Force the current</li>
+				<li>Set pass/fail thresholds (limits for the measurements)</li>
+				<li>Set voltage clamps to the "pre-charge value" (or limits for the measurements)</li>
+				<li>Close PPMU Relay / open AC relay</li>
+				<li>Remove voltage clamps (Clamps off)</li>
+				<li>Take voltage measurement</li>
+				<li>Open PPMU Relay / close AC relay</li>
+			</ol><div class="p"><figure class="fignone">
+					<img src="107310.png" alt="Clamp circuit in Pin Scale PPMU">
+				</figure></div><p><strong>Figure 11: Clamp circuit in Pin Scale PPMU</strong></p><p>A code example for using
+				the pre-charge
+				branch:</p><pre class="prettyprint linenums copyable">//************************************************************
+// Check if SD or DD system and do PPMU Programming with pre-charge
+//************************************************************
+PPMU_SETTING setting_IFVM, setting_VFIM;
+PPMU_RELAY relay_ppmu_on, relay_off;
+PPMU_MEASURE meas1;
+PPMU_CLAMP clamp_on, clamp_off;
+TASK_LIST tasks1;
+setting_IFVM.pin("Pin1").iRange(currentRange1).min(low1).max(high1).iForce(forceCurrent);
+setting_VFIM.pin("Pin1").iRange(currentRange2).min(low2).max(high2).vForce(outputV);
+relay _on.pin("Pin1").status("OPM_ON");
+relay _on.wait(1.3 ms);
+relay_off.pin("Pin1").status("OPM_OFF");
+meas1.pin("Pin1").execMode(TM::PVAL);
+if(GET_TESTER_CLASS()==PINSCALE){
+clamp_on.pin("Pin1").status("CLAMP_ON").low(outputV-100 mV).high(outputV+100mV);
+clamp_off.pin("Pin1").status("CLAMP_OFF");
+}
+if(GET_TESTER_CLASS()==PINSCALE)
+tasks1.add(setting_IFVM).add(clamp_on).add(relay _on).add(clamp_off).add(meas1).add(relay_off);
+else
+tasks1.add(setting_VFIM).add(relay _on).add(setting_IFVM).add(meas1).add(relay_off);</pre><div class="note"><span class="title">Note</span> In the example above, the <span class="keyword">OPM_ON</span> status does not work for PS400,
+				as it does not use an SSD relay. See also <a href="29612.htm" title="The PPMU_PIN_RELAY class is a data container holding the object reflecting the pin PMU's relay setup data. The target pin PMU can be specified via the PPMU_RELAY class because the PPMU_PIN_RELAY class can be called as a subsidiary data container of the PPMU_RELAY class.">PPMU_PIN_RELAY</a>.</div></section>
+		<section class="section"><h2>Avoid unnecessary DISCONNECT/CONNECT</h2><p>In many cases the insertion of a
+				DISCONNECT/CONNECT is necessary to make a test work. But is it a smart way? Find out the reason
+				why it is necessary and then avoid using it to improve throughput and increase the relay
+				lifetime.</p><p>Here are some examples:</p><ul>
+				<li>The primary sets of the testsuite are not activated until the next test.<p>- Do a FLUSH
+						(TM::APRM) or appropriate API/FW command.</p></li>
+				<li>Close/open PPMU relays (using PPMU_ON and PPMU_OFF) to perform a DC measurement, but a
+					reconnection of the AC relays is forgotten.<p>- Keep the AC relays connected (AC_ON) if
+						possible.</p></li>
+				<li>The DUT loses its required state.<p>- Do not reconnect and power up the device from time to
+						time. Use the correct pattern, or setting to set the DUT to the proper state at the end of a
+						test. Or, avoid side effects from previous tests. Good co-operation with the designer and team
+						makes it easier.</p></li>
+			</ul></section>
+		<section class="section"><h2>References</h2><ul>
+				<li>Verigy Online Documentation (TDC, see <a href="https://www.advantest.com/V93000/help/" target="_blank" rel="external noopener" class="ex">https://www.advantest.com/V93000/help/</a>)</li>
+				<li>How to set up HW Independent PPMU Voltage Measurements, Rudolf Giesa, V93000 SOC Test System
+					Application Note</li>
+			</ul></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 107295</span><script type="text/javascript">var ti='107295';var tt='Programming guidelines for relay switching: Avoid excessive relay stressing of V93000 digital cards'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

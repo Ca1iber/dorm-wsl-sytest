@@ -1,0 +1,101 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="PRBS_PINS class is used to configure the PRBS properties for individual pins. It is a sub-class of PRBS_SET. You cannot directly create an object with it."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PRBS_PINS</title></head><body id="_114961"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114961</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PRBS_PINS</h1>
+	
+	
+	<div><p><code>PRBS_PINS</code> class is used to configure the PRBS properties for individual
+		pins. It is a sub-class of PRBS_SET. You cannot directly create an object with it.</p>
+		<section class="section"><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/PRBS_PINS.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Class definition</h2></section>
+		<section class="section"><h3>Member
+			functions</h3><pre class="prettyprint linenums copyable">PRBS_PINS&amp; polynomial(const STRING&amp; ipolynomial);
+PRBS_PINS&amp; seed(const STRING&amp; iseed);
+STRING getPolynomial();
+STRING getSeed();
+void setToDefault()const;</pre></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>polynomial()</h3><pre class="prettyprint copyable singleline">PRBS_PINS&amp; polynomial(const std::string&amp; ipolynomial);</pre><p>This
+				function sets the polynomial used to generate PRBS.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">polynomial</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The polynomial to generate PRBS. It is a bit string. The constant term of the
+									polynomial, which is always 1, must be omitted. The last bit is supposed to determine the
+									degree <code>n</code> of the polynomial. Therefore, the length of the string must be
+										<code>n</code>, and its last bit must be "1". (Refer to <a href="118218.htm" title="This command serves to define and query the connection polynomial and the seed of the PRBS for the specified pins. Note that the LFSR on the Pin Scale 9G is a Fibonacci LFSR; for some background information see Overview of pseudo random bit sequences. The length of the LFSR is determined by the degree of the polynomial or, equivalently, by the length of the seed.">PRCF, PRCF? - (Pseudo Random bit sequence ConFiguration)</a>.)</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>seed()</h3><pre class="prettyprint copyable singleline">PRBS_PINS&amp;  seed(const STRING&amp; iseed);</pre><p>This
+				function sets the initial state for the PRBS generator.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">iseed</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The initial state.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getPolynomial()</h3><pre class="prettyprint copyable singleline">STRING getPolynomial();</pre><p>This
+				function returns the polynomial used to generate PRBS.</p></section>
+		<section class="section"><h3>getSeed()</h3><pre class="prettyprint copyable singleline">STRING getSeed();</pre><p>This function returns
+				the initial state of the PRBS generator.</p><div class="note"><span class="title">Note</span> getPolynomial() and
+					<code>getSeed()</code> can only return one value. This means one result value for one pin
+				or the same value for multiple pins. Therefore if the container refers to multiple pins, it is
+				expected that these pin have the same result. If there are different results for multiple pins,
+				an exception <code>TESTMETHOD_API::AmbiguityException</code> will be
+			issued.</div></section>
+		<section class="section"><h3>setToDefault()</h3><pre class="prettyprint copyable singleline">void setToDefault()const;</pre><p>This
+				function sets the polynomial and seed to default setting.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Configure a PRBS test</h3><p>The following example
+				shows how to configure a PRBS test. In the example, there are two pin groups <code>Tx</code>
+				and <code>Rx</code> defined, containing two pins Tx1, Tx2 and Rx1, Rx2
+			respectively.</p><pre class="prettyprint linenums copyable">//
+// Create a PRBS set
+//
+PRBS_SET prbsSet1("PRBS_7_BER3");
+
+//
+// Configure parameters common for all pins
+//
+prbsSet1.pin("Tx,Rx").polynomial("0000011");
+
+//
+// Configure parameters for individual Rx pins, different seeds for each pin
+//
+prbsSet1.pin("Rx1").seed("1111000");
+prbsSet1.pin("Rx2").seed("0000111");
+
+//
+// Create another set
+//
+PRBS_SET prbsSet2("PRBS_31_BER3");
+
+//
+// Configure
+//
+prbsSet2.pin("Tx,Rx").polynomial("0000000000000000000000000001001");
+prbsSet2.pin("Rx1").seed("1111100000111110000011111000001");
+prbsSet2.pin("Rx2").seed("0010010110111100010100000000011");
+
+//
+// Create and configure the PRBS label
+//
+prbsSet1.label("prbs_label_rx","@").length(125);
+prbsSet2.label("prbs_label_tx","@").length(10000000).delay(125);</pre></div>
+		<div class="example"><h3>Access the PRBS sets</h3><p>The following example shows
+				how to access the PRBS sets defined in the example above. PRBS sets are kept in firmware and
+				their lifetime does not correspond to the lifetime of the PRBS_SET
+			object.</p><pre class="prettyprint linenums copyable">//
+// Access the set defined in test method A
+//
+PRBS_SET mySet("PRBS_7_BER3");
+
+//
+// Modify only the polynomial for pin Rx1
+//
+mySet.pin("Rx1").polynomial("1001001");
+</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114961</span><script type="text/javascript">var ti='114961';var tt='PRBS_PINS'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

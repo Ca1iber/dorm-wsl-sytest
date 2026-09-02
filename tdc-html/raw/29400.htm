@@ -1,0 +1,401 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GET_FUNCTIONAL_RESULT()</title></head><body id="_29400"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29400</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GET_FUNCTIONAL_RESULT()</h1>
+	
+	
+	<div><p>Returns the pass/fail result of the last measurement. The measurement can be either a
+		functional test, PPMU, SPMU or DPS measurement. The function can as well return the
+		pass/fail result of the last functional test executed in a multiport burst pattern or return
+		the pass/fail result for a specific pin and a specific execution context.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span> <p>Pass/fail results that are retrieved by command <a href="98689.htm" title="The PRLT? query returns the global pass/fail results of the last executed test for the specified sites in parallel. You can use this command to find out the global results of all sites (not only the one that has the query focus) in one step.">PRLT</a> are invalidated
+				by commands <a href="144688.htm" title="The CSAS? query reads and clears the internal status flags of the DPS128/64 or XPS256 pins. The flags are not cleared by a connect or disconnect sequence.">CSAS</a> and <a href="98691.htm" title="The PSAS? (Power Supply Accumulated Status) query reads and clears the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at connect and disconnect if the trigger condition is no longer true.">PSAS</a>.</p>
+			<p>We recommend therefore using the command PRLT directly after the related functional test and
+				before command CSAS or PSAS are performed.</p><p>This behavior applies not only to the commands but also
+				to the related APIs: Function <a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a> must be performed before any of
+				the <a href="141284.htm" title="The DPS_AUX_PIN_TASK class is a subsidiary data container of the DPS_AUX_TASK API.">DPS_AUX_PIN_TASK.check...()</a> functions is called or
+				the results of GET_FUNCTIONAL_RESULT() are invalid.</p></div>
+			<div class="note"><span class="title">Note</span> 
+			<p>Changing the <a href="136815.htm" title="The SEQUENCER_CONTEXT class supplies objects that serve to manage one or more SEQUENCER_CONTEXT_ITEM objects (execution contexts). In particular, it must be used to download these context items to the firmware.">SEQUENCER_CONTEXT</a> will invalidate the results that are read by API
+					<span class="keyword">GET_FUNCTIONAL_RESULT()</span>. The original sequencer start label
+				must be restored by API <a href="29640.htm#_29640__dle_label">Primary.label()</a>
+				followed by a <a href="29338.htm" title="This topic contains:">FLUSH()</a> before the results are read by
+					<span class="keyword">GET_FUNCTIONAL_RESULT()</span>.</p>
+			<p>For an example, refer to <a href="136815.htm#_136815__example_3_results_after_context_change">Example 3</a> in <a href="136815.htm" title="The SEQUENCER_CONTEXT class supplies objects that serve to manage one or more SEQUENCER_CONTEXT_ITEM objects (execution contexts). In particular, it must be used to download these context items to the firmware.">SEQUENCER_CONTEXT</a>.</p>
+		</div>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<div class="note"><span class="title">Note</span> <span class="keyword">GET_FUNCTIONAL_RESULT()</span> should reside outside the
+					<a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION block</a>. Any action which restarts
+				the sequencers will erase the functional results.</div>
+		</div><div class="syntax">
+			<ul>
+				<li>
+					<p>Functions returning <span class="keyword">Boolean</span>:</p>
+					<div></div><pre class="prettyprint linenums copyable">Boolean GET_FUNCTIONAL_RESULT(void);
+Boolean GET_FUNCTIONAL_RESULT(const STRING&amp; <var class="varname">pin</var>);
+Boolean GET_FUNCTIONAL_RESULT(const STRING&amp; <var class="varname">pin</var>, const STRING&amp; <var class="varname">context</var>);
+Boolean GET_FUNCTIONAL_RESULT(const STRING&amp; <var class="varname">port</var>, const STRING&amp; <var class="varname">labelName</var>, TM::FUNCIONAL_RESULT_TYPE <var class="varname">type</var>);</pre><div></div>
+					<div class="note"><span class="title">Note</span> To retrieve the result of specified label and port, the <a href="29400.htm#_29400__div_FUNCIONAL_RESULT_TYPE">TM::FUNCIONAL_RESULT_TYPE</a> type must be set to
+							<span class="keyword">TM::FTST_BURST</span>.</div>
+				</li>
+				<li>
+					<p>Functions returning the result as <a href="29400.htm#_29400__p_FUNC_TEST_BURST_RESULT">FUNC_TEST_BURST_RESULT</a>:</p>
+					<div></div><pre class="prettyprint linenums copyable">void GET_FUNCTIONAL_RESULT(const STRING&amp; <var class="varname">port</var>,
+                           std::vector&lt;FUNC_TEST_BURST_RESULT&gt;&amp; <var class="varname">ret</var>, bool <var class="varname">bReadPinFailCycles</var> = false);
+
+void GET_FUNCTIONAL_RESULT(const STRING_VECTOR&amp; <var class="varname">portlist</var>,
+                           const STRING&amp; <var class="varname">sequencer_execution_context</var>,
+                           std::vector&lt;FUNC_TEST_BURST_RESULT&gt;&amp; <var class="varname">ret</var>, bool <var class="varname">bReadPinFailCycles</var> = false);
+
+void GET_FUNCTIONAL_RESULT(const STRING&amp; <var class="varname">port</var>,
+                           const STRING&amp; <var class="varname">sequencer_execution_context</var>,
+                           std::vector&lt;FUNC_TEST_BURST_RESULT&gt;&amp; <var class="varname">ret</var>, bool <var class="varname">bReadPinFailCycles</var> = false);</pre><div></div>
+				</li>
+			</ul>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Execute.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd>
+						<table class="frame-top"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_29400__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_29400__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">pin</var><p><var class="varname">port</var></p></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">Defines the pin name of which the functional test
+											result shall be retrieved.<p>For multiport testing, a
+												port name can be specified instead of a single
+												pin.</p><p>If this parameter is omitted (first
+												syntax only), <span class="keyword">TRUE</span> is returned
+												only if all pins have passed, else
+												<span class="keyword">FALSE</span> is returned. </p></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">portlist</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">List of string elements defining ports and set up as
+												<a href="131095.htm" title="Defines a vector containing string elements. Vector is a standard C++ container. A STRING_VECTOR variable can be processed with all the member functions of a vector.">STRING_VECTOR</a>.<p>The
+												<var class="varname">portlist</var> is to be used if the
+												functional test results for more than one port shall
+												be retrieved. </p></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">context</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">The <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">execution context</a> of
+											the last executed test for that context.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">sequencer_execution_context</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">The sequencer execution context, see <a href="136815.htm" title="The SEQUENCER_CONTEXT class supplies objects that serve to manage one or more SEQUENCER_CONTEXT_ITEM objects (execution contexts). In particular, it must be used to download these context items to the firmware.">SEQUENCER_CONTEXT</a> and <a href="137373.htm" title="This class creates a single execution context, but only on the test method level. In order to be downloaded to the firmware, the object must be included in a SEQUENCER_CONTEXT object, and be activated by the apply() member function of this SEQUENCER_CONTEXT object.">SEQUENCER_CONTEXT_ITEM</a>.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">labelName</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">Specifies the label of which the functional test
+											result will be retrieved.</td>
+									</tr>
+									<tr id="_29400__div_FUNCIONAL_RESULT_TYPE">
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">type</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">The value type <span class="keyword">FUNCIONAL_RESULT_TYPE</span> defines the type of the
+											functional result.<div class="p">Currently the <var class="varname">type</var> can only be
+													<span class="keyword">TM::FTST_BURST</span> for retrieving the burst result of the multiport
+												test.<div></div><pre class="prettyprint linenums copyable">namespace TM
+
+    typedef enum
+    {
+        FTST_BURST
+
+    }FUNCTIONAL_RESULT_TYPE;</pre></div></td>
+									</tr>
+									<tr id="_29400__r_ret">
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">ret</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">The result of type
+												<span class="keyword">FUNC_TEST_BURST_RESULT</span> containing
+											the executed label, the start cycle, the pass/fail
+											result and the optional fail cycles map of the
+												execution.<p><var class="varname">ret</var> is an already
+												defined vector of type
+												<span class="keyword">TM::FUNC_TEST_BURST_RESULT</span> that
+												is handled as
+												reference.</p><p><span class="keyword">TM::FUNC_TEST_BURST_RESULT</span>
+												is defined as follows:</p><div class="p" id="_29400__p_FUNC_TEST_BURST_RESULT">
+												<div></div><pre class="prettyprint linenums copyable">typedef struct
+{
+    STRING labelname;
+    int id;
+    int startCyc;
+    int numberOfCycles;
+    bool result;
+    std::map&lt;std::string, int&gt; failCyclesMap;
+    int isFailCyclesValid;
+
+} FUNC_TEST_BURST_RESULT;</pre></div><div class="p"><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-0 rowsep-1" id="_29400__r_ret__entry__3">Return value</th>
+												<th class="colsep-0 rowsep-1" id="_29400__r_ret__entry__4">Description</th>
+												</tr>
+												</thead><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">labelname</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">The name of the executed label.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">id</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">Index of the label within the burst.
+												<var class="varname">id</var> is set to 0 for the first
+												label.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">startCyc</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">The start cycle of the label within the
+												burst.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">numberOfCycles</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">The number of cycles of the label.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">result</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">
+												<p>Returns a <span class="keyword">TRUE</span> or
+												<span class="keyword">FALSE</span>.</p>
+												<p>If multiple pins or a port has been passed all
+												containing pins must pass to return a
+												<span class="keyword">TRUE</span>. If any of the pins fail a
+												<span class="keyword">FALSE</span> is returned.</p>
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">failCyclesMap</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">A map containing the name of failing pins
+												as <span class="keyword">string</span> and the number of
+												fail cycles as <span class="keyword">int</span>.<p>The map
+												is filled only if parameter <a href="29400.htm#_29400__r_bReadPinFailCycles">bReadPinFailCycles</a> has been set to
+												<span class="keyword">TRUE</span>.</p></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__3"><var class="varname">isFailCyclesValid</var></td>
+												<td class="colsep-0 rowsep-1" headers="_29400__r_ret__entry__4">
+												<p>The parameter shows the state of filling the
+												<var class="varname">failCyclesMap</var>:</p>
+												<ul>
+												<li>
+												<p>-1: The pin fail cycles were not read. The
+												function was called with parameter
+												<var class="varname">bReadPinFailCycles</var> set to
+												<span class="keyword">FALSE</span>.</p>
+												</li>
+												<li>
+												<p>0: The pin fail cycles were read but are not
+												valid (<a href="98594.htm" title="The ERCC? query returns the number of errors in a specified cycle range.">ERCC?</a>
+												<var class="varname">valid_code</var> flag was
+												<span class="keyword">OVFL</span> or
+												<span class="keyword">LESS</span>).</p>
+												<p>1: The pin fail cycles were read
+												successfully.</p>
+												</li>
+												</ul>
+												</td>
+												</tr>
+												</tbody></table>
+											</div></td>
+									</tr>
+									<tr id="_29400__r_bReadPinFailCycles">
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__1"><var class="varname">bReadPinFailCycles</var></td>
+										<td class="colsep-0 rowsep-1" headers="_29400__entry__2">The optional parameter initiates filling the
+												<var class="varname">failCyclesMap</var> of parameter <a href="29400.htm#_29400__r_ret">ret</a> if set to
+												<var class="varname">TRUE</var>.<div class="p">The default value is
+												<var class="varname">FALSE</var>.<div class="note"><span class="title">Note</span> Use
+												this parameter with caution. Filling the fail
+												cycles map with data that must be read from the
+												hardware may significantly increase the test
+												time.</div></div></td>
+									</tr>
+								</tbody></table>
+					</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There are two types of functions for this API:<ul>
+							<li><span class="keyword">Boolean</span><p>The pass/fail result is returned as
+										<span class="keyword">Boolean</span>:</p><ul>
+									<li><span class="keyword">TRUE</span> if the selected pin or all pins of
+										the selected ports have passed the functional test or</li>
+									<li><span class="keyword">FALSE</span> if any of the selected pins or any
+										pin of the selected ports has failed the functional
+										test.</li>
+								</ul></li>
+							<li><span class="keyword">void</span><p>These functions have no return value. The requested data is
+									returned by a parameter of type
+										<span class="keyword">FUNC_TEST_BURST_RESULT</span> that is to be
+									defined in the calling function and transferred as reference.
+									For more information refer to parameter <a href="29400.htm#_29400__r_ret">ret</a> and <a href="29400.htm#_29400__Example_3">Example 3</a>.</p></li>
+						</ul></dd>
+				
+			</dl>
+		</div>
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			
+			<p>In the following example the result of <span class="keyword">PIN1</span> will be retrieved and
+				stored in the <span class="keyword">result</span> variable after executing <a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNCTIONAL_TEST()</a>.</p>
+			<div></div><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+
+    FUNCTIONAL_TEST();
+
+ON_FIRST_INVOCATION_END();
+
+Boolean result = GET_FUNCTIONAL_RESULT("PIN1");</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<p>This example retrieves the result of all pins involved in that PPMU measurement.</p>
+			<div></div><pre class="prettyprint linenums copyable">TASK_LIST Ppmu_task;
+
+//
+// Add the measurement settings to Ppmu_task;
+//
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    Ppmu_task.execute();
+
+ON_FIRST_INVOCATION_END();
+
+Boolean result = GET_FUNCTIONAL_RESULT();</pre><div></div>
+		</div>
+		<div class="example" id="_29400__Example_3"><h3>Example 3</h3>
+			
+			<p>The following example returns the result of all executed patterns.</p>
+			<div></div><pre class="prettyprint linenums copyable">std::vector&lt;FUNC_TEST_BURST_RESULT&gt; mpResult;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    FW_TASK("DCRM OVEM,LMAP,,(@@)");
+
+    FUNCTIONAL_TEST();
+
+    FW_TASK("DCRM OVEM,FCM,,(@@)"); 
+
+ON_FIRST_INVOCATION_END();
+
+GET_FUNCTIONAL_RESULT("dig12_dc1Port", mpResult);
+
+for ( uint i = 0; i &lt; mpResult.size(); i++ )
+{
+    FUNC_TEST_BURST_RESULT funcTestRes = mpResult[i];
+
+    cout &lt;&lt; "Result for label " &lt;&lt; funcTestRes.labelname &lt;&lt; ": "
+         &lt;&lt; (funcTestRes.result==true ? "true" : "false" ) &lt;&lt; endl;
+}</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 4</h3>
+			
+			<p>The following example illustrates how to retrieve a functional result of a test
+			executed using <a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a> on a special sequencer context.</p>
+			<div></div><pre class="prettyprint linenums copyable">STRING sContext = "global";
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    SEQUENCER_CONTEXT_ITEM context1(sContext);
+
+    context1.setPorts("port1");
+
+    SEQUENCER_CONTEXT context;
+
+    context.add(context1).apply();
+
+    CONNECT();
+
+    FW_TASK("DCRM OVEM,LMAP,,(@@)");
+
+    START_TEST(sContext);
+
+    int a, b;
+
+    WAIT_TEST_DONE(36000, &amp;a, &amp;b ,sContext);
+
+    FW_TASK("DCRM OVEM,FCM,,(@@)");
+
+ON_FIRST_INVOCATION_END();
+
+std::vector&lt;FUNC_TEST_BURST_RESULT&gt; result;
+
+GET_FUNCTIONAL_RESULT("port1", sContext, result);
+
+cout &lt;&lt; endl &lt;&lt; "*** Current Site number: " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " ***" &lt;&lt; endl;
+
+for ( uint i = 0; i &lt; result.size(); i++ )
+{
+    FUNC_TEST_BURST_RESULT funcTestRes = result[i];
+
+    cout &lt;&lt; "Result for label " &lt;&lt; funcTestRes.labelname &lt;&lt; ": "
+         &lt;&lt; (funcTestRes.result==true ? "TRUE" : "FALSE" ) &lt;&lt; endl;
+
+    cout &lt;&lt; "startCycle: " &lt;&lt; funcTestRes.startCyc &lt;&lt; endl &lt;&lt; "numberOfCycles: "
+         &lt;&lt; funcTestRes.numberOfCycles &lt;&lt; endl &lt;&lt; "----------------------------------------------------" &lt;&lt; endl;
+}
+
+DISCONNECT();</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 5: Reading the number of fail cycles per pin</h3>The following
+			example shows how to read the number of fail cycles per pin.<div class="p">
+				<div class="note"><span class="title">Note</span> Use parameter <var class="varname">bReadPinFailCycles</var> with caution.
+					Filling the fail cycles map with data that must be read from the hardware may
+					significantly increase the test time.</div>
+			</div><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+{
+    ...
+    ...
+
+    FW_TASK("DCRM OVEM,LMAP,,(@@)");
+    
+    FUNCTIONAL_TEST();
+}   
+ON_FIRST_INVOCATION_END();
+    
+vector&lt;FUNC_TEST_BURST_RESULT&gt; mpResult;
+    
+GET_FUNCTIONAL_RESULT("Port_1", mpResult, true);
+    
+for (uint labelIndex = 0; labelIndex &lt; mpResult.size(); labelIndex++)
+{   
+    FUNC_TEST_BURST_RESULT funcTestRes = mpResult[labelIndex];
+    
+    cout &lt;&lt; "Label " &lt;&lt; funcTestRes.labelname &lt;&lt; endl;
+    cout &lt;&lt; endl;
+    cout &lt;&lt; "\tResult:\t\t\t"        &lt;&lt; (funcTestRes.result==true ? "true" : "false" ) &lt;&lt; endl;
+    cout &lt;&lt; "\tisValidFailCycles:\t" &lt;&lt; funcTestRes.isFailCyclesValid &lt;&lt; endl;
+    cout &lt;&lt; endl;
+    cout &lt;&lt; "\tfailCyclesMap:" &lt;&lt; endl;
+    cout &lt;&lt; endl;
+    
+    map&lt;string, int&gt;::iterator iterator;
+    
+    for (iterator = funcTestRes.failCyclesMap.begin(); iterator != funcTestRes.failCyclesMap.end(); ++iterator)
+    {
+        cout &lt;&lt; "\t\tFail cycles for pin " &lt;&lt; iterator-&gt;first &lt;&lt; " : " &lt;&lt; iterator-&gt;second &lt;&lt; endl;
+    }
+    
+    cout &lt;&lt; endl;
+}</pre><div></div>The
+			code above results in the following output if failing pins have been
+			found:<div></div><pre class="msgblock">Label ...
+
+    Result:            false
+    isValidFailCycles: 1
+
+    failCyclesMap:
+
+        Fail cycles for pin ... : ...
+        Fail cycles for pin ... : ...
+        ...</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNCTIONAL_TEST()</a></div><div><a href="29780.htm" title="Starts the digital sequencer at the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution goes to the next statement.">START_TEST()</a></div><div><a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a></div><div><a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST</a></div><div><a href="141736.htm" title="This API executes a non-blocking test on both TMU and non-TMU pins.">SMC_EXECUTE_TMU_TEST()</a></div><div><a href="120090.htm" title="Executes a functional test that will pass only if all device output data matches the expected data, else this test will fail. This API allows parallel upload of data from the tester under control of SmartCalc.">SMC_FUNCTIONAL_TEST()</a></div><div><a href="120068.htm" title="Executes a test by starting the digital sequencer from the specified start label and waits until the digital and analog sequencers have stopped or the specified timeout is reached. It allows hidden upload of data controlled by SmartCalc.">SMC_EXECUTE_TEST()</a></div><div><a href="120076.htm" title="Executes a test which contains digital capture by starting the digital sequencer and waits for the test to complete or till the specified timeout is reached (except for AWG). It allows hidden upload of data controlled by SmartCalc.">SMC_DIGITAL_CAPTURE_TEST()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.1: Returns result of functional test executed in a multiport burst
+					pattern.</li><li>SmarTest 7.2.1: New return value startCyc</li><li>SmarTest 7.3.1: New return value numOfCyc</li><li>SmarTest 7.4.2: New syntax using parameter portlist</li><li>SmarTest 7.5.1: New optional parameter initiates reading of the pin fail
+					cycles</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29400</span><script type="text/javascript">var ti='29400';var tt='GET_FUNCTIONAL_RESULT()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The functions in the customized shmoo template aim to create new test method parameters, define results shown on shmoo plots, and perform actions before, during or after a shmoo test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The functions of the customized shmoo test method template</title><meta name="keywords" content="testmethod"></head><body id="_136921"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136921</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The functions of the customized shmoo test method template</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="136919.htm" title="addParameterType() is used only in the addParameterTypes() function, one of the provided functions in the Customized shmoo test template.">addParameterType</a></li></ol></div></nav>
+	
+	
+	<div><p>The functions in the <a href="136741.htm" title="The shmoo test method customization is to create your own shmoo test method instead of using the provided ac_tml.AcTest.Shmoo test method.">customized shmoo template</a> aim to
+		create new test method parameters, define results shown on shmoo plots, and perform actions
+		before, during or after a shmoo test.</p>
+		
+		<p>The functions are:</p>
+		<ul>
+			<li><span class="keyword">addParameterTypes()</span>: Lets you add parameters to be varied for the x-axis
+				and y-axis. The parameters are <span class="keyword">int</span> or <span class="keyword">double</span> data
+					type.<p>To add, you must use <a href="136919.htm" title="addParameterType() is used only in the addParameterTypes() function, one of the provided functions in the Customized shmoo test template.">addParameterType()</a>.</p>
+				<p>The added parameters will become the options of <a href="136382.htm" title="The parameters for the x-axis setups and the y-axis setups are the same."><span class="parmname">parameterType</span></a> which is a test method parameter as described in
+						<a href="110840.htm" title="The shmoo test method gradually increases the values of two parameters of a test and run the test at certain values of these two parameters simultaneously. The result of a shmoo test is a two-dimensional plot where the x-axis and y-axis represent the two parameters respectively. In the shmoo plot, every cell at a (x, y) pair displays a test result of the shmooed test by using colors or texts.">ac_tml.AcTest.Shmoo</a>.</p>
+				<p>Do not use any other APIs here.</p></li>
+			<li><span class="keyword">addParameters()</span>: Lets you add new the test method parameters.<p>To add,
+					you use the <a href="99951.htm" title="This API is used within the initialize() function of a test method class to define test method parameters.">addParameter()</a> API. </p>
+				<p>Do not use any other APIs here.</p></li>
+			<li><span class="keyword">customizedPreShmooRun()</span>: Lets you perform actions before a shmoo
+					starts.<p>For example, you can set a device to a certain state before a shmoo executes the
+					first cell.</p></li>
+			<li><span class="keyword">customizedPostShmooRun()</span>: Lets you perform actions after a shmoo
+					ends.<p>For example, you can restore device states after a shmoo finishes the last
+				cell.</p></li>
+			<li><span class="keyword">runAtEachRow()</span>: Lets you perform actions before the shmoo executs the next
+				row or
+				column.
+			</li>
+			<li><span class="keyword" id="_136921__userDefinedMeasure">userDefinedMeasure()</span>: Lets you define any measurement.<p>Here, you can
+					define the results showing on shmoo plots with the <a href="137385.htm" title="SHMOO_RESULT is a predefined instance for the ShmooResultAdapter class. You use this instance to access the member functions of ShmooResultAdapter.">SHMOO_RESULT()</a>
+					API. To view the results with the Shmoo Tool, see <a href="137465.htm" title="When you have created a customized shmoo test method and have defined the results to be shown on a shmoo plot with the SHMOO_RESULT API, you can use the Shmoo Tool to view the results.">Viewing customized test
+						results for a customized shmoo test in the Shmoo Tool</a>.</p></li>
+		</ul>
+		<h2>Example</h2><div class="example" id="_136921__example"><p>Create a customized shmoo to measure the voltages at the IO1 and IO2 pins, and the
+				pass/fail result of the current
+			site.</p><pre class="prettyprint linenums copyable">#include "Shmoo.hpp"
+
+using namespace std;
+
+//This class is used to customize shmoo.
+
+class MyShmoo : public Shmoo {
+
+protected:
+// Add class data member
+      double iForce_uA;
+      bool pfResult;
+      double meaValue1,meaValue2;
+
+protected:
+
+  virtual void addParameterTypes()
+  {
+      // Add iForce_uA to the option of the ParameterType test method parameter in both x-axis and y-axis
+      addParameterType("iForce_uA", "double", &amp;iForce_uA);
+  }
+
+  virtual void addParameters()
+  {
+      //Add iForce_uA and myTestmethodP as two test method parameters
+      addParameter("iForce_uA", "double", &amp;iForce_uA);
+      addParameter("myTestmethodP", "string");
+  }
+
+  virtual void customizedPreShmooRun()
+  {
+    registerCustomizedShmoo(); //@see Customized Shmoo Skeleton, Do not remove
+    Primary.label("gross_func");
+    FUNCTIONAL_TEST();
+  }
+
+  virtual void customizedPostShmooRun()
+  {
+    //Add your code
+  }
+
+  virtual void runAtEachRowBody()
+  {
+    //Add your code
+  }
+
+  virtual bool userDefinedMeasure()
+  {
+      PPMU_SETTING ifvmSet;
+      PPMU_RELAY ppmuOn, acOn;
+      PPMU_MEASURE  ifvmMea;
+      TASK_LIST meaTask;
+
+      ifvmSet.pin("I/O1,I/O2").iForce(iForce_uA uA).iRange(1 mA).min(1 V).max(2 V).mode("IFVM");
+      ppmuOn.pin("I/O1,I/O2").status("PPMU_ON");
+      ppmuOn.wait(1.3 ms);
+      ifvmMea.pin("I/O1,I/O2").execMode("PVAL");
+      meaTask.add(ppmuOn).add(ifvmSet).add(ifvmMea);
+      meaTask.execute();
+
+      FOR_EACH_SITE_BEGIN();  // to get value per site
+      meaValue1 = ifvmMea.getValue("I/O1");
+      meaValue2 = ifvmMea.getValue("I/O2");
+      pfResult = ifvmMea.getPassFail();
+
+      //set result to shmoo to display the value result in shmoo tool
+      SHMOO_RESULT.site(CURRENT_SITE_NUMBER()).pin("I/O1").testName("meaVoltage1").setResult(meaValue1);
+      SHMOO_RESULT.site(CURRENT_SITE_NUMBER()).pin("I/O2").testName("meaVoltage2").setResult(meaValue2);
+      SHMOO_RESULT.testName("pfResult").setResult(pfResult);
+      FOR_EACH_SITE_END();
+
+      return pfResult;
+  }
+};
+
+REGISTER_TESTMETHOD("AcTest.MyShmoo", MyShmoo);</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136741.htm" title="The shmoo test method customization is to create your own shmoo test method instead of using the provided ac_tml.AcTest.Shmoo test method.">Shmoo test method customization</a></div><div><a href="136379.htm" title="You can create your own shmoo test method based on a customized shmoo test method template.">Creating a customized shmoo test method</a></div><div><a href="137465.htm" title="When you have created a customized shmoo test method and have defined the results to be shown on a shmoo plot with the SHMOO_RESULT API, you can use the Shmoo Tool to view the results.">Viewing customized results of a customized shmoo test in the Shmoo Tool</a></div><div><a href="110840.htm" title="The shmoo test method gradually increases the values of two parameters of a test and run the test at certain values of these two parameters simultaneously. The result of a shmoo test is a two-dimensional plot where the x-axis and y-axis represent the two parameters respectively. In the shmoo plot, every cell at a (x, y) pair displays a test result of the shmooed test by using colors or texts.">Shmoo</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136921</span><script type="text/javascript">var ti='136921';var tt='The functions of the customized shmoo test method template'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

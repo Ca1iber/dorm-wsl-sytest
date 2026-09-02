@@ -1,0 +1,93 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A (parallel) ASCII vector has the following format:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The ASCII Vector Row</title></head><body id="_37561"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37561</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The ASCII Vector Row</h1>
+	
+	
+	<div><p>A (parallel) ASCII vector has the following format:</p>
+		<p><kbd class="userinput">R&lt;</kbd><em>rep</em><kbd class="userinput">&gt;
+				&lt;</kbd><em>ASCII_dvc</em><kbd class="userinput">&gt;
+				(&lt;</kbd><em>st_ch_1</em><kbd class="userinput">&gt;|(D|R)(&lt;</kbd><em>st_ch_1</em><kbd class="userinput">&gt;|&lt;</kbd><em>x_1</em><kbd class="userinput">&gt;)|&lt;</kbd><em>list_of_st_ch_1</em><kbd class="userinput">&gt;)
+				...(&lt;</kbd><em>st_ch_n</em><kbd class="userinput">&gt;|(D|R)(&lt;</kbd><em>st_ch_n</em><kbd class="userinput">&gt;|&lt;</kbd><em>x_n</em><kbd class="userinput">&gt;)|&lt;</kbd><em>list_of_st_ch_n</em><kbd class="userinput">&gt;)
+				[[%]&lt;</kbd><em>comments</em><kbd class="userinput">&gt;];</kbd></p>
+		<p>The meaning of the individual components is as follows:</p>
+		<ul>
+			<li><kbd class="userinput">R&lt;</kbd><em>rep</em><kbd class="userinput">&gt;</kbd>: This statement, which is
+				called the <em>repeat factor</em> of the ASCII vector, defines the number of repetitions for the
+				vector, that is, how often its binary equivalent is to be sent to the DUT. <p>If
+						<kbd class="userinput">&lt;</kbd><em>rep</em><kbd class="userinput">&gt;</kbd> is &gt; 1, there are two
+					possibilities to convert the vector. Either, it is translated into an <kbd class="userinput">RPTV
+					</kbd>instruction with a repeat value of
+						<kbd class="userinput">&lt;</kbd><em>rep</em><kbd class="userinput">&gt;</kbd>, in which case only one row
+					of waveform DC/DC power units is created for the ASCII vector, or it is flattened, that is, the row is
+					written <kbd class="userinput">&lt;</kbd><em>rep</em><kbd class="userinput">&gt;</kbd> times into the index
+					array. This can be controlled by the <kbd class="userinput">-r</kbd> parameter
+						of<kbd class="userinput">v2b</kbd>. The default is that an <kbd class="userinput">RPTV </kbd>instruction
+					is only created for a repeat factor &gt; 32. (The situation is more complex if the x-mode
+					factor is &gt; 1; see <a href="37574.htm" title="If an ASCII vector file has vectors with a repeat factor n &gt; 1, and the x-mode factor of the pattern is 1, the vector is either flattened into n identical rows of the index array, or translated into an RPTV sequencer instruction which is associated with only one index row and has a repeat parameter value of n. The -r parameter of v2b specifies the highest repeat factor that is flattened; the default is 16.">Processing a Repeat Factor &gt; 1</a>.)</p></li>
+			<li><kbd class="userinput">&lt;</kbd><em>ASCII_dvc</em><kbd class="userinput">&gt;</kbd>: This statement
+				specifies the name of the ASCII device cycle according to which the state characters of the
+				vector are to be interpreted.</li>
+			<li><kbd class="userinput">&lt;</kbd><em>st_ch_i</em><kbd class="userinput">&gt;</kbd>: Specifies a state
+				character which is defined for
+					<kbd class="userinput">&lt;</kbd><em>ASCII_dvc</em><kbd class="userinput">&gt;</kbd>. You can use any
+				character as a state character except "D", "R", ";", "#", and blanks.</li>
+			<li><kbd class="userinput">(D|R)(&lt;st_ch_i&gt;|&lt;x_i&gt;)</kbd>: This statement specifies state
+				characters for the pins of a pin group as specified in the format line. You can either assign
+				the same state character <kbd class="userinput">&lt;st_ch_i&gt;</kbd> to every pin of the group, or
+				code a separate state character for each of these pins by a single hexadecimal number
+					<kbd class="userinput">&lt;</kbd><em>x_i</em><kbd class="userinput">&gt;</kbd>. The second case is assumed if
+				the first character after the <kbd class="userinput">R </kbd>or <kbd class="userinput">D </kbd>is a
+				hexadecimal digit (<kbd class="userinput">0-9</kbd>, <kbd class="userinput">A-F</kbd> or
+					<kbd class="userinput">a-f</kbd>), the first for all other characters.<p>The hexadecimal number is
+					processed as follows: If the pin group comprises <em>n</em> pins, the last <em>n</em> bits of the
+						<em>binary</em> number corresponding to
+						<kbd class="userinput">&lt;</kbd><em>x_i</em><kbd class="userinput">&gt;</kbd> are associated with the pins
+					of the pin group from left to right. If the length of the binary number is <em>m</em> (<em>m</em> ≥
+						<em>n</em>), then the leftmost pin within the pin group definition is associated with bit
+						<em>m</em> - <em>n</em> + 1, counting from the left. The rightmost pin will be associated with bit
+						<em>m</em>.</p>
+				<p>The initial character specifies how the bits are to be translated into state characters. With
+						<kbd class="userinput">D</kbd>, a binary 0 is translated into the character
+					<kbd class="userinput">0</kbd>, and a binary 1 into <kbd class="userinput">1</kbd>. With
+						<kbd class="userinput">R</kbd>, a binary 0 is translated into the character
+					<kbd class="userinput">L</kbd>, and a binary 1 into <kbd class="userinput">H</kbd>. Note that this implies
+					that <kbd class="userinput">0</kbd>, <kbd class="userinput">1</kbd> or <kbd class="userinput">L</kbd>,
+						<kbd class="userinput">H</kbd> must be defined for the pins of the pin group in the ASCII device
+					cycle <kbd class="userinput">&lt;</kbd><em>ASCII_dvc</em><kbd class="userinput">&gt;</kbd>.</p>
+				<p>For example, suppose that a pin group comprises the five output pins
+						<kbd class="userinput">o1</kbd> through <kbd class="userinput">o5 </kbd>in that order, and that
+						<kbd class="userinput">R1e </kbd>has been specified for that group in an ASCII vector. Since the
+					binary number corresponding to <kbd class="userinput">1e </kbd>is 00011110, the vector translation
+					will assume the state character <kbd class="userinput">H</kbd> for <kbd class="userinput">o1</kbd>, and
+						<kbd class="userinput">L</kbd> for <kbd class="userinput">o5</kbd>, and will expect to find an entry
+						for<kbd class="userinput">o1 </kbd>and <kbd class="userinput">H</kbd> in
+						<kbd class="userinput">&lt;</kbd><em>ASCII_dvc</em><kbd class="userinput">&gt;</kbd> within the timing map
+					file, and and also an entry for <kbd class="userinput">o5 </kbd>and<kbd class="userinput">H</kbd>. </p>
+				<p>See <a href="37565.htm" title="This example illustrates the different ways to code the state characters for pin groups.">Example 2</a>.</p></li>
+			<li><kbd class="userinput">&lt;list_of_st_ch_i&gt;</kbd>: This format also specifies state characters
+				for the pins of a pin group as specified in the format line, but by specifying one state
+				character for every pin of the group. This format must be used if some of the state characters
+				are different from <kbd class="userinput">0</kbd>, <kbd class="userinput">1</kbd> (for input pins) or
+					<kbd class="userinput">L</kbd>, <kbd class="userinput">H</kbd> (for output pins).</li>
+			<li><kbd class="userinput">[%]&lt;comments&gt;</kbd>: Specifies an optional comment on the ASCII vector
+				which is transferred to the binary vector file. By default, initial white spaces are suppressed.
+				But if the comment is preceded by the <kbd class="userinput">%</kbd> character, the white spaces are
+				preserved. You can suppress the translation of these comments with the <kbd class="userinput">v2b
+				</kbd>option <kbd class="userinput">-U</kbd>.<p>Note that the name of the ASCII device cycle and
+					the number of the ASCII vector are by default also added as comments to the binary vector file.
+					To suppress these, use the <kbd class="userinput">v2b </kbd>options <kbd class="userinput">-A</kbd> and
+						<kbd class="userinput">-L</kbd>, respectively.</p>
+				<p>The vector translation uses the <span class="keyword">BCMT</span> firmware command to pass the comments
+					to SmarTest. This command restricts the length of a comment to 250 bytes. If the comment is
+					longer, it will be truncated. This must be taken into account especially with an x-mode
+						<span class="keyword">n</span> &gt; 1, since in this case the vector translation will create the comment
+					on the resulting binary vector by concatenating the comments on the <span class="keyword">n</span> ASCII
+					vectors.</p>
+				<p>If the x-mode is &gt; 1, you must also make sure to associate the comments on the resulting
+					binary vectors with the appropriate ASCII vectors. With a X4-mode, for example, the comment on
+					the first binary vector must be placed on the first ASCII vector, the comment on the second
+					binary vector on the 5<sup>th</sup> ASCII vector and so on.</p></li>
+		</ul>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37561</span><script type="text/javascript">var ti='37561';var tt='The ASCII Vector Row'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

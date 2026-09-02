@@ -1,0 +1,441 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SMC_TEST()</title></head><body id="_120084"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120084</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SMC_TEST()</h1>
+	
+	
+	<div><p>The API judges the test data as pass/fail and logs it. It holds information that
+		defines numbering procedures for results in a given test suite.</p>
+		<section class="section"><p>The <var class="varname">testname</var> and <var class="varname">testNumber</var> parameters are
+				used to assign user defined names and numbers to specific tests. In addition
+				SMC_TEST() also supports the usage of soft- and
+					hardbins.</p><p><span class="keyword">SMC_TEST()</span> buffers the data log values and
+				outputs them as soon as the synchronization point (<a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a>) is
+				reached in the order as the different background threads are started. The first fail
+				will decide about the fail bin in which <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> will bin.</p><p>For
+				details on binning rules, see <a href="42606.htm" title="Using bins with multisite tests is basically the same as with single-site tests. You can use stop bins (good or bad bins) and otherwise bins, see Bins.">Use of bins with multisite tests</a> and <a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a>.</p><p><span class="keyword">SMC_TEST()</span> combines functionalities of <a href="127827.htm" title="Performs a pass/fail judgment of a parametric test and logs the results.">TESTSET.judgeAndLog_ParametricTest()</a> and <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN()</a>. Since <span class="keyword">SMC_TEST()</span>
+				inherently uses SET_MULTIBIN(), it is required to define multibins in the test flow
+				at the test suite that contains the <span class="keyword">SMC_SYNCHRONIZE()</span> command
+				(usually the last test suite in the testflow). Failure to insert multibins will lead
+				to anomalies in behavior.</p><p>If the number of sites is large (for example, 96 or
+				more) the <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> overhead time increases a lot. Consequently the
+					<span class="keyword">SMC_TEST()</span> will take longer to finish. To speed up the
+					<span class="keyword">SMC_TEST()</span> execution you can process the sites sequentially
+				for all sites, this is accomplished by applying the <span class="keyword">SMC_ARM()</span>
+				only once for all sites within the <span class="keyword">ON_FIRST_INVOCATION_BEGIN()</span> /
+					<span class="keyword">...END()</span> block. Then evaluating the
+					<span class="keyword">SMC_TEST()</span> for all sites sequentially by specifying the site
+				number.</p><div class="note"><span class="title">Note</span> The system-prepared object <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TestSet</a> is not thread safe!
+				Do not use it with SmartCalc. Always use <span class="keyword">SMC_TEST()</span> or the
+				dynamically created <span class="keyword">TESTSET().judgeAndLog_...()</span> with SmartCalc
+				applications.</div><div class="note"><span class="title">Note</span> 
+			<p>If you use <span class="keyword">TESTSET</span> within the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC
+					framework</a> instead of <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST</a>, binning
+				happens in <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYCHRONIZE</a> according to the binning
+				rules as for <span class="keyword">SMC_TEST</span>. For details, see <a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a>.</p>
+			<p>If you use, within a testflow, the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC framework</a> and
+					<span class="keyword">TESTSET</span> test suites independent of each other, binning
+				happens according to the binning rules explained in <a href="145090.htm" title="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin.">Use of TESTSET and SMC_TEST() test suites with multibin</a>.</p>
+		</div><p>If an error occurs in your
+				program or an unpredictable trouble of the tester hardware occurs during testing,
+				the test program can log the result as unreliable. For this you have to use the
+					<var class="varname">reliability</var> parameter of <span class="keyword">SMC_TEST()</span>. With
+				the <var class="varname">reliability</var> parameter set to
+					<span class="keyword">TM::UNRELIABLE</span>, the <a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a> API also logs the
+				unreliable state to the event data log stream with the test data such as pass/fail,
+				result values, and so on.</p></section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint linenums copyable">void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue = FALSE, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean  Continue = FALSE, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "", INT logTestNumber = -1);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, const STRING&amp; testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean  Continue = FALSE, const STRING&amp; testtext= "");
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT logTestNumber = -1, const STRING&amp; softbin = "", INT hardbin = -1);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, const STRING&amp; testtext);</pre><div></div>
+			<p>Additional interface which allows specifying the site:</p>
+			<div></div><pre class="prettyprint linenums copyable">void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue = FALSE, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean  Continue = FALSE, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber = -1, const STRING&amp; softbin= "", INT hardbin = -1, const STRING&amp; testtext= "");
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, const STRING&amp; testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean  Continue = FALSE, const STRING&amp; testtext= "");
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, const STRING&amp; testtext= "");</pre><div></div>
+			<p>To avoid ambiguity when a <code>const char *</code> (string) is given as
+					<var class="varname">testtext</var> parameter we provide explicit versions of all of
+				those signatures with default parameters as well (as the compiler would otherwise
+				prefer conversion to a <span class="keyword">Boolean</span> (i.e. <var class="varname">Continue</var>
+				parameter), over conversion via <span class="keyword">STRING</span> constructor with
+					<code>const char *</code>):</p>
+			<div></div><pre class="prettyprint linenums copyable">void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean  Continue, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean  Continue, const char * testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, const char * testtext);
+void SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, const char * testtext);</pre><div></div>
+			<p>Additional interface which allows specifying the site:</p>
+			<div></div><pre class="prettyprint linenums copyable">void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean  Continue, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, INT testNumber, const STRING&amp; softbin, INT hardbin, const char * testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean  Continue, const char * testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, const char * testtext);
+void SMC_TEST(INT site, const STRING&amp; pin, const STRING&amp; testname, V93kLimits::TMLimits&amp; limits, DOUBLE value, Boolean Continue, TM::RELIABILITY reliability, const char * testtext);</pre><div></div>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SMART_CALC2.h</span>.</p><dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd>
+						<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_120084__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_120084__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">site</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">The site number</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">pin</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">The pin name (single pin name).</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">testname</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">The test name that can be referred from the
+											Properties view.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">tmLimit</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">Specifies the <a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a><a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">object</a> which will be used to
+											extract the data for <span class="keyword">testNumber</span>,
+												<span class="keyword">softbin</span>, <span class="keyword">hardbin</span> as well as the limit data.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">limit</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">
+											<p>The (optional) limit value to be used for the
+												judgment. This parameter is a <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a>
+												API's class object. Hence, you can specify
+												<span class="keyword">TM::Pass</span> or
+												<span class="keyword">TM::Fail</span> to make the test
+												result pass or fail intentionally.</p>
+											<p>If the parameter <var class="varname">limit</var> is not
+												specified, the limit values specified in the
+												properties view of the test suite containing <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> will be used.</p>
+											<p>If you specify <span class="keyword">TM:Pass</span> within the
+												<a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> class, the test alway will
+												pass, regardless of the actual test result.</p>
+											<p>If you specify <span class="keyword">TM:Fail</span> within the
+												<a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> class, the test always will
+												fail, regardless of the actual result.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">value</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">The test result value.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">Continue</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">
+											<p>This optional parameter controls whether the test
+												should be continued if <span class="keyword">SMC_TEST()</span>
+												evaluates to FAIL. If it is set to
+												<span class="keyword">TRUE</span>, the test is continued in
+												spite of a real FAIL result. If it is set to
+												<span class="keyword">FALSE</span> (default), the test is
+												terminated.</p>
+											<div class="note"><span class="title">Note</span> The API behaves differently for the
+												first site in a multi-site setup. In this special
+												situation, the test is always continued, even if the
+												TEST API returns FAIL and the continue parameter is
+												set to <span class="keyword">FALSE</span>. For the following
+												sites, the test is terminated under these
+												conditions.</div>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">reliability</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">
+											<p>This optional parameter is used to indicate the
+												reliability of the test result for data logging.</p>
+											<p>To indicate the test is reliable, specify
+												<span class="keyword">TM::RELIABLE</span>.</p>
+											<p>To indicate the test is unreliable, specify
+												<span class="keyword">TM::UNRELIABLE</span>.</p>
+											<p>You can omit this parameter. If so, use the syntax
+												without this parameter. At that time, it is the same
+												as specifying <span class="keyword">TM::RELIABLE</span>.</p>
+											<div class="note"><span class="title">Note</span> <span class="keyword">SMC_TEST()</span> does not
+												log the reliable state even if the parameter is set
+												to <span class="keyword">TM::RELIABLE</span>.</div>
+											
+											
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">testNumber</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">An integer value that you assign to directly generate
+											a subtest test number in the EDL. Value must be &gt;=
+											0.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">softbin</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">The software bin number of the multibin. For details
+											see the <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a> API.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">hardbin</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">The hardware bin number of the multibin. For details see the <a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a> API.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">logTestNumber</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">
+											<p>An optional test number. </p>
+											<p>If this test number is provided, it overrides the actual test number. If it is not
+												provided, the actual test number is logged.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__1"><var class="varname">testtext</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120084__entry__2">Text be added to the data log stream for this
+												<span class="keyword">SMC_TEST()</span> call.</td>
+									</tr>
+								</tbody></table>
+					</dd>
+				
+			</dl><dl>
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1: General usage</h3><p><span class="keyword">SMC_TEST()</span> compares
+				the <var class="varname">thd_result</var> data with the limit range specified in the
+				parameter dialog of <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a>, then judges it as pass or
+				fail.</p><pre class="prettyprint copyable singleline">SMC_TEST("dgtz_pin", "THD", thd_result);</pre><p>The first
+					<span class="keyword">SMC_TEST()</span> call judges the <var class="varname">thd_result</var> data
+				as pass or fail. Then the second <span class="keyword">SMC_TEST()</span> judges the
+					<var class="varname">snr_result</var> data as pass or fail because the
+					<span class="keyword">TM::CONTINUE</span> is set int the first
+					<span class="keyword">SMC_TEST()</span>. When the result of the first
+					<span class="keyword">SMC_TEST()</span> is pass, the test will continue even if you do not
+				set the <var class="varname">Continue</var> parameter to
+					<span class="keyword">TRUE</span>.</p><pre class="prettyprint linenums copyable">SMC_TEST("dgtz_pin", "THD", thd_result, TM::CONTINUE);
+SMC_TEST("dgtz_pin", "SNR", snr_result);</pre><p><span class="keyword">SMC_TEST()</span>
+				compares the <var class="varname">thd_result</var> data with the limit range specified by
+				the <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> API, then judges as pass or
+					fail.</p><pre class="prettyprint copyable singleline">SMC_TEST("Aout", "THD", LIMIT(TM::GT, low_limit,TM::LT, high_limit), thd_result);</pre><p><span class="keyword">SMC_TEST()</span>
+				compares the <var class="varname">thd_result</var> data with the limit range specified by
+				the <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> API, then judges as pass or fail. In fail case it will
+				bin into the specified <span class="keyword">softbin</span> and
+				<span class="keyword">hardbin</span>.</p><pre class="prettyprint copyable singleline">SMC_TEST("Aout", "THD", LIMIT(TM::GT, low_limit,TM::LT, high_limit), thd_result, false, testNumber, "softbin", hardbin);</pre></div>
+		<div class="example"><h3>Example 2: Using hidden data logging</h3><p>The following example shows
+				how hidden data logging can be implemented using the <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> class,
+				without having the <span class="keyword">hidden_datalog_mode</span> testflow flag enabled.</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "mapi.hpp"
+
+using namespace std;
+
+class hiddenDatalogWLimit: public testmethod::TestMethod
+{
+protected:
+
+    virtual void initialize()
+    {
+        addLimit("TestName");
+    }
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+        {
+            SMC_EXECUTE_TEST( 1.0 );
+
+            LIMIT lim = GET_LIMIT_OBJECT("TestName");
+
+            FOR_EACH_SITE_BEGIN()
+            {
+                SMC_ARM(lim);
+            }
+            FOR_EACH_SITE_END();
+        }
+        ON_FIRST_INVOCATION_END();
+
+        return;
+    }
+
+public:
+
+    void SMC_backgroundProcessing(LIMIT lim)
+    {
+        INT    site   = SMC_SITE_NUMBER();
+        double result = ...;
+
+        cout &lt;&lt; "Site: &lt;" &lt;&lt; site &lt;&lt; "&gt; " &lt;&lt; endl;
+
+        SMC_TEST(site, "PinName","TestName", lim, result);
+    }
+};
+REGISTER_TESTMETHOD("hiddenDatalogWLimit", hiddenDatalogWLimit);</pre><div></div>
+			<div class="note"><span class="title">Note</span> 
+				<p>The example above contains a call of <span class="keyword">cout</span> in function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>. <span class="keyword">cout</span> is not
+					thread safe. In production test <span class="keyword">cout</span> must never be used in a
+					background process.</p>
+				<p id="_120084__d5627e36">When using <span class="keyword">cout</span> in a background process,
+					you have to expect a mix up of the output in the
+						<span class="uicontrol">ui_report</span> window and possibly other unwanted
+					behavior. For more information, refer to <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>.</p>
+			</div></div>
+		<div class="example"><h3>Example 3: Using test tables</h3><p>The following two examples show how
+				to use the limits and bins that a user has defined in a test table ( *.csv file).
+					<var class="varname">tmLimits</var> causes <span class="keyword">SMC_TEST()</span> to look at the
+				loaded test table file and to compare the value contained in
+					<var class="varname">result</var> to the limits of "PowerOut0" and to bin the result
+				accordingly.</p><pre class="prettyprint linenums copyable">SMC_TEST("dgtPinName", "PowerOut0", tmLimits, result, true);
+SMC_TEST("dgtPinName", "PowerOut0", V93kLimits::tmLimits, result, true);</pre><p>Do
+				not use the following code for background processing, because this will use the
+				system prepared <span class="keyword">TestSet</span> object, which is not thread
+			safe!</p><pre class="prettyprint copyable singleline">SMC_TEST("dgtPinName", "PowerOut0", tmLimits.getLimitObj("PowerOut0"), result, true);</pre></div>
+		<div class="example"><h3>Example 4: Handling large numbers of sites</h3><p>The following example shows
+				how to speed up the <span class="keyword">SMC_TEST()</span> execution when the large numbers
+				of sites increase the total computing time.</p><p>The transfer of the required data
+				from function <span class="keyword">run()</span> to function
+					<span class="keyword">backgroundProcessing()</span> is done via member variables
+					<var class="varname">mResultArray</var> and <var class="varname">mActiveSitesArray</var>.
+				Transferring the data as parameter of <span class="keyword">SMC_ARM()</span> is also supported
+				but this will increase the test time because all data that are transferred to the
+				background process must be copied by <span class="keyword">SMC_ARM()</span>. The array
+					<var class="varname">mActiveSitesArray</var> must be updated in function
+					<span class="keyword">run()</span> before function
+					<span class="keyword">SMC_backgroundProcessing()</span> is called to ensure that only
+				activated sites are
+				processed.</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "mapi.hpp"
+
+using namespace std;
+
+class hiddenDatalogSequential: public testmethod::TestMethod
+{
+protected:
+
+    ARRAY_D mResultArray;
+    ARRAY_I mActiveSitesArray;
+
+    virtual void initialize()
+    {
+    }
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+        {
+            //
+            // Initialize the result array for all configured sites
+            //
+            ARRAY_I configuredSitesArray;
+
+            mResultArray.resize (GET_CONFIGURED_SITES(configuredSitesArray));
+            mResultArray.init   (-1.0);
+
+            //
+            // Start functional test and retrieve the result for active sites
+            //
+            FUNCTIONAL_TEST();
+
+            FOR_EACH_SITE_BEGIN()
+            {
+                Boolean result = GET_FUNCTIONAL_RESULT();
+
+                mResultArray[CURRENT_SITE_NUMBER()-1] = (double) result;
+            }
+            FOR_EACH_SITE_END();
+
+            //
+            // Show the result array
+            //
+            cout &lt;&lt; "Result array:";
+
+            for (int index = 0; index &lt; mResultArray.size(); index++)
+            {
+                cout &lt;&lt; " " &lt;&lt;  mResultArray[index];
+            }
+
+            cout &lt;&lt; endl;
+
+            //
+            // Get and show active sites
+            //
+            GET_ACTIVE_SITES(mActiveSitesArray);
+
+            cout &lt;&lt; "Active sites:";
+
+            for (int index = 0; index &lt; mActiveSitesArray.size(); index++)
+            {
+                cout &lt;&lt; " " &lt;&lt; mActiveSitesArray[index];
+            }
+
+            cout &lt;&lt; endl;
+
+            //
+            // Arm the SMC_backgroundProcessing() method
+            //
+            // Note: Data are transferred by member variables mResultArray[] and mActiveSitesArray[].
+            //
+            SMC_ARM();
+        }
+        ON_FIRST_INVOCATION_END();
+
+    } // virtual void run()
+
+public:
+
+    void SMC_backgroundProcessing()
+    {
+        //
+        // Parse the resultArray array for all active sites
+        //
+        for (int index = 0; index &lt; mActiveSitesArray.size(); index++)
+        {
+            double result = mResultArray[mActiveSitesArray[index] - 1];
+
+            cout &lt;&lt; "SMC - Processing site " &lt;&lt; mActiveSitesArray[index] &lt;&lt; " - Result = " &lt;&lt; result &lt;&lt; endl;
+
+            SMC_TEST(mActiveSitesArray[index], "PinName", "TestName", result);
+        }
+
+    } // void SMC_backgroundProcessing ...
+
+}; // class hiddenDatalogSequential: public testmethod::TestMethod
+
+REGISTER_TESTMETHOD("hiddenDatalogSequential", hiddenDatalogSequential);</pre><div class="note"><span class="title">Note</span> 
+				<p>The example above contains a call of <span class="keyword">cout</span> in function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>. <span class="keyword">cout</span> is not
+					thread safe. In production test <span class="keyword">cout</span> must never be used in a
+					background process.</p>
+				<p id="_120084__d5627e36">When using <span class="keyword">cout</span> in a background process,
+					you have to expect a mix up of the output in the
+						<span class="uicontrol">ui_report</span> window and possibly other unwanted
+					behavior. For more information, refer to <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>.</p>
+			</div>In offline mode, the example above results in the following output in the
+				<span class="uicontrol">ui_report</span> window if eight sites are configured, sites 3 and 7
+			are
+			deactivated:<div></div><pre class="msgblock">Result array: 1 1 -1 1 1 1 -1 1
+Active sites: 1 2 4 5 6 8
+SMC - Processing site 1 - Result = 1
+Testsuite: Test_2 PASSED on site 1
+SMC - Processing site 2 - Result = 1
+SMC - Processing site 4 - Result = 1
+SMC - Processing site 5 - Result = 1
+SMC - Processing site 6 - Result = 1
+SMC - Processing site 8 - Result = 1
+Testsuite: Test_2 PASSED on site 2
+Testsuite: Test_2 PASSED on site 4
+Testsuite: Test_2 PASSED on site 5
+Testsuite: Test_2 PASSED on site 6
+Testsuite: Test_2 PASSED on site 8</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="100114.htm" title="This API is used to set the multi-bin information of the testflow.">SET_MULTIBIN</a></div><div><a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a></div><div><a href="64863.htm">Standard Test Data Format (STDF) Overview</a></div><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div><div><a href="118940.htm" title="TMLimits is a high-level implementation of test tables that can be accessed both through the SmarTest Work Center and programmatically through test methods.">Working with TMLimits</a></div><div><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.3.4: Patch 4 - New string parameter "testtest"</li><li>SmarTest 7.4.5: Patch 1 - New syntax with parameter "testtest" defined as "const
+					char *"</li><li>SmarTest 7.5.3: New optional parameter logTestNumber for two variants of SMC_TEST, added softBin
+					and hardBin parameters to one variant.</li><li>SmarTest 7.5.3: Removed a redundant version of SMC_TEST.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120084</span><script type="text/javascript">var ti='120084';var tt='SMC_TEST()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

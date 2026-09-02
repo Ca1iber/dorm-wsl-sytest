@@ -1,0 +1,76 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="There are four key steps to implement SmartCalc to your test program."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Four-step SmartCalc implementation</title><meta name="keywords" content="smart calc smartcal, Smart, Calc"></head><body id="_118911"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118911</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Four-step SmartCalc implementation</h1>
+	
+	
+	<div><p>There are four key steps to implement SmartCalc to your test program.</p>
+		<ol>
+			<li>Structure your test program for parallel
+				execution.<div></div><pre class="prettyprint linenums copyable">//
+// UTM class/test method code for RF Power Measurement
+//
+virtual void run()
+{
+    <strong>ON_FIRST_INVOCATION_BEGIN()</strong>;
+    {
+        //
+        // Parallel device setup and test execution
+        //
+        <strong>FOR_EACH_SITE_BEGIN()</strong>;
+        {
+            //
+            // Get "measParams", digitizer pin name and result handle.
+            // Calculation will happen in your SMC_backgroundProcessing() method
+            //
+            <strong>SMC_ARM</strong>(measParams, mDgtPin, resultHandle);
+        }
+        <strong>FOR_EACH_SITE_END()</strong>;
+    }
+    <strong>ON_FIRST_INVOCATION_END()</strong>;
+}</pre></li>
+			<li>Encapsulate upload, calculation and test statement into your <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method.<p>You have to write your
+					own public method, that must match exactly the name
+						<span class="keyword">SMC_backgroundProcessing()</span> for SmartCalc to recognize it.
+					The signature must be identical to the signature of the corresponding <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>.</p><p>In case different
+						<span class="keyword">SMC_backgroundProcessing()</span> methods become necessary, they
+					need different
+					signatures.</p><pre class="prettyprint linenums copyable">public:
+
+void <strong>SMC_backgroundProcessing</strong>(ARRAY_D&amp; measParams, sting mDgtPin, string resultHandle)
+{
+    DOUBLE resPower;
+    INT    site = <strong>SMC_SITE_NUMBER()</strong>;
+
+    //
+    // Hidden upload
+    //
+    const ARRAY_COMPLEX&amp; cData = <strong>SMC_GET_COMPLEX_WAVEFORM</strong>(mDgtPin, resultHandle, 1);
+
+    DSP_RF_MOD_POWER(cData,measParams,DBM,<strong>site</strong>,&amp;resPower);
+
+    <strong>SMC_TEST</strong>("port","testName",tmLimits,resPower,true);
+}</pre><div class="note"><span class="title">Note</span> Use multibin to allow <a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> to bin each thread
+					correctly.</div>
+			</li>
+			<li>Synchronizing calculations, performing binning and data
+					logging.<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    //
+    // Automatically synchronize all the calculation tasks,
+    // print data log and do binning
+    //
+    <strong>SMC_SYNCHRONIZE()</strong>;
+}</pre><p>To
+					properly synchronize a test flow with the <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">"thread per
+						site" or the "common thread"</a> implementation and also a mixture of
+					both, refer to <a href="119876.htm#_119876__s_Synchronize_a_test_flow_with_any_use_model">Synchronize a test flow with any use model</a> in <a href="119876.htm" title="Consider these general recommendations to ensure optimal performance of the SMC framework.">SmartCalc recommendations</a>.</p></li>
+			<li>Using SmartCalc APIs for hidden uploads<p>Hidden uploads are implicitly triggered by
+					SMC APIs listed in the section <a href="118901.htm#_118901__s_Wrapper_APIs">Wrapper APIs to control hidden upload in threads</a> of <a href="118901.htm">SmartCalc API overview</a>.</p><p>However, hidden uploads can also be triggered
+					explicitly by using <a href="120098.htm" title="The SMC_BACKGROUND block in the run() function of a test method class is defined by SMC_BACKGROUND_ENABLE() and SMC_BACKGROUND_DISABLE(). The block encloses non-SMC APIs and marks a time slot where the SmartCalc framework can initiate hidden uploads. The code inside of the block is executed in parallel to hidden uploads and must not access the hardware.">SMC_BACKGROUND_ENABLE()</a> and <a href="120099.htm" title="The SMC_BACKGROUND block in the run() function of a test method class is defined by SMC_BACKGROUND_ENABLE() and SMC_BACKGROUND_DISABLE(). The block encloses non-SMC APIs and marks a time slot where the SmartCalc framework can initiate hidden uploads. The code inside of the block is executed in parallel to hidden uploads and must not access the hardware.">SMC_BACKGROUND_DISABLE()</a>.</p><p>These SMC APIs will make sure that uploads are carried out whenever
+					they do not effect the throughput of the test program.</p><div class="note"><span class="title">Note</span> Result areas for the digital capture memory have to be set up when using hidden
+					upload.</div></li>
+		</ol>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="345841.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SMC... APIs of the SmartCalc framework allow you creating and managing background processes that run in parallel on multiple cores and make effective use of the available tester hardware.">SMC_... (SmartCalc API reference)</a></div><div><a href="118934.htm" title="Result areas allow independent data capture and upload.">Result areas for hidden digital upload</a></div><div><a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a></div><div><a href="119876.htm" title="Consider these general recommendations to ensure optimal performance of the SMC framework.">SmartCalc recommendations</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118911</span><script type="text/javascript">var ti='118911';var tt='Four-step SmartCalc implementation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

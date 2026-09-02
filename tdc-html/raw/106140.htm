@@ -1,0 +1,111 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Centering a Pulse Waveform</title><meta name="keywords" content="wave form waveform table"></head><body id="_106140"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 106140</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Centering a Pulse Waveform</h1>
+	
+	<div>
+		<p>Hideo Okawara, Verigy</p>
+		<p>Paper ID: 106140</p>
+		<section class="section"><h2>Introduction</h2><p>In a settling time measurement, rise/fall time calculation,
+				and tests known as template fitting test, samplers are used to record waveforms.</p><p>The test
+				signal waveform in such applications is usually a clock signal with 50% duty ratio. A single
+				pulse waveform is captured in a unit test period as shown in the following example.</p><div class="p"><figure class="fignone">
+					
+					<img src="106141.png" alt="Example Captured Waveform">
+				</figure></div><p>You may want to shift this waveform in the unit test period window to a position so
+				you can analyze and parameterize it.</p><p>As used in this technical note, the meaning of
+				"centering" is that you can shift your waveform to any desired phase.</p><div class="p"><figure class="fignone">
+					
+					<img src="106142.png" alt="Phase Shifting">
+				</figure></div></section>
+		<section class="section"><h2>Methodology of Phase Shifting</h2><p>This shifting method uses Fourier's Fast
+				Transform (FFT). The phase information of the fundamental component corresponds to the position
+				of the pulse.</p><p>The procedure is quite simple, as follows:</p><ol>
+				<li>Apply FFT to the raw data</li>
+				<li>Calculate the phase of the fundamental component</li>
+				<li>Calculate the phase distance between the desired position and the current location</li>
+				<li>Translate the phase distance into the data array step size (N)</li>
+				<li>Shift the array data N points</li>
+			</ol></section>
+		<section class="section"><h2>Example Program</h2><p>The model code is listed below. The variable
+				"dTargetPhase" is the desired phase to which you want to move your
+			waveform.</p><pre class="prettyprint linenums copyable">void Shift_Pulse(ARRAY_D&amp; dVsmp, ARRAY_D&amp; dWave, double dTargetPhase) {
+/****************************************************************
+ * ARRAY_D &amp; dVsmp : Input Parameter  : Measured pule data
+ * ARRAY_D &amp; dWave : Output Parameter : Shifted pulse data
+ * double          : Input Parameter  : Target phase in RADIAN
+ ****************************************************************/
+    int i, j, N;
+    double dAx, dPx;
+    double dQx, dX;
+    ARRAY_COMPLEX CSp;
+    int Nsmp;
+
+    void RectPolar(COMPLEX *, double *, double *);
+
+    Nsmp = dVsmp.size();
+
+    CSp.resize(Nsmp/2);
+    DSP_FFT(dVsmp, CSp, RECT);
+    RectPolar(&amp;CSp[1], &amp;dAx, &amp;dPx);
+
+    dQx = dTargetPhase - dPx;
+    dX = 2.0 * M_PI / Nsmp;
+
+    /* How many steps to be shifted */
+    if (dQx &gt;= 0.0) N = (int)(dQx/dX + 0.5);
+    else            N = (int)(dQx/dX - 0.5) + Nsmp;
+
+    /* Shift data N points */
+    i = N;
+    j = 0;
+    while (i &lt; Nsmp) {
+        dWave[j] = dVsmp[i];
+    i++, j++;
+    }
+    i = 0;
+    while (i &lt; N) {
+        dWave[j] = dVsmp[i];
+        i++, j++;
+    }
+}
+
+void RectPolar(COMPLEX * CAx, double * dLength, double * dArgument) {
+    double dR, dArg;
+
+    dR = sqrt(CAx-&gt;real() * CAx-&gt;real() + CAx-&gt;imag() * CAx-&gt;imag());
+    
+    if (dR == 0.0) {
+        dArg = 0.0;
+    }
+    else {
+        if (CAx-&gt;real() == 0.0) {
+            if (CAx-&gt;imag() &gt;= 0.0)  dArg = 0.5 * M_PI;
+        else dArg = -0.5 * M_PI;
+        }
+        else {
+            dArg = atan2(CAx-&gt;imag(), CAx-&gt;real());
+        }
+    }
+
+    *dLength = dR;
+    *dArgument = dArg;
+}</pre></section>
+		<section class="section"><h2>Example Waveforms of Phase Shifting</h2><div class="p"><figure class="fignone">
+					
+					<img src="106143.png" alt="Raw Waveform">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="106144.png" alt="Phase Shifting - 0 drg.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="106145.png" alt="Phase Shifting - 90 deg.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="106146.png" alt="Phase Shifting - 180 deg.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="106147.png" alt="Phase Shifting - 270 deg.">
+				</figure></div></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 106140</span><script type="text/javascript">var ti='106140';var tt='Centering a Pulse Waveform'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

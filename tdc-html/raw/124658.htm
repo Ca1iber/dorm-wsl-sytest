@@ -1,0 +1,203 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="MTL includes some predefined functions and macros that you can use in the :data: and :operation: columns in device access files."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Macros and functions in device accesses</title></head><body id="_124658"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 124658</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Macros and functions in device accesses</h1>
+	
+	
+	<div><p>MTL includes some predefined functions and macros that you can use in the
+			<span class="keyword">:data:</span> and <span class="keyword">:operation:</span> columns in device access
+		files.</p>
+		<h2>Syntax</h2><div class="syntax"><p>These macros are available, listed in alphabetical order.</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_124658__entry__1"><p>Keyword</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_124658__entry__2"><p>Parameters and descriptions</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">bitCount(</span><span class="keyword">&lt;elements&gt;</span><span class="keyword">,
+										</span><span class="keyword">&lt;bitState&gt;</span><span class="keyword">)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p><span class="keyword">&lt;elements&gt;</span>: The pins of the bus in question that are to be
+									monitored. The pseudo-variable <span class="keyword">e</span> can be used to avoid having to specify
+									concrete pins. For example, <code>e[2]</code> refers to the second pin of the bus in
+									the current configuration. <code>e[]</code> refers to all pins of the bus. </p>
+								<p><span class="keyword">&lt;bitState&gt;</span>: The bit state that is to be counted; either 0 or 1. </p>
+								<p>The <span class="keyword">bitCount</span> function returns the number of bits among the specified
+									elements that have the logical bit state given.</p>
+								<p>The function can be used for specifying the conditions of <a href="103905.htm" title="Dynamic bus inversion (DBI) inverts data on a bus when a specified condition is met. Bus inversion is applied after scrambling.">dbi</a> macros.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">crc(</span><span class="keyword">&lt;configuration&gt;</span>,
+										<span class="keyword">&lt;crcBit&gt;</span>)</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p><span class="keyword">&lt;configuration&gt;</span>: The CRC configuration that the
+										<span class="keyword">crc</span> macro is to use to returns the current CRC result. </p>
+								<p><span class="keyword">&lt;crcBit&gt;</span>: The bit (from the bit list specified in the CRC
+									configuration) from which the CRC result is to be calculated.</p>
+								<p>If the pin list of the bit sequence specified in the chosen configuration includes
+									multiple pins in each row, the result of the <span class="keyword">crc</span> macro has multiple
+									bits. You can access individual bits of the result using the <a href="68467.htm" title="The select operator allows you to select specific bits of a binary number in the Device access file when used with macros (crc, data, xaddr, yaddr, or zaddr).">Select operator</a>.</p>
+								<p>For example: <code>crc(myConfig,0)</code>, <code>crc(myConfig,0)[3]</code>,
+										<code>crc(myConfig,0)[5,2]</code> (These examples assume that there is a configuration
+									named "myConfig" in the <span class="keyword">:crc:</span> block that is currently specified in the
+									APG pattern file.)</p>
+								<p>The <span class="keyword">crc</span> macro can be used in the <span class="keyword">:operation:</span>
+									columns of device accesses. If it is used in a device access and CRC is globally enabled,
+									the <span class="keyword">:data:</span> column is ignored in that access.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">data(</span><span class="keyword">&lt;d&gt;</span><span class="keyword">,</span><span class="keyword">&lt;x&gt;</span><span class="keyword">,</span><span class="keyword">&lt;y&gt;</span><span class="keyword">,</span><span class="keyword">&lt;z&gt;</span><span class="keyword">)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p><span class="keyword">&lt;d&gt;</span>: The unscrambled data word.</p>
+								<p><span class="keyword">&lt;x&gt;</span>: The unscrambled x address. </p>
+								<p><span class="keyword">&lt;y&gt;</span>: The unscrambled y address.</p>
+								<p><span class="keyword">&lt;z&gt;</span>: The unscrambled z address.</p>
+								<p>The <span class="keyword">data</span> macro scrambles data words by applying the current bit
+									inversion and bit ordering tables specified in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>.</p>
+								<p>If fewer than four parameters are specified, the missing ones are considered to be zero.
+									For example, <code>data(0xff,1)</code> would be the same as
+										<code>data(0xff,1,0,0)</code>. You must specify at least two parameters.</p>
+								<p>Note that all parameters are masked with the respective device parameter from the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>, that is, dBits, xBits, yBits, and zBits. For example, when xBits is 8
+									and the value provided as the unscrambled x address is 258, masking would convert it to
+									2.</p>
+								<p>The <a href="68467.htm" title="The select operator allows you to select specific bits of a binary number in the Device access file when used with macros (crc, data, xaddr, yaddr, or zaddr).">Select operator</a> can be applied to data macro expressions to extract one or
+									more individual bits.</p>
+								<p>The data macro must be used on all pins for which you require <a href="103883.htm" title="Due to the per-pin architecture (as opposed to a bus-centric architecture) of the V93000 system, results are linked to tester cycles instead of memory addresses. To link results to addresses, which is frequently more useful for debugging, the SmarTest result evaluation tools require so-called reconstruction information.">Reconstruction information</a>.</p>
+								<p>The <span class="keyword">data</span> macro can be used in the <span class="keyword">:data:</span> columns of
+									device accesses.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">dbi(</span><span class="keyword">&lt;configuration&gt;</span>)</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p><span class="keyword">&lt;configuration&gt;</span>: The DBI configuration that the
+										<span class="keyword">dbi</span> macro is to use. </p>
+								<p>The <span class="keyword">dbi</span> macro inverts the signals on a bus if a specified condition is
+									met, as described in <a href="103905.htm" title="Dynamic bus inversion (DBI) inverts data on a bus when a specified condition is met. Bus inversion is applied after scrambling.">Dynamic bus inversion</a>. The signal is inverted for all pins in each
+									row in the specified DBI configuration that is completely part of the pins listed in the
+									device access row in which the dbi macro is used. (See the <em>DBI examples</em> in the
+										<em>Examples</em> section, below.)</p>
+								<p>Inversion is applied after scrambling; it is applied before or after cyclic redundancy
+									checks, depending on the order in which the operations are listed with the
+										<span class="keyword">:operationOrder:</span> keyword.</p>
+								<p>The <span class="keyword">dbi</span> macro can be used in the <span class="keyword">:operation:</span>
+									columns of device accesses. However, any device access containing the
+										<span class="keyword">dbi</span> macro cannot be used in padding routines.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">xaddr(</span><span class="keyword">&lt;x&gt;</span><span class="keyword">,</span><span class="keyword">&lt;y&gt;</span><span class="keyword">,</span><span class="keyword">&lt;z&gt;</span><span class="keyword">)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p><span class="keyword">&lt;x&gt;</span>: The unscrambled x address. </p>
+								<p><span class="keyword">&lt;y&gt;</span>: The unscrambled y address.</p>
+								<p><span class="keyword">&lt;z&gt;</span>: The unscrambled z address.</p>
+								<p>The <span class="keyword">xaddr</span> macro provides the scrambled x address by applying the
+									current scrambling table specified in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>.</p>
+								<p>If fewer than three parameters are specified, the missing ones are considered to be zero.
+									For example, <code>xaddr(1,1)</code> would be the same as
+									<code>xaddr(1,1,0)</code>.</p>
+								<p>If no scrambling is specified, the macro returns the unscrambled x address.</p>
+								<p>The xaddr macro can be used in the <span class="keyword">:data:</span> column of the device access
+									file. The <a href="68467.htm" title="The select operator allows you to select specific bits of a binary number in the Device access file when used with macros (crc, data, xaddr, yaddr, or zaddr).">Select operator</a> can be applied to address macro expressions to extract one
+									or more individual bits.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">yaddr(</span><span class="keyword">&lt;x&gt;</span><span class="keyword">,</span><span class="keyword">&lt;y&gt;</span><span class="keyword">,</span><span class="keyword">&lt;z&gt;</span><span class="keyword">)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p>The <span class="keyword">yaddr</span> macro returns the scrambled y address. It is similar
+									to <span class="keyword">xaddr</span>, described above.</p>
+								<p>Missing parameters are handled as follows:</p>
+								<ul>
+									<li>If there is only one parameter, that parameter is considered to be the unscrambled y
+										address. For example: <code>yaddr(1)</code> is the same as
+											<code>yaddr(0,1,0)</code>.</li>
+									<li>If there are two parameters, they are considered to be the unscrambled x and y
+										addresses. For example: <code>yaddr(1,2)</code> is the same as
+											<code>yaddr(1,2,0)</code>.</li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__1"><p><span class="keyword">zaddr(</span><span class="keyword">&lt;x&gt;</span><span class="keyword">,</span><span class="keyword">&lt;y&gt;</span><span class="keyword">,</span><span class="keyword">&lt;z&gt;</span><span class="keyword">)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_124658__entry__2"><p>The <span class="keyword">zaddr</span> macro returns the scrambled z address. It is similar
+									to <span class="keyword">xaddr</span>, described above.</p>
+								<p>Missing parameters are handled as follows:</p>
+								<ul>
+									<li>If there is only one parameter, that parameter is considered to be the unscrambled z
+										address. For example: <code>zaddr(1)</code> is the same as
+											z<code>addr(0,0,1)</code>.</li>
+									<li>If there are two parameters, they are considered to be the unscrambled x and z
+										addresses. For example: <code>zaddr(1,2)</code> is the same as
+											<code>zaddr(1,0,2)</code>.</li>
+								</ul></td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><h3>DBI examples</h3><p>For all examples, the active DBI setup in the device
+				architecture file is assumed to
+				be:</p><pre class="prettyprint linenums copyable">:dbi:
+{
+  :name: sample_dbi
+  :configuration:
+  {
+    :name:  writeDBI
+    :condition: bitCount(e[], 0) &gt;= 4 
+    :table:
+    {
+      :format:
+      { :bus:        :flag:    }
+      { DQi[0..7]    RDQSi[0]  }
+      { DQi[8..15]   RDQSi[1]  }
+      { DQi[16..23]  RDQSi[2]  }
+      { DQi[24..31]  RDQSi[3]  }
+    }
+  }
+}</pre><p>There
+				are assumed to be two subgroups of the DQi pin group, one called DQi.subgroup.0_15 (containing
+				pins 0 through 15), one called DQi.subgroup.4_11 (containing pins 4 through 11).</p><p>In the
+				following example, all DQi pins would be inverted if the condition was met, because all would be
+				listed in active DBI setup and in the row of the device access in which the
+					<span class="keyword">dbi</span> macro is
+				called:</p><pre class="prettyprint linenums copyable">:apgAccess:
+{
+  :name:  Write
+  :table:
+  {
+    :format:
+    {:pin:  :states:  :data:          :operation:   }
+    { DQi    {0 1}    data(dw,x,y)  dbi(writeDBI)   }
+  }
+}</pre><p>In
+				the next example, only pins DQi.000 through DQi.015 would be inverted upon fulfillment of the
+				condition, because only they are included in the device access' <span class="keyword">:pin:</span>
+				column:</p><pre class="prettyprint linenums copyable">:apgAccess:
+{
+  :name:  Write
+  :table:
+  {
+    :format:
+    {:pin:              :states: :data:          :operation:   }
+    { DQi.subgroup.0_15 {0 1}    data(dw,x,y)  dbi(writeDBI)   }
+  }
+}</pre><p>In
+				this example, no pins would be inverted, because the pins included in the
+					<span class="keyword">:pins:</span> column do not completely cover any of the four rows in the
+					<span class="keyword">:bus:</span> column of the DBI
+			definition:</p><pre class="prettyprint linenums copyable">:apgAccess:
+{
+  :name:  Write
+  :table:
+  {
+    :format:
+    {:pin:              :states: :data:          :operation:   }
+    { DQi.subgroup.4_11 {0 1}    data(dw,x,y)  dbi(writeDBI)   }
+  }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="102776.htm" title="Data scrambling is the conversion of data bits to account for inverse logic and different arrangements of the bits in a data word.">Data scrambling</a></div><div><a href="102775.htm" title="Address scrambling is the conversion of addresses to account for differences between the logical arrangement of memory cells and their physical arrangement. It is required, for example, to test for effects based on the physical proximity of cells.">Address scrambling</a></div><div><a href="103807.htm" title="Cyclic redundancy checks (CRCs) are used to verify the data integrity of data streams.">Cyclic redundancy checks</a></div><div><a href="103905.htm" title="Dynamic bus inversion (DBI) inverts data on a bus when a specified condition is met. Bus inversion is applied after scrambling.">Dynamic bus inversion</a></div><div><a href="102814.htm" title="MTL includes some predefined macros and functions for use in the APG program file.">Macros and functions in program files</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 2.4.0: bitCount function added</li><li>MTP 2.4.0: crc macro added</li><li>MTP 2.4.0: dbi macro added</li><li>MTP 3.0.3:  (MTP on SOC 103.0.0) crc and dbi macros are now available in both MTP on HSM
+					and MTP on SOC</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 124658</span><script type="text/javascript">var ti='124658';var tt='Macros and functions in device accesses'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

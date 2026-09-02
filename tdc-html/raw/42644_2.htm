@@ -1,0 +1,105 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Get the site number information by using the following APIs during execution of your test method program:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Getting the Site Numbers</title></head><body id="_42644"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42644</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Getting the Site Numbers</h1>
+	
+	
+	<div><p>Get the site number information by using the following APIs during execution of your
+		test method program: </p>
+		<ul>
+			<li><strong><a href="28751.htm" title="This API returns the site number of the current site under test.">CURRENT_SITE_NUMBER()</a></strong><p>Returns the site number of the current site under
+					execution.</p></li>
+			<li><strong><a href="29368.htm" title="This API returns the number of sites set up in the pin configuration, and stores the site numbers into the array variable specified as the parameter.">GET_CONFIGURED_SITES</a></strong><p>Returns the number of sites that were set up in the pin
+					configuration, and the site numbers.</p></li>
+		</ul>
+		<p>The <span class="keyword">CURRENT_SITE_NUMBER</span> API is designed for executing on a single site.
+			Hence, use this API in the each site loop block or outside the first-invocation block, as
+			follows:</p>
+		<div></div><pre class="prettyprint linenums copyable">//
+// Define an array of site specific offset values
+//
+// Note:    MAX_NR_OF_SITE is a system defined macro.
+//          The macro is defined in file SiteControl.h
+//
+DOUBLE awgSiteOffset[MAX_NR_OF_SITE];
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Fill the array with the site specific values
+    //
+    ...
+    ...
+
+    //
+    // Set site specific offset
+    //
+    FOR_EACH_SITE_BEGIN();
+    {
+        AWG("AWG").vOffset(awgSiteOffset[CURRENT_SITE_NUMBER() - 1]);
+
+        FLUSH();
+    }
+    FOR_EACH_SITE_END();
+
+    ...
+    ...
+}
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		
+		<p>The following example gets site information of the original multisite pin configuration. The
+			original multisite pin configuration has been defined in the <a href="17548.htm" title="The pin information is entered in the pin configuration area of the corresponding Pin setting editor. The digital pins editor also contains the context information.">Pin
+				settings</a> as shown in <a href="17609.htm">Defining additional test sites</a>.</p>
+		<div></div><pre class="prettyprint linenums copyable">ARRAY_I configuredSitesArray;
+int     numberOfConfiguredSites;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    numberOfConfiguredSites = GET_CONFIGURED_SITES(configuredSitesArray);
+
+    cout &lt;&lt; numberOfConfiguredSites &lt;&lt; " sites are configured:" &lt;&lt; endl;
+
+    for (int arrayIndex = 0; arrayIndex &lt; configuredSitesArray.size(); arrayIndex++)
+    {
+        cout &lt;&lt; "\tSite " &lt;&lt; configuredSitesArray[arrayIndex] &lt;&lt; " is configured." &lt;&lt; endl;
+    }
+
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		
+		<p>The following example sets the site specific offset of an AWG pin as shown in the first example
+			above but limits the size of the array to the really required value. </p>
+		<div></div><pre class="prettyprint linenums copyable">//
+// Define an array of site specific offset values
+//
+ARRAY_I configuredSites;
+ARRAY_D awgSiteOffset;
+
+awgSiteOffset.resize(GET_CONFIGURED_SITES(configuredSites));
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Fill the array with the site specific values
+    //
+    ...
+    ...
+
+    //
+    // Set site specific offset
+    //
+    FOR_EACH_SITE_BEGIN();
+    {
+        AWG("AWG").vOffset(awgSiteOffset[CURRENT_SITE_NUMBER() - 1]);
+
+        FLUSH();
+    }
+    FOR_EACH_SITE_END();
+
+    ...
+    ...
+}
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="28751.htm" title="This API returns the site number of the current site under test.">CURRENT_SITE_NUMBER()</a></div><div><a href="29368.htm" title="This API returns the number of sites set up in the pin configuration, and stores the site numbers into the array variable specified as the parameter.">GET_CONFIGURED_SITES</a></div><div><a href="17548.htm" title="The pin information is entered in the pin configuration area of the corresponding Pin setting editor. The digital pins editor also contains the context information.">Pin setting editors</a></div><div><a href="17609.htm">Defining additional test sites</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42644</span><script type="text/javascript">var ti='42644';var tt='Getting the Site Numbers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Sets the result of the specified site to true (pass) or false (fail) to enable branching."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>setSiteResult()</title><meta name="keywords" content="set, Site, Result"></head><body id="_151604"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 151604</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">setSiteResult()</h1>
+	
+	
+	<div><p>Sets the result of the specified site to <span class="keyword">true</span> (pass) or
+			<span class="keyword">false</span> (fail) to enable branching.</p>
+		<section class="section"><p>This API enables you to branch out failed sites immediately if the test suite is
+				called only once for all sites in the <span class="keyword">ON_FIRST_INVOCATION</span>
+				block.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void setSiteResult (int site, bool result);</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_151604__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_151604__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_151604__entry__1"><var class="varname">site</var></td>
+										<td class="colsep-0 rowsep-1" headers="_151604__entry__2">The site number.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_151604__entry__1"><var class="varname">result</var> </td>
+										<td class="colsep-0 rowsep-1" headers="_151604__entry__2"><p>Sets the pass/fail result of the specified
+												site.</p>
+											<p>Use <span class="keyword">true</span> (pass) or
+												<span class="keyword">false</span> (fail).</p>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl>
+		</div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+
+#include "mapi.hpp"
+using namespace std;
+
+class callOnceStructures: public testmethod::TestMethod {
+
+public:
+
+    virtual void SMC_backgroundProcessing()
+    {
+        // Enter your code here for hidden upload, calculation, and data logging.
+    }
+
+protected:
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+
+            // enable the run once mechanism
+            setStopSiteLoop ( true );
+
+            // Execute the test
+            FUNCTIONAL_TEST();
+
+            INT site;
+
+            FOR_EACH_SITE_BEGIN();
+
+                site=CURRENT_SITE_NUMBER();
+
+                // retrieve the pass/fail result from the hardware
+                bool result = GET_FUNCTIONAL_RESULT();
+
+                // handle failed sites only
+                if (!result )
+                {
+                    // set the result of the site to false (fail)
+                    // this enables you to branch out failing sites in your testflow immediately
+                    TM::SetSiteResult(site, false);
+                }
+
+            FOR_EACH_SITE_END();
+
+        ON_FIRST_INVOCATION_END();
+
+        return;
+    }
+
+    virtual void initialize()
+    {
+    }
+
+    virtual void postParameterChange(const string&amp; parameterIdentifier)
+    {
+        return;
+    }
+
+    virtual const string getComment() const 
+    {
+        string comment = " please add your comment for this method.";
+        return comment;
+    }
+};
+REGISTER_TESTMETHOD("callOnceStructures", callOnceStructures);</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="151603.htm" title="The run() function of test suites is usually called for each active site. The setStopSiteLoop() API enables you to call the run() function on the first active site only to minimize the test time.">setStopSiteLoop()</a></div><div><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.4.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 151604</span><script type="text/javascript">var ti='151604';var tt='setSiteResult()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Developing an Advanced Production Interface for V93000</title><meta name="keywords" content="93k V93000 V93k 93k 93000, V, 93000"></head><body id="_120460"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120460</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Developing an Advanced Production Interface for V93000</h1>
+	
+	<div>
+		<p>Joel Taylor, Verigy</p>
+		<p>Xiaofei Han, Verigy</p>
+		<p>Paper-ID: 12460 April 2010</p>
+		<section class="section"><h2>Abstract</h2><p>This paper will present some examples of how new interfaces
+				available with Smartest can be used to create an advanced operation control panel used by a
+				major IDM. A C-based execution control program was also used to overcome many of the previous
+				limitations of the legacy application model.</p><p>The V93000 Smartest operation environment can
+				be a challenge for production engineers. The basic operation panel often does not provide a
+				sufficient amount of control, yet the SmarTest Work Center provides a complex environment that
+				can be difficult to navigate. The Production Engineering Tool was developed to bridge this usage
+				gap and provide flexible control of the execution and data logging environment while limiting
+				the complexity and number of screens required accessing this control. This paper will discuss
+				the new API's available with SmarTest and how software modules incorporating these were used to
+				create a powerful and flexible user environment. The techniques used by this project could be
+				used to develop a wide variety of external interfaces into the front end of Smartest, as well as
+				specific control to the test execution</p><p><strong>Key Words</strong>: Operator interface, production,
+				SmarTest, Production</p></section>
+		<section class="section"><h2>Introduction</h2><p>SmarTest provides a rich development environment which
+				allows engineers to easily manage the execution and debug of test flow. The SmarTest Work Center
+				is a complex environment which is not suited to production execution. The goal of this paper is
+				to present a powerful production environment which provides much of the control capabilities of
+				the EWC, with a much easier to use interface which can be used in high volume
+			production.</p></section>
+		<section class="section"><h2>Limitations of current production environment</h2><p>The SmarTest integrated
+				production environment is a very simple execution tool which only provides for work orders which
+				have been predefined to be run. These workorders define the entire testing environment,
+				including data collection, choice of material handling (prober, handler), and any setup
+				conditions for executing the testflow. If the production staff requires an alternate setup, a
+				new workorder must be created.</p><p>Another limitation is that changing the material handling
+				requires re-loading the testflow, which can be a lengthy process.</p><p>No way to easily change
+				data output options. Often engineers want to create ascii output files, printouts, or other
+				formats easily without creating new workorders or testprograms.</p><p>Although production
+				execution can usually work within these limitations, when engineering is using the tool these
+				issues can impact productivity.</p></section>
+		<section class="section"><h2>Objective</h2><p>The goal for developing this interface tool was to provide a
+				production environment which allows flexibility, efficiency, and ease of use.</p><ul>
+				<li>A single interface tool, no need for the operator or engineer to use the SmarTest Work
+					Center or production operation panel from SmarTest. For engineering use, we were focusing on
+					test execution, not debug and development. For this purpose, it was assumed that the SmarTest
+					Work Center would still be the required interface.</li>
+				<li>Allow equipment type to be changed between lots without reloading testflow.</li>
+				<li>Current testflows and prober/handler libraries would be compatible with the tool, no need to
+					modify current device files.</li>
+				<li>Configurable to support additional data formatters, allowing the user to easily enable or
+					disable these functions</li>
+			</ul></section>
+		<section class="section"><h2>Operator Interface</h2><div class="p"><figure class="fignone">
+					<img src="120499.png" alt="Developing an Advanced Production Interface for V9300">
+				</figure></div><p><strong>Figure 1: PE Tool operator interface - Operating panel</strong></p><p>The PE Tool
+				provides an interface to select the testflow, select the material handling equipment type and
+				specific model. There is a one touch execution of the testflow as a contact check in which there
+				is no data logged to the summary counters, but the test results are displayed. If handtest is
+				selected, the available sites can be enabled or disabled from the operator interface.</p><p>Lot
+				control is used to begin a test execution session and enter any required values to be used in
+				the data set.</p><p>Partial summary files can be generated anytime once a lot has started. The
+				summary results are updated as testing progresses, and are cleared when a new lot
+				begins.</p><p>For real time data display, the interface displays each site values as the
+				testflow completes, and a running count of hardware bins, soft pins both as percentage and count is
+				displayed for each bin value specified.</p><div class="p"><figure class="fignone">
+					<img src="120500.png" alt="Developing an Advanced Production Interface for V9300 (2)">
+				</figure></div><p><strong>Figure 2: PETool operator interface - Datalog control panel</strong></p><p>The
+				datalog control panel allows datalog control flags to be set or cleared for each test suite.
+				Also output file control is provided on this panel, to select various output files and
+				destinations. For each output file format, the default file name can also be overwritten by the
+				user.</p></section>
+		<section class="section"><h2>Development Environment - Software languages used</h2><p>C++ was used to
+				develop the core modules which provide communication into Smartest as well as execution
+				control.</p><p>The operator interface was developed in Java with a clean command and event
+				driven interface. This allows the OI to be enhanced or even replaced with a customers OI
+				provided the socket communication and command set is maintained.</p></section>
+		<section class="section"><h2>Toolsets used</h2><p>The production environment tool was developed using the
+				recent set of SmarTest control API's, known as the High Volume Manufacturing API library. This
+				allows external applications to control SmarTest as well as keep in sync with execution timing
+				by using event notification and commands.</p><p>Additionally the new BLC library and
+				architecture was used to develop a flow control similar to the application model, but with the
+				ability to change shared memory structure and switch between handtest, handler, or prober
+				control models while using a single testflow load. This design and the API library greatly
+				simplified meeting the customers use model.</p></section>
+		<section class="section"><h2>BLC input file and PET configuration file</h2><p>The BLC or C++ based
+				application model alternative depends on using an input file to provide a wide range of
+				configuration, default values, and execution control information. The design of the production
+				tool required the use of multiple setup files which are combined at run time to create the
+				temporary, one time use, input file.</p><p>The baseline input file contained values which were
+				constant for a site and a tester and are not lot dependent. Items such as facility name,
+				location, system identifier are maintained in the baseline file. There is a single baseline file
+				for each system.</p><p>At run time a combined file is created for the test session. This
+				contains information on the device directory, the prober or handler directory, user id, and
+				software revision information.</p></section>
+		<section class="section"><h2>Software modules and their functions</h2><p>The PET consisted of three major
+				components; the operator interface, the pe tool controller, and the SmarTest control
+				module.</p><p>The operator interface was developed in Java and provides a multi panel input
+				device, with the major controls accessible via the top level panel. Other panels provide control
+				of data logging and testflow flags.</p><p>The pe tool controller was used to provide the key
+				communication between the BLC executable, the data formatters, and the operator interface
+				module.</p><p>The SmarTest control module was used to start and stop smartest as well as call
+				HVM API's to change devices and provide high level control of the test session.</p><div class="p"><figure class="fignone">
+					<img src="120501.png" alt="Developing an Advanced Production Interface for V9300 (3)">
+				</figure></div><p><strong>Figure 3: Software module structure if PE Tool</strong></p></section>
+		<section class="section"><h2>PE Tool Functionality</h2><p>The key functionality of this interface tool was
+				to provide a more powerful user interface while avoiding the complex engineering debug
+				environment. Another function that has made this interface successful is the ability to use a
+				single testflow in a variety of configurations such as handtest, handler, or prober, without
+				needing a separate test program for each configuration. This allows for better easier
+				maintenance of the device directory, as well as speeds up operations when switching from
+				handtest to handler, since the testflow does not need to be reloaded.</p><p>Data monitoring,
+				partial summary, and datalog control are provided as well, these allow engineers flexibility to
+				create custom file names for engineering lots.</p></section>
+		<section class="section"><h2>Additional capability - low cost hand held console</h2><p>One of the requests
+				for this production interface was to provide a handheld console that would allow the engineer to
+				control test execution while hand-testing parts at the test head. Numeric keypads had been used
+				in the past and interfaced to other operator control panels, however there had been very limited
+				capability. Alternatives were being developed using expensive PDA's which were not as rugged and
+				had the risk of being lost or stolen.</p><p>A low cost solution was found available commercially
+				which met the requirements and provided flexibility of operation. The Genovation Mini-Terminal
+				is a USB device with a 16x2 LCD display and 20 key programmable keypad. This provided
+				functionality for the following operations:</p><ul>
+				<li>Start testflow execution</li>
+				<li>retest device</li>
+				<li>enable or disable a site for testing (supports up to 4 site testing)</li>
+				<li>Display sites enabled or disabled</li>
+				<li>enter part id for initial site. subsequent part IDs are incremented from that value</li>
+				<li>Display test results (Pass/Fail and hardware bin ID)</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="120502.jpg" alt="Developing an Advanced Production Interface for V9300 (4)">
+				</figure></div><p><strong>Figure 4: Genovation Miniterm Pro 900</strong></p></section>
+		<section class="section"><h2>Limitations for this tool</h2><p>Currently the PE Tool does not synchronize with the SmarTest Work Center development and debug
+				environment. The design goal was to provide a basic control capability to the operator interface
+				of the PET and not use the PET in conjunction with the SmarTest Work Center since the use model
+				was different. While the PE Tool works well in engineering mode, if a user changes a testflow
+				flag using the EWC, that change will not be apparent on the PETool interface.</p><p>The PE Tool maintains an internal state model while a lot test session is active. Due to this
+				feature, all test execution must be done via the PE Tool interface, and not the SmarTest Work
+				Center interface (commonaly referred to as the 'running man').</p><p>EWC control is allowed
+				outside the lot start and lot complete events, however data logging is not enabled outside the
+				lot. This would allow test execution for debug, but not data logging.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>The Verigy Production Environment Tool provides a powerful
+				tool that allows both the engineer and operator to effecently control SmarTest. By using the new
+				API libaries developed for SmarTest, many of the legacy limitations were overcome. This tool is
+				designed to be expandable and allow customers to create the best interface and usage of Smartest
+				possible. This project is being used as a baseline for a future development kit designed to
+				allow customers to create powerful applications to meet their interfacing needs.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120460</span><script type="text/javascript">var ti='120460';var tt='Developing an Advanced Production Interface for V93000'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

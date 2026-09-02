@@ -1,0 +1,129 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API is defined to calculate the jitter stardust based on a sequence of pass/fail result data. It transforms the signal's time-domain information to frequency-domain information."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_JITTER_STARDUST</title></head><body id="_118689"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118689</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_JITTER_STARDUST</h1>
+	
+	
+	<div><p>This API is defined to calculate the jitter stardust based on a sequence of pass/fail
+		result data. It transforms the signal's time-domain information to frequency-domain
+		information.</p>
+		<section class="section"><p>The input of the jitter stardust calculation is a pass/fail sequence (error density
+				signal) where 1 stands for pass and -1 for fail. The power density spectrum is calculated from
+				this sequence through FFT arithmetic.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_JITTER_STARDUST(const std::vector&lt;INT&gt;&amp; passFailSequenceData,
+                    const DOUBEL bitTime_ns,
+                    std::vector&lt;DOUBLE&gt;&amp; spectrumAmplitude,
+                    std::vector&lt;DOUBLE&gt;&amp; frequency,
+                    const INT filterWindow = RECT);</pre><table class="frame-none"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_118689__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_118689__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_118689__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__2"><p><span class="keyword">passFailSequenceData</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__3"><p>A vector of pass/fail sequence data, in which 1 stands for pass and -1 stands for
+									fail.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__2"><p><span class="keyword">bitTime_ns</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__3"><p>The timing data for the pass/fail sequence data.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__2"><p><span class="keyword">spectrumAmplitude</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__3"><p>The power spectrum amplitude vector in the order from big to small.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__2"><p><span class="keyword">frequency</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__3"><p>The frequency vector in the same sequence with the spectrum amplitude vector.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__2"><p><span class="keyword">filterWindow</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118689__entry__3"><p>The time window be applied in FFT.</p>
+								<p>It can be <kbd class="userinput">RECT</kbd>, <kbd class="userinput">HANNING</kbd>, <kbd class="userinput">HAMMING
+									</kbd>or <kbd class="userinput">FLAT_TOP</kbd>.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><p>The following example shows how to do a functional test, get the error map data and
+				use the error map result data to calculate the jitter start
+			dust.</p><pre class="prettyprint linenums copyable">
+//assume the bit time of test pattern: UI_width_ns = 5ns,
+//acquisition_depth = 4096 ;
+vector&lt;STRING&gt; pinVector;
+pinVector.push_back("HS_TX1");
+pinVector.push_back("HS_TX2");
+
+ON_FIRST_INVOCATION_BEGIN();
+  FW_TASK("PSFC ALL;");
+  FUNCTIONAL_TEST();
+ON_FIRST_INVOCATION_END();
+ERROR_MAP_TEST emap(TM::XMODE_CYCLES);
+ARRAY_BOOL passFailSequenceTx1,passFailSequenceTx2;
+emap.pin("TX1").getPassFailResultsInRange(0, 4096, passFailSequenceTx1);
+emap.pin("TX2").getPassFailResultsInRange(0, 4096, passFailSequenceTx2);
+std::vector&lt;INT&gt;  passFailDataTx1,passFailDataTx2;
+for ( int i = 0; i &lt; passFailSequenceTx1.size(); i ++)
+{
+  if ( passFailSequenceTx1[i])
+  {
+    passFailDataTx1.push_back(1);
+  }
+  else
+  {
+    passFailDataTx1.push_back(-1);
+  }
+  if ( passFailSequenceTx2[i])
+  {
+    passFailDataTx2.push_back(1);
+  }
+  else
+  {
+    passFailDataTx2.push_back(-1);
+  }
+}
+std::vector&lt;DOUBLE&gt;  amplitudeSpectrumTx1, amplitudeSpectrumTx2;
+std::vector&lt;DOUBLE&gt;  frequencyTx1, frequencyTx2;
+DSP_JITTER_STARDUST(passFailDataTx1,5,amplitudeSpectrumTx1,frequencyTx1);
+DSP_JITTER_STARDUST(passFailDataTx2,5,amplitudeSpectrumTx2,frequencyTx2);
+//out put result to UIReport window
+cout &lt;&lt; "site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " : " &lt;&lt;endl;
+cout &lt;&lt;"jitter stardust of HS_TX1: " &lt;&lt;endl;
+for(int i = 0; i &lt; amplitudeSpectrumTx1.size(); i ++)
+{
+  cout &lt;&lt;"frequency  = "&lt;&lt; frequencyTx1[i] &lt;&lt; ", "
+       &lt;&lt;"the amplitude is: "&lt;&lt;amplitudeSpectrumTx1[i] &lt;&lt;endl;
+}
+cout &lt;&lt;"jitter stardust of HS_TX2: " &lt;&lt;endl;
+for(int i = 0; i &lt; amplitudeSpectrumTx2.size(); i ++)
+{
+  cout &lt;&lt;"frequency  = "&lt;&lt; frequencyTx2[i] &lt;&lt; ", "
+  &lt;&lt;"the amplitude is: "&lt;&lt;amplitudeSpectrumTx2[i] &lt;&lt;endl;
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29362.htm" title="This API allows direct access from the test method to the system hardware at firmware level.">FW_TASK</a></div><div><a href="104621.htm" title="In conjunction with the PIN_ERROR_MAP_TEST API, this API provides detailed access to functional test results like error counter and fail cycles stored in test processor resources like hardware error counter and error map.">ERROR_MAP_TEST</a></div><div><a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNCTIONAL_TEST()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118689</span><script type="text/javascript">var ti='118689';var tt='DSP_JITTER_STARDUST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

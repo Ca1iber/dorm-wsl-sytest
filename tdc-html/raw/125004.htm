@@ -1,0 +1,118 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DC_PROFILING_OFF() API deactivates the DC profiling feature for the selected pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC_PROFILING_OFF</title><meta name="keywords" content="profiler"></head><body id="_125004"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125004</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC_PROFILING_OFF</h1>
+	
+	
+	<div><p>The <span class="keyword">DC_PROFILING_OFF()</span> API deactivates the DC profiling feature
+		for the selected pins.</p>
+		<section class="section">
+			<p>See also <a href="136105.htm" title="Profiling (DC profiling) allows you to measure and display current and voltage waveforms during pattern execution. The tool is also known as DC Profiler and is available in the Hardware perspective.">Profiling of DC Scale cards with Hardware view</a>.</p>
+			<p>Both activating and deactivating DC profiling must be done
+				inside or outside the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block. You
+				also need to make sure that activating or deactivating DC profiling is not done
+				within an <a href="142604.htm#_142604__dle_RDI_block">RDI block</a> since the code within the block is
+				executed by <a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a> only when the patterns are generated for the
+				first time.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void DC_PROFILING_OFF( const STRING&amp; pins );</pre><div></div>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/DcProfiling.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">Parameter</dt>
+					<dd><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-0" id="_125004__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-0" id="_125004__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" headers="_125004__entry__1"><var class="varname">pins</var></td>
+										<td class="colsep-0 rowsep-0" headers="_125004__entry__2">The <span class="keyword">STRING</span> parameter specifies a
+											list of pins for which the DC profiling is enabled.
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl><div class="note"><span class="title">Note</span> The measured values are obtained by the <a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a>
+				API.</div></div>
+		<h2>Examples</h2><div class="example"><h3>Description</h3>
+			<p>The examples below illustrate the use of the
+				DC_PROFILING_... APIs.</p></div>
+		<div class="example"><h3>Example
+				1:</h3>
+			<pre class="prettyprint copyable singleline">DC_PROFILING_ON("pin1", TM::CURRENT,100 uA, 100 ms, 16, TM::RESTORE_RANGE);</pre><p>Defines
+				and activates a current profiling setup for pin
+				1.</p><pre class="prettyprint copyable singleline">...</pre><p>Execute test.</p><pre class="prettyprint linenums copyable">...
+DC_PROFILING_OFF("pin1");</pre><p>Disables the defined current
+				profiling.</p><pre class="prettyprint linenums copyable">DC_RESULT_ACCESSOR resultAccessor;
+
+resultAccessor.uploadResult("pin1", TM::RESULT_INDEX);
+
+ARRAY_D results = resultAccessor.getValues("pin1");</pre><p>Obtains the measured
+				values.</p></div>
+		<div class="example"><h3>Example
+				2:</h3>
+			<pre class="prettyprint copyable singleline">DC_PROFILING_DEFINE("pin1", TM::CURRENT,100 uA, 100 ms, 16, TM::RESTORE_RANGE);</pre><p>Defines a current profiling setup for pin 1.</p><pre class="prettyprint linenums copyable">...
+DC_PROFILING_ENABLE("pin1")</pre><p>Enables the defined
+				setup.</p><pre class="prettyprint copyable singleline">...</pre><p>Execute test.</p><pre class="prettyprint linenums copyable">...
+DC_PROFILING_OFF("pin1");</pre><p>Disables the defined current
+				profiling.</p><pre class="prettyprint linenums copyable">...
+ARRAY_D values = GET_VALUE_RESULT("pin1"); ...</pre><p>Obtains the measured
+				values.</p></div>
+		<div class="example"><h3>Example 3:</h3>
+			<p>This example shows how to use a
+					<span class="keyword">DC_PROFILING_...</span> API together with a functional
+			test.</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Define and activate the current profiling feature on dpsPin1
+    //
+    // NOTE:   No other measurement must be executed on dpsPin1
+    //         as long the current profiling is activated
+    //
+    DC_PROFILING_ON("dpsPin1", TM::CURRENT,100 uA, 1 ms, 16, TM::RESTORE_RANGE);
+
+    //
+    // Execute a functional test on the digital pins
+    //
+    FUNCTIONAL_TEST();
+
+    //
+    // Deactivate the current profiling on dpsPIn1
+    //
+    DC_PROFILING_OFF("dpsPin1");
+}
+ON_FIRST_INVOCATION_END();
+
+//
+// Access the current profiling data
+//
+DC_RESULT_ACCESSOR resultAccessor;
+
+resultAccessor.uploadResult("dpsPin1", TM::RESULT_INDEX);
+
+ARRAY_D currentProfile = resultAccessor.getValues("dpsPin1");
+
+std::cout &lt;&lt; "Current profiling values on pin dpsPin1 : " &lt;&lt; currentProfile &lt;&lt; std::endl; 
+
+//
+// Access the functional test result
+//
+Boolean result;
+
+result = GET_FUNCTIONAL_RESULT("digitalPin1");
+
+std::cout &lt;&lt; "Result of the functional test on digitalPin1 : " &lt;&lt; ( result ? "pass" : "fail" ) &lt;&lt; std::endl;
+
+//
+// Datalog
+//
+TEST();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136105.htm" title="Profiling (DC profiling) allows you to measure and display current and voltage waveforms during pattern execution. The tool is also known as DC Profiler and is available in the Hardware perspective.">Profiling of DC Scale cards with Hardware view</a></div><div><a href="125001.htm" title="The DC_PROFILING_DEFINE() API defines a DC profiling setup. The setup can be enabled later with DC_PROFILE_ENABLE().">DC_PROFILING_DEFINE</a></div><div><a href="125002.htm" title="The DC_PROFILING_ENABLE() API enables a DC profiling setup, which was previously defined by the DC_PROFILING_DEFINE() API.">DC_PROFILING_ENABLE</a></div><div><a href="125003.htm" title="The DC_PROFILING_ON() API defines and activates a profile for DC profiling.">DC_PROFILING_ON</a></div><div><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125004</span><script type="text/javascript">var ti='125004';var tt='DC_PROFILING_OFF'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Checks whether the results for a specific application was uploaded and cached inside the TMU_RESULTS object."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>TMU_RESULTS.checkSiteAppTypeStored()</title></head><body id="_131151"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 131151</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">TMU_RESULTS.checkSiteAppTypeStored()</h1>
+	
+	
+	<div><p>Checks whether the results for a specific application was uploaded and cached inside
+		the TMU_RESULTS object.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">Boolean checkSiteAppTypeStored(TMU::ApplicationType type, UINT32 site = 0);</pre><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_131151__entry__1">I/O</th>
+							<th class="colsep-1" id="_131151__entry__2">Parameter</th>
+							<th class="colsep-1" id="_131151__entry__3">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_131151__entry__1">I</td>
+							<td class="colsep-1" headers="_131151__entry__2"><var class="varname">type</var></td>
+							<td class="colsep-1" headers="_131151__entry__3">The application type to check. It currently can be<ul>
+									<li><span class="keyword">TMU::APP_PERIOD</span></li>
+									<li><span class="keyword">TMU::APP_RAW</span></li>
+									<li><span class="keyword">TMU::APP_RAW_FLAT</span></li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_131151__entry__1">I</td>
+							<td class="colsep-1" headers="_131151__entry__2"><var class="varname">site</var></td>
+							<td class="colsep-1" headers="_131151__entry__3">The site to check. The result of the current site is checked by
+								default.</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Return value</h2><p><span class="keyword">true</span> is returned if the result of
+				the application type is available. Otherwise, <span class="keyword">false</span> is
+				returned.</p><p>If <span class="keyword">false</span> is retuned and you want to know what
+					went wrong before uploading, <span class="keyword">waitTMUfinished()</span> must be executed
+				before uploading the result. Then you can check on which pins the error occurred
+				with the following functions of <span class="keyword">TMU_RESULTS</span> and
+					<span class="keyword">TMU_PINS</span>: <span class="keyword">getPinsFinishedButMayFailed()</span>,
+					<span class="keyword">getPinsFinishedNotFailed()</span>,
+					<span class="keyword">getPinsFailed()</span>, <span class="keyword">getPinsNotFinished()</span>. You
+				can get the error state of a single pin with the function
+					<span class="keyword">getPinErrorState()</span> of
+			<span class="keyword">TMU_RESULTS</span>.</p></div>
+		
+		<h2>Example</h2><div class="example">
+			<pre class="prettyprint linenums copyable">STRING          pinList         = "...,...";
+int             initDiscard     = ...;
+TMU_TASK        tmuTask;
+...
+...
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    tmuTask.pin(pinList)
+            .setEdgeSelect      (...)
+            ...
+            ...
+            .setInitialDiscard  (initDiscard);
+
+    tmuTask.setAsPrimary();
+    tmuTask.setup();
+
+    FUNCTIONAL_TEST();
+
+    bool taskFinished = false;
+
+    tmuTask.waitTMUfinished(tmuTimeout, taskFinished);
+
+    ...
+    ...
+}
+ON_FIRST_INVOCATION_END();
+
+//
+// Upload the results into the result cache
+//
+tmuTask.uploadRawResults();
+
+//
+// Get the reference to the resultCache
+//
+TMU_RESULTS&amp;  tmuResults = tmuTask.getResultCache().pins(pinList).shot(1);
+
+if ( !tmuResults.checkSiteAppTypeStored(TMU::APP_RAW))
+{
+    cout &lt;&lt; "ERROR!! No results uploaded for TMU RAW measurement" &lt;&lt; endl;
+
+    return;
+}
+
+//
+// Continue processing of results for the TMU RAW measurement
+//
+...
+...</pre><div></div>
+			<p>For a compilable example, refer to <a href="125624.htm#_125624__ex_TMU_raw_result">Example 1: TMU raw result</a> in <a href="125624.htm" title="The TMU_TASK is a container class representing a time measurement unit (TMU) set. It can be used with TASK_LIST.">TMU_TASK</a>.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 131151</span><script type="text/javascript">var ti='131151';var tt='TMU_RESULTS.checkSiteAppTypeStored()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

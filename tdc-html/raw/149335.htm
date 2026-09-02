@@ -1,0 +1,69 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI can be used in combination with the SmartCalc (SMC) framework. This allows you to move time consuming calculations and uploads of test results to separate background threads and executing them in parallel."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using SmartCalc (SMC) with SmartRDI</title><meta name="keywords" content="smart calc smartcal smart rdi srdi, Smart, Calc"></head><body id="_149335"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149335</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using SmartCalc (SMC) with SmartRDI</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="144747.htm" title="SmartRDI supports the hidden upload for the measurement with digitizer, RF measurement, DC measurement, and digital capture test, error maps and TMU.">Using hidden upload with SmartRDI</a></li><li><a href="342444.htm" title="SmartRDI provides some functions to enable and disable SmartCalc (SMC) and to modify the SMC related behavior.">SmartRDI functions controlling SmartCalc (SMC)</a></li><li><a href="350267.htm" title="This section contains some pseudo code examples and some compilable examples of implementing SmartCalc (SMC) background threads in SmartRDI.">SmartRDI examples for SmartCalc (SMC)</a></li></ol></div></nav>
+	
+	
+	<div><p>SmartRDI can be used in combination with the SmartCalc (SMC) framework. This allows you
+		to move time consuming calculations and uploads of test results to separate background
+		threads and executing them in parallel.</p>
+		<section class="section">
+			
+			
+			<p>For concepts and detailed information refer to <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a>.</p>
+			<p>For a list of all SMC related test method APIs, refer to <a href="345841.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SMC... APIs of the SmartCalc framework allow you creating and managing background processes that run in parallel on multiple cores and make effective use of the available tester hardware.">SMC_... (SmartCalc API reference)</a>.</p>
+		</section>
+		<section class="section"><h2>Basic structure</h2>
+			
+			<p>A test suite, based on SmartRDI, utilizes the same structure as a test method that uses test
+				method APIs only:</p><ul>
+				<li>Background processes are armed by the <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> function or the
+					variants of this function. Each <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> call creates a new
+					thread. For more information, refer to <a href="345841.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SMC... APIs of the SmartCalc framework allow you creating and managing background processes that run in parallel on multiple cores and make effective use of the available tester hardware.">SMC_... (SmartCalc API reference)</a>.</li>
+				<li>The background process itself is defined as public <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> function within the test method
+					class of the test suite.</li>
+				<li>The SmartRDI functions used for the setup and used to retrieve the data are the same for
+					tests utilizing hidden upload and tests without hidden upload: Just the
+					functions to retrieve the results are to be moved from the
+						<span class="keyword">run()</span> function to the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> function.</li>
+				<li>SmartRDI uses <a href="144748.htm" title="Enables or disables the hidden upload for the specified type of measurement in the following RDI blocks.">rdi.hiddenUpload()</a> to enable the hidden upload feature,
+					which allows SmartRDI to perform the upload of data in the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> function of the test suite. </li>
+				<li>Ensure that SMC gets enough time to access the hardware in the background
+					threads. For more information, refer to <a href="119876.htm#_119876__s_Hide_analog_and_digital_data_upload">Hide analog and digital data upload</a> in <a href="119876.htm" title="Consider these general recommendations to ensure optimal performance of the SMC framework.">SmartCalc recommendations</a>.</li>
+			</ul><p>For general information on how to implement an SMC test, refer to <a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a> in the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a> documentation.</p>
+		</section>
+		<section class="section"><h2>Thread per site and common thread</h2>
+			
+			<p>Each function call and each thread takes some time overhead for preparation and cleanup. This
+				overhead in test time depends also on the ratio of function calls and threads and
+				the number of available CPU cores. For high-site-count applications, the overhead my
+				exceed the benefit of using background threads or hidden uploads respectively.</p>
+			<p>The <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a> supports therefore two implementations of background
+				processes:</p>
+			<dl>
+				
+					<dt class="dlterm" id="_149335__dle_Thread_per_site">Thread per site</dt>
+					<dd>The "Thread per site" is armed by <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> or the variants of this function
+							<strong>outside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a>
+						block. The "Thread per site" is recommended for low site-count
+						applications.</dd>
+				
+				
+					<dt class="dlterm" id="_149335__dle_Common_thread">Common thread</dt>
+					<dd>The "Common thread" (also know as "Single thread") is armed by <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> or
+						the variants of this function <strong>inside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block. The "Common thread" is recommended
+						for high site-count applications.</dd>
+				
+			</dl>
+			<p>For more information, refer to <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a>.</p>
+			<div class="caution"><span class="title">CAUTION</span> 
+				<p>Within a test suite, SmartRDI supports either the implementation "Thread per
+					site" or "Common thread" with <strong>one</strong> thread for all active sites.</p>
+				<p>Mixing the two solutions by assigning multiple active sites to more than one thread
+					(multisite per thread) is not supported and can lead to invalid logging of results. For
+					example: A solution with 16 sites and 4 threads is not supported.</p>
+			</div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div><div><a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a></div><div><a href="345841.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SMC... APIs of the SmartCalc framework allow you creating and managing background processes that run in parallel on multiple cores and make effective use of the available tester hardware.">SMC_... (SmartCalc API reference)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149335</span><script type="text/javascript">var ti='149335';var tt='Using SmartCalc (SMC) with SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

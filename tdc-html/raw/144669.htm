@@ -1,0 +1,76 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Multiple Equipment Control (MEC) driver provides the functionality to manipulate multiple probers or handlers simultaneously from one 93000 test system."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multiple Equipment Control driver</title></head><body id="_144669"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144669</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multiple Equipment Control driver</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="144675.htm" title="This file defines the equipment to control with the MEC driver and the configurations to the equipment.">MEC configuration file</a></li><li><a href="144670.htm" title="You need to specify the MEC driver to use, set up the equipment to control and set up the site mapping and timeout information.">Using the Multiple Equipment Control driver to execute a test program</a></li></ol></div></nav>
+	
+	
+	<div><p>Multiple Equipment Control (MEC) driver provides the functionality to manipulate
+		multiple probers or handlers simultaneously from one 93000 test system.</p>
+		<div class="p"><div class="note"><span class="title">Note</span> For an MEC setup, use one LAN/GPIB gateway per handler or prober. DO NOT
+				share a LAN/GPIB gateway between multiple sets of handlers or probers.</div>MEC driver provides
+			the same interfaces to the application model or BLC as the Generic prober/handler driver. It also
+			provides the additional interface to enable and disable the equipment and query the status of the
+			equipment.</div>
+		<p>The driver can be found in the directory
+				<span class="filepath">/opt/hp93000/soc/PH_libs/Multiple_Equipments_Control</span>.</p>
+		<p>The figure below shows how the MEC driver functions in the testing.</p>
+		<div class="p"><figure class="fignone">
+				<img src="144674.png" alt="MEC driver">
+			</figure></div>
+		<p>The <a href="144675.htm" title="This file defines the equipment to control with the MEC driver and the configurations to the equipment.">MEC configuration file</a> specifies the equipment to be controlled in the MEC driver and the
+			configuration to each equipment. The default configuration file is<span class="filepath">
+				/opt/hp93000/soc/PH_libs/Multiple_Equipments_Control/Multiple_Equipments_Configuration.cfg</span>.
+			To use your own configuration file, specify the file with the environment variable as:
+				<code>export MEC_CONFIG = path_to_the_MEC_config_file</code>.</p>
+		<p>The prober/handler driver functions apply to all the equipment specified in the MEC
+			configuration file by default. The figure below shows how the ph_device_start is executed on all
+			the equipment.</p>
+		<div class="p"><figure class="fignone">
+				<img src="144696.png" alt="Function applying for all equipment">
+			</figure></div>
+		<p>To apply a function only on the selected equipment, you can specify the IDs of the selected
+			equipment when calling the function. The figure below shows how the ph_set_status is executed to
+			set the temperature for equipment 1 and 2.</p>
+		<div class="p"><figure class="fignone">
+				<img src="144697.png" alt="Function applying for the selected equipment">
+			</figure></div>
+		<p>The Generic driver plug-in configuration file defines the timeout related values and the site
+			mapping between the equipment and SmarTest. The timeout value is configurable for each equipment.
+			The site mapping is defined with the parameter "smartest_site_to_handler_site_map" in the Generic
+			driver plug-in configuration file. </p>
+		<p>The timeout value for polling device can be set for each equipment with the parameter
+			"waiting_for_parts_timeout" in the Generic V93000 PH driver plug-in configuration file. The MEC
+			driver timeout for polling device is the longest timeout value defined among all the equipment. </p>
+		<div class="p"><figure class="fignone">
+				<img src="144698.png" alt="timeout">
+			</figure></div>
+		<p>If any devices are successfully polled from all the equipment, the test will be performed. If
+			no device is polled from any equipment within the timeout, the MEC driver will continue polling
+			until the next timeout happens. The figure below shows two results that may happen when
+			controlling eight sites with two handlers.</p>
+		<div class="p"><figure class="fignone">
+				<img src="144699.png" alt="Polling Device results">
+			</figure></div>
+		<section class="section"><h2>Alarms and messages</h2><ul>
+				<li>The MEC driver will automatically add the equipment ID to the warnings, errors, and messages
+					printed in the UI report widow to make the information from different equipment
+					distinguished.</li>
+				<li>All the warnings and errors generated by the Generic prober/handler driver will be converted
+					to the HVM alarm events to be captured by the external monitors.</li>
+				<li>When the MEC driver gets the return value other than CI_CALL_PASS from the prober/handler
+					driver functions, it will generate the HVM alarm event like "PH Driver Alarm(equipment:1)error
+					executing function ph_abc".</li>
+				<li>When the MEC driver fails to poll any device from all the equipment, it will generate the
+					HVM Alarm "PH Driver Alarm(MEC):No devices got, try again".</li>
+			</ul></section>
+		<section class="section"><h2>Return value of MEC functions</h2><ul>
+				<li>The return value of the MEC driver function is CI_CALL_PASS when one of the Generic V93000
+					PH driver instance returns CI_CALL_PASS. To retrieve the detailed return value from each driver
+					instance, call the function <a href="144673.htm" title="List the IDs of the current running equipment and query the status of the Generic prober/handler drivers.">ph_list_equipment()</a> or monitoring the
+					HVM Alarm Events.</li>
+				<li>The output from the MEC driver function call looks
+					like:<div></div><pre class="prettyprint copyable singleline">(equipment:MT1)output_for_MT1(equipment:MT2)output_for_MT2...</pre></li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="30783.htm" title="Used to call a function that controls a wafer prober or a package handler.">PROB_HND_CALL</a></div><div><a href="103817.htm" title="This API executes a PH driver function after the PH library is loaded. The ACTION_PROB_HND_CALL_STARTED/ACTION_PROB_HND_CALL_COMPLETED HVM events will be generated if the implicit event generation is turned on.">CallPHDriverFunc()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144669</span><script type="text/javascript">var ti='144669';var tt='Multiple Equipment Control driver'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

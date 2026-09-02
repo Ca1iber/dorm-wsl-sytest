@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Setting up DC resources as AWG is like setting up a real AWG. Define a waveform and then set up a type and sampling frequency for the waveform."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using a DC resource as an AWG with SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_144750"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144750</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using a DC resource as an AWG with SmartRDI</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="355546.htm" title="Adds one or more waveforms in an execute() operation.">addWaveform()</a></li><li><a href="144791.htm" title="Specifies the sampling frequency when the PPMU or the DC Scale pin is used as AWG.">FS()</a></li><li><a href="353633.htm" title="Specifies a value or waveform per site. The value or waveform is only downloaded in the first run and will not be updated for each execution.">perSiteVal()</a></li><li><a href="152330.htm" title="Specifies the repeat number of the waveform.">repeat()</a></li><li><a href="146740.htm" title="Specifies the number of tester cycles between two adjacent samples of the waveform to generate.">sampleCycle()</a></li><li><a href="146741.htm" title="Specifies the sampling period to generate the waveform.">samplePeriod()</a></li><li><a href="144781.htm" title="Specifies the waveform to generate when used as AWG.">waveform()</a></li></ol></div></nav>
+	
+	
+	<div><p>Setting up DC resources as AWG is like setting up a real AWG. Define a waveform and then
+		set up a type and sampling frequency for the waveform.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The DC resources used as AWG can be DC Scale pins and PPMU.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure the SmarTest version is 7.2.1 or above.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>Define the waveform with the class <code>anaWaveform</code>.</span>
+			</li><li>
+				<span>Set up a pin or pins to work as AWG.</span>
+				<ol type="a">
+					<li>
+						<span>Specify the port to set up. It is a must setup for PPMU and optional for DC Scale
+							pins.</span>
+					</li>
+					<li>
+						<span>Create a test with the class <code>dc()</code>.</span>
+					</li>
+					<li>
+						<span>Specify the pin(s) to work as AWG with <code>pin()</code>. For PPMU, the specified
+							pin must be the same as defined in the specified port.</span>
+					</li>
+					<li>
+						<span>Specify the type of waveform with <code>vForce()</code> for voltage waveform or
+								<code>iForce()</code> for current waveform. It is voltage waveform by default.</span>
+					</li>
+					<li>
+						<span>Specify the waveform to force with the function <code>waveform()</code>.</span>
+					</li>
+					<li>
+						<span>Specify the sampling frequency with <code>FS()</code>,
+								<code>samplePeriod()</code> or <code>sampleCycle()</code>.</span>
+					</li>
+					<li>
+						<span>Execute the setup with <code>execute()</code>.</span>
+					</li>
+				</ol>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The DC resource can be used as an AWG to generate the defined waveform.</p>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> To send a waveform with PPMU, port() must be used. The port must only have the
+					pin which will send the waveform. For example,
+					<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+   rdi.port("portA").dc().pin("pinA").vForce().waveform("wav").FS(100 K).execute();
+RDI_END();
+// The portA only has pinA.</pre></div>
+			</div>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> When PPMU is used as AWG, its default relay action is the same as a normal
+					PPMU measurement:<table class="frame-topbot"><caption><span></span></caption><colgroup><col><col></colgroup><thead>
+								<tr>
+									<th class="rowsep-1" id="_144750__entry__1">Parameter</th>
+									<th class="rowsep-1" id="_144750__entry__2">Description</th>
+								</tr>
+							</thead><tbody>
+								<tr>
+									<td class="rowsep-1" headers="_144750__entry__1"><span class="keyword">rly_before</span></td>
+									<td class="rowsep-1" headers="_144750__entry__2">The relay actions before a PPMU measurement. The default value is
+											<code>TA::ppmuRly_onPPMU_offACDC</code>.</td>
+								</tr>
+								<tr>
+									<td class="rowsep-1" headers="_144750__entry__1"><span class="keyword">rly_after</span></td>
+									<td class="rowsep-1" headers="_144750__entry__2">The relay actions after a PPMU measurement. The default value is
+											<code>TA::ppmuRly_NO</code>. If not specified, the relay will not be changed after
+										the measurement.</td>
+								</tr>
+							</tbody></table> You can use <span class="keyword">relay()</span> to change the relay actions. See <a href="143524.htm" title="Specifies the relay action before and after the measurement for PPMU.">relay()</a>.</div>
+			</div></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">anaWaveform vwav ("UP_V");
+vwav.definition(TM::SINE).periods(3).amplitude(3 V).offset(0.5 V).samples(2048);
+...
+rdi.dc().pin("VI32_1").waveform(vwav).FS(10 KHz).execute();
+rdi.dc().pin("VI32_1").vForce().waveform(vwav).FS(10 KHz).execute();
+rdi.dc().pin("DPS32_SIG_1").vForce().waveform(vwav).FS(10 KHz).execute();
+rdi.port("ptPin1").dc().pin("DATA1").waveform(vwav).samplePeriod(100 us).execute();
+rdi.port("ptPin1").dc().pin("DATA1").iForce().waveform(vwav).sampleCycle(1000).execute();</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136264.htm" title="With the PPMU of Smart Scale PS1600 channel card, you can generate analog waveforms.">How to use PPMU as Arbitrary Waveform Generator (AWG)</a></div><div><a href="144781.htm" title="Specifies the waveform to generate when used as AWG.">waveform()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144750</span><script type="text/javascript">var ti='144750';var tt='Using a DC resource as an AWG with SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

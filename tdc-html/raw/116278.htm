@@ -1,0 +1,51 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Tokens are bit sequences of fixed length. Payload tokens contain the user data; idle tokens are inserted between the payload tokens to bridge wait times and must be skipped for the evaluation."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Skipping idle tokens</title></head><body id="_116278"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116278</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Skipping idle tokens</h1>
+	
+	
+	<div><p>Tokens are bit sequences of fixed length. <em>Payload</em> tokens contain the user data;
+			<em>idle</em> tokens are inserted between the payload tokens to bridge wait times and must be
+		skipped for the evaluation.</p>
+		<p>The following token sizes are supported:</p>
+		<p>0, 8, 9, 10, 12, 16, 18, 20, 24, 28, 32, 34, 36, 40, 44, 48, 52, 56, 60, 64, 66</p>
+		<p>If the token size is &gt; 0, the received data is processed after synchronization as
+			follows:</p>
+		<p>The expected and received data are split up into expected and received tokens. Note that
+			usually an expected token will not be an integer multiple of vectors. Each expected token is
+			compared to a received token until a match is found. The step width equals the token size
+			(contrast with initial synchronization, where the step width is one bit); that is, every received
+			bit takes part in only one compare action. Every received token that does not match the current
+			expected token will be counted as an idle token. </p>
+		<p>After a match has been found, the next expected token is compared to the remaining received
+			data in the same way. The test will pass if a match is found for every expected token. </p>
+		<p>All received tokens for which no match is found are regarded as idle tokens and will be
+			skipped. You can cause the protocol engine test to report how often certain idle tokens occur
+			during the test. Up to 6 tokens can be defined for this purpose with <span class="keyword">TTCF</span>
+				(<span class="keyword">IDLE_TOKEN_</span><span class="keyword">i</span> property, where 1 ≤ <span class="keyword">i</span> ≤
+			6). The number of occurrences will be reported by the <span class="keyword">TTDB? REMOVED_IDLE</span>
+			query. This feature is only available for token sizes &gt; 0 and &lt; 18. </p>
+		<p>If the token size is set to 0 (which is the default) then there exist no idle data, and every
+			received value must match an expected value.</p>
+		<p>The number of consecutive idle tokens that can be skipped is restricted by the
+				<span class="keyword">SUBSEQUENT_INITIAL_SYNC_LIMIT</span> property (set with the <span class="keyword">TTCF</span>
+			command). The product of token size and number of consecutive skipped tokens must not exceed this
+			limit. </p>
+		<section class="section"><h2>Idle tokens and X-tokens </h2><p>Further restrictions must be observed if
+				tokens consisting exclusively of <span class="keyword">X</span> (so-called <em>X-tokens</em>) are to be
+				removed from the expected data before the expected data stream is compared to the received data
+				stream. This feature, whose purpose is to determine approximately the number of idle tokens, is
+				activated by setting the <span class="keyword">REMOVE_XTOKEN_MODE</span> property to <span class="keyword">ON</span>
+				with the <span class="keyword">TTCF</span> command. If this is done, the number of idle tokens may exceed
+				the number of X-tokens at most by the maximum defined with the
+					<span class="keyword">DEVIATION_LIMIT_DUT_BEFORE_ED</span> property, and the number of removed X-tokens
+				may exceed the number of idle tokens at most by the maximum defined with the
+					<span class="keyword">DEVIATION_LIMIT_DUT_BEFORE_ED</span> property. These two limits are also defined
+				with <span class="keyword">TTCF</span>.</p></section>
+		<section class="section"><h2>Related Test Method APIs</h2><p><a href="114956.htm" title="The TRANSITION_TEST_PINS class is a container holding an object to represent the transition test features for some pin(s). It provides the methods to modify and query transition test properties. It is a sub-class of TRANSITION_TEST_SET. You cannot directly create an object of it.">TRANSITION_TEST_PINS</a></p><p><span class="keyword">getNumberOfRemovedIdleTokens()</span> function of <a href="114957.htm" title="This TRANSITION_TEST_STATUS is a container holding the transition test status and debug information. You can query the transition test status with its member functions.">TRANSITION_TEST_STATUS</a></p></section>
+		<h2>Example</h2><div class="example"><div class="p"><figure class="fignone">
+					<img src="116283.png" alt="Skipping idle tokens">
+				</figure></div><p>This example continues the example of <em><a href="114245.htm" title="Initial synchronization serves to overcome an initial latency and to discover the start of the meaningful data. Its basic idea is to compare the received data, as selected by the tracking mechanism, successively with a start segment of the expected data, the synchronization pattern, until a segment of the received data matches this synchronization pattern. The start of this segment is assumed to be the start of the meaningful data.">Startup latency and initial synchronization</a></em>. The token
+				length is 9. One idle token is skipped.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116278</span><script type="text/javascript">var ti='116278';var tt='Skipping idle tokens'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

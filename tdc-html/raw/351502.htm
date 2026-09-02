@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Protocols can support burst write and read. The write array operation is performed through the RA_WRITE_ARRAY() command. The command needs a start address on which the first array data is written. The address is automatically incremented."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Write array</title></head><body id="_351502"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351502</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Write array</h1>
+	
+	
+	<div><p>Protocols can support burst write and read. The write array operation is performed
+		through the RA_WRITE_ARRAY() command. The command needs a start address on which the first array
+		data is written. The address is automatically incremented.</p>
+		<section class="section">
+			<div class="p">To use write array in your test methods, you must define <span class="keyword">defineWriteArray()</span>
+				in your protocol class in advance. For
+				example,<div></div><pre class="prettyprint linenums copyable">virtual void defineWriteArray(I2C&amp; i2c, ULONG64 address,
+                              const vector&lt;ULONG64&gt;&amp; arrayData)
+{
+  i2c.startCondition();
+  i2c.sendByteWithAck(0xD0);
+  i2c.sendByteWithAck(address / 256);
+  i2c.sendByteWithAck(address % 256);
+  for(unsigned int i=0; i&lt;arrayData.size(); ++i) {
+      i2c.sendByteWithAck(arrayData.at(i));
+  }
+  i2c.stopCondition();
+}</pre></div>
+			<p>After you have added the definition in your protocol, you can use
+					<span class="keyword">RA_WRITE_ARRAY()</span> in your test methods to write array data. See <a href="351502.htm#_351502__example_1">Example 1</a> below for how to use write array in test
+				methods.</p>
+		</section>
+		<section class="section"><h2>Write array with digital source memory</h2>
+			
+			<p><a href="131112.htm" title="DSM is a software feature that enables the testing and the preconditioning of devices containing, amongst others, embedded ADCs and DACs. It can be used in any application, single site and multisite, where vectors must be dynamically modified from execution to execution in order to set up the test conditions required by the measurement. DSM is also suitable for multisite applications where each site must be set up differently by means of different vectors applied to each device in each site.">Digital Source Memory (DSM)</a> can be used when mass data needs to
+				be written with dynamic array data.</p>
+			<div class="p">Define DSM in the protocol before using write array with DSM, for
+				example,<div></div><pre class="prettyprint linenums copyable">class I2C_arrayDSM : public ProtocolI2C {
+public:
+...
+virtual std::string getName() const
+{return "I2C_arrayDSM";}
+
+virtual void defineWriteArray(I2C&amp; i2c, ULONG64 address, const vector&lt;ULONG64&gt;&amp; arrayData) {
+  
+  i2c.startCondition();
+  i2c.sendByteWithAck(SLAVE_ADDRESS);
+  i2c.sendByteWithAck(address / 256);
+  i2c.sendByteWithAck(address % 256);
+  
+  // Use instruction loop for DSM
+  i2c.loopBegin(arrayData.size());
+      i2c.sendByteWithAck(0, "inData");
+  i2c.loopEnd();
+  i2c.stopCondition();
+}
+};
+
+REGISTER_PROTOCOL(I2C_arrayDSM);</pre></div>
+			<p>After you have added the definition in your protocol, you can use
+					<span class="keyword">RA_WRITE_ARRAY()</span> in your test methods to perform the write array with DSM.
+				See <a href="351502.htm#_351502__example_2">Example 2</a> below.</p>
+		</section>
+		<h2>Examples</h2><div class="example" id="_351502__example_1"><h3>Example 1</h3>
+			
+			<p>Write array in test methods</p>
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  vector&lt;ULONG64&gt; arrayData(256);
+  for(unsigned int i=0;i&lt;arrayData.size();++i) {
+      arrayData[i] = i;
+  }
+
+  RA_WRITE_ARRAY(START_ADDR, arrayData);
+
+RDI_END();</pre><div></div>
+		</div>
+		<div class="example" id="_351502__example_2"><h3>Example 2</h3>
+			
+			<div class="p">Write dynamic array in test
+				methods<div></div><pre class="prettyprint linenums copyable">// Set data array
+MultiSite&lt;vector&lt;ULONG64&gt; &gt; mlData;
+
+FOR_EACH_SITE_BEGIN();
+  int siteIndex = CURRENT_SITE_NUMBER() -1;
+  vector&lt;ULONG64&gt; aa(10);
+  for(unsigned int i=0;i&lt;aa.size();++i)
+      aa[i] = rand() % 256;
+  mlData[siteIndex] = aa;
+
+FOR_EACH_SITE_END();
+
+RA_SET_DYNAMIC_DATA("DynamicID", mlData);
+
+// Write DSM
+
+RDI_BEGIN();
+  RA_WRITE_ARRAY(START_ADDR, "DynamicID");
+RDI_END();</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="131112.htm" title="DSM is a software feature that enables the testing and the preconditioning of devices containing, amongst others, embedded ADCs and DACs. It can be used in any application, single site and multisite, where vectors must be dynamically modified from execution to execution in order to set up the test conditions required by the measurement. DSM is also suitable for multisite applications where each site must be set up differently by means of different vectors applied to each device in each site.">Overview of Digital Source Memory (DSM)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351502</span><script type="text/javascript">var ti='351502';var tt='Write array'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

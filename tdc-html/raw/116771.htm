@@ -1,0 +1,124 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Device access can include control statements in the :instruction: columns of :apgAccess: objects."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Control instructions in device accesses</title></head><body id="_116771"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116771</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Control instructions in device accesses</h1>
+	
+	
+	<div><p>Device access can include control statements in the <span class="keyword">:instruction:</span>
+		columns of <span class="keyword">:apgAccess:</span> objects.</p>
+		<section class="section"><p>These statements affect how the actions and operation specified in the other columns
+				are applied to the device pins.</p><p>The following statements are supported:</p><ul>
+				<li><span class="keyword">for</span></li>
+				<li><span class="keyword">delay</span></li>
+				<li><span class="keyword">countedMatch</span></li>
+			</ul><p>These statements are described in detail below.</p></section>
+		<div class="syntax"><h2>for</h2><p>A <span class="keyword">for</span> statement in the
+					<span class="keyword">:instruction:</span> column causes all statements in the <span class="keyword">:data:</span>
+				and <span class="keyword">:operation:</span> columns between the <span class="keyword">for</span> and the
+					<span class="keyword">forend</span> to be evaluated once for each loop. The number of loop repetitions is
+				determined by the arguments provided for <span class="keyword">for</span>.</p><p>A loop begins with a
+				C-like statement <code>for (</code><span class="keyword">&lt;initialization&gt;</span><code>;
+					</code><span class="keyword">&lt;test&gt;</span><code>;
+					</code><span class="keyword">&lt;increment&gt;</span><code>)</code>, where:</p><ul>
+				<li><span class="keyword">&lt;initialization&gt;</span>: The setup statement for the loop variable, for
+					example, <code>loopCount=1</code>.</li>
+				<li><span class="keyword">&lt;test&gt;</span>: The test for continuing the loop, for example,
+						<code>loopCount&lt;16</code>. If this test evaluates to true at the beginning of a loop,
+					another loop iteration is performed.</li>
+				<li><span class="keyword">&lt;increment&gt;</span>: The instruction to increment the loop counter which is
+					performed after each loop iteration but before the test for the next iteration. For example,
+						<code>loopCount+=1</code>.</li>
+			</ul><p>A loop ends with <span class="keyword">forend</span>, which must be on a line of its own (that is,
+				a line that contains <code>~</code> in all other columns).</p></div><div class="syntax"><h2>delay</h2><p>A <span class="keyword">delay</span> statement in the
+					<span class="keyword">:instruction:</span> column causes the execution of all statements in the
+					<span class="keyword">:data:</span> and <span class="keyword">:operation:</span> columns between the
+					<span class="keyword">delay</span> and the <span class="keyword">delayend</span> to be delayed for a certain number
+				of edges when the device access is executed. The amount of the delay is determined by the
+				parameter provided to <span class="keyword">delay</span>.</p><p>A delay block begins with a
+					<code>delay(</code><span class="keyword">&lt;latency&gt;</span><code>)</code> statement, where
+					<span class="keyword">&lt;latency&gt;</span> is the number of edges by which the execution of the block
+				is to be delayed.</p><p>A delay block ends with <span class="keyword">delayend</span>, which must be on a
+				line of its own (that is, a line that contains <code>~</code> in all other
+				columns).</p><p>There are certain conditions that may must be observed when using delayed
+				operations; violating these rules will trigger compiler errors:</p><ul>
+				<li>Device accesses can contain multiple delay blocks, but earlier blocks may not be delayed so
+					much that they are executed after later blocks.</li>
+				<li>Blocks may not be delayed beyond the end of the device access.</li>
+				<li>Device access delays may not be combined with non-transparent x-modes.</li>
+				<li>Device access delays may not be negative, i.e., it is not possible to use the
+						<span class="keyword">delay</span> statement to execute operations earlier than normal.</li>
+			</ul><p>The basic principles of delaying parts of accesses are visualized in these examples:</p><div class="p"><figure class="fignone">
+					<img src="116906.png" alt="Device access delay principles">
+				</figure></div><p>From left to right:</p><ul>
+				<li>A simple delay by four edges.</li>
+				<li>Two delays that do not change the execution order of the delay blocks. (The first block is
+					still executed before the second one.)</li>
+				<li>Two delays in which the first block is moved past the original position of the second one.
+					Still, because the second block is moved as well, their execution order relative to each other
+					does not change. (The first block is still executed before the second one.)</li>
+				<li>Two delays in which the blocks change their execution order: The original first block
+					(orange) is now executed after the original second one (green). This is not permitted and would
+					create an error.<div class="note"><span class="title">Note</span> You can also delay entire device accesses when you call them
+						in the APG program file. See <a href="116787.htm" title="The execution of device accesses can be dynamically delayed, either for the entire access or for a range of instruction within an access.">Device access delays</a> for more information.</div>
+				</li>
+			</ul></div><div class="syntax"><h2>countedMatch</h2><p>A <span class="keyword">countedMatch</span> statement in the
+					<span class="keyword">:instruction:</span> column causes all statements in the <span class="keyword">:data:</span>
+				and <span class="keyword">:operation:</span> columns between the <span class="keyword">countedMatch</span> and the
+					<span class="keyword">matchend</span> to be evaluated once for each loop. The number of loop repetitions
+				is determined by the arguments provided for <span class="keyword">countedMatch</span>.</p><p>A counted
+				match loop begins with the
+					<span class="keyword">countedMatch(</span><span class="keyword">n</span><span class="keyword">)</span> statement, where the
+				integer number <span class="keyword">n</span> is the number of times that the loop is executed at the
+				most.</p><p>A counted match loop ends with <span class="keyword">matchend</span>, which must be on a line
+				of its own (that is, a line that contains <code>~</code> in all other columns).</p><div class="note"><span class="title">Note</span> A counted match loop can also begin with a <span class="keyword">countedMatchWithBreak</span>
+				statement rather than <span class="keyword">countedMatch</span>. For more information on counted match
+				loops and the difference between <span class="keyword">countedMatch</span> and
+					<span class="keyword">countedMatchWithBreak</span>, refer to <a href="114614.htm" title="Match loops are specialized loop constructs in the device access file or program file. Match loops are functionally equivalent to repeat...until loops with an upper limit of how often they can be repeated.">Counted match loops</a>.</div></div>
+		
+		
+		<h2>Example</h2><div class="example"><p>Example 1,
+				<span class="keyword">for</span>:</p><pre class="prettyprint linenums copyable">{ :instruction:          :pin: :states: :data: }
+{ "for (i=0; i&lt;8; i+=1)"  A     {L H}    1     }
+{ ~                       A     {L H}    0     }
+{ "forend"                ~     ~        ~     } </pre><p>Example
+				2, <span class="keyword">delay</span>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+:interface: { myDelay }
+:table:
+{ :instruction:  :pin:  :states:  :data:  :operation:             }
+{ ~              DQi_0  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_1  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DQi_2  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_3  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DQi_4  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_5  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DQi_6  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_7  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DBI.0  {0 1}     0       dbi(gddr5_DBI)          }
+{ delay(myDelay) EDC.0  {L H}     0       crc(gddr5_crc_write,0)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,1)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,2)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,3)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,4)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,5)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,6)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,7)  }
+{ delayend       ~      ~         ~       ~                       }</pre><p>Example 3,
+					<span class="keyword">countedMatch</span>:</p><pre class="prettyprint linenums copyable">apgAccess:
+{
+  :name: "MATCH_WRITE_DQ"
+  :interface: { "xAddr" "yAddr" "DW"}
+  :table:
+  {
+    :format:
+    { :instruction:      :pin:  :states:  :data:                     }
+    { countedMatch(10)   XADDR  { 0 1 }   "xaddr(xAddr,yAddr,0)"     }
+    { ""                 YADDR  { 0 1 }   "yaddr(xAddr,yAddr,0)"     }
+    { ""                 DATA   { 0 1 }   "data(DW,xAddr,yAddr,0)"   }
+    { ""                 PrgChk { L H }    1                         }
+    { matchend            ~      ~         ~                         }
+  }
+}
+</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="102365.htm" title="The syntax of the device access file follows the conventions of the MTL compiler syntax.">Device access file syntax</a></div><div><a href="116787.htm" title="The execution of device accesses can be dynamically delayed, either for the entire access or for a range of instruction within an access.">Device access delays</a></div><div><a href="114614.htm" title="Match loops are specialized loop constructs in the device access file or program file. Match loops are functionally equivalent to repeat...until loops with an upper limit of how often they can be repeated.">Counted match loops</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: New instruction delay()</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116771</span><script type="text/javascript">var ti='116771';var tt='Control instructions in device accesses'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

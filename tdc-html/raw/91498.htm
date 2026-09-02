@@ -1,0 +1,91 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The first line of a timing master file must be"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Master file format for timing setup</title><meta name="keywords" content="masterfile"></head><body id="_91498"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91498</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Master file format for timing setup</h1>
+	
+	
+	<div><p>The first line of a timing master file must be</p>
+		<section class="section">
+			<div></div><pre class="prettyprint copyable singleline">hp93000,timing_master_file,0.1</pre><div></div>
+			<p>The second line has the format</p>
+			<div></div><pre class="prettyprint copyable singleline"><span class="keyword">testerfile</span>: &lt;<span class="keyword">tester_file_name</span>&gt;</pre><div></div>
+			<p>It specifies the tester setup file which is to be split or into which the subfiles are to be
+				merged.</p>
+			<p>The subsequent lines in the timing master file associate the parts of the timing setup with a
+				subfile.</p>
+			<p>The smallest parts of a timing setup that can be stored in a separate subfile are</p>
+			<ul>
+				<li>wavetables</li>
+				<li>equation sets (together with their associated single-port timing specifications)</li>
+				<li>multi-port timing specifications</li>
+				
+				<li>common blocks (each enclosed by
+						<kbd class="userinput">#begin&lt;</kbd><em>block_description</em><kbd class="userinput">&gt;</kbd> and
+						<kbd class="userinput">#end</kbd>) that are placed at the top of the wavetable or equation set
+						section.<p>Common blocks can be placed everywhere within the timing setup file. But only those
+						at the top of a section are recognized by the <a href="91306.htm" title="The Setup Management tool enables multiple users to work on different parts of the same setup component in parallel without interfering with each others work. It can be used for distributed setup development and debugging even if the individual users need access to the complete setup component, provided that they do not change the same part of it. The Setup Management tool can handle the following setup components:">Setup Management
+							tool</a>.</p></li>
+			</ul>
+			<p>Each of these parts is associated with a subfile by a line which specifies the type of the
+				part (wavetable, equation set, multi-port specification), its name or number, and the associated
+				subfile. Different parts can be associated with the same subfile.</p>
+			<p>The paths for the subfiles can be relative or absolute. The reference directory for relative
+				paths is the directory of the master file.</p>
+			<p>You can insert comments everywhere in the file. They are identified by the hash
+					(<kbd class="userinput">#</kbd>) character at the start of a line.</p>
+		</section>
+		<section class="section"><h2>Format of entries</h2>
+			
+			<p>The formats for the different part types are as follows:</p>
+			<div></div><pre class="prettyprint linenums copyable"><span class="keyword">WAVETABLE</span> &lt;<span class="keyword">wavetable_name</span>&gt; [<span class="keyword">PIN_ALIAS_SET</span> &lt;<span class="keyword">pin_alias_set_name</span>&gt;]: &lt;<span class="keyword">file_name</span>&gt;
+<span class="keyword">EQNSET</span> &lt;<span class="keyword">equationset_number</span>&gt; [<span class="keyword">PIN_ALIAS_SET</span> &lt;<span class="keyword">pin_alias_set_name</span>&gt;]: &lt;<span class="keyword">file_name</span>&gt;
+<span class="keyword">MULTIPORT_SPEC</span> &lt;"<span class="keyword">specification_name</span>"&gt;: &lt;<span class="keyword">file_name</span>&gt;
+
+<span class="keyword">DEFINES</span>: &lt;<span class="keyword">file_name</span>&gt;</pre><div></div>
+			<p>The <span class="keyword">DEFINES</span> entry points to the subfile that contains the common
+				blocks.</p>
+			<p>The <span class="keyword">PIN_ALIAS_SET</span> keyword identifies the <a href="112365.htm" title="You can define multiple aliases for a single pin and organize the aliases for different pins into a set.">alias
+					set</a> used in the wavetable or equation set of the assembled timing setup file. </p>
+			<p>When the assembled timing setup file is split with the Setup Management Tool, the alias set is
+				removed from the generated sub-file and package pin names are used.</p>
+		</section>
+		<section class="section"><h2>Format of automatically generated file names</h2>
+			
+			<p>When the <a href="91306.htm" title="The Setup Management tool enables multiple users to work on different parts of the same setup component in parallel without interfering with each others work. It can be used for distributed setup development and debugging even if the individual users need access to the complete setup component, provided that they do not change the same part of it. The Setup Management tool can handle the following setup components:">Setup Management Tool</a> splits the timing setup file and
+				finds a part for which no entry exists in the master file, it must create not only a new subfile
+				for this part, but also a name for it. These automatically created file names are put together
+				as follows:</p>
+			<div></div><pre class="prettyprint linenums copyable">eqnset_&lt;<span class="keyword">equation_set_number</span>&gt;.tim
+wvt_&lt;<span class="keyword">wavetable_name</span>&gt;.tim
+mport_&lt;<span class="keyword">multiport_specification_name</span>&gt;.tim
+defines.tim</pre><div></div>
+			<p>You can add a user defined prefix to the names with the environment variable
+					<span class="keyword">VERIGY93000_MFH_PREFIX</span>. Specify</p>
+			<div></div><pre class="prettyprint copyable singleline">export VERIGY93000_MFH_PREFIX=&lt;prefix&gt;</pre><div></div>
+			<p>in the shell where you start SmarTest.</p>
+		</section>
+			<section class="section"><p>For more information on working with specifications, see also the section on the <a href="17358.htm" title="This section explains in more detail how to use the Spec Tool. Its features are highlighted and everyday tasks are explained.">Spec Tool</a>.</p></section>
+		<h2>Example</h2><div class="example">
+			<p>The following is an example of a timing master file:</p>
+			<div></div><pre class="prettyprint linenums copyable">hp93000,timing_master_file,0.1
+# this is a comment
+testerfile: demo.tim
+
+EQNSET 1: files/part1.tim
+EQNSET 2 [PIN_ALIAS_SET usb_set]: files/eqnset02.tim
+
+WAVETABLE wtbl_1: files/part1.tim
+WAVETABLE wtbl_2: files/wtbl_2.tim
+
+MULTIPORT_SPEC "spec_1":files/part1.tim
+MULTIPORT_SPEC "spec_2":files/spec_2.tim
+DEFINES: files/defines.tim</pre><div></div>
+			<p>In the assembled level setup file <code>demo.tim</code>, the alias set
+					<code>usb_set</code> is used in the equation set 2. When <code>demo.tim</code> is
+				splitted, the alias set <code>usb_set</code> is removed from the generated sub-file
+					<code>eqnset02.tim</code> and package pin names are used.</p>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="10597.htm" title="With equation based timing, you can use variables in the definitions of edge positions and period lengths. This allows you, for example, to define general relations between period length and edge delays which are preserved when the value of the variable is changed (for example, place an edge in the middle of a tester cycle for different cycle lengths).">Data organization of equation based timing</a></div><div><a href="91306.htm" title="The Setup Management tool enables multiple users to work on different parts of the same setup component in parallel without interfering with each others work. It can be used for distributed setup development and debugging even if the individual users need access to the complete setup component, provided that they do not change the same part of it. The Setup Management tool can handle the following setup components:">Setup Management Tool</a></div><div><a href="16956.htm">Example of the equation based timing setup file</a></div><div><a href="105671.htm" title="The collisions that may happen in timing master file include EQNSET number, WAVETABLE name, MULTIPORT name, CLOCK_SET number (contain related MULTIPORT) and TESTDATA name (DC Dynamic).">Collision handling for the timing master file</a></div><div><a href="91575.htm" title="The first line of a level master file must be">Master file format for level setup</a></div><div><a href="105670.htm" title="The collision that may happen in the level master file is the equation set number collision. The setup management tool can handle the collision automatically. You can also manually resolve the collision.">Collision handling for the level master file</a></div><div><a href="105673.htm" title="The collision that may happen in waveform master file is the label name collision of sub-files.">Collision handling for the waveform master file</a></div><div><a href="91462.htm" title="Equation based level and timing setups are stored in the setup file as a string parameter of the EQSP firmware command, which serves to download the setup data to the tester. One parameter of this command is the number of bytes that are to be downloaded. If the actual size of the setup data does not match the specified number, EQSP issues an error. This makes it difficult to edit a normal setup file outside of SmarTest, because you will usually have to adjust the number of bytes when you change the data.">Editing the level and timing subfiles</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: Renamed macro variable AGILENT93000_MFH_PREFIX to
+					VERIGY93000_MFH_PREFIX.</li><li>SmarTest 6.5.3: New keyword: PIN_ALIAS_SET.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91498</span><script type="text/javascript">var ti='91498';var tt='Master file format for timing setup'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

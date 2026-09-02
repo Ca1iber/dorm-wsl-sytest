@@ -1,0 +1,61 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DLSO command activates level set 0 for the channels of those sites that have the setup focus (for level set 0, see Controlling the high-Z behavior of digital pins with level set 0). By default, this means that they are switched to high-impedance."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DLSO (Driver Level Switch Off)</title></head><body id="_98564"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98564</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DLSO (Driver Level Switch Off)</h1>
+	
+	
+	<div><p>The <span class="keyword">DLSO</span> command activates level set 0 for the channels of those
+		sites that have the setup focus (for level set 0, see <a href="119431.htm">Controlling the
+			high-Z behavior of digital pins with level set 0</a>). By default, this means that
+		they are switched to high-impedance.</p>
+		<section class="section">The command can be used prior to switching the AC relays off with the <a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> command in order to avoid hot switching.<div class="note"><span class="title">Note</span> The selected pins are switched to high-impedance provided that<ul>
+					<li>the corresponding test head card supports high-impedance and</li>
+					<li>high-impedance is explicitly turned on using the appropriate edge action
+						and/or break vector ("F0Z", "F1Z", "FNZ") in the wavetable.</li>
+				</ul></div></section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">DLSO{(pinlist)}</pre><div></div>
+		</div><div class="syntax">
+			<h2>Parameters</h2>
+			<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0">
+								<p><var class="varname">pinlist</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<p>Pin or pins for which the channels are to be set to high
+									impedance as defined by level set 0. You can specify
+										<span class="keyword">@</span> for all pins, and
+										<span class="keyword">@NONSHARED@</span> for the resources that are
+									not shared between configured sites in a multi-site test.</p>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		
+		<h2>Example</h2><div class="example">
+			<p><span class="keyword">DLSO</span> can be used in a customized disconnect sequence
+					(<span class="filepath">disconnect.user_def</span> in the <span class="filepath">testfunc</span>
+				directory) as follows:</p>
+			<div></div><pre class="prettyprint linenums copyable">DLSO(@)
+RLYC IDLE,OFF,(@)
+...
+PSST OFF</pre><div></div>
+			<p>Executing this file instead of the standard disconnect sequence has the advantage
+				that only the sequencers of the sites that are in setup focus are switched off.
+					<span class="keyword">DLSO</span> also ensures that this is done without hot switching.
+				The standard sequence uses the <span class="keyword">SQST OFF</span> command, which switches
+				all sequencers off, not only those in setup focus.</p>
+			<div class="note"><span class="title">Note</span> The goal is to ensure that the AC relay is not open while there is current
+				flowing through it nor close the AC relay when there is a difference in potential
+				across the two AC relay terminals. That is, we want to minimize the di/dt when we
+				open or close the AC relay or PPMU relay. The clamps only help to limit the voltage
+				excursion transient from L*di/dt. So it's best if di/dt is zero or near zero so
+				clamps are not needed. This is the theory behind how to eliminate hot switching
+				damage to both the DUT as well as the tester's pin electronics. We need the device
+				connect and disconnect sequences to minimize di/dt during the switching of any relay
+				or FET between the tester pin electronics and the DUT due to the long inductive
+				cable between the pin electronics and DUT. This applies to all cards.</div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98564</span><script type="text/javascript">var ti='98564';var tt='DLSO (Driver Level Switch Off)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

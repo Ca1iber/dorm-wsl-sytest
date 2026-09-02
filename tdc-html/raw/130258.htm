@@ -1,0 +1,116 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Hidden data logging is a feature of the SMC framework that enables event-based data logging in the background."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Hidden data logging</title><meta name="keywords" content="datalog"></head><body id="_130258"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 130258</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Hidden data logging</h1>
+	
+	
+	<div><p>Hidden data logging is a feature of the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SMC framework</a> that
+		enables event-based data logging in the background.</p>
+		<p>Results of tests that are executed in the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>
+			function of the test method class are usually logged by calling <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a>.
+			Typically, <span class="keyword">SMC_SYNCHRONIZE()</span> is called in one of the last test suites
+			causing delays at the end of the testflow's execution.</p>
+		<p>In order to optimize event-based data logging with SmartCalc, the <a href="34662.htm" title="An event of this type is logged for every execution of an individual test that is part of a complete test method execution. For example, a DC test method can perform the two individual tests Leakage high and Leakage low.">TestEventType</a> event
+			type includes two attributes which let you assign a test event to the correct context (test suite
+			and site). This way, the event stream server is able to reconstruct the order of events according
+			to the order of the testflow.</p>
+		<p>SmarTest handles hidden data logging automatically, once it is enabled by the <a href="342556.htm#_342556__row_hidden_datalog_mode">hidden_datalog_mode</a> testflow
+			flag.</p>
+		<table id="_130258__table1" class="frame-topbot"><caption><span>Hidden_datalog_mode options</span></caption><colgroup><col><col></colgroup><thead>
+					<tr id="_130258__row1" class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_130258__row1__entry__1">
+							<p>Value</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_130258__row1__entry__2">
+							<p>Description</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr id="_130258__row2" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_130258__row1__entry__1">
+							<p>0</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_130258__row1__entry__2">
+							<p>Default.</p>
+							<p>Turns hidden data logging off.</p>
+						</td>
+					</tr>
+					<tr id="_130258__row3" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_130258__row1__entry__1">
+							<p>1</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_130258__row1__entry__2">
+							<p>Turns hidden data logging in compatibility mode on.</p>
+							<p>In this mode, the limits are used that are defined in the
+									<code>SMC_SYNCHRONIZE()</code> test suite.</p>
+						</td>
+					</tr>
+					<tr id="_130258__row4" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_130258__row1__entry__1">
+							<p>2</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_130258__row1__entry__2">
+							<p>Turns full hidden data logging on, including <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a>
+								support.</p>
+							<p>In this mode, the limits are used that are defined by the calling
+								test suite.</p>
+							<p>This is the recommended mode.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<div class="note"><span class="title">Note</span> Activating the hidden mode (value 1 or 2) may cause missing or unexpected data
+			log entries when you interactively execute test suites based on the SMC framework. We do not
+			recommend to activate hidden data logging for interactive execution.</div>
+		<section class="section"><h2>Difference between mode 1 and 2</h2><div class="note"><span class="title">Note</span> This differentiation is
+				important only if you use test suite limits.</div><p><strong>Mode 1</strong> allows you to stay
+				compatible using test suite <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">limits</a> defined in the
+					<code>SMC_SYNCHRONIZE()</code> test suite.</p><p>This is because limits (opposed to <a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a>) are fetched from the test suite. Any
+					<a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a> that refers to test suite limits will be executed within
+					<span class="keyword">SMC_SYNCHRONIZE()</span>, retrieving its respective limit from that
+				test suite. Thus running mode 1 with test suite limits will not hide data
+				logging.</p><p>However, <span class="keyword">SMC_TEST()</span> calls referencing a <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> object or using
+					<a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a> are executed immediately ('hidden'), since they Do not
+				rely on test suite limits.</p><p><strong>Mode 2</strong> immediately executes <span class="keyword">SMC_TEST()</span> calls including those using test
+				suite limits. However, this requires those limits to be defined within the test
+				suite where they are called!</p><div class="note"><span class="title">Note</span> If you use tests with test suite limits in mode 1 and have other tests with <a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a> or <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> in the same test suite performing multisite tests,
+				the appearance of the data log is not predictable. Therefore it is recommended to use mode
+				2.</div></section>
+		<section class="section"><h2>TMLimits within the SMC framework</h2>
+			<p>If you use TMLimits within the SMC framework together with background processing (as described in
+					<a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a>), the following rules must be observed:</p><ul>
+				<li>The functions <a href="110432.htm#_110432__dle_getLimit">getLimit()</a>, <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, and <a href="110432.htm#_110432__dle_getLimitObj">getLimitObj()</a> for retrieving data from the TMLimits table are threadsafe.</li>
+				<li>Ensure that the TMLimits table is loaded into the memory before calling <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>, for
+					example:<div></div><pre class="prettyprint linenums copyable">tmLimits.load("tmuVerify_limits.csv");
+SMC_ARM(XXX);</pre></li>
+				<li>Ensure that all required settings are done before an SMC background process is armed.</li>
+			</ul>
+			<div class="caution"><span class="title">CAUTION</span> You must not change or reload a TMLimits table while an SMC background
+				process is armed or running. Violating this rule may result in invalid data or the
+				crash of the test method.</div>
+		</section>
+		<section class="section"><h2>Restrictions with hidden data logging enabled</h2><p>If you enable the testflow flag <a href="342556.htm#_342556__row_hidden_datalog_mode">hidden_datalog_mode</a>, you cannot use the following APIs </p><ul>
+				<li>SMC_SET_TESTSUITE_NAME()<div class="note"><span class="title">Note</span> If you need to use the functionality of the
+						following APIs with hidden data logging, use the corresponding functions of <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a>.</div>
+				</li>
+				<li>SMC_TEST_TEXT(), use <a href="127802.htm" title="Appends additional comments or overwrites the content of the TEST_TXT field.">TESTSET.testtext()</a> instead.</li>
+				<li>SMC_SET_HLM_FORMAT(), use <a href="127808.htm" title="This member function of TESTSET assigns the format for displaying the higher limit in the data formatter output.">TESTSET().hlmFmt()</a> instead.</li>
+				<li>SMC_SET_LLM_FORMAT(), use <a href="127809.htm" title="This member function of TESTSET assigns the format for displaying the lower limit in the data formatter output.">TESTSET().llmFmt()</a> instead.</li>
+				<li>SMC_SET_RES_FORMAT(), use <a href="127810.htm" title="This member function of TESTSET assigns the format for displaying the results in the data formatter output.">TESTSET().resFmt()</a> instead. </li>
+			</ul><p>As noted above, Advantest recommends not to execute SMC-based test suites
+				interactively.</p></section>
+		<section class="section"><h2>Restrictions with hidden data logging disabled</h2><p>If hidden data logging is disabled (<code>hidden_datalog_mode=0</code>), some member
+				functions of the <span class="keyword">TESTSET</span> API are not supported:</p><ul>
+				<li><a href="132052.htm" title="This member function of TESTSET lets you specify one summary FTR record in multiport testing instead of individual FTR records for each port.">TESTSET().combineMultiPortTests()</a></li>
+				<li><a href="127808.htm" title="This member function of TESTSET assigns the format for displaying the higher limit in the data formatter output.">TESTSET().hlmFmt()</a></li>
+				<li><a href="127809.htm" title="This member function of TESTSET assigns the format for displaying the lower limit in the data formatter output.">TESTSET().llmFmt()</a></li>
+				<li><a href="127776.htm" title="This member function of TESTSET applies only to multiport testing. The port name specified by the name parameter is judged and logged into the event data log stream.">TESTSET().port()</a></li>
+				<li><a href="127810.htm" title="This member function of TESTSET assigns the format for displaying the results in the data formatter output.">TESTSET().resFmt()</a></li>
+				<li><a href="142450.htm" title="This member function of TESTSET causes identical test names not to be distinguished by added numbers.">TESTSET().suppressTestNameLoopCount()</a></li>
+				<li><a href="127794.htm" title="This member function of TESTSET sets a test name for a test result that is specified by the name parameter directly, which is then stored in the EDL as a TestName attribute.">TESTSET().testname()</a></li>
+				<li><a href="127792.htm" title="This member function of TESTSET cancels the test name which has been set by a prior call of the testname(const STRING &amp;name) member function and returns to the default mode.">TESTSET().testname_default()</a></li>
+				<li><a href="127806.htm" title="This member function of TESTSET sets the test type.">TESTSET().testtype()</a></li>
+				<li><a href="127804.htm" title="This member function of TESTSET sets the test type to default.">TESTSET().testtype_default()</a></li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a></div><div><a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a></div><div><a href="120084.htm" title="The API judges the test data as pass/fail and logs it. It holds information that defines numbering procedures for results in a given test suite.">SMC_TEST()</a></div><div><a href="34662.htm" title="An event of this type is logged for every execution of an individual test that is part of a complete test method execution. For example, a DC test method can perform the two individual tests Leakage high and Leakage low.">TestEventType</a></div><div><a href="20312.htm" title="The testflow flags are primarily used for debugging the testflow. The flags are available per testflow.">Testflow flags</a></div><div><a href="78941.htm" title="The data logging flags (sometimes referred to as system flags) constitute an additional set of tools that allow you to control the test program. They define global information, relevant to the whole test. The flags are available per testflow.">Testflow flags for data logging</a></div><div><a href="110432.htm" title="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file.">TMLimits</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.3</li><li>SmarTest 7.1.4: Enhanced TESTSET functions to be used within SMC framework.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 130258</span><script type="text/javascript">var ti='130258';var tt='Hidden data logging'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

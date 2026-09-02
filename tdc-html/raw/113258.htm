@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The STIL timing block and the DCLevels block selected by the active PatternExec block are used to generate V93000 timing and levels, respectively."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Timing and levels</title></head><body id="_113258"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113258</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Timing and levels</h1>
+	
+	
+	<div><p>The STIL timing block and the DCLevels block selected by the active
+			<span class="keyword">PatternExec</span> block are used to generate V93000 timing and levels, respectively. </p>
+		<p>Multiple <span class="keyword">WaveformTables</span> blocks are merged into one V93000 wavetable, but
+			they must share the same period. Each STIL waveform is translated into a V93000 waveform using
+			the physical waveform syntax. Waveform numbering and edge allocation are performed
+			automatically.</p>
+		<section class="section"><h2>Processing multibit waveforms </h2><p>Multibit waveforms in STIL are fully
+				expanded in the V93000 timing. For each multibit waveform, all possible combinations are
+				generated. </p><p>For example, consider this multibit waveform:
+				</p><pre class="prettyprint copyable singleline">tT { '0ns' L/H[0]; '2.5ns' L/H[1]; }</pre><p>It is expanded to:
+				</p><pre class="prettyprint linenums copyable">tt    {'0ns' L; '2.5ns' L; }
+tT    {'0ns' L; '2.5ns' H; }
+Tt    {'0ns' H; '2.5ns' L; }
+TT    {'0ns' H; '2.5ns' H; }</pre><p>Each
+				new waveform is accessible through a new ID, that is, the tT V93000 waveform matches
+					<code>{'0ns' L; '2.5ns' H; }</code>.</p><p>These new IDs are assigned to V93000 physical
+				waveform indexes according to their order of appearance, that is:
+			</p><pre class="prettyprint linenums copyable">tt:   0
+tT:   1
+Tt:   2
+TT:   3</pre></section>
+		<section class="section"><h2>V93000 wavetable naming algorithm </h2><p>For non-multiport setups, each
+				wavetable is named based on all STIL waveform tables that are merged into this wavetable. For
+				multiport setups, a wavetable is created for each port and named as above with the addition of
+				the port name. All wavetable names are trimmed to fit SmarTest's maximum wavetable name limit
+				(see also <a href="127227.htm" title="Blocks and elements in the files that STIL Reader generates are named according to the conventions listed below.">Naming of blocks and elements</a>).</p></section>
+		<section class="section"><h2>Device cycle naming algorithm </h2><p>Resource tags serve to define device
+				cycle names for the V93000 wavetable. They can be inserted into the STIL timing If resource tags
+				exist and are enabled (see the <span class="keyword">ignore_stil_rtags</span> setting in <a href="118728.htm" title="The translation-related options in a STIL Reader setup file let you control the output of the translation process, in particular to accommodate variations between the input and the resulting output.">Translation-related STIL Reader setup options</a>). The following example demonstrates the use of resource tags in
+				STIL:</p><pre class="prettyprint linenums copyable">Timing {
+   WaveformTable t1 {
+     Period '100ns';
+     Waveforms {
+       clk {
+         &lt;T&gt; P { '0ns' D; '25ns' U; '75ns' D; }
+       }
+       data {
+         &lt;0&gt; D { '50ns' D; }
+         &lt;1&gt; U { '50ns' U; }
+       }
+     }
+   }
+}</pre><p>When
+				translated to V93000, the wavetable will look as
+				follows:</p><pre class="prettyprint linenums copyable">PINS clk
+0 "d1:0 d2:F1N d3:F0N" T
+
+PINS data
+0 "d1:0" 0
+1 "d1:1" 1</pre><p>When
+				no resource tags exist, device cycles are named based on STIL waveform characters (WFC).
+				</p><p>When multiple waveform tables in the STIL file have the same WFC for a given signal in a
+				single pattern, an index is added to the WFC to arrive at a unique V93000 device cycle
+				name.</p><p>Note that you can define V93000 device cycle names also with the
+					<span class="keyword">dcdf_remapping</span> and the <span class="keyword">dcdf_signal_remapping</span> settings in
+					<a href="118727.htm" title="The test-processing options in a STIL Reader setup file let you configure the output of the translation process.">Test-processing STIL Reader setup options</a>.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113257.htm" title="The information from the STIL signals block is used to create the V93000 configuration file:">Signals</a></div><div><a href="113259.htm" title="STIL states are translated to V93000 edges using the following table:">Event mapping</a></div><div><a href="113278.htm" title="Pattern blocks in STIL have a one-to-one relationship to V93000 pattern files (BINL files). Exceptions to this rule occur when a pattern is realized across several V93000 ports. A pattern master file (PMFL) is always generated as well as a pattern burst (BURST) file. The pattern master file is located in the ../vectors directory and the pattern burst and all pattern files are located in the ../vectors/patterns directory.">Patterns</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113258</span><script type="text/javascript">var ti='113258';var tt='Timing and levels'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

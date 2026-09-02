@@ -1,0 +1,53 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SQRP command defines the reference port for the SQBV command. These two commands serve to synchronize the reference port with an insertion port, which is defined with the SQBV command. The assumption is that the insertion port does not admit any activation of primary sets, whereas the reference port requires such changes (so that both ports must belong to different sequencing groups). The synchronization is mainly realized by inserting an appropriate number of break vectors into the insertion port whenever primary sets are activated in the reference port."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SQRP, SQRP? - (SeQuencer Reference Port)</title><meta name="keywords" content="SQRP_, Se, Quencer"></head><body id="_98750"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98750</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SQRP, SQRP? - (SeQuencer Reference Port)</h1>
+	
+	
+	<div><p>The <span class="keyword">SQRP</span> command defines the reference port for the <a href="98745.htm" title="The SQBV command serves to synchronize the user vectors of ports that belong to different sequencing groups. It can insert break vectors at runtime at two places into all patterns of a specified port, namely:">SQBV</a> command. These two commands serve to synchronize the reference port
+		with an insertion port, which is defined with the <span class="keyword">SQBV</span> command. The assumption
+		is that the insertion port does not admit any activation of primary sets, whereas the reference
+		port requires such changes (so that both ports must belong to different sequencing groups). The
+		synchronization is mainly realized by inserting an appropriate number of break vectors into the
+		insertion port whenever primary sets are activated in the reference port.</p>
+		<section class="section"><p>The <span class="keyword">SQRP?</span> query return the current reference port.</p></section>
+		<div class="syntax"><h2>SQRP</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQRP</span> {(<span class="keyword">port</span>)}</pre></div><div class="syntax"><h2>SQRP?</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQRP?</span></pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">SQRP</span> {(<span class="keyword">port</span>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This parameter specifies the reference port.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		
+		
+		<h2>Example</h2><div class="example"><p>The following example synchronizes two ports RX and TX, each of which is the only port
+				in its sequencing group. The RX port does not admit any changes of primary sets, the TX port
+				must change its primary sets several times during the testflow. This is implemented by the <a href="98606.htm" title="The FTCG command serves to change the system behavior with respect to the activation of primary sets.">FTCG</a> command as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; FTCG SKPR,OFF,(@@)
+&gt; FTCG SKPR,ON,(RX)</pre><p>In order to
+				synchronize both ports, the time span used up by the activation sequences in TX must be filled
+				with break vectors in RX. If both ports operate with the same period length, and the PHASE flag
+				is set for both of them in the multi-port timing specification, then the number of break vectors
+				that compensates the different types of activation sequences will always be a multiple of 8. The
+				exact number must be determined by empirical tests. The required numbers could then be passed to
+					<span class="keyword">SQBV</span> as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; SQBV ,1504,TIM,(RX)
+&gt; SQBV ,22048,TIM_LEV,(RX)
+&gt; SQBV ,31784,ALL,(RX)</pre><p>The
+				reference port is TX. This is specified by</p><pre class="prettyprint copyable singleline">&gt; SQRP (TX)</pre><p>Finally,
+				the timing changes in TX may include moving receive edges across cycle boundaries, and this in
+				turn can (in rare cases) prolong the activation sequence for the next functional test. But this
+				is not acceptable, because only one value can be passed to <span class="keyword">SQBV</span> for every
+				activation sequence type. In order to secure that the length of an activation sequence is not
+				affected by the timing of the preceding test, break vectors can be inserted in TX before the
+				last activation of the respective sequence type, so that the sequence as a whole has the
+				extended length even if no cycle crossing takes place in the previous test.</p><p>The required
+				number of break vectors must again be determined by measurements. The required number of vectors
+				could then be defined as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; SQBV 128,,TIM,(TX)
+&gt; SQBV 128,,TIM_LEV,(TX)
+&gt; SQBV 128,,ALL,(TX)</pre><p>Note
+				that in this case the insertion port is identical with the reference port.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98750</span><script type="text/javascript">var ti='98750';var tt='SQRP, SQRP? - (SeQuencer Reference Port)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

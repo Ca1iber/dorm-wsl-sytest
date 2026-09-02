@@ -1,0 +1,136 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The difference between hidden calculation and parallel calculation is that the SMC_TEST() statement is moved into your SMC_backgroundProcessing() method. Once the SMC_backgroundProcessing() method has finished, the test results get buffered until a SMC_SYNCHRONIZE() is performed."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Hidden calculation</title></head><body id="_118915"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118915</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Hidden calculation</h1>
+	
+	
+	<div><p>The difference between hidden calculation and parallel calculation is that the
+			<span class="keyword">SMC_TEST()</span> statement is moved into your
+			<span class="keyword">SMC_backgroundProcessing()</span> method. Once the
+			<span class="keyword">SMC_backgroundProcessing()</span> method has finished, the test results get buffered
+		until a <span class="keyword">SMC_SYNCHRONIZE()</span> is performed.</p>
+		<p>This way the entire calculation is hidden behind the 'other test(s)' as shown in the figure
+			below. Since the test statement is within the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method, no return variables are
+			required.</p>
+		<p>For delayed data logging, a new test method has to be generated, as shown in the example
+			below.</p>
+		<div class="note"><span class="title">Note</span> If no limits are assigned to the test suite and <span class="keyword">TMLimit</span> is
+			not used, the limits assigned to <span class="keyword">SMC_SYNCHRONIZE()</span> will be used.</div><div class="p"><figure class="fignone">
+				
+				<img src="118916.png" alt="Example testflow for hidden calculation">
+			</figure></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">class sunSNRtestMethod: public testmethod::TestMethod
+{
+    private:
+
+    ARRAY_D I_Capt[MS_MAX_SITES];
+
+    protected:
+
+    virtual void initialize()
+    {
+        addLimit("test_limit");
+    }
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+
+            //
+            // Setup and execute test as usual
+            //
+            DGT("pinDGT").enable();
+            ...
+            <strong>SMC_EXECUTE_TEST(1.0);</strong>
+
+            LIMIT lim = GET_LIMIT_OBJECT("test_limit");
+
+            //
+            // Upload data per site and start calculation
+            //
+            FOR_EACH_SITE_BEGIN();
+
+                INT site = CURRENT_SITE_NUMBER();
+
+                //
+                // Upload waveform
+                //
+                I_Capt[site] = DGT("pinDGT").getWaveform();
+
+                //
+                // Kick off calculation thread
+                //
+                <strong>SMC_ARM(lim)</strong>;
+
+            FOR_EACH_SITE_END();
+
+        ON_FIRST_INVOCATION_END();
+
+    } // virtual void run()
+
+    public:
+
+    void SMC_backgroundProcessing(LIMIT lim)
+    {
+        int     hardBin;
+        int     TestNumber;
+        string  softBin;
+        DOUBLE  snr;
+        DOUBLE  sPow;
+        DOUBLE  nPow;
+
+        int     site = SMC_SITE_NUMBER();
+
+        //
+        // Do calculation
+        //
+        DSP_SNR(I_Capt[site],&amp;snr,&amp;sPow,&amp;nPow, 1024, 1, 3, 0.0, 0);
+
+        //
+        // Do judgment using the syntax
+        //
+        // SMC_TEST(const STRING&amp; pin, const STRING&amp; testname, const LIMIT&amp; limit,
+        //           DOUBLE value, Boolean Continue = FALSE, INT testNumber = -1,
+        //           const STRING&amp; softbin= "", INT hardbin = -1);
+        ...
+        ...
+
+        //
+        //Assign bin (note: selected HW and SW bin must exist in the flow) and testnumber
+        //
+        hardBin = 5; softBin = "SNRTest"; TestNumber = 1000;
+
+        <strong>SMC_TEST</strong>("pinDGT","SNR", lim, snr,TM::CONTINUE, TestNumber,softBin,hardBin);
+
+        hardBin = 7; softBin = "SigPowTest"; TestNumber = 2000;
+
+        <strong>SMC_TEST</strong>("pinDGT","signalPow", lim, sPow,TM::CONTINUE, TestNumber,softBin,hardBin);
+
+        hardBin = 8; softBin = "NoisePowTest"; TestNumber = 3000;
+
+        <strong>SMC_TEST</strong>("pinDGT","noisePow", lim, nPow,TM::CONTINUE, TestNumber,softBin,hardBin);
+
+    } // void SMC_backgroundProcessing(LIMIT lim)
+
+}; // class sunSNRtestMethod: public testmethod::TestMethod
+
+class runDelayedBinLog: public testmethod::TestMethod
+{
+    protected:
+
+    virtual void run()
+    {
+        //
+        // Wait until all calculations are done
+        //
+        <strong>SMC_SYNCHRONIZE()</strong>;
+        ...
+        ...
+    }
+
+}; // class runDelayedBinLog: public testmethod::TestMethod</pre><div></div>For
+			handling of data within the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method,
+			refer to <a href="119876.htm#_119876__s_Passing_data_to_the_background_process">Passing data to the background process</a> in <a href="119876.htm" title="Consider these general recommendations to ensure optimal performance of the SMC framework.">SmartCalc recommendations</a>.</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118915</span><script type="text/javascript">var ti='118915';var tt='Hidden calculation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

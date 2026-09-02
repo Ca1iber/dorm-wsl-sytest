@@ -1,0 +1,324 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The class GraphManager is a singleton server that manages all graphs and serves as the interface for creating, retrieving, modifying, and removing a graph."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GraphManager</title><meta name="keywords" content="Graph, Manager"></head><body id="_31246"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 31246</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GraphManager</h1>
+	
+	
+	<div><p>The class <code>GraphManager</code> is a singleton server that manages all graphs
+		and serves as the interface for creating, retrieving, modifying, and removing a graph.</p>
+		<section class="section"><p>Graphs can be modified as desired. However, any changes to a graph will not be
+				reflected unless the setGraph() API is used to set the object into the Signal Analyzer. For
+				example, if a user wants to view and change an axis label, the following steps are required:</p><ol>
+				<li>Get the Graph object from the GraphManager.</li>
+				<li>If necessary, call Graph::getXAxis() or Graph::getYAxis() to get the Axis object.</li>
+				<li>If necessary, call Axis::getLabel() to determine the current label.</li>
+				<li>Call Axis::setLabel() to change the axis label.</li>
+				<li>Call Graph::setXAxis() or Graph::setYAxis() to set the Axis object into the Graph
+					object.</li>
+				<li>CallGraphManager::setGraph().</li>
+			</ol><p>Steps 2 and 3 are necessary only if the user wants to determine the current axis
+				label.</p></section>
+		<section class="sectiontitlefake"><h2>Class definition</h2></section>
+		<section class="section"><h3>Constructors</h3><pre class="prettyprint copyable singleline">static GraphManager* getInstance();</pre></section>
+		<section class="section"><h3>Member functions</h3><p>They are listed in alphabetical order.</p><pre class="prettyprint linenums copyable">int createGraph(const Graph &amp; graph);
+void deleteGraph(int id);
+int findGraphId(const STRING &amp; title);
+const Graph &amp; getGraph(int id);
+INT_VECTOR getGraphIds(void);
+const char* getGraphTitle(int id);
+const Graph &amp; getSelectedGraph(void);
+int  getSelectedGraphId(void);
+Display::TaskMode getTaskMode();
+void hardcopy(int id);
+void init(int id);
+void loadGraph(Graph&amp; graph, const STRING &amp; file, const STRING &amp; dir);
+STRING_VECTOR openDialogBox(const GraphDialogBox &amp; dialog);
+const char* openFileSelectorDialogBox(const STRING &amp; userDir,
+                                      bool mustExist = true);
+int openGraph(char* file, char* dir, int id = 0);
+void saveGraph(const Graph &amp; graph, int id, char* file, char* dir);
+</pre><div></div><pre class="prettyprint linenums copyable">void saveGraph(const int graphId, const STRING &amp; file, const STRING &amp; dir);
+void setGraph(const Graph &amp; graph, int id);
+void setSelectedGraph(const Graph &amp; graph);
+void setTaskMode(Display::TaskMode mode);
+void xAutoScale(int graphId, int axisId);
+void yAutoScale(int graphId, int axisId);</pre></section>
+		<section class="section"><h3>Syntax</h3><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+graphManager-&gt;func;</pre><p>where
+					<code>graphManager</code> is an object of <code>GraphManager</code> and <code>func</code> is a member function of <code>GraphManager</code>.</p></section>
+		<section class="sectiontitlefake"><h2>Constructors</h2></section>
+		<section class="section"><h3>getInstance()</h3><pre class="prettyprint copyable singleline">static GraphManager* getInstance();</pre><p>This
+				function gets an object of GraphManager. Since GraphManager class does not have a public
+				constructor, using this method is the only way to get an object of GraphManager.</p></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2><p>The member function are described in alphabetical order.</p></section>
+		<section class="section"><h3>createGraph()</h3><pre class="prettyprint copyable singleline">int createGraph(const Graph &amp; <span class="keyword">graph</span>);</pre><p>This
+				function creates a graph with the specified <code>Graph</code> object. If the current task
+				mode is <kbd class="userinput">DISPLAY</kbd> or <kbd class="userinput">BOTH</kbd>, a new graph will be
+				created in the Data Display Panel and the waveform is displayed in the graph.</p><p>If the
+				current task mode is <kbd class="userinput">FILE</kbd>, graph information, including waveform data,
+				will be stored into the directory "&lt;device&gt;/waveform/.result".</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>graph</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Graph object reference.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>deleteGraph()</h3><pre class="prettyprint copyable singleline">void deleteGraph(int <span class="keyword">id</span>);</pre><p>This
+				function deletes (closes) the specified Data Display Panel. You must specify the graph ID
+				explicitly.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>id</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Identifier of each waveform display area. The value of the identifier is a positive
+									integer. If a non-positive integer is passed, an exception is returned.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>findGraphId()</h3><pre class="prettyprint copyable singleline">int findGraphId(const STRING &amp; <span class="keyword">title</span>);</pre><p>This
+				function gets the ID of the graph with the specified title.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">title</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The title of the graph.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getGraph()</h3><pre class="prettyprint copyable singleline">const Graph &amp; getGraph(int <span class="keyword">id</span>);</pre><p>This
+				function gets a graph object from the specified waveform display area. You must specify the
+				graph ID explicitly. </p><p>The graph object contains the actual display information. However,
+				if the Signal Analyzer is not running, the graph object does not contain any
+				information.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Identifier of a waveform display area. The value of the identifier is a positive
+									integer. If a non-positive integer is passed, an exception is returned.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getGraphIds()</h3><pre class="prettyprint copyable singleline">INT_VECTOR getGraphIds();</pre><p>This
+				function gets the identifiers that are recognized as the current Graph objects.</p></section>
+		<section class="section"><h3>getGraphTitle()</h3><pre class="prettyprint copyable singleline">const char* getGraphTitle(int <span class="keyword">id</span>);</pre><p>This
+				function gets the title of the graph with the specified ID.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The identifier of the graph.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getSelectedGraph()</h3><pre class="prettyprint copyable singleline">const Graph &amp; getSelectedGraph();</pre><p>This
+				function gets a graph object from the current selected graph in the signal analyzer. The graph
+				object contains the actual display information. </p></section>
+		<section class="section"><h3>getSelectedGraphId()</h3><pre class="prettyprint copyable singleline">int  getSelectedGraphId(void);</pre><p>This
+				function gets the ID of the currently selected graph in the signal analyzer.</p></section>
+		<section class="section"><h3>getTaskMode()</h3><pre class="prettyprint copyable singleline">Display::TaskMode getTaskMode();</pre><p>This
+				method returns the current task mode.</p></section>
+		<section class="section"><h3>hardcopy()</h3><pre class="prettyprint copyable singleline">void hardcopy(int <span class="keyword">id</span>);</pre><p>This
+				function sends the specified graph to the printer based on the current print setting.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Graph identifier. This is the identifier of each Data Display Panel. The value of
+									the identifier is a positive integer. If a non-positive integer is passed, an exception is
+									returned.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>init()</h3><pre class="prettyprint copyable singleline">void init(int <span class="keyword">id</span>);</pre><p>This
+				function clears the waveform in the specified graph.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>ID of the graph.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>loadGraph()</h3><pre class="prettyprint copyable singleline">void loadGraph(Graph&amp; <span class="keyword">graph</span>, const STRING &amp; <span class="keyword">file</span>, const STRING &amp; <span class="keyword">dir</span>);</pre><p>This
+				function loads the graph to the specified Graph object from the specified file.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">graph</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Graph object.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">file</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The file name.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">dir</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The file directory.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>openDialogBox()</h3><pre class="prettyprint copyable singleline">STRING_VECTOR openDialogBox(const GraphDialogBox &amp; <span class="keyword">dialog</span>);</pre><p>This
+				function opens a customizable dialog box. It is mainly used on User Defined Functions.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">dialog</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>GraphDialogBox object reference. The object has components of text field, combo box
+									and radio button. The components will be put into the dialog box.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>openFileSelectorDialogBox()</h3><pre class="prettyprint linenums copyable">const char* openFileSelectorDialogBox(const STRING &amp; <span class="keyword">userDir</span>,
+                                      bool <span class="keyword">mustExist</span> = true);</pre><p>These
+				two functions open a dialog box to select an existing file.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">userDir</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The file directory to select.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>openGraph()</h3><pre class="prettyprint copyable singleline">int openGraph(char* <span class="keyword">file</span>, char* <span class="keyword">dir</span>, int <span class="keyword">id</span> = 0);</pre><p>This
+				function opens the graph from the specified file.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">file</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The file storing the graph.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>saveGraph()</h3><pre class="prettyprint linenums copyable">void saveGraph(const Graph &amp; <span class="keyword">graph</span>, int <span class="keyword">id</span>, char* <span class="keyword">file</span>, char* <span class="keyword">dir</span>);
+void saveGraph(const int <span class="keyword">graphId</span>, const STRING &amp; <span class="keyword">file</span>, const STRING &amp; <span class="keyword">dir</span>);</pre><p>This
+				function saves a graph object into an XML file. You can then load the saved file from the
+				GUI.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">graph</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Graph object reference.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The graph identifier.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">file</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Filename of the saved XML file</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">dir</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Directory in which the XML file is saved.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setGraph()</h3><pre class="prettyprint copyable singleline">void setGraph(const Graph &amp; <span class="keyword">graph</span>, int <span class="keyword">id</span>);</pre><p>This
+				function sets a graph object into the specified waveform display area (Data Display Panel). In
+				this method, the users must specify the graph ID explicitly.</p><p>If the current task mode is
+				DISPLAY or BOTH, the waveform display area will be redrawn according to the contents of the
+				graph object.</p><p>If the current task mode is FILE, graph information, including waveform
+				data, will be stored into the directory "&lt;device&gt;/waveform/.result".</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">graph</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Graph object reference.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Identifier of a waveform display area. The value of the identifier is a positive
+									integer. If a non-positive integer is passed, an exception is returned.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setSelectedGraph()</h3><pre class="prettyprint copyable singleline">void setSelectedGraph(const Graph &amp; <span class="keyword">graph</span>);</pre><p>This
+				function sets a graph object into the current selected graph.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">graph</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The Graph object reference.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>setTaskMode()</h3><pre class="prettyprint copyable singleline">void setTaskMode(Display::TaskMode <span class="keyword">mode</span>);</pre><p>This
+				method specifies a task mode used for storing and displaying waveform data.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>mode</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The task mode to store and display waveform data. It can be</p>
+								<ul>
+									<li><kbd class="userinput">Display::NONE</kbd>: The Data Display API does nothing.</li>
+									<li>(default)<kbd class="userinput">Display::FILE</kbd>: Waveform data is always stored into the
+										directory "&lt;device&gt;/waveform/.result". The waveform data can be viewed in the
+										Waveform Navigator Tool after task execution.</li>
+									<li><kbd class="userinput">Display::DISPLAY</kbd>: Waveform data is directly displayed in a
+										waveform display area, but the waveform data will not be stored.</li>
+									<li><kbd class="userinput">Display::BOTH</kbd>: Waveform data is always stored into the directory
+										"&lt;device&gt;/waveform/.result" and the waveform data is directly displayed in a
+										waveform display area.<div class="note"><span class="title">Note</span> Waveform data can be stored or set into the tool
+											using GraphManager::setGraph(), GraphManager::createGraph(), and
+											GraphManager::setSelectedGraph().</div>
+									</li>
+								</ul></td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>xAutoScale()</h3><pre class="prettyprint copyable singleline">void xAutoScale(int <span class="keyword">graphId</span>, int <span class="keyword">axisId</span>);</pre><p>This
+				function sets the specified x axis of the specified graph to auto scale.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">graphId</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The ID of the grpah.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">axisId</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The ID of the x axis.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>yAutoScale()</h3><pre class="prettyprint copyable singleline">void yAutoScale(int <span class="keyword">graphId</span>, int <span class="keyword">axisId</span>);</pre><p>This
+				function sets the specified y axis of the specified graph to auto scale.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">graphId</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The ID of the grpah.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">axisId</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The ID of the y axis.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<h2>Examples</h2><div class="example"><h3>Copy from a
+				graph</h3><pre class="prettyprint linenums copyable">GraphManager * graphManager = GraphManager::getInstance();
+Graph graph = graphManager-&gt;getGraph(1);
+graphManager-&gt;setGraph(graph, 2);</pre><p>This
+				example copies graph 1 to graph 2.</p></div>
+		<div class="example"><h3>Close graphs</h3><pre class="prettyprint linenums copyable">try 
+{
+  GraphManager * graphManager = GraphManager::getInstance();
+  vector&lt;int&gt; identifiers = graphManager-&gt;getGraphIds();
+  int size = identifiers.size();
+  // Close all existing waveform display areas
+  for (int i = 0; i &lt; size; i++)
+  {
+    graphManager-&gt;deleteGraph(identifiers[i]);
+  }
+
+} 
+catch (GraphException &amp; e) 
+{
+  e.printError();
+}
+</pre><p>This example
+				closes all the graphs in the Signal Analyzer. If any error occurs, it will be caught and printed
+				in the UI report window and system console.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="31392.htm" title="The API use cases are sample programs about Data Plotting.">Data display API use cases</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 31246</span><script type="text/javascript">var ti='31246';var tt='GraphManager'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

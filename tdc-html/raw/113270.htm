@@ -1,0 +1,234 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Generally you will use a test method to execute a dynamic DC test and retrieve the results."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up the functional test for a dynamic DC test</title></head><body id="_113270"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113270</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up the functional test for a dynamic DC test</h1>
+	
+	
+	<div><p>Generally you will use a test method to execute a dynamic DC test and retrieve the
+		results.</p>
+		<p>The example below describes the setup of a test method which executes the functional test and
+			uploads the result. The result will include results of the pass/fail limit checks defined
+			previously for the measure events executed on the PMU signal pin (Sdd). Thus it can be used to
+			decide if the actual values need to be uploaded for further analysis. </p>
+		<div></div><pre class="prettyprint linenums copyable">...
+static const STRING pmuPinList = "Sdd, Sdd2";
+static const STRING pmuPins[2] = { "Sdd", "Sdd2" };
+static const INT    numPMUPins = 2;
+...
+
+...
+virtual void run()
+{
+  ON_FIRST_INVOCATION_BEGIN();
+    FUNCTIONAL_TEST();
+  ON_FIRST_INVOCATION_END();</pre><div></div>
+		<p>The FUNCTIONAL_TEST() call causes the ramp pattern to be executed on all active sites. In order
+			to prevent it from being called multiple times (the test flow calls the test method once for each
+			site), it must be placed in the ON_FIRST_INVOCATION_BEGIN() .. ON_FIRST_INVOCATION_END()
+			block.</p>
+		<div></div><pre class="prettyprint linenums copyable">  bool testPassed = GET_FUNCTIONAL_RESULT();
+
+  if ( ! testPassed ) {
+    cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " FAILED:" &lt;&lt; endl;</pre><div></div>
+		<p>GET_FUNCTIONAL_RESULT() retrieves the result of the functional test (that is, the pattern run)
+			and will include the results of the limit checks defined in the events for the PMU signal pin
+			(Sdd).</p>
+		<p>The functional test result is used to determine if it is required to upload the measurement
+			values for further result analysis. The values will only be uploaded if the functional test has
+			failed. This significantly improves the throughput.</p>
+		<div></div><pre class="prettyprint linenums copyable">    DC_RESULT_ACCESSOR resultAccessor;
+    resultAccessor.uploadResult(pmuPinList, TM::RESULT_INDEX);</pre><div></div>
+		<p>The DC_RESULT_ACCESSOR class is used to upload all measurement values from all pins in parallel
+			(the pins Sdd and Sdd2 are provided as pin list parameter). Alternatively you could upload only
+			the values from the failed tests, or a subrange of the measurement values.</p>
+		<div></div><pre class="prettyprint linenums copyable">    for (INT i = 0; i &lt; numPMUPins; ++i) {
+      RESULT_POINT::DistanceType numResults =
+        resultAccessor.getNumberOfAvailableResults(pmuPins[i]);
+
+      if (numResults &gt; 0) {
+        dumpResultCount(pmuPins[i], numResults);
+
+        RESULT_POINT firstPoint(resultAccessor.getFirstResultPoint(pmuPins[i]));
+        RESULT_POINT lastPoint(resultAccessor.getLastResultPoint(pmuPins[i]));
+
+        for (RESULT_POINT point = firstPoint; point &lt;= lastPoint; ++point) {
+          INT64 index = point.getIndex();
+          DOUBLE value              = resultAccessor.getValue(point);
+          RESULT_FAIL_INFO failInfo = resultAccessor.getFailInfo(point);
+          TM::PHYSICAL_VALUE type   = resultAccessor.getMeasurementType(pmuPins[i], point);
+
+          dumpResult(pmuPins[i], index, value, type, failInfo);
+        }
+      }
+    }
+  }</pre><div></div>
+		<p>After the upload, in the for() loop, the results are examined on a per pin basis.</p>
+		<p>The example uses iterator based access and provides very fine granular access, not only to
+			measured values, but also to event limit check results, clamp status information, and measurement
+			errors (for example, range overflow).</p>
+		<p>Alternatively to the example above you can access the values only. In this case you simply read
+			all measurement values of a pin in an array of doubles. Be aware that measurement errors may
+			appear. They can be detected by a magic value lower than -99999 or higher than 99999.</p>
+		<div></div><pre class="prettyprint linenums copyable">        // Simply get all values ignoring all specialties.
+        ARRAY_D values(resultAccessor.getValues(pmuPins[i], values);</pre><div></div>
+		<p>Here the complete functional test and result upload sections of the test method code, including
+			the dump routines. They show the use of the RESULT_FAIL_INFO object. </p>
+		<div></div><pre class="prettyprint linenums copyable">...
+static const STRING pmuPinList = "Sdd, Sdd2";
+static const STRING pmuPins[2] = { "Sdd", "Sdd2" };
+static const INT    numPMUPins = 2;
+
+/**
+ *Testmethod class.
+ *
+ *For each test suite using this test method, one object of this
+ *class is created.
+ */
+class DCDynDemoTests_ramp: public test method::TestMethod
+{
+protected:
+//Add your class member variable here.
+
+protected:
+/**
+ *Initialize the parameter interface to the testflow.
+ *This method is called just once after a test suite is created.
+ *
+ *Note: TestMethod API should not be used in this method.
+ */
+virtual void initialize()
+{
+  //Add your intialization code here.
+}
+
+/**
+ *This test is invoked per site.
+ */
+virtual void run()
+{
+  ON_FIRST_INVOCATION_BEGIN();
+    FUNCTIONAL_TEST();
+  ON_FIRST_INVOCATION_END();
+  
+  bool testPassed = GET_FUNCTIONAL_RESULT();
+  
+  if ( ! testPassed ) {
+    cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " FAILED:" &lt;&lt; endl;
+    
+    DC_RESULT_ACCESSOR resultAccessor;
+    resultAccessor.uploadResult(pmuPinList, TM::RESULT_INDEX);
+    
+    for (INT i = 0; i &lt; numPMUPins; ++i) {
+      RESULT_POINT::DistanceType numResults =
+        resultAccessor.getNumberOfAvailableResults(pmuPins[i]);
+      
+      if (numResults &gt; 0) {
+        dumpResultCount(pmuPins[i], numResults);
+        
+        // Using iterator based access.
+        RESULT_POINT firstPoint(resultAccessor.getFirstResultPoint(pmuPins[i]));
+        RESULT_POINT lastPoint(resultAccessor.getLastResultPoint(pmuPins[i]));
+        
+        for (RESULT_POINT point = firstPoint; point &lt;= lastPoint; ++point) {
+          INT64 index = point.getIndex();
+          DOUBLE value              = resultAccessor.getValue(point);
+          RESULT_FAIL_INFO failInfo = resultAccessor.getFailInfo(point);
+          TM::PHYSICAL_VALUE type   = resultAccessor.getMeasurementType(pmuPins[i], point);
+          
+          dumpResult(pmuPins[i], index, value, type, failInfo);
+        }
+      }
+    }
+  }
+  
+  TESTSET().cont(true).judgeAndLog_FunctionalTest();
+
+  return;
+}
+
+/**
+ *This function will be invoked once the specified parameter's value is changed.
+ *@param parameterIdentifier
+ *
+ *Note: TestMethod API should not be used in this method.
+ */
+virtual void postParameterChange(const string&amp; parameterIdentifier)
+{
+  //add your code
+}
+
+#define FMT_PASSED_FAILED(t) ((t) ? "FAILED" : "PASSED") 
+#define FMT_YES_NO(t)        ((t) ? "YES" : "NO") 
+
+void dumpResultCount(const STRING &amp; pinName,
+    RESULT_POINT::DistanceType numResults)
+{
+  cout &lt;&lt; endl &lt;&lt; "-&gt; Number of available results for pin '" &lt;&lt; pinName &lt;&lt; "': ";
+  cout &lt;&lt; numResults &lt;&lt; endl &lt;&lt; endl;
+}
+
+void dumpResult(const STRING &amp; pinName, INT64 index, DOUBLE value,
+    TM::PHYSICAL_VALUE measurementType, const RESULT_FAIL_INFO &amp; failInfo)
+{
+  cout &lt;&lt; "   Result " &lt;&lt; index &lt;&lt; " -&gt; Measurement Value: " &lt;&lt; value;
+  if (measurementType == TM::VOLTAGE) {
+    cout &lt;&lt; " V" &lt;&lt; endl;
+  } else {
+    cout &lt;&lt; " A" &lt;&lt; endl;
+  }
+  
+  if (failInfo.hasFailed()) {
+    dumpFailInfo(failInfo);
+  }
+}
+
+void dumpFailInfo(const RESULT_FAIL_INFO &amp; failInfo)
+{
+  bool hasLowLimitFailed        = failInfo.hasLowLimitFailed();
+  bool hasHighLimitFailed       = failInfo.hasHighLimitFailed();
+  bool hasUserStatusCheckFailed = failInfo.hasUserStatusCheckFailed();
+
+  cout &lt;&lt; "   -&gt; Low Limit Check  : "
+       &lt;&lt; FMT_PASSED_FAILED(hasLowLimitFailed) &lt;&lt; endl;
+  cout &lt;&lt; "   -&gt; High Limit Check : "
+       &lt;&lt; FMT_PASSED_FAILED(hasHighLimitFailed) &lt;&lt; endl;
+  cout &lt;&lt; "   -&gt; User Status Check: "
+       &lt;&lt; FMT_PASSED_FAILED(hasUserStatusCheckFailed) &lt;&lt; endl;
+  
+  if (hasUserStatusCheckFailed) {
+    dumpStatusCheckInfo(failInfo);
+  }
+}
+
+void dumpStatusCheckInfo(const RESULT_FAIL_INFO &amp; failInfo)
+{
+  bool hasLowClampViolation  = failInfo.hasLowClampViolation();
+  bool hasHighClampViolation = failInfo.hasHighClampViolation();
+  
+  bool hasMeasurementRangeViolation     = failInfo.hasMeasurementRangeViolation();
+  bool hasMeasurementTypeViolation      = failInfo.hasMeasurementTypeViolation();
+  bool hasMeasurementPlacementViolation = failInfo.hasMeasurementPlacementViolation();
+
+  cout &lt;&lt; "   -&gt; Status Information for FAIL:" &lt;&lt; endl;
+  
+  cout &lt;&lt; "      * Low  Clamp Violation           : "
+       &lt;&lt; FMT_YES_NO(hasLowClampViolation) &lt;&lt; endl;
+  cout &lt;&lt; "      * High Clamp Violation           : "
+       &lt;&lt; FMT_YES_NO(hasHighClampViolation) &lt;&lt; endl;
+  cout &lt;&lt; "      * Measurement Range Violation    : "
+       &lt;&lt; FMT_YES_NO(hasMeasurementRangeViolation) &lt;&lt; endl;
+  cout &lt;&lt; "      * Measurement Type Violation     : "
+       &lt;&lt; FMT_YES_NO(hasMeasurementTypeViolation) &lt;&lt; endl;
+  cout &lt;&lt; "      * Measurement Placement Violation: "
+       &lt;&lt; FMT_YES_NO(hasMeasurementPlacementViolation) &lt;&lt; endl;
+
+  cout &lt;&lt; endl;
+}
+
+};
+REGISTER_TESTMETHOD("DCDynDemoTests.ramp",DCDynDemoTests_ramp);
+...</pre><div></div>
+		<p>Next you must configure the connect and disconnect tasks for the dynamic DC test.</p>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113264.htm" title="You will use test methods also to connect and disconnect the signal pins of a dynamic DC test.">Setting up the (dis-)connect tasks for a dynamic DC test and building the test methods</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113270</span><script type="text/javascript">var ti='113270';var tt='Setting up the functional test for a dynamic DC test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

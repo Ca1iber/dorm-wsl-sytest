@@ -1,0 +1,175 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Merging the setups</title></head><body id="_141214"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 141214</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Merging the setups</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><h2>Merging the analog and RF setups</h2><p>Analog and RF setups can be created in
+				createAnalogSetup() and createRFsetup() function with the related APIs. In concurrent and
+				development mode, CCF merges the analog sets and RF definitions of individual tests into one
+				analog set. The figure below shows the merging of analog sets and RF definitions.</p><div class="p"><figure class="fignone">
+					
+					<img src="124338.png" alt="Merging analog sets">
+				</figure></div><p><strong>Merging the RF sequencer blocks on the same RF port</strong></p><p>CCF can merge the
+				RF definitions using the same port in the native test suites into a new RF definition according
+				to the following conditions.</p><p>For the merging of measurement definition</p><ul>
+				<li>The measurement conditions with the type of "Scalar_out", "CW Power out", "Mod Power out",
+					"Phase Noise" and "Noise Power" can be merged into one measurement definition.</li>
+				<li>A scalar measurement and a dual scalar measurement cannot be merged into a new measurement
+					definition.</li>
+				<li>The measurement definitions to be merged must have the same value for the following
+					properties: Pin Name, Tester LO, Master Clock Source, Site interlacing. </li>
+				<li>A measurement definition using the "Used with" definition can be merged with a measurement
+					definition without "Used with" definition.</li>
+				<li>The other properties can be different. But a warning message will be prompted during the
+					merging.</li>
+			</ul><p>For the merging of stimulus definition,</p><ul>
+				<li>Only the same type of stimulus definition can be merged.</li>
+				<li>The stimulus definition to be merged must have the same value for the following properties:
+					Pin Name, Stimulus Type, Stimulus MUX, Multi-Pin Stimulus and relevant slave pin (pin name and
+					its "Stimulus Path"), Site interlacing and relevant SMB setting, Stimulus Instrument, and Used
+					with Definitions. </li>
+				<li>The value of Stimulus Path can be different. If the Stimulus Path of one definition is
+					specified as Amplifier, the Stimulus Path of the merged stimulus definition will be Amplifier.
+					But a warning message will be prompted.</li>
+				<li>The other properties can be different but a warning message will be prompted.</li>
+			</ul><p>A stimulus definition cannot be merged with a measurement definition.</p><p>During the
+				merging of the RF definitions, CCF will generate a new frequency list with the name
+				mergFrequencyList_&lt;test suite name&gt;. The content of the new frequency list includes the
+				contents of all the original frequency lists. The merged RF definition will use the merged
+				frequency list. If there is "Used with" definition before merging, the frequency list name in
+				the "Used with" definition will not be changed after merging.</p><p>The value of
+					<span class="uicontrol">Frequency List Index</span> in each sequence block will be set according to the
+				new frequency list. If the value of Frequency List Index is a variable, it will not be
+				changed.</p><p>The table below shows an example of processing the frequency list in the CCF.</p><table><caption></caption><colgroup><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_141214__entry__1"><p>Test suite</p>
+							</th>
+							<th class="colsep-1" id="_141214__entry__2"><p>Frequency List name</p>
+							</th>
+							<th class="colsep-1" id="_141214__entry__3"><p>Contents of list</p>
+							</th>
+							<th class="colsep-1" id="_141214__entry__4"><p>Index in frequency list</p>
+							</th>
+							<th class="colsep-1" id="_141214__entry__5"><p>New index in merged frequency list</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_141214__entry__1"><p>RF_TS1</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__2"><p>Freq_list_1</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__3"><p>1.0e9 1.1e9 </p>
+								<p><strong>1.2e9</strong> 1.3e9</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__4"><p>2</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__5"><p>2</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_141214__entry__1"><p>RF_TS2</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__2"><p>Freq_list_2</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__3"><p>1.2e9 1.3e9</p>
+								<p>1.4e9 <strong>1.5e9</strong></p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__4"><p>3</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__5"><p>5</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_141214__entry__1"><p>RF_TS3</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__2"><p>Freq_lis_3</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__3"><p>1.6e9 <strong>1.7e9</strong></p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__4"><p>1</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__5"><p>7</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_141214__entry__1"><p>RF_merged</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__2"><p>mergFrequencyList_RF_merged</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__3"><p>1.0e9 1.1e9 </p>
+								<p><strong>1.2e9</strong> 1.3e9</p>
+								<p>1.4e9 <strong>1.5e9</strong></p>
+								<p>1.6e9 <strong>1.7e9</strong></p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_141214__entry__5"><p>&nbsp;</p>
+							</td>
+						</tr>
+					</tbody></table><p>If all the RF definitions to be merged use the same frequency list, no new frequnecy
+				list will be created and the original one will be used in the merged
+					definition.</p><p><strong>Guidelines for the test method programming</strong></p><ul>
+				<li>Handling the function block ID<p>The function block ID is changed in the merged RF
+						definition. To ensure the test method works correctly both in the concurrent mode and in the
+						serial mode, you need to use the function <code>CCTgetFuncBlkID()</code> to offset the
+						function block ID. Use <code>CCTgetFuncBlkID()+id</code> to access a function block, id is
+						the original function block
+					id.</p><pre class="prettyprint linenums copyable">SEQ_SETTINGS::RF_MEAS_CW_OUT param1;
+RF_MEAS_BASE (name).getSequenceParam(CCTgetFuncBlkID()+1,name,param1);</pre></li>
+				<li>Handling the index of frequency list<p>In the merging of RF setup, a new frequency list with
+						the name mergFrequencyList_&lt;testsuit_name&gt; is created and applied as the property
+						"Frequency List" of the merged RF definition. You need to use <code>CCTgetFrequencyIndex(int
+							original_index)</code> to convert the original frequency index to the new index in the new
+						frequency list.</p></li>
+				<li>Retrieving waveform in RF TX measurement<p>Register the TX pin with the function
+						CCTregisterTX().</p>
+					<p>The captured waveform ID is changed in the merged setup. To ensure the test method works
+						correctly both in the concurrent mode and in the serial mode, you need to offset the waveform
+						ID with the function <code>CCTgetUploadID()</code>. Use
+							<code>CCTgetUploadID()+i</code> to access the captured waveform with the original ID
+						i.</p><pre class="prettyprint linenums copyable">SMC_GET_COMPLEX_WAVEFORM("dgtPIn","handle_name",CCTgetUploadID()+i); 
+//here "i" is the original waveform ID; start from 0;</pre><p>If
+						site interlacing is enabled, access the waveform as
+					below:</p><pre class="prettyprint linenums copyable">int sitelacing_id = MEAS_DEF().getInterlacedWaveformId(CCTgetUploadID()+i); 
+//here i is the original waveform ID, start from 0
+SMC_GET_COMPLEX_WAVEFORM("dgtPIn","handle_name",sitelacing_id);</pre></li>
+			</ul></section>
+		<section class="section"><h2>Merging patterns</h2><p>CCF merges the patterns of the synchronized test suites
+				into one multiport burst label in the concurrent and development mode. You can define the
+				required ports involved in the pattern merge with the test method parameter
+					<span class="keyword">CCF_FocusedPins</span>, which means only the ports defined in the parameter will be
+				merged and the other ports will be ignored. If the <span class="keyword">CCF_FocusedPins</span> is left
+				blank, all ports in the original pattern will be merged. </p><p>If the same port is used in more
+				than one test suite, the patterns for this port will be serially merged. </p><p>If two
+				synchronized test suites use different timing sets, a <a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">CTIM</a> command
+				will be automatically added to the burst.</p><p>The two figures below show the merging of the
+				patterns in the synchronized test suites.</p><div class="p"><figure class="fignone">
+					<img src="141800.png" alt="Pattern Editor_Merging patterns of synchronized test suites">
+				</figure></div><div class="p"><figure class="fignone">
+					<img src="141799.png" alt="Pattern Merging">
+				</figure></div></section>
+		<section class="section"><h2>Merging timing setups</h2><p>The timing setup used in the synchronized test
+				suites and the first independent test suite will be merged when the block is executed in
+				concurrent and development mode.The process of timing merge is similar to the process of merging
+				patterns.</p></section>
+		<section class="section"><h2>Merging level setups</h2><p>In the concurrent and development mode, level setup
+				merging can be done for the levels defined per port in the synchronized test suites. The levels
+				defined for the pins and ports specified in the parameter <a href="122415.htm" title="Besides the parameters you defined with addParameter(), the following test method parameters are provided in the concurrent test method template."><span class="parmname">CCF_FocusedPins</span></a> of each test suite will be merged with the level
+				equation number specified in the parameter <a href="122415.htm" title="Besides the parameters you defined with addParameter(), the following test method parameters are provided in the concurrent test method template."><span class="parmname">CCF_LevelEqnNum</span></a><span class="keyword"></span> of the CCF execution test
+				suite. The level equations of the pin(s)/port(s) not included in the <a href="122415.htm" title="Besides the parameters you defined with addParameter(), the following test method parameters are provided in the concurrent test method template."><span class="parmname">CCF_FocusedPins</span></a> of any test suite will not be merged. If no
+				pins/ports are specified for the parameter <a href="122415.htm" title="Besides the parameters you defined with addParameter(), the following test method parameters are provided in the concurrent test method template."><span class="parmname">CCF_FocusedPins</span></a><span class="keyword"></span> in the CCF block, the level
+				setups used in the CCF block will not be merged.</p><p>If the same spec name is used in
+				different level equations, CCF will check whether the defined values are the same. If yes, the
+				level setup will be merged with the spec name. If the values are different, CCF will rename the
+				duplicated spec name and change all the equations using it.</p><p>If the same or less level
+				setups are used in the current CCF block comparing to one of the privious CCF blocks, it will
+				try to reuse the merged euqation set created by the previous CCF block.</p><div class="note"><span class="title">Note</span> The
+				analog sets and RF definitions can only be merged if they use the same master clock settings.
+				Multiport burst labels can only be merged if each test ensures that its pattern has the same
+				length in time on all participating pins. Otherwise the patterns of other tests are appended at
+				the end of the label and cannot be started at the same time.</div></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 141214</span><script type="text/javascript">var ti='141214';var tt='Merging the setups'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

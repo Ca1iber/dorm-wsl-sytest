@@ -1,0 +1,68 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Multi-port burst labels serve to start the execution of bursts for different ports in parallel. They consist of one or more user port bursts. The only difference between a user port burst and a normal single-port burst is that the user port burst is associated with a port that is defined by the user and will usually contain only a proper subset of the configured pins, whereas a single-port burst is defined for the default port @."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multi-port burst labels</title><meta name="keywords" content="pattern vector label multiport"></head><body id="_105164"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105164</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multi-port burst labels</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="55530.htm" title="In a multi-port context, the timing setup is defined in a multi-port timing specification (see Multi-port timing specifications), the vector setup in a multi-port burst (see Multi-port burst labels). Each of these two constructs specifies a set of ports, which are called timing ports and vector ports, respectively. The relations between timing and vector ports can be handled flexibly.">Timing ports and vector ports</a></li><li><a href="119902.htm" title="Usually, both the timing and the vector ports of a multi-port setup will include all configured pins. But it is also possible to work with incomplete setups, where either the timing ports or the vector ports or both do not cover all pins. Note, however, that some combinations must be used with care.">Incomplete multi-port setups</a></li><li><a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a></li></ol></div></nav>
+	
+	
+	<div><p>Multi-port burst labels serve to start the execution of bursts for different ports in
+		parallel. They consist of one or more user port bursts. The only difference between a user port
+		burst and a normal single-port burst is that the user port burst is associated with a port that is
+		defined by the user and will usually contain only a proper subset of the configured pins, whereas
+		a single-port burst is defined for the default port <span class="keyword">@</span>.</p>
+		<p>The ports belonging to a multi-port burst may not cover all configured pins. Pins that are not
+			included in the multi-port burst will be supplied with break vectors. Thus, a multi-port burst
+			may contain only one user port burst.</p>
+		<p>Multi-port burst labels are the only label type whose name is not unique across ports. In fact,
+			the identical label name in the different ports indicates which ports are included in the
+			multi-port burst label. Note, however, that the multiple occurrences of a multi-port burst label
+			name are made unique internally by adding the <span class="keyword">@</span> character and the port name to
+			the name. Thus, the format of the internal name is</p>
+		<p><span class="keyword">&lt;label&gt;</span><span class="keyword">@</span><span class="keyword">&lt;port_name&gt;</span></p>
+		<p>Some commands (for example, <a href="98490.htm" title="The BLUP command serves to modify information about changes of sequencer labels (patterns). It should be used with care.">BLUP</a> and <a href="103621.htm" title="The SQLA command associates attributes with a label. The attributes define the memory type and the pin mode context. The label must have been defined with the SQLB or APTS command. A change of the memory type is only possible as long as no vectors have been defined for the label.">SQLA</a>) require, or return, this internal name.</p>
+		<p>The sequencer programs for a multi-port burst label have the same structure as those for a
+			normal burst label.</p>
+		<section class="section"><h2>Limits</h2><ul>
+				<li>The maximum number of labels is limited to 32766 labels per port.</li>
+				<li>The maximum number of ports is 256.</li>
+				<li>The number of main labels that are called from a burst is limited by the sequencer memory of
+					the channel.<p>Each call uses 8 bytes of sequencer memory.</p></li>
+				<li>The maximum number of labels in the pattern master file is determined by the same
+					limits.</li>
+			</ul></section>
+		<h2>Example</h2><div class="example"><p>The following listing shows the definitions of a multi-burst label for the ports
+					<code>port1</code> and
+				<code>port4</code>:</p><pre class="prettyprint linenums copyable">SQLB "MP_burst",MPBU,6,7,"vg1",(port1)
+SQLB "MP_burst",MPBU,5,6,"vg2",(port4)</pre><p>The
+				next to last parameter specifies a sequencing group (also called synchronization group) for the
+				respective port, see <a href="104317.htm" title="In a multi-port setup, the patterns of different ports can be run in parallel at different speed (with different period lengths). In this case corrective actions must be taken if the user vectors of these ports are to be (re)started simultaneously or at least coordinated in some way. SmarTest supplies two such correction methods of different strength.">Synchronizing vectors in a multi-port setup</a>.</p><p>The associated sequencer programs look as
+				follows:</p><pre class="prettyprint linenums copyable">SQPG 6,CALL,,"pat1",,(port1)
+SQPG 7,BEND,,,,(port1)</pre><p>and:</p><pre class="prettyprint linenums copyable">SQPG 5,CALL,,"pat4",,(port4)
+SQPG 6,BEND,,,,(port4)</pre><p>The
+				sequencer programs of the <span class="keyword">MAIN</span> labels that are called by the two port bursts
+				could look as
+				follows:</p><pre class="prettyprint linenums copyable">SQLB "pat1",MAIN,0,5,"wavetable A",(port1)
+SQPG 0,STVA,,0,,(port1)
+SQPG 1,STSA,,,,(port1)
+SQPG 2,GENV,56,,,(port1)
+SQPG 3,CTIM,2,,,(port1)
+SQPG 4,GENV,221,,,(port1) 
+SQPG 5,STOP,,,,(port1)
+
+SQLB "pat4",MAIN,0,4,"wavetable B",(port4)
+SQPG 0,STVA,,0,,(port4)
+SQPG 1,STSA,,,,(port4)
+SQPG 2,RPTV,3,25,,(port4)
+SQPG 3,GENV,122,,,(port4)
+SQPG 4,STOP,,,,(port4)</pre><p>If
+				you combine this vector setup with the multi-port timing specification of <a href="10599.htm" title="Multi-port testing allows you to run different, and mutually independent, sequencer programs (see The sequencer program) with different timing setups for different groups of pins (called ports) in parallel.">Multi-port timing specifications</a>, the complete setup could be illustrated in schematic
+				form as follows:</p><div class="p"><figure class="fignone">
+					
+					<img src="105266.png" alt="Combining timing and vectors in a multi-port setup">
+				</figure></div><p>The timing setup information is contained in the upper half of the blocks
+				representing the individual pins. It contains not only the specification data, but also the
+				timing set to be used at pattern start. The sequencer programs are represented in the lower
+				half. Note that the ports for the timing and those for the vectors are different. For more
+				details on this see <a href="55530.htm" title="In a multi-port context, the timing setup is defined in a multi-port timing specification (see Multi-port timing specifications), the vector setup in a multi-port burst (see Multi-port burst labels). Each of these two constructs specifies a set of ports, which are called timing ports and vector ports, respectively. The relations between timing and vector ports can be handled flexibly.">Timing ports and vector ports</a>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="103621.htm" title="The SQLA command associates attributes with a label. The attributes define the memory type and the pin mode context. The label must have been defined with the SQLB or APTS command. A change of the memory type is only possible as long as no vectors have been defined for the label.">SQLA, SQLA? - (SeQuencer Label Attribute)</a></div><div><a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG, SQPG? - (SeQuencer ProGramming)</a></div><div><a href="98490.htm" title="The BLUP command serves to modify information about changes of sequencer labels (patterns). It should be used with care.">BLUP - (BLock UP to date)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.0: Max number of ports increased to 256</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105164</span><script type="text/javascript">var ti='105164';var tt='Multi-port burst labels'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

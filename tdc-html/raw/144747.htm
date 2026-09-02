@@ -1,0 +1,155 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI supports the hidden upload for the measurement with digitizer, RF measurement, DC measurement, and digital capture test, error maps and TMU."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using hidden upload with SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_144747"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144747</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using hidden upload with SmartRDI</h1>
+	
+	
+	<div><p>SmartRDI supports the hidden upload for the measurement with digitizer, RF
+		measurement, DC measurement, and digital capture test, error maps and TMU.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div>
+			
+			<p>SmartRDI provides the <a href="144748.htm" title="Enables or disables the hidden upload for the specified type of measurement in the following RDI blocks.">rdi.hiddenUpload()</a> function to enable the hidden upload
+				functionality. The functions to retrieve the test result with the hidden upload are the same
+				functions to retrieve the test result without hidden upload.</p>
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>In the <span class="keyword">run()</span> function of the test method class,</span>
+				<ol type="a">
+					<li>
+						<span>Enable the hidden upload with the function <a href="144748.htm" title="Enables or disables the hidden upload for the specified type of measurement in the following RDI blocks.">rdi.hiddenUpload()</a>.</span>
+					</li>
+					<li>
+						<span>Execute the test as usual in an <a href="142604.htm#_142604__dle_RDI_block">RDI block</a>.</span>
+					</li>
+					<li>
+						<span>Start the hidden upload with <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>.</span>
+					</li>
+				</ol>
+			</li><li>
+				<span>Retrieve the result with SmartRDI <span class="keyword">get...()</span> functions in the
+						<span class="keyword">public</span> method <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> of the test method class. No
+					unique result ID is required for the result retrieval functions.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div>
+			<p>The test result will be uploaded through hidden upload.</p>
+			<p>Notes on the usage:</p>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> In the first run after build/TM termination, SmartRDI will do
+					normal uploads instead of hidden uploads for all user-specified hidden-upload
+					results. The purpose is to prevent the conflict between hidden uploads and setup
+					generation.</div>
+			</div>
+			<div class="p"><div class="note"><span class="title">Note</span> <span class="keyword">SMC_backgroundProcessing()</span> supports all
+						<span class="keyword">rdi.id().get...()</span> functions and tool functions, except for the following
+						<span class="keyword">get...()</span> functions: <ul>
+						<li><span class="keyword">rdi.getBuildDate()</span></li>
+						<li><span class="keyword">rdi.getActiveRdiRev()</span></li>
+						<li><span class="keyword">rdi.getCompileRdiRev()</span></li>
+						<li><span class="keyword">rdi.getLabelCycleNum()</span></li>
+						<li><span class="keyword">rdi.getCommentCycleNum()</span></li>
+						<li><span class="keyword">rdi.getCommentVectorNum()</span></li>
+						<li><span class="keyword">rdi.getPriAnaSet()</span></li>
+					</ul><p>Except for <span class="keyword">get...()</span> and tool commands,
+							<span class="keyword">SMC_backgroundProcessing()</span> does not support other SmartRDI
+					commands.</p></div>Refer also to <a href="118825.htm#_118825__s_Automatic_check_for_thread_safe_APIs">Automatic check for thread-safe APIs</a> in <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>: SmarTest will throw an error message if an API used in
+					<span class="keyword">SMC_backgroundProcessing()</span> is not thread-safe<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a></div>
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div>
+			<div class="p">RF and
+				DC<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        rdi.hiddenUpload(TA::ALL);
+
+        RDI_BEGIN();
+        {
+            rdi.rfm("id1").pin("A").signal(TA::MOD_OUT).freq(1e9).bw(2e6).execute();
+            rdi.dc("id2").pin("A").iForce(1 mA).vMeas().execute();
+            rdi.dc("id3").pin("B").vForce(1 V).iMeas().average(5).execute();
+        }
+        RDI_END();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing()
+{
+    double pwr = rdi.id("id1").getPower();
+    double r1 = rdi.id("id2").getValue();
+    double r2 = rdi.id("id3").getValue();
+}</pre></div>
+			<div class="p">Digitizer and digital
+				capture<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        rdi.hiddenUpload(TA::ALL);
+
+        RDI_BEGIN();
+        {
+            rdi.dgt("id1").pin("A").samples(1024).filter(1e6).FS(20e6).execute();
+            rdi.digCap("id2").pin("A").samples(1024).execute();
+        }
+        RDI_END();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing() 
+{
+    ARRAY_D wave1 = rdi.id("id1").getWaveform(); 
+    ARRAY_I bits  = rdi.id("id2").getVectorBit(); 
+}</pre></div>
+			<div class="p">Error
+				map<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        rdi.hiddenUpload(TA::ALL); // Include the EMAP mode
+
+        RDI_BEGIN();
+        {
+            rdi.smartVec("rb").pin("A").readBit(100).execute();
+            rdi.emap("fc").label("bbb").pin("A").failCyc().execute();
+        }
+        RDI_END();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    SMC_ARM();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing()
+{
+    rdi.id("rb").getReadBit();
+    rdi.id("fc").getFailCyc();
+}</pre></div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="141504.htm" title="SmartRDI provides the class digCap() and the following functions to set up digital capture tests.">SmartRDI: Digital capture test setup</a></div><div><a href="141501.htm" title="SmartRDI supports DC tests with PPMU, BADC, and DC Scale on V93000.">SmartRDI: DC test setup</a></div><div><a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li><li>SmartRDI 2.4.2: No unique result ID requirement and non-hidden upload result
+					retrieval commands in SMC_BackgroundProcessing.</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  SmarTest 7.5.3 and newer
+					versions.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144747</span><script type="text/javascript">var ti='144747';var tt='Using hidden upload with SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

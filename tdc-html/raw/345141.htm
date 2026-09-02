@@ -1,0 +1,262 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI features alarm handling for DCVI channels by inserting compare events between measurements and judging pass or fail based on alarm limit values set in the alarm setup file."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmartRDI: Alarm handling for DCVI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_345141"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 345141</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmartRDI: Alarm handling for DCVI</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="345140.htm" title="An alarm setup file contains groups of limit setups for all the pins on which alarm checks are applied.">Alarm setup file</a></li><li><a href="345173.htm" title="SmartRDI provides alarm checking commands to specify alarm sets, enable or disable alarm checking on pins, and set limit values.">Alarm handling commands</a></li></ol></div></nav>
+	
+	
+	<div><p>SmartRDI features alarm handling for DCVI channels by inserting compare events between
+		measurements and judging pass or fail based on alarm limit values set in the alarm setup
+		file.</p>
+		<section class="section">
+			<p>The following sections are available in this topic:</p>
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<ul>
+									<li><a href="345141.htm#_345141__s_Overview">Overview</a></li>
+									<li><a href="345141.htm#_345141__s_Applicable_pins">Applicable pins</a></li>
+									<li><a href="345141.htm#_345141__s_Alarm_compare_event_insertion">Alarm compare event insertion</a></li>
+									<li><a href="345141.htm#_345141__s_Alarm_handling_on_ports">Alarm handling on ports</a></li>
+								</ul>
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<ul>
+									<li><a href="345141.htm#_345141__s_Alarm_handling_with_connection_sets">Alarm handling and connection sets</a></li>
+									<li><a href="345141.htm#_345141__s_Alarm_checks_disabled_by_current_threshold">Alarm checks disabled by current threshold</a></li>
+									<li><a href="345141.htm#_345141__s_Application">Application</a></li>
+								</ul>
+							</td>
+						</tr>
+					</tbody></table>
+		</section>
+		<section class="section" id="_345141__s_Overview"><h2>Overview</h2>
+			
+			<p>SmartRDI handles alarms in <span class="keyword">vForce</span>, <span class="keyword">iForce</span>, and
+					<span class="keyword">vPulse</span> or <span class="keyword">iPulse</span> modes.</p>
+			<p>In the <span class="keyword">vForce</span> mode, the voltage is checked and compared whether it is
+				settled around the expected force value. The following image demonstrates the concept.</p>
+			<p><img src="345240.png" alt="Compare actual value and expected value"></p>
+			<p>In the <span class="keyword">iForce</span> mode, the voltage is checked and compared whether it is
+				within the clamp low and high values and the setup limits. The following image demonstrates the
+				concept.</p>
+			<p><img src="345241.png" alt="Compare actual and expect values"></p>
+			<p>After the compare, if the actual value is not in the range of the limit values specified in
+				the alarm setup file, SmartRDI reports an alarm in the report window.</p>
+			<p>For <span class="keyword">vPulse</span> and <span class="keyword">iPulse</span>, the alarm check is added to the
+				level of the pulse after measurement. </p>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> For iForce() and iPulse() scenarios, verify the actual vClamp values first. If
+					the values are not correct, change them as required. For example, specifying a correct vClamp
+					value.<div></div><pre class="prettyprint copyable singleline">rdi.dc(id).pin(pinA).iPulse(300 mA, 0 mA, 300 us).vClamp(-1 V, 3 V).vMeas().measWait(270 us).execute();</pre></div>
+			</div>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="346507.png" alt="Pulse level compare">
+				</figure>
+			</div>
+		</section>
+		<section class="section" id="_345141__s_Applicable_pins"><h2>Applicable pins</h2>
+			
+			<p>SmartRDI supports pins from the following cards: </p>
+			<div class="p">
+				<ul>
+					
+					
+					
+					<li>DPS128-HC</li>
+					<li>XPS256</li>
+				</ul>
+			</div>
+			<p>If a pin is in one of the following status, the alarm checking cannot be applied on it: </p>
+			<div class="p">
+				<ul>
+					<li>Disconnected</li>
+					<li>High-impedance mode (HiZ)</li>
+					
+				</ul>
+			</div>
+		</section>
+		<section class="section" id="_345141__s_Alarm_compare_event_insertion"><h2>Alarm compare event insertion</h2>
+			
+			<p>SmartRDI automatically inserts alarm checking events into bursts without changing the
+				coding.</p>
+			<p><img src="345239.png" alt="SmartRDI automatically inserts alarm checking events"></p>
+			<div class="p">
+				<ul>
+					
+					<li>Automatic setup of <a href="143538.htm" title="Specifies a range (maximum possible value) for the voltage to measure on the DC Scale pins in the signal mode.">vMeasRange()</a> for DPS128: <p>In SmartRDI 7.5.0, the alarm checking for DPS128 and PVI8 cards is a
+								<span class="keyword">vMeasRange().measWait().vMeas().limit(lo,hi)</span> event. This is because these
+							cards need <span class="keyword">vMeasRange()</span> to activate them entering the voltage measurement
+							mode (vMeas mode).</p><p>In 7.5.1, SmartRDI will not add
+								<span class="keyword">vMeasRange().measWait().vMeas().limit(lo,hi)</span> in the following events: </p><div class="p">
+							<ul>
+								<li>The first alarm event after <span class="keyword">RDI_BEGIN</span>.</li>
+								<li>The first alarm event after a <span class="keyword">vForce</span> change.</li>
+								<li>The first alarm event after an <span class="keyword">iMeasRange()</span> user-defined or added
+									automatically by SmartRDI alarm handling. </li>
+							</ul>
+						</div></li>
+					<li>
+						<p>Automatic setup of <a href="143537.htm" title="Specifies a current measurement range.">iMeasRange()</a> for DPS128:</p>
+						<p>In SmartRDI 7.5.0, if a user-defined <span class="keyword">iMeas()</span> is executed on an alarm
+							pin, SmartRDI will generate a warning that tells you to call an
+								<span class="keyword">iMeasRange()</span> command first before the <span class="keyword">iMeas()</span> command
+							within the same <span class="keyword">execute()</span> action.</p>
+						<div class="p">In 7.5.1, SmartRDI automatically adds the <span class="keyword">iMeasRange()</span> command for you
+							in the code when both of the following conditions are met: <ul>
+								<li><span class="keyword">iMeas()</span> is in the voltage measurement mode (vMeas mode). </li>
+								<li>The vMeas mode (<span class="keyword">vMeasRange</span>) has already been set by alarm handling.
+								</li>
+							</ul></div>
+					</li>
+					<li>After a runtime <span class="keyword">vForce</span> or <span class="keyword">vClamp</span> value has been
+						performed on a pin, the alarm compare event will not be added for the pin until the next fixed
+							<span class="keyword">vForce</span> or <span class="keyword">vClamp</span> value appears. The reason is that the
+						target value has been changed.</li>
+				</ul>
+			</div>
+			<div class="p">The basic rule is that all of SmartRDI commands with an ID can trigger an alarm checking
+				insertion. These commands include but are not limited to: <ul>
+					<li>
+						<p><span class="keyword">rdi.func("id")</span>: Inserts a compare pattern after the current pattern.</p>
+					</li>
+					<li>
+						<p><span class="keyword">rdi.smartVec("id")</span>: Inserts a compare pattern after the current pattern.
+						</p>
+					</li>
+					<li>
+						<p><span class="keyword">rdi.tmu("id").pin("digital")</span>: Inserts a compare pattern after the
+							current ARM pattern.</p>
+					</li>
+					<li>
+						<p><span class="keyword">rdi.tmu("id").pin("DCS")</span>: Insert a compare event inside the current
+							pattern after ARM event.</p>
+					</li>
+					<li>
+						<p><span class="keyword">rdi.dc("id").pin("DCS")</span>: Insert a compare event inside the current
+							pattern after MEAS event.</p>
+					</li>
+				</ul></div>
+		</section>
+		<section class="section" id="_345141__s_Alarm_handling_on_ports"><h2>Alarm handling on ports</h2>
+			
+			<p>SmartRDI 7.5.0 does not generate alarms for pins that are not in the same port of measurement. </p>
+			<p>SmartRDI 7.5.1 can generate alarms not only for the pins that are in the same port of
+				measurement also for pins that are not in the same port. This means a measurement also can
+				trigger the alarm checking on another port besides its own. After the measurement, the alarm
+				checking event will be added to the port right after a <span class="keyword">portSync()</span> event. </p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="346532.png" alt="Alarm checking on other ports">
+				</figure>
+			</div>
+			<p>The alarm will be added after the first action done in the "alarm" port. </p>
+			<p>SmartRDI 7.5.2 allows the inserted alarm checking event to trigger a hidden port
+				synchronization after alarm compare.</p>
+			<div class="p">The following code example illustrates when the alarm event can be added to pins on another
+				port - "port
+				B".<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+   rdi.port(A)...
+   rdi.port(A)... // Measurement
+   rdi.portSync();  
+   // NO alarm event on port B because NO action on port B before the portSync() above. 
+   rdi.port(B)... // Port B action
+   rdi.port(A)...
+   rdi.port(A)...  // Measurement
+   rdi.portSync()... // Alarm event on port B.
+RDI_END();</pre></div>
+		</section>
+		<section class="section" id="_345141__s_Alarm_handling_with_connection_sets"><h2>Alarm handling and connection sets</h2>
+			
+			
+			<p><a href="105634.htm#_105634__r_Connection_Set">Connection sets</a> allow you
+				reusing pins with another name or configuring pins that are otherwise used as gang group.
+				Reusing channels in gang configurations is called "Ganging on the fly".</p>
+			<p>Connection sets are defined in the <span class="uicontrol">Connection Set</span> column of the <a href="105634.htm" title="Digital pins and DC Scale pins in PMU operating mode are configured in the Digital Pins editor.">Digital Pins editor</a>. An empty string parameter defines the default connection set.</p>
+			<p>For pins that use
+							connection sets, pattern containing DC events must be set up as a
+							multiport burst. A port can only contain pins with the same connection
+							set or only pins with the default connection set. The use of a multiport
+							timing is required if connection sets are defined for the related
+							pins.</p>
+			<div class="p">If you use alarm handling in combination with connection sets, you must follow these rules:<ul>
+					<li>If you use connection sets in combination with a single-port pattern, you must ensure that
+						all pins defined by the currently active alarm set are in the default connection set.</li>
+					<li>If alarm handling is required for pins that are defined for another connection set, you
+						must use <a href="350190.htm" title="SmartRDI supports multi-port programming. With a multiport setup, you can take advantage of the tester's per-pin architecture.">multiport programming</a> and assign the pins of the other
+						connection set to a separate port.</li>
+				</ul></div>
+			<div class="note"><span class="title">Note</span> If the channel is disconnected on purpose, SmartRDI will skip alarm handling.
+				If the disconnect is caused by an erroneous situation, such as missing kelvin connection,
+				SmartRDI will get this flag and set alarm handling checking.</div>
+		</section>
+		<section class="section" id="_345141__s_Alarm_checks_disabled_by_current_threshold"><h2>Alarm checks disabled by current threshold</h2>
+			
+			<p>Starting from SmartRDI 7.5.3, you can define a current threshold to disable alarm checks
+				globally or per pin.</p>
+			<p>In the <a href="345140.htm" title="An alarm setup file contains groups of limit setups for all the pins on which alarm checks are applied.">alarm setup file</a>, you can use <a href="345144.htm#_345144__li_xxd_yzn_xjb">GlobalDisableAlarmIth</a> to define a global current
+				threshold value for globally disabling alarm checking actions; or use <a href="345144.htm#_345144__li_xxd_yzn_xjb">DisableAlarmIth</a> to define a current threshold value per
+				pin for disabling alarm checking on a specific pin.</p>
+			<p>In SmartRDI code, you can use <a href="345173.htm#_345173__li_drg_bzn_xjb">rdi.alarm().globalDisableAlarmIth()</a> or <a href="345173.htm#_345173__li_gjm_dzn_xjb">rdi.alarm().pin(pinA).disableAlarmIth()</a> to define a current threshold value. See the
+				following example.</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">rdi.alarm().globalDisableAlarmIth(5 uA);
+rdi.dc().pin("FVI01").vForce(1).iClamp(-1 mA,1 mA)
+        .pin("FVI02").vForce(2).iClamp(-2 uA, 2 uA).execute();  // Alarm checking on FVI02 is disabled.
+
+RDI_BEGIN();
+  rdi.....execute(); // Any measurements that trigger alarm checking on FVI01, not on FVI02.
+  rdi.dc().pin("FVI02").iForce(1 mA).execute(); // 1 mA &gt; 5 uA, alarm checking on FVI02 is enabled.
+  rdi.....execute(); // Any measurements that trigger alarm checking on FVI01 and FVI02.
+DI_END();</pre><div></div>
+			</div>
+		</section>
+		<section class="section" id="_345141__s_Application"><h2>Application</h2>To use the features of alarm handling for
+			DCVI, you must first add two keywords in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>: <div class="p">
+				<ul>
+					<li><span class="keyword">ALARM_HANDLING_DCVI_ENABLE</span>: Enable the alarm handling. The default value
+						is <span class="keyword">FALSE</span>.<p>This keyword is a general switch of alarm handling. If you set
+							it to <span class="keyword">FALSE</span>, NO actions related to alarm handling for DCVI will take
+							effect.</p><p>An alarm setup template file will be generated in the
+								<span class="filepath">testmethod</span> folder when the alarm handling is enabled in the
+							RDI_Configure file. See <a href="345140.htm" title="An alarm setup file contains groups of limit setups for all the pins on which alarm checks are applied.">Alarm setup file</a> for the template.
+						</p></li>
+					<li><span class="keyword">ALARM_HANDLING_DCVI_SETUP_FILE</span>: Specify the path where your alarm setup
+						file is stored. You can use different alarm handling setups for different testflows as you can
+						use RDI_CONFIGURE_FILE to specify a RDI_Configure file for each testflow.</li>
+				</ul>
+			</div><p>Second, you must have created an alarm setup file or several alarm setup files by
+				following limit setting rules. See <a href="345140.htm" title="An alarm setup file contains groups of limit setups for all the pins on which alarm checks are applied.">Alarm setup file</a> and <a href="345145.htm" title="Low and high limit values are determined by vForce or vClamp related values. For vForce, the decisive values are vForce, LimitRelForce, and LimitMinDisForce. For vClamp, the decisive values are vClampLo, vClampHi, and LimitRelClamp.">Limit setup of alarm checking</a> for more
+				information.</p><p>Third, you can add alarm handling commands to your test method. This is
+				optional. </p><p>You must add the alarm result retrieval and data log to the data log function
+				used in the test method code.</p><p>Finally, build and run your test program.</p><div class="p">
+				<div class="note"><span class="title">Note</span> If an alarm checking fails in a burst, the general burst Pass/Fail result
+					fails too. The reason is that the alarm pin's fail contributes to the general burst Fail
+					result.</div>
+			</div></section>
+		<section class="section" id="_345141__alarm_check_on_pins_with_runTimeVal"><h2>Alarm checking on pins using runTimeVal()</h2>
+			
+			<div class="p">Starting from <span>7.10.3</span>, SmartRDI supports
+				alarm handling on pins which work with <span class="keyword">runTimeVal()</span>. For
+				example,<div></div><pre class="prettyprint linenums copyable">...
+rdi.runTimeVal("rtvForce", rtvForce);
+rdi.dc().pin("rtvPin").vForce(0 V).iClamp(50 uA).execute();
+
+RDI_BEGIN();
+  ...
+  rdi.dc("id").pin("rtvPin").vForce("rtvForce").iClamp(50 uA)
+                            .vMeas().measwait(100 us).execute();
+  ...
+RDI_END(); </pre></div>
+			<p>The limits for alarm checking events are based on vForce/vClamp runtime values. RDI will
+				update the values during execution.</p>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.5.0</li><li>SmartRDI 7.5.1: Measurement can trigger alarm checking on other ports besides its
+					own.</li><li>SmartRDI 7.5.1: Alarm handling can add alarm checking to the level of pulse after
+					measurement.</li><li>SmartRDI 7.5.1: Alarm handling can automatically handle vMeasRange() and iMeasRange() on DPS128
+					and PVI8 cards. </li><li>SmartRDI 7.5.2: Alarm checking can trigger a hidden port synchronization with portSync() after
+					alarm compare.</li><li>SmartRDI 7.5.3: Alarm checking can be disabled by current limits.</li><li>Introduced in SmartRDI 7.10.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 345141</span><script type="text/javascript">var ti='345141';var tt='SmartRDI: Alarm handling for DCVI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

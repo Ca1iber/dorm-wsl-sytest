@@ -1,0 +1,108 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This element stores results of a digital capture test performed using the SmartRDI's digCap() class."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The &lt;digCap&gt; element</title><meta name="keywords" content="dig, Cap"></head><body id="_343533"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343533</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The &lt;digCap&gt; element</h1>
+	
+	
+	<div><p>This element stores results of a digital capture test performed using the SmartRDI's
+			<code>digCap()</code> class.</p>
+		<section class="section">
+			<p>The <span class="keyword">&lt;digCap&gt;</span> element stores digital capture test results in its
+					<span class="keyword">vectorBit</span> and <span class="keyword">vector</span> attributes. The
+					<span class="keyword">vectorBit</span> attribute saves digital capture test results returned by a
+					<code>getVectorBit()</code> function, while <span class="keyword">vector</span> attribute saves
+				results returned by <code>getVector()</code>.</p>
+			<table class="frame-all"><caption></caption><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead>
+						<tr>
+							<th class="colsep-1 rowsep-1" id="_343533__entry__1">Get Result Function in SmartRDI</th>
+							<th class="colsep-1 rowsep-1" id="_343533__entry__2">
+								<p>ORE File Syntax Example</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_343533__entry__1">
+								<p>ARRAY_I&amp; getVectorBit(pi );</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_343533__entry__2">
+								<p>&lt;digCap vectorBit = "./waveform1.txt" /&gt; </p>
+								<p>&lt;digCap vectorBit = "1,0,1,1,1,0,0,0,1" /&gt;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_343533__entry__1">
+								<p>ARRAY_I&amp; getVector(pin);</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_343533__entry__2">
+								<p>&lt;digCap vector = "./waveform2.txt" /&gt; </p>
+								<p>&lt;digCap vector = "1,2,3,5,7,8" /&gt;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_343533__entry__1">ARRAY_I&amp; getVectorFromVV(vvName);</td>
+							<td class="colsep-1 rowsep-1" headers="_343533__entry__2">&lt;digCap vectorFromVV = "1,2,3,4,5,6"/&gt;</td>
+						</tr>
+					</tbody></table>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			
+			<p>Below is an example of the <span class="keyword">&lt;digCap&gt;</span> element and its corresponding
+				SmartRDI code block.</p>
+			<p>An ORE file containing <span class="keyword">&lt;digCap&gt;</span> elements:</p>
+			<div></div><pre class="prettyprint linenums copyable">&lt;offlineResultEmulation&gt;
+  &lt;id name = "digcap1"&gt;
+    &lt;pin name = "DATA1"&gt;
+      &lt;digCap vector = "1,2,3,4,5,6,"/&gt;
+    &lt;/pin&gt;
+  &lt;/id&gt;
+&lt;/offlineResultEmulation&gt;</pre><div></div>
+			<div class="p">The corresponding SmartRDI code block that can generate this ORE
+				file:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.digcap("digcap1").pin("DATA1")
+     .samples(6).bitPerWord(4)
+     .capMode(TA::SER).execute();
+RDI_END();
+...
+rdi.id("digcap1").getVector("DATA1");    // {1,2,3,4,5,6}
+rdi.id("digcap1").getVectorBit("DATA1"); //{0,0,0,1,0,0,1,0,0,0,1,1,0,1,...}</pre></div>
+			<p>With serial capture, for the same result id based on bitPerWord, vector and vectorBit can be
+				converted to each other. However, in most case, this conversion is unnecessary, because user can
+				directly specify vector or vectorBit in the ORE file.</p>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<p>In an ORE file:</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">&lt;offlineResultEmulation&gt;
+  &lt;id name = "cap"&gt;
+    &lt;pin name = "DATA1"&gt;
+      &lt;digCap vectorBit = "0,0,0,1,0,0,1,0,0,0,1,1"/&gt;
+    &lt;/pin&gt;
+    &lt;pin name = "DATA2"&gt;
+        &lt;digCap vector="./waveform.txt"/&gt;
+    &lt;/pin&gt;
+  &lt;/id&gt;
+  &lt;id name = "cap_vv"&gt;
+    &lt;vv name = "vv1"&gt;
+      &lt;digCap vectorFromVV = "2,1,6"/&gt;
+    &lt;/pin&gt;
+&lt;/id&gt; 
+&lt;/offlineResultEmulation&gt;</pre><div></div>
+			</div>
+			<div class="p">SmartRDI
+				code:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.digcap("cap").pin("DATA1,DATA2")
+     .samples(6).bitPerWord(2)
+     .capMode(TA::SER).execute();
+  rdi.digcap("cap_vv").label("abc")
+     .vecVar("vv1").execute();
+
+RDI_END();
+...
+rdi.id("cap").getVectorBit("DATA1");     // 0,0,0,1,0,0,1,0,0,0,1,1
+rdi.id("cap").getVector("DATA2");        // 2,1,2,1,2,1
+rdi.id("cap_vv").getVectorFromVV("vv1"); // 2,1,6</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="343530.htm" title="A group of elements that represent test types or special classes such as COGO in SmartRDI.">Test name elements</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343533</span><script type="text/javascript">var ti='343533';var tt='The <digCap> element'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

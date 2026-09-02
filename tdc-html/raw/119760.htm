@@ -1,0 +1,299 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When you do multisite testing you may need to execute different patterns on different sites. Examples may be:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to execute separate patterns per site (Label per site)</title><meta name="keywords" content="pattern vector label vector label"></head><body id="_119760"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119760</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to execute separate patterns per site (Label per site)</h1>
+	
+	
+	<div><p>When you do multisite testing you may need to execute different patterns on different
+		sites. Examples may be:</p>
+		
+		<ul>
+			<li>Trimming / Fuse burn tests</li>
+			<li>Repair tests</li>
+			<li>Heterogeneous Multisites</li>
+			<li>Binary set based searches</li>
+		</ul>
+		<p>The "Pattern per Site" feature (which is also referred to as "Label per Site") allows you to
+			execute different patterns on different sites in parallel.</p>
+		<p>Some multisite tests may require considerable resources so that the ATE tester may not have
+			enough of them to carry out multisite tests in parallel. This may mean that you have to do
+			semi-parallel testing which will increase the test-time overhead. An example of such tests may be
+			complicated RF/Analog tests where upgrading the tester for parallel testing may be expensive, or
+			where doing RF Tests in parallel on different sites influence each other.</p>
+		<p>A way to reduce the test-time overhead caused by semi-parallel test is to use the label per
+			site feature to do different tests on different sites in parallel for example, RF/mixed signal test on
+			site 1 in parallel with a digital test on site 2).</p>
+		<p>This concept is illustrated in the following figure.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="119981.png" alt="Using Pattern per Site to Reduce Time in Semi-parallel &amp; Heterogeneous Tests">
+			</figure></div>
+		<p>Note that the "Label per site" feature only works correctly if the test suite flag
+				<span class="uicontrol">allow parallel</span> is set.</p>
+		<p>Note that the "Label per site" feature only works up to a site count of 256 sites. </p>
+		
+		<section class="section"><h2>Using site specific start labels when shared channels are present</h2><p>When
+				two sites with different start labels (start patterns) assign one and the same pin to the same
+				channel, only one of these start labels can be executed on the shared channel. By default, this
+				is the label that is associated with the higher numbered site. You can change this default with
+				the <span class="keyword">assignPinToCurrentSite()</span> member function of the
+					<span class="keyword">PRIMARY_STATUS</span> TM API. </p><div class="note"><span class="title">Note</span> This mechanism is independent
+				of the state of the selected site. Even if this site is disabled, its start label will be
+				executed on the shared channel.</div><p>Of course, defining different start labels, say
+				"LabelA" and "LabelB", for two sites sharing a channel only makes sense if, for example,
+				executing the waveform sequence of LabelA on the respective channel does not impair the result
+				of LabelB on the other site, or if the result of LabelB is irrelevant in the actual context. The
+				former requirement would be met, for instance, if both these labels define the same waveform
+				sequence on this pin, or if at least the non-executed waveform sequence of LabelB is an initial
+				part of the executed sequence defined by LabelA.</p><p>Note also that the Error Map makes a
+				distinction between input and output pins in this situation. If two sites with different start
+				labels share the channel only for an <em>input</em> pin, the Error Map will assume that the user
+				knows what he is doing, and will supply results for both sites, even for the one whose start
+				label was not executed on the shared channel. If the pin with the shared channel is an
+					<em>output</em> pin, the Error Map will assume that the outcome of the label whose waveform
+				sequence was not executed on the shared channel is irrelevant, and will only return results for
+				the site that is by default or explicitly associated with the shared
+			channel.</p></section>
+		<section class="section"><h2>Pattern per Site feature Restrictions</h2><p>There are, however, some
+				restrictions you need to observe when using the Pattern per Site feature.</p><p>Pattern per
+				site:</p><ul>
+				<li>Does not support Digital Capture per site</li>
+				<li>Does not support Error Map mode per site</li>
+				<li>Requires having the multiport configuration for all sites to be the same.</li>
+				<li>Does not support Master-Clock per site (at the moment this is a shared resource).
+						<p>However, with spec variables, different levels/timings can be achieved. Also, you can use
+						the CTIM and CLEV sequencer instructions to set up different levels and timing.</p>
+					<p><strong>Note</strong>, however, that if levels or timing are different on different sites, you must
+						set the Site Match test flow flag to "on" otherwise the system may hang. If they are the same
+						on all sites, this is not necessary.</p></li>
+				<li>An independent sequencer start is not possible (analog sequencers can, however, be started
+					independently).</li>
+				<li>Protocol-aware tests cannot be executed.</li>
+			</ul></section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>The following is an example of the structure of a test method
+				API for performing the "Pattern per Site" feature. </p><p>Note that in the code the term "Label"
+				is used for "Pattern".</p><ol>
+				<li>To select label per site, use the following TM-API, which sets up label per site within the
+					"FOR_EACH_SITE_BEGIN" and "FOR_EACH_SITE_END"
+					loop:<div></div><pre class="prettyprint linenums copyable">const STRING label[]={"label_s1","label_s2", ...};
+
+ON_FIRST_INVOCATION_BEGIN();
+
+   Primary.label(label[0]);            // Select default label for all sites
+
+   FOR_EACH_SITE_BEGIN();              // Select label per site
+
+        INT i = CURRENT_SITE_NUMBER() -1;
+        Primary.assignLabelToCurrentSite(label[i]);
+
+   FOR_EACH_SITE_END();
+
+   FUNCTIONAL_TEST();                  // Execute label per site
+
+ON_FIRST_INVOCATION_END();</pre></li>
+				<li>To assign shared pins to a site, use the following TM-API that uses
+						<span class="keyword">assignPinToCurrentSite(…)</span> for this
+					purpose:<div></div><pre class="prettyprint linenums copyable">const STRING pin[]={"pin_s1","pin_s2", ...};
+const STRING label[]={"label_s1","label_s2", ...};
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    Primary.label(label[0]);           // Select default label for all sites
+
+   FOR_EACH_SITE_BEGIN();              // Select label and pin per site
+
+        INT site = CURRENT_SITE_NUMBER() -1;
+        Primary.assignLabelToCurrentSite(label[site]);
+        Primary.assignPinToCurrentSite(pin[site]);
+
+   FOR_EACH_SITE_END();
+
+    FUNCTIONAL_TEST();                 // Execute label per site
+
+    Primary.assignPinToCurrentSite();  // Restore site assignment
+                                       // error if it is called outside with pins
+    FLUSH(TM::APRM);
+
+ON_FIRST_INVOCATION_END();</pre></li>
+				<li>To restore the site assignment of the shared pins, the following TM-API with an empty
+					parameter list is called outside the <span class="keyword">FOR_EACH_SITE</span>
+					loop.<div></div><pre class="prettyprint linenums copyable">Primary.assignPinToCurrentSite();       // Restore site assignment
+FLUSH(TM::APRM);</pre></li>
+			</ol><p>It is recommended that you restore the site assignment, when the test-method has
+				finished. </p><p>To retain the ability of reusing the site assignments over several groups of
+				test-suites, restoration of the site assignment is implemented via an extra
+			TM-API.</p></div>
+		<div class="example"><h3>Example 2: Heterogeneous multisite test</h3><p>This test method
+				example shows a situation in which an MX-Signal pin gets multiplexed via a relay located on
+				load-board controlled by utility line pin.</p><ol>
+				<li>The first section of the test method prepares the setup, so that an MXSignal Test is
+					executed on sites 1 and 3 and a Digital Test is executed on sites 2 and
+					4.<div></div><pre class="prettyprint linenums copyable">static Boolean digitalResult[maxSites];
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    //
+    // Global settings
+    //
+    Analog.primary("name");              // Select Analog Primary
+    Routing.pin("dgt_pin").connect();    // Connect analog instruments
+    Primary.label("digital_test");       // Select global label
+
+    //
+    //
+    // Prepare tests for all sites
+    FOR_EACH_SITE_BEGIN();
+
+        INT site = CURRENT_SITE_NUMBER() - 1;
+
+        if (site == 0 || site == 2)                      // Analog Setting for site 1 &amp; 3
+        {
+            Routing.util("relay_1").on();                // switch load board relay to site 1 &amp; site 3
+            Primary.assignLabelToCurrentSite("mx_test"); // assign label used for HW-Trigger
+            Primary.assignPinToCurrentSite("TrigPin");   // assign trigger pin
+        }
+        else                                             // Digital setting for the other sites
+        {
+            Primary.assignLabelToCurrentSite("digital_test");
+        }
+
+    FOR_EACH_SITE_END();
+    ...
+    ...</pre></li>
+				<li>The next test method section executes the prepared test for site 1 and 3.<ul>
+						<li>It enables the HW-Trigger</li>
+						<li>It sets the result Handle for Hidden Analog upload used in
+							SmartCalc</li>
+						<li>It executes the Heterogeneous Test</li>
+					</ul><pre class="prettyprint linenums copyable">Analog.requestResultHandle("handleSite_1_3");          // Select Result Handle for SmartCalc
+DGT("dgt_pin").enable();                               // Enable HW-Trigger
+SMC_EXECUTE_TEST();                                    // Execute Test
+DGT("dgt_pin").disable();                              // Disable digitizer pin</pre></li>
+				<li>This part shows the result handling for the first part of this
+					test.<div></div><pre class="prettyprint linenums copyable">    ...
+    ...
+    FOR_EACH_SITE_BEGIN();                             // Result Handling
+
+        INT site = CURRENT_SITE_NUMBER() - 1;
+
+        if (site == 0 || site == 2)
+        {
+            SMC_ARM("handleSite1_3");                  // Pass result handle to SmartCalc
+        }
+        else
+        {
+            digitalResult[site] = GET_FUNCTIONAL_RESULT(); // Store Functional Test Result
+        }
+
+    FOR_EACH_SITE_END();
+    ...
+    ...</pre></li>
+				<li>This part prepares the second part of this
+					test.<div></div><pre class="prettyprint linenums copyable">    ...
+    ...
+    //
+    // Prepare test for all sites
+    //
+    FOR_EACH_SITE_BEGIN();
+
+        INT site = CURRENT_SITE_NUMBER() - 1;
+
+        if (site == 1 || site == 3)
+        {
+            Routing.util("relay_1").off();                // Switch loadboard relay to site 2 &amp; site 4
+            Primary.assignLabelToCurrentSite("mx_test");  // Assign label used for HW-Trigger
+            Primary.assignPinToCurrentSite("TrigPin");    // Assign trigger pin
+        }
+        else
+        {
+            Primary.assignLabelToCurrentSite("digital_test");
+        }
+
+    FOR_EACH_SITE_END();
+    ...
+    ...</pre></li>
+				<li>This part executes the prepared test for site 2 and 4.<ul>
+						<li>it enables the HW-Trigger</li>
+						<li>it sets the result Handle for Hidden Analog upload used in
+							SmartCalc</li>
+						<li>it executes the Heterogeneous Test</li>
+					</ul><pre class="prettyprint linenums copyable">Analog.requestResultHandle("handleSite_2_4");          // Select Result Handle for SmartCalc
+DGT("dgt_pin").enable();                               // Enable HW-Trigger 
+SMC_EXECUTE_TEST();                                    // Execute Test
+DGT("dgt_pin").disable();                              // Disable HW-Trigger </pre></li>
+				<li>This part shows the result handling for the second part of this
+					test.<div></div><pre class="prettyprint linenums copyable">    ...
+    ...FOR_EACH_SITE_BEGIN();                                 // Result Handling
+
+    INT site = CURRENT_SITE_NUMBER() - 1;
+
+    if (site == 1 || site == 3)
+    {
+        SMC_ARM("handleSite2_4");                      // Pass result handle to SmartCalc
+    }
+    else
+    {
+        digitalResult[site] = GET_FUNCTIONAL_RESULT(); // Store Functional Test Result
+    }
+
+FOR_EACH_SITE_END();</pre></li>
+				<li>The final part does the following:<ul>
+						<li>It disconnect the analog instruments</li>
+						<li>It outputs the functional test results</li>
+					</ul><pre class="prettyprint linenums copyable">    ...
+    ...
+    Routing.pin("dgt_pin").disconnect();
+
+ON_FIRST_INVOCATION_END();
+
+INT site = CURRENT_SITE_NUMBER() -1;
+
+if (digitalResult[site])
+{
+    cout &lt;&lt; "Digital Result: Pass"&lt;&lt; endl;
+}
+else
+{
+    cout &lt;&lt; "Digital Result: Fail"&lt;&lt;endl;
+}</pre></li>
+			</ol><p><strong>Note:</strong></p><p>1. The above example uses SmartCalc to keep the structures simple and
+				to hide the upload and calculations. However, you can do a hidden upload and hidden calculation
+				without SmartCalc along the following lines:</p><ul>
+				<li>Use <code>DGT().getWaveform(...)</code> + Calculation in <code>FOR_EACH_SITE</code>
+					loops</li>
+				<li>Use static variables to store results</li>
+				<li>Do data logging outside of <code>ON_FIRST_INVOCATION</code> block</li>
+			</ul><p>2. If the digital test is longer than the Analog test, you can hide the upload &amp;
+				calculation by using <code>START_TEST</code> + <code>WAIT_TEST_DONE as
+				follows</code>:</p><pre class="prettyprint linenums copyable">Analog.requestResultHandle("handleSite_1_3"); // Select Result Handle for SmartCalc
+DGT("dgt_pin").enable();                      // Enable HW-Trigger 
+START_TEST();                                 // Execute Test
+WAIT_TEST_DONE(TM::WAIT_DGT);                 // Wait until MX Test is finished
+DGT("dgt_pin").disable();                     // Disable HW-Trigger 
+
+FOR_EACH_SITE_BEGIN();                        // Result Handling for MX, while digital test is running
+
+    INT site = CURRENT_SITE_NUMBER() - 1;
+
+    if (site == 0 || site == 2)
+    {
+        ...                                   // Upload Analog and calculate analog results
+    }
+
+FOR_EACH_SITE_END();
+
+WAIT_TEST_DONE(TM::WAIT_DIGITAL);             // Wait until digital test is finished
+
+FOR_EACH_SITE_BEGIN();                       // Result Handling for digital 
+
+    INT site = CURRENT_SITE_NUMBER() - 1;
+
+    if (site == 0 || site == 2)
+    {
+        digitalResult[site] = GET_FUNCTIONAL_RESULT();  // Store Functional Test Result
+    }
+
+FOR_EACH_SITE_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42639.htm" title="In multisite testing, the test method program can perform the following actions for all sites in parallel:">Parallel Execution</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119760</span><script type="text/javascript">var ti='119760';var tt='How to execute separate patterns per site (Label per site)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

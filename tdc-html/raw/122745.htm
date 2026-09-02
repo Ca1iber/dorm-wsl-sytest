@@ -1,0 +1,49 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Profiling a test program execution means to measure how much time is spent on the various parts of a test program."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Tools to analyze the situation</title></head><body id="_122745"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122745</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Tools to analyze the situation</h1>
+	
+	
+	<div><p>Profiling a test program execution means to measure how much time is spent on the
+		various parts of a test program.</p>
+		<section class="section"><p>The Test Time Tool (TTT tool) ensures that the test program is executed under
+				controlled conditions:</p><ul>
+				<li>It shuts down the SmarTest Work Center to avoid interferences of GUI updates</li>
+				<li>It uses its own application model</li>
+				<li>It executes the testflow multi times to see the test time variance</li>
+				<li>It varies the number of sites to see the impact of multisite testing </li>
+				<li>The TTT tool binary is located at
+					<span class="filepath">/opt/hp93000/soc/.service/bin/ttt</span>.</li>
+			</ul><p>To profile a test program using the TTT tool, proceed as follow:</p><ul>
+				<li>Instrument the test method code with calls to LOG_TIMER, START_TIMER, or STOP_TIMER if
+					necessary.</li>
+				<li>Run the test program under the control of the test time tool. DRLExecTimes is called
+					automatically.</li>
+				<li>For analysis load the resulting CSV files into a spreadsheet program of your choice.</li>
+			</ul></section>
+		<h2>Example</h2><div class="example"><ol>
+				<li>Prepare the test program and setups.</li>
+				<li>Add timer in the test method if it is needed as show in the following code
+					block:<div></div><pre class="prettyprint linenums copyable">DIGITAL_CAPTURE_TEST(1.0);
+ABORT_TEST();
+FOR_EACH_SITE_BEGIN();
+int site = CURRENT_SITE_NUMBER()-1;
+START_TIMER("timer1", "data upload begin");
+adc_wave[site] = VECTOR (capture_label).getVectors ();
+STOP_TIMER('timer1", 'data upload end');</pre></li>
+				<li>Run the test program with the TTT
+						tool.<div></div><pre class="prettyprint copyable singleline">/opt/hp93000/soc/.service/bin/ttt</pre><p>In this step, the test program
+						will be executed multiple times in supervisor mode. DRLExecTimes will be called
+						automatically.</p></li>
+				<li>Get the result in ‘$Device/report/' or in the directory you specified for the TTT tool.</li>
+				<li>Get ‘debug 3' test time information in ‘singleSite.ui' &amp;'multiSite.ui' as shown below:<div class="p"><figure class="fignone">
+							
+							<img src="123071.png" alt="Test time information in report window">
+						</figure></div></li>
+				<li>Get code execution time marked by timer in <span class="filepath">data.edl</span>.</li>
+				<li>Convert the EDL file to a readable file with
+					DRLDump:<div></div><pre class="prettyprint copyable singleline">/opt/hp93000/soc/.service/bin/DRLDump -print data.edl &gt; data.out</pre></li>
+			</ol></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="121991.htm">TP Performance Potential</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122745</span><script type="text/javascript">var ti='122745';var tt='Tools to analyze the situation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

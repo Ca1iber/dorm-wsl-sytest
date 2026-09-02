@@ -1,0 +1,106 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartProd provides some APIs specially designed for monitoring switch_version events. You can use these APIs to create your own C++ program to monitor switch_version events."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Creating a SmartProd client</title><meta name="keywords" content="Smart, Prod"></head><body id="_353351"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 353351</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Creating a SmartProd client</h1>
+	
+	
+	<div><p>SmartProd provides some APIs specially designed for monitoring switch_version events.
+		You can use these APIs to create your own C++ program to monitor switch_version
+		events.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div>
+			<p>Use SmartProd APIs to create a C++ program for monitoring switch_version operations. </p>
+		</section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div>
+			<p>Make sure that you have installed a SmartProd package on your workstation.</p>
+		</section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>Add <code>#include &lt;smartMonitorApi.hpp&gt;</code> and <code>using namespace
+						smartmonitorapi;</code> to the header part of your program.</span>
+			</li><li>
+				<span>Create a monitor class with <code>SmartMonitor</code>, for example, <code>class
+						versionMonitor : public SmartMonitor</code>.</span>
+			</li><li>
+				<span>Consume specific events, for example, <code>SmartMonitor::consume()</code>.</span>
+			</li><li>
+				<span>Retrieve event information to get notified about version switch.</span>
+			</li><li>
+				<span>Start your monitor instance with <code>SmartMonitor::start()</code>.</span>
+			</li><li>
+				<span>Stop your monitor instance with <code>SmartMonitor::stop()</code>.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div>
+			<p>The monitor client program is ready to be executed.</p>
+		</section>
+		<h2>Example</h2><section id="_353351__smartprod_client_example"><h3>Code example of a SmartProd client to monitor switch_version events</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">#include &lt;iostream&gt;
+#include &lt;unistd.h&gt;
+#include &lt;SmartMonitorApi.hpp&gt;
+ 
+using namespace smartmonitorapi;
+using namespace std;
+ 
+class versionMonitor : public SmartMonitor
+{
+public:
+  void consume(const Event&amp; event){
+    cout &lt;&lt; "Receive Event:" &lt;&lt; endl;
+    cout &lt;&lt; "EVENT TYPE : " &lt;&lt; event.mEventType &lt;&lt; endl;
+    for(auto property : event.mEventProperties){
+      cout &lt;&lt; property.name &lt;&lt; " : " &lt;&lt; property.value[0] &lt;&lt; endl;
+    }
+    cout &lt;&lt; "Add your process here..." &lt;&lt; endl;
+    cout &lt;&lt; endl;
+  }
+};
+ 
+int main() 
+{
+ 
+    cout &lt;&lt; "testing start for getting smartest version..." &lt;&lt; endl;
+    // test get current smartest version
+    TestCell &amp;testCell = TestCell::getInstance();
+ 
+    SoftwareVersion ver = testCell.getCurrentTesterVersion();
+    cout &lt;&lt; "Current SmarTest Version string: " &lt;&lt; ver.version &lt;&lt; endl;
+    cout &lt;&lt; "Current SmarTest Version isDefault: " &lt;&lt; ver.isDefault  &lt;&lt; endl;
+    cout &lt;&lt; "Current SmarTest Version installationPath: " &lt;&lt; ver.installationPath  &lt;&lt; endl;
+    cout &lt;&lt; endl;
+ 
+    // test get all installed smartest version list
+    vector&lt;SoftwareVersion&gt; verList = testCell.getTesterVersions();
+    cout &lt;&lt; "Installed SmarTest Version: " &lt;&lt; "(" &lt;&lt; verList.size() &lt;&lt; ")" &lt;&lt; endl;
+    for(auto ver: verList) {
+        cout &lt;&lt; "version: " &lt;&lt; ver.version &lt;&lt; endl;
+        cout &lt;&lt; "isDefault: " &lt;&lt; ver.isDefault &lt;&lt; endl;
+        cout &lt;&lt; "installationPath: " &lt;&lt; ver.installationPath &lt;&lt; endl;
+        cout &lt;&lt; endl;
+        cout &lt;&lt; endl;
+    }
+    cout &lt;&lt; "testing end." &lt;&lt; endl;
+ 
+   try {
+    versionMonitor versionMonitor;
+    cout &lt;&lt; "testing start for monitor..." &lt;&lt; endl;
+    versionMonitor.start();
+    cout &lt;&lt; "testing end..." &lt;&lt; endl;
+    sleep(5);
+ 
+    return 0;
+   }
+   catch (string msg) {
+     cout &lt;&lt; msg &lt;&lt; endl;
+     return 0;
+   }
+   catch(...) {
+    cout &lt;&lt; "catch exception" &lt;&lt; endl;
+    return 0;
+   }
+   
+} </pre><div></div>
+			</section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div>
+			<p><a href="353370.htm" title="The SmartProd client program needs to be built before you use it to monitor switch_version operations. For building the client, you need to create a Makefile which holds relevant setups. See the Example.">Building and executing the client program</a>.</p>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 8.4.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 353351</span><script type="text/javascript">var ti='353351';var tt='Creating a SmartProd client'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

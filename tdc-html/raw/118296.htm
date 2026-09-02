@@ -1,0 +1,234 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Considerations on Developing Workstation-Independent Test Programs</title><meta name="keywords" content="testprogram"></head><body id="_118296"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118296</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Considerations on Developing Workstation-Independent Test Programs</h1>
+	
+	<div>
+		<p>Jiaming Hu, Installed Base Application Team (IBAT)<em> Verigy</em></p>
+		<p>Paper ID 118296</p>
+		<section class="section"><h2>Abstract</h2><p>Generally, test programs are migrated to a performance-improved
+				workstation to improve the throughput to some extend. However in some rare cases, some
+				workstation relied processes may run at a different speed and have impact on the device status
+				or timing to retrieve the data, which may bring mis-correlation issues. In this paper, we will
+				discuss about several scenarios behind this kind of cases and introduce the best practice to
+				overcome them.</p></section>
+		<section class="section"><h2>Key Words</h2><p>workstation, correlation, settling time, throughput,
+				deterministic process</p></section>
+		<section class="section"><h2>Introduction</h2><p>This paper discusses several scenarios caused by
+				workstation relied processes with some typical cases and introduce the best practice for those
+				issues.</p></section>
+		<section class="section"><h2>Deterministic and workstation relied processes</h2><p>In SmarTest the
+				throughput of some processes is fixed, like the execution of the pattern sequence, AWG and DGT
+				sequence programs. Those sequencer‑controlled processes always run at the defined speed on the
+				hardware, so called <strong>deterministic processes</strong>.</p><p>Meanwhile, in SmarTest there are some
+				processes running on or through workstation that are most likely influenced by the workstation
+				models or configurations. For example,</p><ul>
+				<li>Calculating on workstation</li>
+				<li>Reading or writing to the file or communication through I/Os</li>
+				<li>Initializing the data structure for inputs</li>
+				<li>Temporary middle data or result related processing by test method</li>
+				<li>Retrieving data from tester</li>
+				<li>Downloading the command and related data to the hardware.</li>
+			</ul><p>What's more, the execution time of those processes also depends on the loading of
+				workstations or other environment elements, so called <strong>workstation relied
+			processes</strong>.</p></section>
+		<section class="section"><h2>Consequence of workstation relied processes</h2><p>Workstation relied processes
+				could run at different speeds on different workstations. As a consequence, it could potentially
+				generate un-correlated results between workstations. The following are two
+			scenarios.</p></section>
+		<section class="section"><h2>It will impact the status of device for testing</h2><p>The settling time means
+				the time used for the instrument or device to be in a desired state which is either ready for
+				the measurement, or get prepared for the test execution or result retrieving.</p><p>For
+				instrument, we have internal settling time and additional setup time. The internal settling time
+				ensures the related hardware to be in a settled state under certain condition. Below picture
+				gives an example of internal settling time and external setup time specified by
+					<span class="keyword">t_ms</span> for power supply.</p><div class="p"><figure class="fignone">
+					
+					<img src="56934.png" alt="DPS voltage levels">
+				</figure></div><p>After the internal settling time, the relay for DPS is connected with the power in
+				ON state. The setup time is used to add additional settling time to ensure that the status of
+				the power supply for certain device is achieved.</p><p><strong>Example 1</strong></p><p>Here's an example
+				of internal settling time for current measurements after measure range changes using the
+				firmware commands on DPS32.</p><p>When changing the measure ranges, the measure path has to
+				settle. When using the firmware commands for current measurements, the firmware will wait for
+				the measure range settling. The below table shows the implemented wait times and the maximum
+				allowed DUT capacitor for these ranges.</p><table class="frame-none"><caption><span>Wait time and max allowed capacitor vs. measure range</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_118296__entry__1"><p>Measure range</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_118296__entry__2"><p>Firmware wait time</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_118296__entry__3"><p>Maximum DUT capacitor</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__1"><p>100uA</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__2"><p>4 ms</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__3"><p>10uF</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__1"><p>2mA</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__2"><p>1.5 ms</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__3"><p>10uF</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__1"><p>50mA</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__2"><p>150 us</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__3"><p>100uF</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__1"><p>1.5A</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__2"><p>50 us</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__3"><p>No limit</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__1"><p>voltage</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__2"><p>50 us</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_118296__entry__3"><p>No limit</p>
+							</td>
+						</tr>
+					</tbody></table><p>The overall settling time also depends on regulator settling times, especially when
+				the DUT capacitor is higher. If the DUT capacity is larger than the value list on above table,
+				additional setup time is required, for example, more <span class="keyword">t_ms</span> is needed to be
+				specified.</p><p>Besides the DPS, here's a list of related APIs with settling time as the
+				parameter, which can be used to control the additional setup time mainly required by devices
+				under test. For example,</p><ul>
+				<li>Measure with PPMU<ul>
+						<li><code>PPMU_SETTING()</code>/<code>PPMU_RELAY()</code>/<code>PPMU_CLAMP().wait</code></li>
+						<li><code>SPMU_PIN_TASK().settling</code></li>
+						<li><code>PMU_IFVM()</code>/<code>PMU_VFIM().settling</code></li>
+					</ul></li>
+				<li>Measure with DPS<ul>
+						<li><code>DPS_TASK().wait</code></li>
+					</ul></li>
+				<li><code>FLEX_RELAY().wait</code></li>
+			</ul><p>For devices, settling time means the time starts from status change to the device being
+				settled. Usually</p><ul>
+				<li>We use the parameters of test function or API to specify required setup time for device. For
+					example, the settling time and wait time as list in above APIs.</li>
+				<li>But in some cases, user can also use <code>WAIT</code> API, or take advantage of
+					calculation or other test to be settling time of certain test, for example, calculation of previous
+					result can be taken as settling time for next test. Below is an example.</li>
+			</ul><p><strong>Example 2</strong></p><p>The block diagram below is an example of one test for an analog
+				device</p><div class="p"><figure class="fignone">
+					
+					<img src="118297.png" alt="Block diagram of example 2">
+				</figure></div><p>After changing level, the DUT requires necessary settling time to achieve a stable
+				working status to be able to receive waveform and generate output which is implemented by doing
+				initializing data structure and applying analog setups with test method, then user need take
+				special attention here since this kind of operations is workstation-relied processes,
+				Correlation problem could show up, and even more obviously and frequently if the setup of the
+				test is not self contained.</p><p>Moreover, even we set settling/wait time through test function
+				or test method, there could be slight difference on the actual time, usually a bit longer than
+				the specified value. This additional time is called <strong>hidden settling time</strong> typically in the
+				scale of us. In most cases we Do not need take care of it, but the potential risk is
+			there.</p></section>
+		<section class="section"><h2>It will impact the timing to retrieve data from device.</h2><p>No doubt we
+				should make sure of the device in right status when retrieving the result. This is especially
+				important when running the testing for multiple IP codes inside device or setting the
+				measurement with concurrent test. There're also some cases, that time to retrieve the data is
+				affected by workstation. It could happen in case that the measurement is taken after certain
+				calculation or other workstation relied processes, and then we might get wrong result and run
+				into the correlation issue due to the workstation.</p><p><strong>Example 3</strong></p><p>When we test
+				frequency of PLLs by ppTIA, the PLLs need time to stabilize and thus a delay time is required in
+				the <code>PPTIA_TASK</code> to wait the PLLs to be in a stable status when the measurement
+				after pattern is executed. But a delay is performed by workstation which may vary from
+				workstation to workstation in a small range caused by workstation overhead. So it may pass on
+				one workstation but fail on another.</p></section>
+		<section class="section"><h2>Best practices of workstation related correlation issue</h2><p>On different
+				workstations, the execution time of same APIs may vary. When programming the settling/wait time,
+				especially for those tests which are extremely sensitive to the timing, we must consider the
+				variation of the settling time which is influenced by the workstation.</p></section>
+		<section class="section"><h2>Case 1</h2><p>In this case, changing of primary set is used for settling time
+				required by DUT. When migrating to a faster workstation, the settling time becomes insufficient
+				and the device is not ready for functional test yet, since the code is executing faster. And
+				uncorrelated test result is observed.</p><div class="p"><figure class="fignone">
+					
+					<img src="118298.png" alt="Block diagram of case 1">
+				</figure></div><p><strong>Recommendation for case 1</strong></p><p>The test is recommended to be self contained
+				and not be impacted by previous status. The best practice is removing unnecessary
+					<code>DISCONECT</code>/<code>CONNECT</code> sequence and fixing the missing setups,
+				which will also avoid unnecessary relay switching. If
+					<code>DISCONECT</code>/<code>CONNECT</code> is a must here, the settling time for DPS
+				voltage should be considered and specified with enough t_ms to avoid un-correlation issue,
+				especially when with large capacities.</p></section>
+		<section class="section"><h2>Case 2</h2><p>Polling time during the wait in <code>EXECUTE_TEST()</code>
+				is also impacted by workstation. In a case of using AWG to send a waveform to the device and
+				using DGT to capture output waveform from device, <code>WAIT_AWG</code> is taken to wait
+				both AWG and DGT done before taking further calculation on retrieved data from DGT. As the
+				following picture describes, AWG sequencer is programmed to run longer than DGT, and the data
+				should be captured when <code>EXECUTE_TEST()</code> is done, but the result retrieved is
+				incorrect on another workstation.</p><div class="p"><figure class="fignone">
+					
+					<img src="118299.png" alt="Execution sequence of case 2">
+				</figure></div><p>The root cause turns out to be that Smartest checks the AWG sequencer and finds
+				that AWG is not running because it has not been triggered in pattern, and thus the wait in the
+					<code>EXECUTE_TEST()</code> is done and the captured date which is not ready yet is
+				processed. Things go well on a slower workstation due to a bit longer time taken to poll the
+				status of the AWG and get expected result.</p><p><strong>Recommendation for case 2</strong></p><p>In this
+				situation, we recommend waiting all AWG, DGT and digital done by <code>TM::WAIT_ALL</code>
+				and then process the prepared data.</p></section>
+		<section class="section"><h2>Case 3</h2><p>The PLLs frequency test by PPTIA may also be impacted by
+				workstation as above example 3 describes. The PLLs need time to stabilize, which can be
+				implemented by a delay time specified in the member function of PPTIA_TASK. The total required
+				time is the set time by pattern execution and the wait time for PLLs to be stable. Since wait
+				time for device to be stable may vary among DUTs, with a marginal setup of delay time, you may
+				get unstable result on a faster workstation.</p><p><strong>Recommendation for case
+				3</strong></p><p>Specifying sufficient delay time after necessary correlation work is required to
+				achieve stable result. In special cases, we also need to take care that when a larger delay time
+				is specified, pattern must be long enough to keep running when measuring by ppTIA. Remember that
+				a good practice for PLLs test is using <code>KEEP-PLL-ALIVE</code> to avoid multiple waits
+				for different tests.</p></section>
+		<section class="section"><h2>Case 4</h2><p>An I2C test may be implemented as below 3 ways:</p><ul>
+				<li>A: Testsuite A: &lt;set address A&gt; &lt;write data A1&gt; &lt;write data A2&gt; &lt;stop
+					A&gt;</li>
+				<li>B: Testsuite B1: &lt;set address B1&gt; &lt;write data B1&gt; &lt;stop B1&gt;<p>Testsuite
+						B2: &lt;set address B2&gt; &lt;write data B2&gt; &lt;stop B2&gt;</p></li>
+				<li>C: Testsuite C: &lt;set address C&gt; &lt;write data C1&gt; &lt;some user codes&gt; &lt;set
+					address C2&gt; &lt;write dataC2&gt; &lt;stop C&gt;</li>
+			</ul><p>In way A, data may be not written to device yet without handling acknowledge, start and
+				stop correctly. Also in way B, inadequate stop cycles between data accesses may lead to failure
+				in writing since device is still in the transmission frame and will not accept a new one before
+				it is stopped correctly. Similar issue could happen in way C. It may pass on some workstation
+				but cause mis-correlation on a faster workstation, since the execution time of the user codes
+				may vary.</p><p><strong>Recommendation for case 4</strong></p><p>A recommended way is to guarantee enough
+				required stop cycles and make sure all patterns are stable even if they are only writing to the
+				device without any compare states.</p><p>Besides, download and upload time also depends on the
+				workstation performance. User must ensure that the data is ready and uploaded completely, before
+				subsequent data processing. For those workstation relied processes, multisite, diag 2-command,
+				engineering or production mode, manual mode will also have impact on them. As an example, it is
+				common that we find different result in engineering mode from production mode. When encountering
+				this kind of uncorrelated behavior, these workstation relied processes need to be carefully
+				checked.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>In SmarTest there are some processes running on workstation
+				like calculating, data retrieving, downloading, may be influenced by the workstation. As a
+				consequence, execution time of these processes varies among different workstations and results
+				in some unexpected correlation issues, especially in 2 scenarios:</p><ul>
+				<li>Impact the status of device which is sensitive to settling time</li>
+				<li>Impact the time to retrieve data from device and lead to uncorrelated result</li>
+			</ul><p>User need make sure that device is settled when using this kind of processes as settling
+				time and take special care when the time to measure or retrieve data depends on the workstation
+				relied processes. Note that there may be a compromise between:</p><ul>
+				<li>Making the test suites self contained and therefore spending settling times for the
+					measurements where required.</li>
+				<li>Optimizing for speed and hiding settling times where ever possible and therefore losing the
+					independence to different workstations.</li>
+			</ul></section>
+		<section class="section"><h2>References</h2><p>Online Documentation, <a href="https://www.advantest.com/V93000/help/" target="_blank" rel="external noopener" class="ex">https://www.advantest.com/V93000/help/</a></p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118296</span><script type="text/javascript">var ti='118296';var tt='Considerations on Developing Workstation-Independent Test Programs'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

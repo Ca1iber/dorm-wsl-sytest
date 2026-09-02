@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If two patterns are executed successively in one sequencer run, a CTIM instruction must be inserted between them if they are associated with different timing sets. Within a (multi-port) burst, this is ensured by the default insertion of CTIM before the first vector of a pattern. With subpattern calls (JSUB instruction), the situation is more complex: If a timing set change is necessary before a subpattern call, another change is required after the call, and since the same subpattern can be called by several MAIN patterns, this return to the original timing must take place within the MAIN pattern."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Inserting CTIM Between Patterns</title><meta name="keywords" content="vector label"></head><body id="_37624"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37624</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Inserting CTIM Between Patterns</h1>
+	
+	<div><p>If two patterns are executed successively in one sequencer run, a
+			<span class="keyword">CTIM</span> instruction must be inserted between them if they are associated
+		with different timing sets. Within a (multi-port) burst, this is ensured by the default
+		insertion of <span class="keyword">CTIM</span> before the first vector of a pattern. With subpattern
+		calls (<span class="keyword">JSUB</span> instruction), the situation is more complex: If a timing set
+		change is necessary before a subpattern call, another change is required after the call, and
+		since the same subpattern can be called by several <span class="keyword">MAIN</span> patterns, this
+		return to the original timing must take place within the <span class="keyword">MAIN</span>
+		pattern.</p>
+		<p>The insertion of <span class="keyword">CTIM</span>
+			<em>after</em> a subpattern call can either be caused by the <span class="keyword">v2b</span>
+			parameter <span class="keyword">-t</span> or by specifying the <span class="keyword">CTIM_AFTER_JSUB</span>
+			statement in the pattern configuration file. The <span class="keyword">-t</span> option is global;
+			if it is specified for a pattern, then <span class="keyword">CTIM</span> is inserted after all
+				<span class="keyword">JSUB</span> instructions occurring in the pattern. It is also
+			unconditional; <span class="keyword">CTIM</span> is inserted even if the called pattern and the
+			calling pattern use the same timing set. In contrast, <span class="keyword">CTIM_AFTER_JSUB</span>
+			applies to one specified subpattern, and causes the insertion of <span class="keyword">CTIM</span>
+			after the call only if it is actually required.</p>
+		<p>The insertion of <span class="keyword">CTIM</span>
+			<em>before</em> a subpattern call is usually unnecessary because a <span class="keyword">CTIM</span>
+			instruction is inserted by default before the first vector of the subpattern. You can,
+			however, suppress this default insertion for the subpattern with the
+				<span class="keyword">-T</span> option of <span class="keyword">v2b</span>. In this case, you can still
+			cause a timing set change between the calling <span class="keyword">Main</span> pattern and the
+			called subpattern by inserting <span class="keyword">CTIM</span> into the <span class="keyword">Main</span>
+			pattern before the subpattern call. The vector translation does this automatically if
+			you insert a <span class="keyword">CTIM_BEFORE_JSUB</span> statement for the respective subpattern
+			into the pattern configuration file of the calling pattern, but again only if it is
+			actually necessary.</p>
+		<p>Under certain conditions, the timing translation automatically inserts
+				<span class="keyword">CTIM_AFTER_JSUB</span> and <span class="keyword">CTIM_BEFORE_JSUB</span>
+			statements for a subpattern of a <span class="keyword">SUBPAT</span> group (see <a href="37471.htm" title="Bursts, multi-port bursts, and nested patterns (MAIN patterns calling a subpattern) are all executed in one sequencer run. The GROUPS section informs the timing translation of such pattern groups. The timing translation needs this information for the following reasons:">The GROUPS Section</a>) into the pattern configuration file of the calling
+				<span class="keyword">Main</span> pattern. One such requirement is that the ASCII device
+			cycles of the calling pattern and those of the subpattern are associated with different
+			timing sets.</p>
+		<p>Under this condition, a <span class="keyword">CTIM_AFTER_JSUB</span> statement is inserted for the
+			subpattern if</p>
+		<ul>
+			<li>the <span class="keyword">SUBPAT</span> group has been set to <span class="keyword">CT</span>, and the
+				calling pattern to <span class="keyword">NCT</span>.</li>
+		</ul>
+		<p>If the calling <span class="keyword">Main</span> pattern is set to <span class="keyword">CT</span>, the timing
+			translation causes the insertion of <span class="keyword">CTIM</span> after the subpattern call by
+			adding the <span class="keyword">v2b</span> option <span class="keyword">-t</span> to the
+				<span class="keyword">Main</span> pattern in the vector configuration file.</p>
+		<p>A <span class="keyword">CTIM_BEFORE_JSUB</span> statement is inserted for the subpattern if</p>
+		<ul>
+			<li>the <span class="keyword">SUBPAT</span> group has been set to <span class="keyword">CT</span>, and</li>
+			<li>the subpattern also occurs in a <span class="keyword">SUBPAT</span> group that has been set to
+					<span class="keyword">NCT</span>.</li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>The following figure illustrates how the timing translation treats the different cases
+				described above: </p><div class="p"><figure class="fignone">
+					
+					<img src="46122.png" alt="Automatic Insertion of CTIM Before and After Subpattern Calls">
+				</figure></div><p>Note the following points in the figure:</p><ul>
+				<li>The complete information flow is only shown for the subpattern <span class="keyword">GRb</span>, which
+					belongs to both the <span class="keyword">CT</span> group <span class="keyword">GRA</span> and the
+						<span class="keyword">NCT</span> group <span class="keyword">GRB</span>.</li>
+				<li>For the subpattern <span class="keyword">GRa</span>, default insertion of <span class="keyword">CTIM</span> before the first vector is not suppressed in the vector configuration
+					file, and accordingly the pattern configuration file only contains a
+						<span class="keyword">CTIM_AFTER_JSUB</span> statement for
+					<span class="keyword">GRa</span>.</li>
+				<li>The <span class="keyword">Main</span> pattern <span class="keyword">GRC</span> is set to <span class="keyword">CT</span>,
+					so that the insertion of <span class="keyword">CTIM</span> after the
+						<span class="keyword">JSUB</span> instruction is caused with the
+						<span class="keyword">v2b</span> option <span class="keyword">-t</span> in the vector
+					configuration file.</li>
+			</ul></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37624</span><script type="text/javascript">var ti='37624';var tt='Inserting CTIM Between Patterns'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

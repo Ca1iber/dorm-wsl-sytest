@@ -1,0 +1,76 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In the factory automation environment, you can use the ChangeDevice API to change to the target device."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to change to the target device</title></head><body id="_118231"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118231</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to change to the target device</h1>
+	
+	
+	<div><p>In the factory automation environment, you can use the <a href="95812.htm" title="This remote control command sets the designated device for a SmarTest session. The operation of changing device usually contains a set of procedures (like re-read model file, check the license etc.), so it will take some time.">ChangeDevice</a> API to
+		change to the target device.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The related HVM API events and the error code will be issued during the device
+				changing.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Before changing to the target device, you need to synchronize with the SMARTEST_READY
+				event. The synchronization is done through the HMVAPI event handler.</p><p>Make sure a SmarTest
+				has been started successfully and the target device is ready to use.</p><p>The
+					<span class="filepath">lock_file</span> of the target device has been removed.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>Prepare the parameters for the <a href="95812.htm" title="This remote control command sets the designated device for a SmarTest session. The operation of changing device usually contains a set of procedures (like re-read model file, check the license etc.), so it will take some time.">ChangeDevice</a> API.</span>
+			</li><li>
+				<span>Change to the target device.</span>
+			</li><li>
+				<span>Report the execution status of the API.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The device currently in use is changed to the target device and the <a href="96399.htm" title="This asynchronous event indicates that a device change operation is completed.">DEVIVE_CHANGE_COMPELTED</a> event is issued.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following example changes the device in use to the target device with the <a href="95812.htm" title="This remote control command sets the designated device for a SmarTest session. The operation of changing device usually contains a set of procedures (like re-read model file, check the license etc.), so it will take some time.">ChangeDevice</a> API when the HVMAPI event <a href="95805.htm" title="This asynchronous event indicates a SmarTest session is fully started and ready to accept commands operations and queries. The event is notified after starting a new SmarTest session or the successful execution of reset operation.">SMARTEST_SESSION_READY</a> is
+			received.</p><pre class="prettyprint linenums copyable">void handlerSession (const std::string&amp; type,
+    const xoc::hvmapi::ParamList&amp; params,
+    unsigned long sec,
+    long usec,
+    const std::string&amp; session)
+{
+  //undefine the Status that was defined in XWindow header file
+  #ifdef Status
+  #undef Status
+  #endif
+  xoc::hvmapi::Status errObj;
+
+  static int nCountOfSessionReadyEvent = 0;
+
+  hide_op_window();
+  if (params["SESSION_STATE"] == "SMARTEST_SESSION_READY") 
+  {
+    nCountOfSessionReadyEvent++;
+    cout &lt;&lt; "received SMARTEST_SESSION_READY" &lt;&lt; endl;
+    cout &lt;&lt; "number of SMARTEST_SESSION_READY is " 
+         &lt;&lt;  nCountOfSessionReadyEvent &lt;&lt; endl;
+    if ( nCountOfSessionReadyEvent == 1) 
+    {
+      xoc::hvmapi::ParamList cmdParam;
+      string device;
+      device="/home/demo/devices/training";
+      removeLockFile(device);
+      cmdParam["DEVICE_PATH"] = "/home/demo/devices/";
+      cmdParam["DEVICE_NAME"] = "training";
+      cout &lt;&lt; "FA: ChangeDevice started: " &lt;&lt; endl;
+      errObj = command ("ChangeDevice",cmdParam,session);
+      if (errObj.isSuccess()) 
+      {
+        cout &lt;&lt; "FA: ChangeDevice executed: " &lt;&lt; endl;
+      } 
+      else 
+      {
+        cout &lt;&lt; "FA ChangeDevice not executed" &lt;&lt; endl;
+        cout &lt;&lt; "error code is " &lt;&lt; errObj.code( ) &lt;&lt; endl;
+      }
+    } 
+    else 
+    {
+      cout &lt;&lt; "received second SESSION_READY, do not change the device" &lt;&lt; endl;        
+    }
+  }
+//re-define Status as in the XWindow header file
+  #define Status int
+  return;
+}</pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>After changing to the target device is completed, synchronize with the <a href="96399.htm" title="This asynchronous event indicates that a device change operation is completed.">DEVICE_CHANGE_COMPLETED</a> HVMAPI event and download the test program. </p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118231</span><script type="text/javascript">var ti='118231';var tt='How to change to the target device'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

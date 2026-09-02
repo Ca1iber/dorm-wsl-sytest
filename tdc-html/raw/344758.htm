@@ -1,0 +1,124 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The table below describes the GPIB commands and queries supported by the Eclipse handlers."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GPIB communication flow for Delta Eclipse handlers</title></head><body id="_344758"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 344758</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GPIB communication flow for Delta Eclipse handlers</h1>
+	
+	
+	<div><p>The table below describes the GPIB commands and queries supported by the Eclipse
+		handlers.</p>
+		<section class="section">
+			<div class="p">See <em><a href="69288.htm" title="The conventions in the table below are used in this chapter to describe GPIB/LAN communication:">Conventions for GPIB communication</a></em> for descriptions of
+				the syntax.<table class="frame-topbot"><caption><span>GPIB commands and queries for Eclipse handlers</span></caption><colgroup><col style="width:120pt"><col style="width:130pt"><col style="width:360pt"></colgroup><thead>
+							<tr>
+								<th class="rowsep-1" id="_344758__entry__1">Message from driver</th>
+								<th class="rowsep-1" id="_344758__entry__2">Message from handler</th>
+								<th class="rowsep-1" id="_344758__entry__3">Description</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1 _344758__entry__2 _344758__entry__3" colspan="3">Query for handler status:</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"><code>FR?</code></td>
+								<td class="rowsep-1" headers="_344758__entry__2"></td>
+								<td class="rowsep-1" headers="_344758__entry__3">The driver asks for the status.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"></td>
+								<td class="rowsep-1" headers="_344758__entry__2"><code>FR</code><em>n</em></td>
+								<td class="rowsep-1" headers="_344758__entry__3">
+									<p>The handler returns <code>FR0</code> or <code>FR1</code>.</p>
+									<p><span class="keyword">FR0</span>: No devices at the contactor.</p>
+									<p><span class="keyword">FR1</span>: Parts at the contactor are ready for testing.</p>
+									<p>The tester then queries <code>FULLSITES?</code> to the handler if parts are at the
+										contactor for testing.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1 _344758__entry__2 _344758__entry__3" colspan="3">Site population:</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"><code>FULLSITES?</code></td>
+								<td class="rowsep-1" headers="_344758__entry__2"></td>
+								<td class="rowsep-1" headers="_344758__entry__3">The driver asks the handler whether any device is ready for testing at the contactor
+									or not. </td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"></td>
+								<td class="rowsep-1" headers="_344758__entry__2"><code>Fullsites <em>xxxxxxxx</em></code></td>
+								<td class="rowsep-1" headers="_344758__entry__3">
+									<p>The handler returns a string that represents devices at the test site.</p>
+									<p>For example, a string <span class="keyword">Fullsites xxxxxxxx</span>, where each x character
+										represents four test sites. Each x character is a hexadecimal number that uses four bits
+										to indicate if devices are present. Therefore, if four devices are present, the x value
+										will be <span class="keyword">F</span> which is <span class="keyword">1111</span> in binary. The devices at
+										test sites 1, 3, and 4 are <span class="keyword">1011</span> in binary or <span class="keyword">B</span> in
+										hexadecimal. </p>
+									<p>The response must contain all eight x characters representing the 32 existing test
+										sites. </p>
+									<p>If four devices are present in a four test site configuration, the handler responses
+											<span class="keyword">Fullsites 00000000F</span>.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1 _344758__entry__2 _344758__entry__3" colspan="3">Bin devices:</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"><code>BINON:xxxxxxxx,xxxxxxxx,xxxxxxxx,xxxxxxxx;</code> (bins 0 to 15)</td>
+								<td class="rowsep-1" headers="_344758__entry__2"></td>
+								<td class="rowsep-1" headers="_344758__entry__3"><p>The driver sends the test results to the handler. The command requires the handler
+										to echo back the result string with the <span class="keyword">ECHO</span> command for
+										verification.</p><p>All 32 characters are required in the command string. Each x character
+										represents the bin assignment for a single test site. </p>The valid bin characters are
+										<span class="keyword">0</span> to <span class="keyword">F</span> hexadecimal numbers which are bins 0 to 15.
+										<span class="keyword">0</span> indicates no device on the socket.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"></td>
+								<td class="rowsep-1" headers="_344758__entry__2"><code>ECHO:xxxxxxxx,xxxxxxxx,xxxxxxxx,xxxxxxxx;</code> (bins 0 to 15)</td>
+								<td class="rowsep-1" headers="_344758__entry__3">The handler returns an ECHO result string to the tester for validation. The results
+									will not bin out at this time until an ECHOOK is received from the tester.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"><code>BINON:xyxyxyxyxyxyxyxy,xyxyxyxyxyxyxyxy, xyxyxyxyxyxyxyxy,
+										xyxyxyxyxyxyxyxy;</code> (bins 0 to 255)</td>
+								<td class="rowsep-1" headers="_344758__entry__2"></td>
+								<td class="rowsep-1" headers="_344758__entry__3">
+									<p>The driver sends the test results to the handler. The command requires the handler to
+										echo back the results string with the ECHO command for verification. </p>
+									<p>32 test sites are represented by the two character xy in the command syntax string. All
+										64 characters are required in the command string. </p>
+									<p>The characters are grouped into eight sets that are separated by a comma. Each pair of
+										xy characters represents the bin assignment for a single test site. The valid bin
+										characters are <span class="keyword">0</span> to <span class="keyword">FF</span> hexadecimal numbers which
+										represents bins 0 to 255. <span class="keyword">0</span> indicates that the socket has no
+										device.</p>
+									<p>For example, bin 01 = bin 1, bin FF = bin 255, bin AE = bin 174.</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"></td>
+								<td class="rowsep-1" headers="_344758__entry__2"><code>ECHO:xyxyxyxyxyxyxyxy,xyxyxyxyxyxyxyxy, xyxyxyxyxyxyxyxy,
+										xyxyxyxyxyxyxyxy;</code> (bins 0 to 255)</td>
+								<td class="rowsep-1" headers="_344758__entry__3">The handler returns an ECHO result string to the tester for validation. The results
+									will not bin out at this time until an ECHOOK is received from the tester.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"><code>ECHOOK</code></td>
+								<td class="rowsep-1" headers="_344758__entry__2"></td>
+								<td class="rowsep-1" headers="_344758__entry__3">The driver confirms that the bin information is correct. That means the BINON and
+									ECHO strings are matched.</td>
+							</tr>
+							<tr>
+								<td class="rowsep-1" headers="_344758__entry__1"><code>ECHONG</code></td>
+								<td class="rowsep-1" headers="_344758__entry__2"></td>
+								<td class="rowsep-1" headers="_344758__entry__3">
+									<p>The echoed bin data is not correct.</p>
+									<p>The handler resends a <code>BINON</code> command and waits for an
+											<code>ECHO</code>.</p>
+								</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 344758</span><script type="text/javascript">var ti='344758';var tt='GPIB communication flow for Delta Eclipse handlers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

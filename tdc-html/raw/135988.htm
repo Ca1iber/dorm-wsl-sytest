@@ -1,0 +1,224 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The recipe file includes the following elements. The format of the recipe file is shown in the example section below."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Recipe file</title></head><body id="_135988"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 135988</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Recipe file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="351228.htm" title="The libAccessDatalogVariable.so is a system library which provides functions for setting and getting lot variables in recipe files.">System library for recipe</a></li></ol></div></nav>
+	
+	
+	<div><p>The recipe file includes the following elements. The format of the recipe file is shown
+		in the example section below.</p>
+		<section class="section"><ul>
+				<li><span class="keyword">recipe</span>: This is the root element of a recipe file.<div class="p">The
+							<span class="keyword">auto_start_lot</span> attribute can be used in the <span class="keyword">recipe</span>
+						element to enable the automatic startup of lot testing. For example,
+						<div></div><pre class="prettyprint linenums copyable">&lt;recipe popup_newlot_dialog="false" auto_start_lot="true"&gt;
+   ...
+&lt;/recipe&gt;</pre></div><p>When
+						the current lot test is automatically done, the next lot will be automatically started. If the
+						current lot test is manually ended, the next lot needs to be started manually. </p></li>
+				<li><span class="keyword">smartest</span>: specifies the settings to start SmarTest. If a SmarTest session
+					has already been started, this element will shut down the session and start a new session with
+					the specified settings. The settings to start SmarTest in the <a href="146172.htm" title="This file can be used to specify the settings to start SmarTest, set values for the SmarTest environment variables and specify the configuration files for TCCT.">Production configuration file</a> will be
+					ignored if the settings are also specified in the loaded recipe file.<ul>
+						<li><span class="keyword">version</span>: specifies the SmarTest version to use.</li>
+						<li><span class="keyword">tml_version</span>: specifies the version of test method library to use.</li>
+						<li><span class="keyword">mtp_version</span>: specifies the MTP version to use.</li>
+						<li><span class="keyword">startup_mode</span>: specifies the start-up mode. It can be
+								<span class="keyword">offline</span> or <span class="keyword">online</span>.</li>
+						<li><span class="keyword">user_mode</span>: specifies the user mode. It can be
+								<span class="keyword">supervisor</span>, <span class="keyword">engineer</span> or
+							<span class="keyword">operator</span>.</li>
+						<li><span class="keyword">model_file</span>: specifies the model file to use. You can also use the
+							environment variable <span class="keyword">V93000_MODEL</span> to specify the model file.</li>
+						<li><span class="keyword">env</span>: specifies the variables used to start SmarTest, for example,
+								<span class="keyword">V93000_MODEL</span> to specify the model file.</li>
+						<li><span class="keyword">rdi_version</span> specifies a SmartRDI version to be used in the recipe
+							file.</li>
+					</ul><p>The <span class="keyword">smartest</span> element has the <span class="keyword">force_restart</span>
+						attribute: If it is set to <span class="keyword">true</span>, SmarTest is always restarted before the
+						recipe is executed. If it is <span class="keyword">false</span>, SmarTest is restarted only if a version
+						other than the one specified in <span class="keyword">version</span> is running.</p></li>
+				<li>(optional) <span class="keyword">validate</span>: specifies how to validate the code before loading
+					the testflow. This is used to prevent loading a wrong recipe file. The following three types of
+					validation are supported:<ul>
+						<li><span class="keyword">none</span>: no validation is done.</li>
+						<li><span class="keyword">user_compare</span>: specifies the value to be entered before loading the
+							testflow.</li>
+						<li><span class="keyword">popup_script</span>: specifies the script to be executed before loading the
+							testflow. The script is used to generate the validation code.<p>If
+									<span class="keyword">user_compare</span> or <span class="keyword">popup_script</span> is used, a dialog will
+								pop up asking you to enter the validation code when you load the recipe file. If you enter
+								the same value as defined in the recipe file or generated by the script, the recipe file
+								will be loaded. Otherwise, an error message will be shown in the dialog. The recipe file
+								will not be loaded until you enter the correct value.</p></li>
+					</ul></li>
+			</ul><div class="note"><span class="title">Note</span> The <span class="keyword">validate</span> setting in the user-defined recipe file
+				has higher priority than the <span class="keyword">validate</span> setting in the <a href="138096.htm" title="Factory preset recipe file is used to store the common data log variables and consolidate the paths of the data log files and the lot summary files. As shown in the example section, it contains the following elements:">Factory preset recipe file</a>.</div><ul>
+				<li><span class="keyword">testflow</span>: specifies the path of the testflow file to be loaded. It can be
+					a full path or a relative path to the recipe file. Using the return value of a script as the
+					testflow name is also supported. The script can be a full path or a relative path to the recipe
+					file. You can pass arguments to the script in the linux way when calling it. See the example
+					below for the usage of the script.<div class="p">You can also use <span class="keyword">license</span> inside the
+							<span class="keyword">testflow</span> element to specify a license file. For example,
+						<div></div><pre class="prettyprint linenums copyable">&lt;recipe&gt;
+   &lt;smartest&gt;
+      ...
+      &lt;V93000_LICENSING&gt;../license1&lt;/V93000_LICENSING&gt;
+   &lt;/smartest&gt;
+   
+   &lt;testflow name="testflow_name" license="your_license2"/&gt;
+   ...
+&lt;/recipe&gt;</pre></div></li>
+				<li><span class="keyword">equipment</span>: specifies the test type, the equipment vendor, the equipment
+					model. The test type can be HAND, HANDLER or PROBER. For HAND test, do not specify the
+					equipment vendor and the equipment model. Otherwise, you will get an error message when loading
+					the recipe file.</li>
+				<li><span class="keyword">datalog</span>: contains the data log settings for the <span class="uicontrol">Datalog
+						Setup</span> dialog.<ul>
+						<li><span class="keyword">profile</span>: specifies the name of the profile to use. If you do not want
+							to use any profile, delete this element. </li>
+						<li><span class="keyword">lot_variables</span>: specifies values for lot variables and wafer variables
+							to be logged in the data log file. It can also assign the return value of a script to a
+							variable. The script can be a full path or a relative path to the recipe file. You can pass
+							arguments to the script in the linux way when calling it. See the example below for the usage
+							of the script.<div class="note"><span class="title">Note</span> TCCT will convert the names of all the variables into
+								uppercase letters.</div></li>
+						<li><span class="keyword">file</span>: specifies the full path and the name for the EDL file, STDF data
+							log file, text data log file, custom data log file, and lot summary file to be
+								generated.<p>For the text datalog, you can also specify the test name width and whether to
+								show the pin name column. </p><p>For the PROBER test, specify whether to generate the data
+								log file and the lot summary file per wafer.</p><p>For the custom data log file, specify the
+								library of the custom data log formatter. If not specified, the library
+									<span class="filepath">/opt/hp93000/soc/formatter/EventFormatter/libfilter.so</span> will be
+								used.</p><p>For the lot summary file, you can specify which tests are included, whether to
+								organize the summary according to the site number and whether to output the summary in a
+								pop-up window.</p><p>In the naming of the data log file and lot summary file, the following
+								variables in a pair of braces can be used to specify the name and the path of the output
+								data log file and the lot summary file. In the real names of the files, they will be
+								replaced by the current value of the variables.</p><p>The variables related to lot
+								information, including <span class="keyword">PART_TYP</span>, <span class="keyword">TST_TEMP</span>,
+									<span class="keyword">TEST_COD</span>, <span class="keyword">LOT_ID</span>, and
+								<span class="keyword">OPER_NAM</span>.</p><p>The system variables, including
+									<span class="keyword">HOSTNAME</span>, <span class="keyword">USER</span>, and
+								<span class="keyword">LOGNAME</span>.</p><p>Others: <span class="keyword">DEVICE_PATH</span>,
+									<span class="keyword">DEVICE_NAME</span>, <span class="keyword">TESTFLOW_NAME</span>, and
+									<span class="keyword">TIMESTAMP</span>.</p><div class="note"><span class="title">Note</span> <span class="keyword">DEVICE_PATH</span> can be
+								used to specify the path but not the name of the file. To avoid the conflict among the names
+								of files, a TIMESTAMP will automatically be added in the file name if no TIMESTAMP is
+								included in the file name.</div>
+						</li>
+					</ul></li>
+				<li><span class="keyword">states</span>: defines the following insertion points to execute some
+						scripts.<p>You can execute the scripts around the following states:</p><ul>
+						<li><span class="keyword">PROGRAM_LOAD</span>: You can specify a script to be executed before and after
+							loading a testflow.</li>
+						<li><span class="keyword">LOT_CREATE</span>: You can specify a script to be executed before creating a
+							new lot. A new lot is created when you click the <span class="uicontrol">New Lot</span> button, enter
+							the lot variables, and click <span class="uicontrol">OK</span> in the pop-up <span class="uicontrol">Lot
+								Information</span> dialog.</li>
+						<li><span class="keyword">LOT_REMOVE</span>: You can specify a script to be executed after a lot is
+							removed. A lot is removed when you click the <span class="uicontrol">End Lot</span> button and click
+								<span class="uicontrol">OK</span> in the pop-up <span class="uicontrol">End Lot</span> dialog.</li>
+						<li><span class="keyword">TESTFLOW_EXECUTE</span>: You can specify a script to be executed before or
+							after a testflow is executed.</li>
+						<li><span class="keyword">WAFER_CREATE</span>: You can specify a script to be executed before or after a
+							wafer is loaded.</li>
+						<li><span class="keyword">WAFER_REMOVE</span>: You can specify a script to be executed before or after a
+							wafer is unloaded. </li>
+					</ul></li>
+				<li><span class="keyword">instruction</span>: specifies the instruction to be displayed in the <a href="135415.htm" title="The following figure shows the user interface of the Test Cell Control Tool (TCCT). If you changed the layout of the user interface by drag-and-drop, you can click Window &gt; Reset Perspective to get back to the default layout.">Instruction Console</a> and in a pop-up window. You need to click
+						<span class="uicontrol">OK</span> in the pop-up window to continue your actions.</li>
+				<li><span class="keyword">ooc_rules</span>: specifies the out-of-control rule. The rules apply per site.
+							<p><span class="keyword">bins</span>: specifies the out-of-control rules related to the software bin
+						and hardware bin. The element of the rules include <span class="keyword">hardbin</span>,
+							<span class="keyword">softbin</span>, <span class="keyword">consecutivecount</span> or
+							<span class="keyword">overallcount</span>. When the devices tested on a site fall in the specified
+						software bin or hardware bin consecutively for the specified
+							<span class="keyword">consecutivecount</span> times or fall in the specified software bin or hardware
+						bin overall for the specified <span class="keyword">overallcount</span> times, a dialog box will be displayed
+						asking whether to end the lot or ignore it.</p></li>
+			</ul><p>In the recipe file, you can use variables in the following ways:</p><ul>
+				<li>Use a script file to assign a value for a variable. In this way, other variables will be
+					passed as input
+					parameters.<div></div><pre class="prettyprint copyable singleline">&lt;variable name="LOT_ID" value="script:xxx.sh ${MyVariable} /&gt;</pre></li>
+				<li>Define a data log
+					path.<div></div><pre class="prettyprint linenums copyable">&lt;file perwafer="false" path="/tmp/datalog/${MyVariable}" name="advantest_2233"&gt;
+  &lt;stdf enable="true" ext="std" /&gt;
+  &lt;text enable="true" ext="txt" screen="true" showpincolumn="true" testnamewidth="60" /&gt;
+  &lt;summary enable="true" ext="sum" whichtest="All Tests" persite="true" screen="true" /&gt;
+&lt;/file&gt;</pre></li>
+				<li>Define an insertion point in the <span class="keyword">exec</span>
+					node.<div></div><pre class="prettyprint linenums copyable">&lt;state name="LOT_CREATE"&gt;
+  &lt;before&gt;
+    &lt;exec program="beforelotstarted.sh ${MyVariable}" /&gt;
+  &lt;/before&gt;
+  &lt;after&gt;
+    &lt;exec program="afterlotstarted.sh ${MyVariable}" /&gt;
+  &lt;/after&gt;
+&lt;/state&gt;</pre></li>
+			</ul></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;recipe&gt;
+  &lt;smartest force_restart="true"&gt;
+    &lt;version&gt;soc64_7.2.3.0&lt;/version&gt;
+    &lt;tml_version&gt;tml64_7.2.3.0_2.2.0&lt;/tml_version&gt;
+    &lt;mtp_version&gt;&lt;/mtp_version&gt;
+    &lt;startup_mode&gt;offline&lt;/startup_mode&gt;
+    &lt;user_mode&gt;engineer&lt;/user_mode&gt;
+    &lt;env&gt;
+     &lt;V93000_MODEL&gt;/home/linlin/devices/DemoTcct/demo74299/model.mrt.ps1600&lt;/V93000_MODEL&gt;
+      &lt;!-- here can specify the env variables for smartest using, for example --&gt;
+      &lt;!-- &lt;LD_LIBRARY_PATH&gt;/path/or/paths/to/3rd_party_libs&lt;/LD_LIBRARY_PATH&gt; --&gt;
+    &lt;/env&gt;
+  &lt;/smartest&gt;
+  &lt;validate type="user_compare" value="123456"/&gt;
+  &lt;testflow name="/tmp/devices/DemoTcct/demo74299/testflow/demoflow_4sites" /&gt;
+  &lt;equipment testtype="HANDLER" vendor="Multitest" model="MT9918" /&gt;
+  &lt;datalog&gt;
+    &lt;profile name="datalog_ON.prf" /&gt;
+    &lt;lot_variables&gt;
+      &lt;variable name="LOT_ID" value="12345" /&gt;
+      &lt;variable name="OPER_NAM" value="Jean" /&gt;
+      &lt;variable name="PRODUCT_ID" value="script:/home/demo/my_recipes/script.sh x y z"/&gt; 
+    &lt;/lot_variables&gt;
+    &lt;file perwafer="false" path="/tmp/datalog/"
+      name="datalog_{HOSTNAME}_{LOGNAME}_{LOT_ID}_{TIMESTAMP}"&gt;
+      &lt;stdf enable="true" ext="stdf" /&gt;
+      &lt;text enable="true" ext="txt" screen="true" /&gt;
+      &lt;summary enable="true" ext="sum" whichtest="All Tests"
+       persite="true" screen="true" /&gt;
+      &lt;edl enable="true" ext="edl" name="edlfile" perwafer="false" /&gt; 
+      &lt;customdatalog enable="true" ext="txt" name="customfile"
+       librarypath="/home/demo/formatter/libfilter.so" perwafer="false" /&gt;
+    &lt;/file&gt;
+  &lt;/datalog&gt;
+  &lt;states&gt;
+    &lt;state name="PROGRAM_LOAD"&gt;
+      &lt;before&gt;
+        &lt;exec program="/projects/scripts/beforeDownloadTestflow.sh"/&gt;
+      &lt;/before&gt;
+      &lt;after&gt;
+        &lt;exec testSuite="bbb" sites="all"/&gt;
+      &lt;/after&gt;
+    &lt;/state&gt;
+  &lt;/states&gt;
+  &lt;ooc_rules&gt;
+    &lt;bins softbin="1" hardbin="1" consecutivecount="12" overallcount="15"&gt;&lt;/bins&gt;
+    &lt;bins softbin="31" hardbin="3" consecutivecount="3" overallcount="5"&gt;&lt;/bins&gt;
+  &lt;/ooc_rules&gt;
+  &lt;instruction&gt;
+    Please send the Lot summary file to datalog@abc.com after the lot test is done.
+  &lt;/instruction&gt;
+&lt;/recipe&gt;</pre><p>In
+				this example, <span class="keyword">user_compare</span> is used for the validation. To use the type
+					<span class="keyword">popup_script</span>, you can change it as
+				follows:</p><pre class="prettyprint copyable singleline">&lt;validate type= "popup_script" value="/home/demo/tcct/recipe/md5checker#{testflow}"/&gt;</pre><p>For more examples, go to the directory <span class="filepath">/opt/hp93000/tcct/examples/</span>. The
+				example files are named as <span class="filepath">recipe_example_*.xml</span>.</p></div>
+	</div>
+	
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li><li>SmarTest 7.2.0: in patch 2, supports the validate tag in TCCT 1.1</li><li>SmarTest 7.2.0: in patch 2, supports per wafer lot summary file in TCCT 1.1</li><li>SmarTest 7.2.0:  in patch 2, supports popup_script type for validate tag in TCCT
+					1.2</li><li>SmarTest 7.2.0:  in patch 2, supports executing a script around PROGRAM_LOAD, before LOT_CREATE
+					and after LOT_REMOVE in TCCT 1.2.</li><li>SmarTest 7.2.0:  in patch 2, supports adding content in the Instruction Console in TCCT
+					1.2.</li><li>SmarTest 7.2.1:  Added a pop-up window to show the instruction content in TCCT
+					1.3.</li><li>SmarTest 7.2.2:  Supports EDL data log file in TCCT 1.4.</li><li>SmarTest 7.2.2:  Supports the custom data log formatter and file in TCCT 1.4.</li><li>SmarTest 7.2.2:  Supports assigning the value to a variable with script in TCCT
+					1.4.</li><li>SmarTest 7.2.3:  Supports passing arguments to the script in TCCT 1.5.</li><li>SmarTest 7.2.3:  Supports relative file path for testflow in TCCT 1.5</li><li>SmarTest 7.2.3:  Supports executing a test suite after testflow loaded in a specific state in
+					TCCT 1.5</li><li>SmarTest 7.2.3:  Supports starting SmarTest in TCCT 1.5</li><li>SmarTest 7.3.3: Added force_execute attribute for the smartest element.</li><li>SmarTest 7.3.4: Added the rdi_version child element for the smartest element.</li><li>SmarTest 7.3.4: Add the auto_start_lot attribute for the recipe element.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 135988</span><script type="text/javascript">var ti='135988';var tt='Recipe file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

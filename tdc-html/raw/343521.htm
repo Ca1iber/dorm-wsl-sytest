@@ -1,0 +1,103 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI supports the SmarTest 7.4.2 new feature - &#34;Immediate upload&#34; mode for captured data upload."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using Immediate Upload in SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_343521"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343521</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using Immediate Upload in SmartRDI</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="343524.htm" title="Defines the digital capture for which data should be uploaded immediately while test is running.">rdi.digCapImmediateUpload()</a></li><li><a href="343525.htm" title="Gets the result vector chunk when test is running. This is only needed when users want to put their own calculation behind the current execution.">rdi.id().getImmediateVector()</a></li></ol></div></nav>
+	
+	
+	<div><p>SmartRDI supports the SmarTest 7.4.2 new feature - "Immediate upload" mode for captured
+		data upload.</p>
+		<section class="section"><h2>Immediate upload</h2>
+			
+			<p>It is introduced to fill the gap in using the hidden upload technology of the SmartCalc
+				framework.</p>
+		</section>
+		<section class="section"><h2>Immediate upload versus hidden upload</h2>
+			
+			<p>To achieve best throughput and multisite efficiency with V93000, the SmartCalc framework is
+				used.</p>
+			<p>SmartCalc enables performing data upload and calculation while another test is being executed.
+				This technology is called hidden upload. Hidden upload has two drawbacks:</p>
+			<div class="p">
+				<ul>
+					<li>Binning is delayed (late binning)</li>
+					<li>Another test with suitable execution time must be in place</li>
+				</ul>
+			</div>
+			<div class="p">Besides, hidden upload also has a known limitation that it becomes inapplicable when:<ul>
+					<li>No other tests are available to hide uploads</li>
+					<li>Late binning is not an option</li>
+				</ul></div>
+			<p>The immediate upload technology fills this gap for digital capture tests by immediate upload
+				and calculation which allows to upload result chunks of a started and running capture test and
+				do calculations on this result chunk while test is running.</p>
+			
+			<p>Immediate Upload is introduced with SmarTest 7.4.2 for digital capture tests.
+				Supported by PS1600.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="343522.png" alt="Immediate upload versus hidden upload">
+				</figure>
+			</div>
+			<div class="p">The following diagram shows the general structure of immediate upload.<figure class="fignone"><img src="343523.png" alt="General structure of immediate upload"></figure></div>
+			<p>Immdiate upload only supports the <span class="keyword">digCap()</span> class with two API functions: <a href="343524.htm" title="Defines the digital capture for which data should be uploaded immediately while test is running.">rdi.digCapImmediateUpload()</a> and <a href="343525.htm" title="Gets the result vector chunk when test is running. This is only needed when users want to put their own calculation behind the current execution.">rdi.id().getImmediateVector()</a>.</p>
+			<p>In short, with a capability of uploading data and hiding calculation during the capture
+				running, immediate upload improves tests performance especially when a huge amount of data are
+				generated at a low capture speed.</p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Using immediate upload for data upload only</h3>
+			
+			<p>In the example below, <code>digCapImmediateUpload()</code> is used alone to upload digital
+				capture data immediately while the test is running. The upload of the captured data referenced
+				by "resultId" is started while the burst is executed.</p>
+			<div></div><pre class="prettyprint linenums copyable">rdi.digCapImmediateUpload("resultId"); 
+
+RDI_BEGIN();
+   rdi.digCap("resultId").samples(...)...execute();
+   ...
+RDI_END(); // Raw Result upload within pattern run
+
+rdi.id("resultId").getVector();</pre><div></div>
+		</div>
+		<div class="example"><h3>Using immediate upload for data upload and result calculation</h3>
+			
+			<p>In the example below, <code>digCapImmediateUpload()</code> is used together with
+					<code>getImmediateVector()</code> to upload digital capture data as well as hide result
+				calculation while the test is running.</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">rdi.digCapImmediateUpload("resultId"); 
+    
+RDI_BEGIN();
+    rdi.digCap("resultId").samples(SAMPLE_SIZE).bitPerWord(BPW).execute(); 
+RDI_END( TA::NON_BLOCKING);
+                    
+bool dataIsRemaining; 
+ARRAY_I resultChunk;
+ARRAY_I uploadDataOffset(MAX_SITE_NUM);
+                
+while (dataIsRemaining)
+    {dataIsRemaining = false;                
+    FOR_EACH_SITE_BEGIN()
+    site = CURRENT_SITE_NUMBER();
+    if (uploadDataoffset[site] &lt; SAMPLE_SIZE/BPW-1)
+    {resultChunk=rdi.id("resultId").getImmediateVector(uploadDataOffset[site]);  
+    uploadDataOffset[site] += resultChunk.size();
+    dataIsRemaining = true;
+//-------------- calculation e.g. fill histogram array  ---------------------------------
+    }
+    FOR_EACH_SITE_END()；
+}
+RDI_WAIT_TEST_DONE();  </pre><div></div>
+			</div>
+			<p><code>getImmediateVector()</code> returns an array of vectors. The array size in SER mode
+				is calculated by dividing sampleSize with bitPerWord. So in this example, the maximum array size
+				equals to <span class="keyword">SAMPLE_SIZE</span> divided by <span class="keyword">BPW</span>. Pay attention that
+				in serial mode, the default setting for bitPerWord is 32.</p>
+			<p>In offline mode, the chunk size from each <code>getImmediateVector()</code> upload is 0. A
+				working online code may cause an endless loop in offline execution. It is recommended to define
+				an extra end loop criterion, for example, define the maximum number of loop executions. </p>
+			<p>Important: With SmarTest7.4.3.0 and 7.4.3.1, immediate upload only allows ONE result id in a
+				pin.</p>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343521</span><script type="text/javascript">var ti='343521';var tt='Using Immediate Upload in SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Controls the multiplexer to switch or to hold the signal to the board ADC."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>amux()</title></head><body id="_148702"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 148702</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">amux()</h1>
+	
+	
+	<div><p>Controls the multiplexer to switch or to hold the signal to the board ADC.</p>
+		<section class="section"><p>In SmartRDI 2.2.0, the multiplexer switches the signal to the board ADC every time the
+				board ADC is used, which is unnecessary when measuring signals with a different board ADC. To
+				reduce the unnecessary switching, <span class="keyword">amux()</span> is created in SmartRDI 2.3.0 for
+				controlling the multiplexer's switching of signals manually.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">amux(bool <span class="keyword">iFlag</span>);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_148702__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_148702__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_148702__entry__1"><p><span class="keyword">iFlag</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_148702__entry__2"><p>Either 1 or 0:</p>
+								<ul>
+									<li>1: Transfers another signal to the board ADC.</li>
+									<li>0: Holds the signal to the board ADC.</li>
+								</ul></td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>Measuring pinA with the board ADC through the
+			PPMU</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("pinA").vMeas().amux(0).valueMode(TA::BADC).execute();
+RDI_END();</pre></div>
+		<div class="example"><h3>Example 2</h3><p>Measuring pinA with the board ADC connected through DC
+				relays.</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("pinA",TA::BADC).vMeas().amux(0).execute();
+RDI_END();</pre></div>
+		<div class="example"><h3>Example 3</h3><p>Measuring pinA with the board ADC through PPMU for three
+				times. The following example demonstrates the different setups between SmartRDI 2.2.0. and
+				2.3.0. The SmartRDI 2.3.0 setups reduce the relay switching time by using the
+					<span class="keyword">amux()</span> function.</p><ul>
+				<li>Setups in SmartRDI
+					2.2.0<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("pinA").vMeas().valueMode(TA::BADC).execute();
+  rdi.dc().pin("pinA").vMeas().valueMode(TA::BADC).execute();
+  rdi.dc().pin("pinA").vMeas().valueMode(TA::BADC).execute();
+RDI_END();</pre></li>
+				<li>Setups in SmartRDI
+					2.3.0<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.hwRelay().pin("pinA").setOn("AMUX_PPMU,PPMU").execute();
+  rdi.dc().pin("pinA").vMeas().valueMode(TA::BADC).amux(0).relay(TA:ppmuRly_NO).execute();
+  rdi.dc().pin("pinA").vMeas().valueMode(TA::BADC).amux(0).relay(TA:ppmuRly_NO).execute();
+  rdi.dc().pin("pinA").vMeas().valueMode(TA::BADC).amux(0).relay(TA:ppmuRly_NO).execute();
+RDI_END();</pre></li>
+			</ul></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 148702</span><script type="text/javascript">var ti='148702';var tt='amux()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

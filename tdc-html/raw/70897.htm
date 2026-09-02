@@ -1,0 +1,56 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Search conditions can be defined by using variables. If a testflow containing such a variable dependent parallel search is repeated in a loop, then the values of the variables may be different for each execution of the search. In this case a new search set would be created with each testflow execution, and the testflow would fall back on using only one search set after 126 loop repetitions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Managing Search Conditions with Variables</title></head><body id="_70897"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 70897</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Managing Search Conditions with Variables</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="75632.htm" title="The following is a simple code example where the input for the second search task depends on the outcome of the first task. The numbers 1 through 4 on the left margin refer to the steps of Managing Search Conditions with Variables. Step 0 supplies the value for the variable s_v.">Code Example and Resulting Firmware Commands</a></li></ol></div></nav>
+	
+	
+	<div><p>Search conditions can be defined by using variables. If a testflow containing such a
+		variable dependent parallel search is repeated in a loop, then the values of the variables may be
+		different for each execution of the search. In this case a new search set would be created with
+		each testflow execution, and the testflow would fall back on using only one search set after 126
+		loop repetitions.</p>
+		<p>To avoid such a search set overflow, the <kbd class="userinput">SEARCH_FUNC_TASK</kbd> API provides a
+			restore mechanism for class objects that (try to) download more than one collection of search
+			conditions. The first of these definitions is considered as the original. A new search set will
+			be created for this definition, unless a set with exactly these conditions already exists. The
+			following definitions are regarded as temporary modifications. They will be written into the same
+			search set that holds the conditions of the first definition (and expand or override the
+			original). But after termination of the test method, the modifications will be canceled. Thus the
+			search set will contain the original definition again at the next testflow execution. </p>
+		<p>With this restore mechanism, you can solve the problem of variable dependent search conditions.
+			Namely, you must first define a variable-free dummy search condition, and subsequently overwrite
+			this original definition with the genuine conditions that depend on variables. Since the original
+			conditions are restored, the API class object will find a search set containing exactly the dummy
+			conditions at the next test execution, and will therefore reuse this set for the following
+			variable dependent modifications. </p>
+		<div class="note"><span class="title">Note</span> When a modification within the same API class object is incompatible with the
+			already existing definitions, the old definitions will be modified, but only as far as necessary.
+			For example, if a condition C1, which uses all pins as setup pins, is followed by a different
+			condition C2 with only one setup pin, then this pin will be removed from C1 (and C2 be added to
+			the search set), but C1 itself will be kept for the remaining pins.</div>
+		<div class="note"><span class="title">Note</span> If the first, original, definition contains no pin specification, and therefore
+			uses all pins as setup pins, pin specific modifications will nonetheless <em>not</em> inherit any
+			parameter from the original. You will have to specify all the mandatory parameters again.</div>
+		
+		<p>Since the dummy search condition only serves to enable reuse of the search set, it must be
+			downloaded, but not be executed. This is achieved by using the <kbd class="userinput">setup()</kbd>
+			member function of the <kbd class="userinput">SEARCH_FUNC_TASK</kbd> API.
+				<kbd class="userinput">setup()</kbd> downloads the preceding search conditions into a new search set
+			if no set with exactly these conditions exists, but it does not execute the search. </p>
+		<p>Thus a parallel search with variables should be coded according to the following schema:</p>
+		<ol>
+			<li>Define a dummy search condition without variables.</li>
+			<li>Apply the <kbd class="userinput">setup()</kbd> member function of the
+					<kbd class="userinput">SEARCH_FUNC_TASK</kbd> API to download the conditions.</li>
+			<li>Modify the search conditions using variables as required.</li>
+			<li>Apply the <kbd class="userinput">execute()</kbd> member function of the
+					<kbd class="userinput">SEARCH_FUNC_TASK</kbd> API to download the modifications and execute the
+				search. </li>
+		</ol>
+		<p>The following figure illustrates the principle:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="75987.png" alt="Reusing Search Sets for Variable Search Conditions">
+			</figure></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 70897</span><script type="text/javascript">var ti='70897';var tt='Managing Search Conditions with Variables'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

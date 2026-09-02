@@ -1,0 +1,109 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Parallel site calculation uses the advantages of the multicore and multiprocessor architecture of the CPU. Individual test can be put into a separate SMC_backgroundProcessing() method that is specific to SmartCalc. That method causes SmartCalc to perform anything in it in the background in a different thread."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Parallel site calculation</title></head><body id="_118912"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118912</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Parallel site calculation</h1>
+	
+	
+	<div><p>Parallel site calculation uses the advantages of the multicore and multiprocessor
+		architecture of the CPU. Individual test can be put into a separate
+			<span class="keyword">SMC_backgroundProcessing()</span> method that is specific to SmartCalc. That method
+		causes SmartCalc to perform anything in it in the background in a different thread.</p>
+		<p>Your <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method needs to be defined as a public
+			method. The number of parameters passed to this method are limited to eight parameters.
+			Since each test method is a separate class, parameter handling can be avoided by
+			defining variables as private member variables of the class. This way they are valid in
+			all class methods. This is a fast and therefore the recommended way for large
+			arrays.</p>
+		<p>The coding follows the UTM programming scheme.<a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> needs to be executed for
+			each site (see example below) to start the <span class="keyword">SMC_backgroundProcessing()</span> thread.
+			Each test class typically contains one method with the predefined name
+				<span class="keyword">SMC_backgroundProcessing()</span>. </p>
+		<p>In case different
+					<span class="keyword">SMC_backgroundProcessing()</span> methods become necessary in your test method
+				class, they need a different number of parameters to be distinguishable (different types is
+				insufficient).</p>
+		<p><a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> checks and - if necessary - waits until all threads of the active site
+			are finished. The time out in seconds can be specified by a double variable. The time
+			out setting is disabled by default.</p>
+		<div class="p"><figure class="fignone">
+				<img src="118914.png" alt="Example testflow for parallel site calculation">
+			</figure></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">class runSNRtestMethod: public testmethod::TestMethod
+{
+     private:
+
+    //
+    // Definition of member variables,
+    // can be accessed from all methods
+    // inside the class
+    //
+    DOUBLE snr[MAX_SITES], sPow[MAX_SITES], nPow[MAX_SITES];
+    ARRAY_D I_Capt[MAX_SITES];
+
+    protected:
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN()
+
+            //
+            // Setup and execute your test as usual
+            //
+            DGT("pinDGT").enable();
+
+            <strong>SMC_EXECUTE_TEST</strong>( 1.0 );
+
+            //
+            // Upload data per site and start calculation
+            //
+            FOR_EACH_SITE_BEGIN()
+
+                //
+                // Upload waveform
+                //
+                INT site = CURRENT_SITE_NUMBER();
+                I_Capt[site] = DGT("pinDGT").getWaveform();
+
+                //
+               // Kick off calculation thread
+               <strong>SMC_ARM()</strong>;
+
+            FOR_EACH_SITE_END()
+
+        ON_FIRST_INVOCATION_END()
+
+        //
+        // Wait until all calculations are done
+        //
+        <strong>SMC_SYNCHRONIZE()</strong>;
+
+        INT site = CURRENT_SITE_NUMBER();
+
+        //
+        // Log all results
+        //
+        TEST("pinDGT","SNR", snr[site]);
+        TEST("pinDGT","signalPow", sPow[site]);
+        TEST("pinDGT","noisePow", nPow[site]);
+
+    } // virtual void run()
+
+    public:
+
+    void SMC_backgroundProcessing(void)
+    {
+        //
+        // Retrieve the thread specific site number from SmartCalc
+        //
+        INT site = <strong>SMC_SITE_NUMBER()</strong>;
+
+        //
+        // Do your calculation
+        //
+        DSP_SNR(I_Capt[site],&amp;snr[site],&amp;sPow[site],&amp;nPow[site], 1024, 1, 3, 0.0, 0);
+
+    } // void SMC_backgroundProcessing(void)
+
+} // class runSNRtestMethod: public testmethod::TestMethod</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118912</span><script type="text/javascript">var ti='118912';var tt='Parallel site calculation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

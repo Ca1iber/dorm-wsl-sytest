@@ -1,0 +1,297 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DUT board Layout for Multi-Gigabit Bidirectional Interfaces</title><meta name="keywords" content="card loadboard load board DIB"></head><body id="_105505"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105505</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DUT board Layout for Multi-Gigabit Bidirectional Interfaces</h1>
+	
+	<div>
+		<p>Jose Moreira, Verigy</p>
+		<p>Heidi Barnes, Verigy</p>
+		<p>Hubert Werkmann, Verigy</p>
+		<p>Paper ID: 105505</p>
+		<section class="section"><h2>Introduction</h2><p>Bidirectional interfaces have been used for a long time in
+				the electronics industry, from interfaces like PCI running at hundreds of Mhz to modern
+				interfaces like XDR running at multi-gigabit data rates. Although unidirectional interfaces,
+				like for example PCI-Express II, are becoming the main interfaces in desktop computer
+				applications, in the memory arena, bidirectional interfaces still are the norm. Figure 1 shows a
+				diagram comparing both signaling approaches.</p><div class="p"><figure class="fignone">
+					
+					<img src="105507.png" alt="Comparison between unidirectional and bidirectional interfaces.">
+				</figure></div><p>By requiring half of the number of pins of a unidirectional interface,
+				bidirectional interfaces have a significant pin count advantage but the design of a
+				bidirectional interface is more complicated than that of a unidirectional interface. Another
+				possible improvement on a bidirectional interface is the possibility of the interface drive and
+				receive simultaneously, which makes it possible to double the amount of data transferred
+				compared to a unidirectional interface. This is known as simultaneous bidirectional signaling
+				[1,2].</p><p>Bidirectional interfaces also present challenges in regards to the design of ATE
+				pin electronics. Providing native bidirectional support on the ATE pin-electronics presents
+				several challenges. One of the most important is the delay time from the ATE pin electronics to
+				the DUT. Figure 2 shows a typical DUT board docked to a Verigy V93000 ATE system on the
+				right side, while on the left side is the typical DUT board (also known as Hi-Fix) for the
+				V93000.</p><p>By requiring half of the number of pins of a unidirectional interface,
+				bidirectional interfaces have a significant pin count advantage but the design of a
+				bidirectional interface is more complicated than that of a unidirectional interface. Another
+				possible improvement on a bidirectional interface is the possibility of the interface drive and
+				receive simultaneously, which makes it possible to double the amount of data transferred
+				compared to a unidirectional interface. This is known as simultaneous bidirectional signaling
+				[1,2].</p><p>Bidirectional interfaces also present challenges in regards to the design of ATE
+				pin electronics. Providing native bidirectional support on the ATE pin electronics presents
+				several challenges. One of the most important is the delay time from the ATE pin electronics to
+				the DUT. Figure 2 shows a typical DUT board docked to a Verigy V93000 ATE system on the
+				right side, while on the left side is the typical DUT board (also known as Hi-Fix) for the
+				V93000.</p><div class="p"><figure class="fignone">
+					
+					<img src="105508.jpg" alt="DUT board docked to a V93000 ATE system (left: SOC application, right: multi-site high-speed memory application).">
+				</figure></div><p>In a typical application that uses bidirectional interfaces (for example, desktop
+				computer motherboard), the signal traces between devices are kept as short as possible, while in
+				an ATE application due to the DUT board and the ATE mechanics the signal traces will be
+				larger than 25cm with some cases even going to 50cm and higher. These long signal traces cause
+				relatively long signal delays on the connection between ATE pin-electronic and DUT pin. One
+				critical parameter for bidirectional interfaces in this regards is the roundtrip delay on this
+				connection which defines the time a signal takes to travel the signal path back and forth one
+				time. Since device specifications are designed for the short roundtrip delay typically seen in
+				electronic systems, the long roundtrip delays in an ATE environment can cause limitations to
+				test a device to its full specifications. To address this challenge one might be forced to use
+				techniques like fly-by that will be discussed later in this paper.</p><p>The next section will
+				discuss some basic concepts of bidirectional interfaces followed by a discussion on current
+				standard approaches to test bidirectional interfaces. We will then concentrate on the fly-by
+				approach by presenting and discussing several implementation strategies followed by experimental
+				results comparing the different approaches. We finalize this paper with some
+			conclusions.</p></section>
+		<section class="section"><h2>Bidirectional Interfaces</h2><p>In traditional (non-simultaneous) bidirectional
+				interfaces, the I/O cell is only able to drive and receive at a given time, meaning that it
+				needs to switch between being in a "drive" mode to a "receive" mode. This switch cannot be
+				instantaneous since it requires that all the bits that are on the signal trace that connects the
+				I/O cell to the partner I/O cell to arrive. This time will depend on the length and physical
+				properties of the signal path connection and is known as the round trip delay. In a typical
+				application this time is very short since the signal connections are typically very short,
+				especially in high-speed memory applications. This is not the case on a typical ATE DUT
+				loadboard. Figure 3 shows that drive and receive modes of a bidirectional interface.</p><div class="p"><figure class="fignone">
+					
+					<img src="105509.png" alt="Drive and receive modes of bidirectional interfaces.">
+				</figure></div><p>These long signal traces easily cause delays on the connection between ATE
+				pin-electronic and actual DUT pin of several nanoseconds. The long roundtrip delays in
+				ATE-to-DUT connections result in problems when a bidirectional DUT pin turns its signal
+				direction from driving into receiving mode. In order to compensate for the signal travel delay
+				on the connection traces, ATE drivers launch their drive signals earlier by the time it takes
+				the signal to travel down the signal path to the DUT pin. For the bus turnaround direction from
+				DUT drive to DUT receive mentioned above, this means that the signals launched by the ATE driver
+				will collide on the bidirectional trace if the DUT bus turnaround time (delay between DUT drive
+				to receive) is shorter than the roundtrip delay on the ATE to DUT connection trace. Especially
+				for high-speed memory data bus connections that have specified bus turnaround times of only a
+				few nanoseconds, this behavior prevents at speed back to back read-write operations with the
+				minimum bus turnaround time specified if a bidirectional connection is designed as a single
+				transmission line (SMTL) as it is the case in the DUT's target system. This issue is explained
+				graphically in a Figure 4.</p><div class="p"><figure class="fignone">
+					<img src="105510.png" alt="Signal generated by GPU">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105511.png" alt="Graphic description of the challenge of testing bidirectional interfaces with single transmission lines (STML).">
+				</figure></div><p>The upper section of Figure 4 shows the signals at both ends of a bidirectional
+				memory connection in the case of a real system with a signal propagation delay of 500 ps (1 ns
+				roundtrip delay) between memory controller and memory device. The lower section of Figure 4
+				shows an example of an ATE connection with a propagation delay of 4.2 ns (8.4 ns roundtrip
+				delay) between ATE pin electronic and memory device. In both sections, a bus turnaround time of
+				2.5 ns for the memory device is assumed. If this bus turnaround time is kept in both cases, the
+				memory controller in the real system still has a margin of 1.5 ns to launch its drive data after
+				it received the last bits of the data driven by the memory device. In the case of the ATE
+				connection, a data collision on the single transmission line connection occurs. Due to the STML
+				propagation delay time, the last data bit launched by the memory device only arrives after 4.2
+				ns at the ATE receiver. Thus, in order to keep a bus turnaround time of 2.5 ns at the memory
+				device, the ATE driver has to launch its own drive data already when still some of the data bits
+				driven by the memory device are present on the STML connection. This leads to data bit
+				collisions at the ATE end of the STML connection. Traditional ATE receivers are not capable of
+				resolving this collision and thus, a test of the data that is located in the collision area
+				usually is not possible with the result that the memory device's minimum bus turnaround time
+				cannot be tested in a STML environment.</p></section>
+		<section class="section"><h2>Approaches for Testing Bidirectional Interfaces with ATE</h2><p>In [3] Keezer
+				describes what are now the standard approaches to testing non-simultaneous bidirectional
+				interfaces. Figure 5 shows the two possible approaches to test bidirectional interfaces using
+				ATE pin electronics. It assumes the ATE pin electronics are bidirectionally enabled, that is,
+				the driver and receiver are connected together. Note that this might not be possible for very
+				high-speed and high-performance pin electronics due to the added issues of connecting together
+				the driver and receiver.</p><p>Figure 5 (left) shows the most straightforward approach to
+				testing bidirectional interfaces, basically the bidirectional ATE pin electronics are connected
+				directly to the DUT bidirectional pins (exactly like on a real application). When the DUT is
+				driving data, the pin electronics driver serves as a voltage source to provide adequate
+				termination and when the DUT is receiving data, the pin-electronics receiver is basically a
+				high-impedance component hanging on the pin-electronics driver. Although this is the most
+				straightforward approach, it suffers from the challenge that due to the DUT board signal
+				trace length, the round-trip delay will be very large (compared to the real application).</p><div class="p"><figure class="fignone">
+					
+					<img src="105512.png" alt="Standard approaches for bidirectional testing (left: direct connection between the pin electronics and the DUT, right: using a fly-by approach).">
+				</figure></div><p>To address this issue it is necessary to eliminate the limitation of switching
+				between the drive and receive modes due to the round-trip delay. Note that it not possible to
+				reduce the DUT board signal trace length since it is typically the smallest possible length
+				for the application. The idea is to split the drive and receive signals and only connect the
+				signals paths right next to the DUT pin. This means that if the ATE driver and receiver pins
+				have an appropriate timing, the round-trip delay no longer limits the switching between the
+				drive and receive modes on the ATE pin electronics. The price is that instead of using a single
+				ATE pin-electronics pin for each bidirectional DUT pin like on Figure 5 (left) we now have to
+				use two ATE pins for each DUT I/O pin. Another possible issue with this approach is that for
+				high data-rates the signal traces behave as a transmission line and connecting two signal traces
+				together next to the DUT pin will create an impedance discontinuity.</p><p>One very important
+				point with a fly-by configuration where the ATE pin-electronics and the DUT I/O are 50Ohms, is
+				that the signal amplitude delivered to the DUT will be attenuated due to the fly-by. Figure 6
+				shows a very simple simulation of the set-up showing that only around 32% of the ATE pin
+				electronics drive signal does arrive to the DUT I/O in this fly-by configuration. Depending on
+				the application and the ATE pin-electronics specifications, this can be a problem.</p><div class="p"><figure class="fignone">
+					
+					<img src="105513.png" alt="Simulation of a fly-by setup to measure the DC loss of a fly-by connection with 50Ohm impedance ATE pin electronics and DUT.">
+				</figure></div><p>The above pictures only presente single-ended interfaces. There are no major
+				differences when discussing bidirectional differential interfaces with the exception that when
+				using bidirectional differential ATE pin electronics or a unidirectional differential pin
+				electronics in a fly-by configuration, when the driver is used as termination in the receive
+				mode it is necessary to set both lines of the differential driver to the same voltage (the
+				termination voltage). This feature is available for example in the Verigy V93000 PinScale HX,
+				HSM HX and HSM 3600 pin electronics card.</p><div class="p"><figure class="fignone">
+					
+					<img src="105529.png" alt="Differential bidirectional interface connected to differential ATE bidirectional pin electronics.">
+				</figure></div></section>
+		<section class="section"><h2>Possible approaches to fly-by Implementation</h2><p>As already mentioned, a
+				fly-by implementation requires the connections of two 50Ohm lines at a certain point before the
+				DUT I/O pins. Typically this connection is made directly without any kind of matching network.
+				To reduce the impedance discontinuity that is created by the fly-by approach, the best approach
+				is to join the driver and receiver signal traces at the via that goes into the DUT socket.
+				Figure 8 right shows an example of a layout using the fly-by approach for the bidirectional pins
+				where the signal traces are joined at the socket via. Figure 8 right shows a cross section of a
+				3D EM simulation where the drive and receive signal paths are routed in adjacent layers and
+				joined at the socket via. The figure also shows the electrical field distribution at 10Ghz.</p><div class="p"><figure class="fignone">
+					
+					<img src="105533.png" alt="Example of a fly-by bidirectional layout (left) and a cross-section of a 3D EM simulation of a fly-by connection at the socket via (right).">
+				</figure></div><p>Although it is possible to use a signal trace taper [4] to perfectly match the
+				impedance for a specific frequency on the fly-by connection, due to the fact that digital
+				signals are broadband, the taper approach cannot match the impedance for all frequencies.
+				Remember that digital signals are broadband in the sense that their frequency content starts at
+				DC and goes to some high-frequency related to the data rate, rise-time and also to the coding
+				scheme used on the data pattern. Although tapering cannot solve the matching problem completely,
+				there is no reason to assume that a taper will not help on a fly-by implementation. Figure 9
+				shows a schematic of an experiment design to evaluate the taper approach on a fly-by
+				configuration.</p><div class="p"><figure class="fignone">
+					
+					<img src="105534.png" alt="Standard fly-by design with an extra tapering before the connection between both traces to reduce the impedance discontinuity.">
+				</figure></div><p>The question is if the fly-by approach can be extended to multi-gigabit data rates
+				of even 10Gb/s. The main issue is how much influence the fly-by impedance discontinuity will
+				have. To remove the discontinuity from a fly-by approach, it is necessary to match all inputs of
+				the fly-by connection to 50 Ohms. One straightforward option is to use a power divider as shown
+				in Figure 10. The power divider can be implemented by using individual components or a single
+				packaged component.</p><div class="p"><figure class="fignone">
+					
+					<img src="105538.png" alt="Using a power divider to match all ports of a fly-by connection on the experimental board (left) and the power divider electrical model (right).">
+				</figure></div><p>Since we are dealing with multi-gigabit signals, and given the fact that due to the
+				high pin-count of current devices most of the signals are routed using stripline, the transition
+				to the top of the DUT board where the power divider will reside is not a trivial task.
+				Special attention must be taken when designing this transition to avoid the creating of an even
+				larger discontinuity when implementing a power divider approach [5]. Figure 11 presents an
+				example of an optimized inter-layer transition via than has been demonstrated to have excellent
+				performance even in the 10Gb/s data rate range.</p><div class="p"><figure class="fignone">
+					
+					<img src="105541.png" alt="Example of an optimized via for transition between a stripline and a microstrip to reach a surface mounted component.">
+				</figure></div><p>Of course, one could try to implement the power divider by using individual
+				resistors although there are high-performance power dividers available in the market for surface
+				mount assembly, for completeness we should consider this alternative and for that we also
+				implemented a power divider approach using individual resistors on a test board as shown in
+				Figure 12.</p><div class="p"><figure class="fignone">
+					
+					<img src="105544.png" alt="Implementing a matched impedance fly-by using a power divider implemented with individual SMT components.">
+				</figure></div><p>It is important to note that a power divider approach will further attenuate all
+				signals. This can be seen in Figure 13 where with the power divider only approximately 23% of
+				the ATE pin-electronics driver arrives to the DUT I/O. Again, this can be a problem depending on
+				the application requirements.</p><div class="p"><figure class="fignone">
+					
+					<img src="105546.png" alt="Simulation of a fly-by set-up to measure the DC loss of a fly-by connection including a power divider with 50Ohm impedance ATE pin electronics and DUT.">
+				</figure></div></section>
+		<section class="section"><h2>Experimental Results</h2><p>Figure 14 shows a picture of the experimental board
+				designed by Verigy for evaluating several issues in DUT board design for high-speed data
+				rates including bidirectional layout. The board uses a ROGER4350/NELCO400013-SI hybrid stackup
+				with all the bidirectional experiments implemented in layers using ROGERS4350. All the
+				experiments discussed in the previous section were implemented on the board using optimized
+				surface mounted SMA connectors from Rosenberger that although having through holes for the
+				ground pins, the signal pin is not through-hole and only touches the top of the DUT loadboard.
+				The entire launch to the connector was optimized through 3D EM simulation for the specific
+				stack-up of this test board.</p><div class="p"><figure class="fignone">
+					
+					<img src="105547.jpg" alt="Experimental DUT board used for the experiments.">
+				</figure></div><p>Figure 15 shows a picture of the YDS power dividers that were used for looking into
+				the advantages of impedance matching the fly-by connection using a power divider. Notice the
+				optimized vias where the signals travel to the top of the DUT board and also the ground vias
+				surrounding the power divider package to provide the maximum signal integrity.</p><div class="p"><figure class="fignone">
+					
+					<img src="105549.jpg" alt="YDS power divider assembled on the experimental DUT board (left), YDS specifications for the power divider (right).">
+				</figure></div><p>Figure 16 shows a photograph of the two power divider topologies implemented using
+				individual surface mounted resistors (triangular and star). Notice again the use of optimized
+				via transitions to the top of the DUT loadboard.</p><div class="p"><figure class="fignone">
+					
+					<img src="105550.jpg" alt="Implemented topologies for the power divider matching approach using individual resistors (left: triangular, right: star).">
+				</figure></div><p>For each of the structures implemented on the test DUT loadboard, a full
+				S-parameter measurement was done using a 4-port vector network analyzer (VNA) with a 50Ghz
+				bandwidth. From the s-parameter data it is possible to synthesize data eye diagrams at any data
+				rate and for a given pattern using the Agilent PLTS software which is shown in Figure 17. [6] is
+				a good reference on 4-port VNA measurements and PLTS.</p><div class="p"><figure class="fignone">
+					
+					<img src="105552.png" alt="Measured 4-port S-parameters for the fly-by direct connection experiment displayed using the Agilent Technologies PLTS software.">
+				</figure></div><p>Figure 18 shows the synthesized data eye comparing the straight fly-by
+				implementation with the tapered fly-by approach. From the synthesized data eyes it is possible
+				to see that the tapering approach does improve the data eye slightly. The difference between
+				both approaches can be seen further on the synthesized TDR response shown in Figure 19. It is
+				interesting to see how the tapering has an effect on the TDR response at the fly-by connection
+				point.</p><div class="p"><figure class="fignone">
+					
+					<img src="105553.png" alt="Synthesized data eye comparison at 10Gb/s with aPRBS9 data pattern of the fly-by approach without any tapering (left) with a fly-by approach with tapering (right).">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105554.png" alt="Synthesized TDR response from S-parameters for the fly-by with no tapering (left) and with tapering (right).">
+				</figure></div><p>Figure 20 shows the synthesized data eye comparison between the fly-by approach
+				with tapering and the matched fly-by approach using a surface mount power divider. From the data
+				eyes it is easy to see the 3dB loss that the power divider requires. Also the power divider does
+				not show a better response since although it resolves the matching problem it does introduce the
+				discontinuities from the vias to the top (although they are optimized) and the power divider
+				itself. Figure 21 shows the TDR comparison where one can see that the power divider does match
+				the fly-by connection.</p><div class="p"><figure class="fignone">
+					
+					<img src="105555.png" alt="Synthesized data eye comparison between a fly-by approach implemented at the signal via to the socket with tapering (left) and a matched fly-by through a power divider on the DUT loadboard (right). SMT power divider implemented in thin-film technology.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105556.png" alt="Synthesized TDR response between the direct fly-by connection with tapering (left) and the fly-by connection with a matching power divider (right).">
+				</figure></div><p>Figure 22 shows in turn the comparison between using a star or a triangular
+				configuration for creating a power divider using individual resistors.</p><div class="p"><figure class="fignone">
+					
+					<img src="105557.png" alt="Data eye comparison of the two approaches for creating a power divider matching network using individual resistors (left: triangular, right: star).">
+				</figure></div><p>From Figure 22, it is easy to see that there is not a significant difference
+				between both approaches. However, in comparing with Figure 20 one can notice that the measured
+				data eye performance when using a power divider composed of individual components is worse than
+				using a single component power divider. This is not a surprise since the discontinuities from
+				the individual components will be higher than using a high-performance power divider in a single
+				package.</p></section>
+		<section class="section"><h2>Conclusions</h2><p>The choice of the appropriate methodology for testing a
+				bidirectional interface will continue to depend on the DUT I/O specifics and on the ATE pin
+				electronics, but when a fly-by approach is decided to be the best approach, it has been shown by
+				this paper that with appropriate attention to the DUT board design, the use of external
+				components like power dividers to match the fly-by connection does not bring a significant
+				improvement on performance even at data rates as high as 10Gb/s and in return do add significant
+				complexities to the DUT board layout. Of course, in this paper we assume that the fly-by
+				connection is being implemented at the via to the DUT socket. If a different implementation is
+				used (for example, fly-by connection implemented before the socket via) the results presented in
+				this paper might not apply, although there are no significant reasons why the fly-by connection
+				cannot be implemented at the via to the DUT socket for most devices.</p></section>
+		<section class="section"><h2>Acknowledgments</h2><p>We would like to thank Mike Howieson from thin-film
+				technologies for the discussions regarding surface mounted power dividers and providing the
+				power dividers used in this paper and also Don Sionne and William Burns from Altanova for the
+				layout and manufacturing of the test board. We would also like to thank Joerg-Walther Mohr for
+				reviewing the text and providing Figure 4 and Roger Nettles from Verigy for providing feedback
+				that improved this paper.</p></section>
+		<section class="section"><h2>References</h2><ol>
+				<li>Evelina Yeung et al. "A 2.4Gb/s/pin Simultaneous Bidirectional Parallel Link with Per-Pin
+					Skew Compensation", IEEE Journal of Solid-State Circuits, Vol.35, No. 11, November 2000.</li>
+				<li>Aaron Martin et al. "8Gb/s Differential Simultaneous Bidirectional Link with 4mV 9ps
+					Waveform Capture Diagnostic Capability", 2003 IEEE International Solid-State Circuits
+					Conference.</li>
+				<li>David C. Keezer and Q. Zhou "Alternative Interface Methods for Testing High-Speed
+					Bidirectional Signals" 1998 IEEE International Test Conference.</li>
+				<li>David M. Pozar, "Microwave Engineering", 2005 John Wiley &amp; Sons.</li>
+				<li>J. Moreira et al "PCB Loadboard Design Challenges for Multi-Gigabit Devices in Automated
+					Test Applications" IEC DesignCon West, 2006.</li>
+				<li>Agilent Technologies "Agilent Signal Integrity Analysis Series Part 2: 4-Port TDR/VNA/PLTS"
+					Application Note.</li>
+			</ol></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105505</span><script type="text/javascript">var ti='105505';var tt='DUT board Layout for Multi-Gigabit Bidirectional Interfaces'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

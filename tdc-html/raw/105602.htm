@@ -1,0 +1,571 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section describes the communication between the driver and the handler. The actions and messages are listed in the sequential order in the table below."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GPIB communication flow for Mirae handlers</title></head><body id="_105602"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105602</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GPIB communication flow for Mirae handlers</h1>
+	
+	
+	<div><p>This section describes the communication between the driver and the handler. The actions
+		and messages are listed in the sequential order in the table below.</p>
+		<section class="section"><p>See <em><a href="69288.htm" title="The conventions in the table below are used in this chapter to describe GPIB/LAN communication:">Conventions for GPIB communication</a>
+				</em>for descriptions of the syntax.</p><table><caption><span><strong>GPIB communication flow for Mirae handlers</strong></span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_105602__entry__1"><p>Message from driver</p>
+							</th>
+							<th class="colsep-1" id="_105602__entry__2"><p>Message from prober</p>
+							</th>
+							<th class="colsep-1" id="_105602__entry__3"><p>Comment</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>Init:&lt;configuration&gt;</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>Configuration: &lt;temperature setup&gt; &lt;testset setup&gt; &lt;sitemap
+									setup&gt; &lt;siteselection setup&gt; &lt;bincategory setup&gt;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>At startup, these setups will be made and the relevant GPIB commands will be sent
+									to the handler.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>temperature setup:</p>
+								<p><code>SETTEMP &lt;value&gt;</code></p>
+								<p><code>SETBAND &lt;value&gt;</code></p>
+								<p><code>SETSOAK &lt;value&gt;</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"SettingOK"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Different temperature setups are made according to the value of configuration
+									parameter <span class="keyword">temp_control</span>:</p>
+								<p><kbd class="userinput">off</kbd> or <kbd class="userinput">manual</kbd>: no temperature setting will
+									be sent to the handler.</p>
+								<p><kbd class="userinput">ambient</kbd>: disable the temperature controls.</p>
+								<p><kbd class="userinput">active</kbd>, <kbd class="userinput">hot</kbd> or <kbd class="userinput">cca</kbd>:
+									the left temperature setup GPIB commands will be sent to handler.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>testset setup: (for MR5800)</p>
+								<p><code>TESTSET &lt;value&gt;,&lt;value&gt;,&lt;value&gt;</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"SettingOK"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>The three values are <span class="keyword">Para</span>, <span class="keyword">Step</span> and
+										<span class="keyword">Row</span>, representing the configuration of test tray.</p>
+								<p><span class="keyword">Para</span>=32/64/128 (test in parallel), </p>
+								<p><span class="keyword">Step</span>=1/2/4(number of test step), </p>
+								<p><span class="keyword">Row</span> should be set to F (1 1 1 1). <code>Para*Step</code> must be
+									equal to 128.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>sitemap setup:(for MR5800)</p>
+								<p>SITEMAP &lt;value&gt;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"SettingOK"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>siteselection setup:(for MR5800)</p>
+								<p><code>SITESEL &lt;value&gt;</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"SettingOK"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>The value is determined by the configuration parameter
+										<span class="keyword">handler_site_mask</span>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>bincategory setup:(for MR5800)</p>
+								<p><code>SETBIN &lt;value&gt;</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"SettingOK"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>The value is determined by the configuration parameter
+										<span class="keyword">handler_bin_categories</span>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>Lot start:</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>SRQ(0x46)</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Wait for the Lot Start SRQ 0x46</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>Lot end:</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>SRQ(0x48)</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>wait for devices: &lt;SRQ&gt;&lt;poll&gt;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Based on the configuration parameter <code>waiting_for_parts_method</code>, the
+									driver will either wait for an SRQ or poll for the current site number.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><code>SRQ</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>SRQ(0X47)</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Handler sends test start SRQ.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><code>Poll: FULLSITES?</code></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>FULLSITES n</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Handler returns bit coded site number.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>bin devices:</strong></p>
+								<p><strong>BINON:n (for M330)</strong></p>
+								<p><strong>BINON n (for M660, MR5800)</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>ECHO n</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Bin the devices. "n" represents the bin code string for all the sites, like
+										"<code>xxxxxxxx,xxxxxxxx,xxxxxxxx,xxxxxxxx</code>". The first character is the Site
+									32's (16's for MR660) bin code, and the last character is the Site 1's bin code.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>jam</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>SRQ(0x3d)</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p><strong>The handler is jam.</strong></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>query status: </strong></p>
+								<p><strong>&lt;query version&gt;</strong></p>
+								<p><strong>&lt;query testset&gt;</strong></p>
+								<p><strong>&lt;query meastemp&gt;</strong></p>
+								<p><strong>&lt;query status&gt;</strong></p>
+								<p><strong>&lt;query name&gt;</strong></p>
+								<p><strong>&lt;query settemp&gt;</strong></p>
+								<p><strong>&lt;query jam&gt;</strong></p>
+								<p><strong>&lt;query jamcode&gt;</strong></p>
+								<p><strong>&lt;query jamcount&gt;</strong></p>
+								<p><strong>&lt;query jamque&gt;</strong></p>
+								<p><strong>&lt;query setlamp&gt;</strong></p>
+								<p><strong>&lt;query tempmode&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query trayid&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query loterrcode&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query lotalmcode&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query lotdata&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query lottotal&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query accsortdvc&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query accjamcode&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query accerrcode&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query accdata&gt;(for MR660)</strong></p>
+								<p><strong>&lt;query alarmrecord&gt;(for MR660)</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query the handler status by PH call <code>ph_get_status</code>. The input
+									parameters used in the ph_get_status are:</p>
+								<p><code>"version"</code></p>
+								<p><code>"testset"</code></p>
+								<p><code>"meastemp n"</code></p>
+								<p><code>"status"</code></p>
+								<p><code>"name"</code></p>
+								<p><code>"settemp"</code></p>
+								<p><code>"jam"</code></p>
+								<p><code>"jamcode"</code></p>
+								<p><code>"jamcount"</code></p>
+								<p><code>"jamque"</code></p>
+								<p><code>"setlamp"</code></p>
+								<p><code>"tempmode:</code></p>
+								<p><code>"trayid"</code></p>
+								<p><code>"loterrcode"</code></p>
+								<p><code>"lotalmcode"</code></p>
+								<p><code>"lotdata"</code></p>
+								<p><code>"lottotal"</code></p>
+								<p><code>"accsortdvc"</code></p>
+								<p><code>"accjamcode"</code></p>
+								<p><code>"accerrcode"</code></p>
+								<p><code>"accdata"</code></p>
+								<p><code>"alarmrecord"</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query version:</p>
+								<p><code>VERSION?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query the handler software version</p>
+								<p>with <code>PROB_HND_CALL(ph_get_status version)</code>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query testset:</p>
+								<p><code>TESTSET?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query of the configuration of test tray.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query meastemp:</p>
+								<p><code>MEASTEMP 1</code></p>
+								<p><code>MEASTEMP 2</code></p>
+								<p><code>MEASTEMP 3</code></p>
+								<p><code>MEASTEMP 4</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query the measurement temperature in the specified test site with
+										<code>PROB_HND_CALL(ph_get_status meastemp n)</code>. <code>n</code> is the site
+									number.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query status:</p>
+								<p><code>STATUS?</code>(for MR5800,M330)</p>
+								<p><code>HDLSTATUS?</code>(for MR660)</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query the current handler status, like <code>started</code> or
+										<code>stopped</code>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query settemp:</p>
+								<p><code>SETTEMP?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query the set temperature of the handler.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query jam:</p>
+								<p><code>JAM?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query whether the jam occurred or not. The returned result <code>1</code> means
+									jam occurred, <code>0</code> means no jam.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query jamcode:</p>
+								<p><code>JAMCODE?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Query the jam code.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query jamcount:</p>
+								<p><code>JAMCOUNT?</code></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>The number of jams.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query jamque:</p>
+								<p><code>JAMQUE?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Dump the jam queue, which keeps up to 20 messages. Return 0 if there is no jam
+									message.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query setlamp:</p>
+								<p><code>SETLAMP?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the status of tower lamps.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query tempmode: (only for MR660)</p>
+								<p><code>TEMPMODE?</code></p>
+								<p>&nbsp;</p>
+								<p>&nbsp;</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the current temperature setting; the response:</p>
+								<p><code>TEMPMODE 0</code>: no control (off)</p>
+								<p><code>TEMPMODE 1</code>: hot mode</p>
+								<p><code>TEMPMODE 2</code>: ambient</p>
+								<p><code>TEMPMODE 3</code>: code mode</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query trayid: (only for MR660)</p>
+								<p><code>TRAY_ID?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the ID of test tray in the test site</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query loterrcode: (only for MR660)</p>
+								<p><code>LOTERRCODE?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the lot error code.</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query lotalmcode: (only for MR660)</p>
+								<p><code>LOTALMCODE?</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the lot alarm code.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query lotdata: (only for MR660)</p>
+								<p><code>LOTDATA?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the lot data, including the operation times, HiAlarm count, LowAlarm count.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query lottotal: (only for MR660)</p>
+								<p><code>LOTTOTAL2?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the current lot module information, like good, reject, rested, P/F, bin number,
+									etc.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query accsortdvc: (only for MR660)</p>
+								<p><code>ACCSORTDVC?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the accumulated lot module information.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query accjamcode: (only for MR660)</p>
+								<p><code>ACCJAMCODE?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the accumulated JAM code.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query accerrcode: (only for MR660)</p>
+								<p><code>ACCERRCODE?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the accumulated error code.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query accdata: (only for MR660)</p>
+								<p><code>ACCDATA?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the accumulated lot data, including the operation times, HiAlarm count,
+									LowAlarm count.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>query alarmrecord: (only for MR660)</p>
+								<p><code>ALMRECORD?</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"string"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Get the record of alarm messages.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p><strong>set status: </strong></p>
+								<p><strong>&lt;set name&gt; </strong></p>
+								<p><strong>&lt;set loader&gt;</strong></p>
+								<p><strong>&lt;set start&gt;</strong></p>
+								<p><strong>&lt;set stop&gt;</strong></p>
+								<p><strong>&lt;set plunger&gt;</strong></p>
+								<p><strong>&lt;set runmode&gt;</strong></p>
+								<p><strong>&lt;set lotclear&gt;</strong></p>
+								<p><strong>&lt;set accclear&gt;</strong></p>
+								<p><strong>&lt;set contactsel&gt;</strong></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Set the handler's status by the PH call <code>ph_set_status</code>. The input
+									parameters used in the "ph_set_status" are:</p>
+								<p><code>"name xxx"</code> (<code>xxx</code> is the new name)</p>
+								<p><code>"loader"</code></p>
+								<p><code>"start"</code></p>
+								<p><code>"stop"</code></p>
+								<p><code>"plunger n"</code></p>
+								<p><code>"runmode n"</code></p>
+								<p><code>"lotclear"</code></p>
+								<p><code>"accclear"</code></p>
+								<p><code>"contactsel xxxx"</code> (<code>xxx</code> is the bit-coded site selection
+									value)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set name:</p>
+								<p><code>SETNAME xxx</code>
+								</p>
+								<p>&nbsp;</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"done"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Set the handler name to <code>"xxx"</code>. Usage:</p>
+								<p><code>PROB_HND_CALL(ph_set_status name testing_123)</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set loader:</p>
+								<p><code>LOADER</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"done"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Prepare new lot or additional devices with <code>PROB_HND_CALL(ph_set_status
+										loader)</code>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set start:</p>
+								<p><code>START</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"done"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Start the handler.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>Set stop:</p>
+								<p><code>STOP</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"done"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Stop the handler.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set plunger:</p>
+								<p><code>PLUNGER 0</code></p>
+								<p><code>PLUNGER 1</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p><code>"done"</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Set the contractor to <code>ON</code> or <code>OFF</code> with</p>
+								<p><code>PROB_HND_CALL(ph_set_status plunger n)</code>. <code>n</code> is
+										<code>0</code> or <code>1</code>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set runmode:</p>
+								<p><code>RUNMODE 0</code></p>
+								<p><code>RUNMODE 1</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>"done"</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Set the running mode.</p>
+								<p><code>0</code>=Normal mode,</p>
+								<p><code>1</code>=Flush mode.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set lotclear: (only for MR660)</p>
+								<p><code>LOTCLEAR</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>"done"</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Clear the lot counters.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set accclear:(only for MR660)</p>
+								<p><code>ACCCLEAR</code>
+								</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>"done"</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Clear the accumulated counters.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105602__entry__1"><p>set contactsel:(only for MR660)</p>
+								<p><code>CONTACTSEL xxxx</code></p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__2"><p>"done"</p>
+							</td>
+							<td class="colsep-1" headers="_105602__entry__3"><p>Set the contact (site) selection with</p>
+								<p><code>PROB_HND_CALL(ph_set_status contactsel xxxx)</code>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="104408.htm" title="This function retrieves various kinds of production information from probers or handlers. Different parameters are supported for different probers or handlers.">Function: ph_get_status</a></div><div><a href="104409.htm" title="This function sets some information to probers or handlers. For different probers and handlers, different parameters are supported.">Function: ph_set_status</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105602</span><script type="text/javascript">var ti='105602';var tt='GPIB communication flow for Mirae handlers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

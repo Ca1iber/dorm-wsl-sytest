@@ -1,0 +1,254 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The TSST? query returns global information about the test point related results of the last executed test, and also provides the accumulated status information about all recorded measurements."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>TSST? - (TeSt STatus)</title><meta name="keywords" content="TSST_, Te, St, S, Tatu"></head><body id="_97179"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 97179</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">TSST? - (TeSt STatus)</h1>
+	
+	
+	<div><p>The <span class="keyword">TSST?</span> query returns global information about the test point
+		related results of the last executed test, and also provides the accumulated status
+		information about all recorded measurements.</p>
+		<section class="section"><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<section class="section"><h2>Predependencies</h2><p>A test point pattern must have been executed for
+				DC Scale pins.</p></section>
+		<section class="section"><h2>Mode of operation</h2><p><span class="keyword">TSST?</span> returns a twofold
+				reply. One informs about the test results, the other about the test status. Both
+				replies come in two formats, depending on whether you define a mask for the
+				respective reply. If you do not, <span class="keyword">TSST?</span> returns a decimal value
+				which you must translate into binary form in order to retrieve the information.
+				</p><p>If you define a mask, <span class="keyword">TSST?</span> will simply return PASS or
+				FAIL. The mask must also be specified as a decimal value. <span class="keyword">TSST?</span>
+				combines corresponding bits of the mask and the test result bytes/status byte by
+				AND. If the result is 0 for all bit pairs, <span class="keyword">TSST?</span> will return PASS
+				for the respective information type, otherwise FAIL.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">TSST?</span> {<span class="keyword">ALL</span>|<var class="varname">test_result_mask</var>}, {<span class="keyword">ALL</span>|<var class="varname">test_status_mask</var>}, {(<var class="varname">pinlist</var>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">TSST</span> {<var class="varname">test_result</var>}, {<var class="varname">test_status</var>}, {(<var class="varname">pinlist</var>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">test_result_mask</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>In order to mask some of the result bits, enter an integer not
+									greater than 2047. The bits of the corresponding binary number
+									will be combined with the respective bits of the result bytes by
+									AND.</p>
+								<div class="p">
+									<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr class="rowsep-1">
+												<td class="colsep-0 rowsep-0">
+												<p><span class="keyword">ALL</span></p>
+												</td>
+												<td class="colsep-0 rowsep-0">
+												<p>By this option, the information of the result
+												bytes is returned as an integer. This integer must
+												be translated into a binary number and then be
+												interpreted as follows:</p>
+												<ul>
+												<li>Bit 0 (LSB): <span id="_97179__ph_TSST_result_bit_0_Upper_limit">Upper limit</span><p>Set to 1
+												if all these conditions are true for at least one
+												measurement:</p><ul>
+												<li>A high limit is both specified and activated
+												with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</li>
+												<li>The measurement is not masked with
+												<span class="keyword">DFTD</span>.</li>
+												<li>The measurement value was greater than the
+												high limit.</li>
+												</ul></li>
+												<li>Bit 1: <span id="_97179__ph_TSST_result_bit_1_Lower_limit">Lower limit</span><p>Set to 1
+												if all these conditions are true for at least one
+												measurement:</p><ul>
+												<li>A low limit is both specified and activated
+												with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</li>
+												<li>The measurement is not masked with
+												<span class="keyword">DFTD</span>.</li>
+												<li>The measurement value was smaller than the low
+												limit.</li>
+												</ul></li>
+												<li>Bit 2: <span id="_97179__ph_TSST_result_bit_2_Global">Global status</span><p>Set to
+												1 if at least one of the bits 3, 4, 5, 6, 7, 9, 10
+												is set to 1.</p></li>
+												<li>Bit 3: <span id="_97179__ph_TSST_result_bit_3_Low_clamp">Low clamp
+												violation</span><p>Set to 1 if all these conditions
+												are true for at least one measurement:</p><ul>
+												<li>Checking low clamp violations is activated
+												with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</li>
+												<li>The measurement is not masked with
+												<span class="keyword">DFTD</span>.</li>
+												<li>The low clamp was violated (status bit 0 is
+												set to 1).</li>
+												</ul></li>
+												<li>Bit 4: <span id="_97179__ph_TSST_result_bit_4_High_clamp">High clamp
+												violation</span><p>Set to 1 if all these conditions
+												are true for at least one measurement:</p><ul>
+												<li>Checking high clamp violations is activated
+												with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</li>
+												<li>The measurement is not masked with
+												<span class="keyword">DFTD</span>.</li>
+												<li>The high clamp was violated (status bit 1 is
+												set to 1).</li>
+												</ul></li>
+												<li>Bit 5: <span id="_97179__ph_TSST_result_bit_5_Underflow">Range underflow</span><p>Set
+												to 1 if all these conditions are true for at least
+												one measurement:</p><ul>
+												<li>Checking measurement ranges is activated with
+												<a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</li>
+												<li>The measurement is not masked with
+												<span class="keyword">DFTD</span>.</li>
+												<li>An underflow occurred (status bit 4 is set to
+												1).</li>
+												</ul></li>
+												<li>Bit 6: <span id="_97179__ph_TSST_result_bit_6_Overflow">Range overflow</span><p>Set
+												to 1 if all these conditions are true for at least
+												one measurement:</p><ul>
+												<li>Checking measurement ranges is activated with
+												<a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</li>
+												<li>The measurement is not masked with
+												<span class="keyword">DFTD</span>.</li>
+												<li>An overflow occurred (status bit 5 is set to
+												1).</li>
+												</ul></li>
+												<li>Bit 7: <span id="_97179__ph_TSST_result_bit_7_Distance">Distance too small or
+												internal buffer overflow</span><p>Set to 1 if the
+												distance between two consecutive test points (for
+												example, between definition of the range and
+												measurement) is too small, and measurements were
+												interrupted.</p><p>AVI64 and FVI16 only: The bit
+												is also set to 1 in case too many commands were
+												issued causing internal buffer overflow.</p></li>
+												<li>Bit 8: <span id="_97179__ph_TSST_result_bit_8_Lost">Lost
+												measurements</span><p>Set to 1 if not all
+												measurement results were recorded because the test
+												stopped earlier than expected.</p></li>
+												<li>Bit 9: <span id="_97179__ph_TSST_result_bit_9_Type">Type mismatch</span><p>Set to
+												1 if at least one measurement has been executed in
+												a range that does not match the requested
+												measurement type.</p></li>
+												<li>Bit 10: <span id="_97179__ph_TSST_result_bit_10_HW_state">Wrong hardware
+												state</span><p>Set to 1 if the hardware switched
+												into an unexpected state that caused the test to
+												fail (for example, a disconnect for safety
+												reasons). Detailed information can be queried with
+												<a href="98691.htm" title="The PSAS? (Power Supply Accumulated Status) query reads and clears the internal status flags of the Device Power Supplies (DPS) in DPS operating mode, in PMU operating mode, or in Digital I/O operating mode. All DPS status flags are cleared at connect and disconnect if the trigger condition is no longer true.">PSAS?</a>.</p></li>
+												</ul>
+												</td>
+												</tr>
+											</tbody></table>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">test_status_mask</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>In order to mask some of the result bits, enter an integer not
+									greater than 15. The bits of the corresponding binary number
+									will be combined with the respective bits of the status byte by
+									AND.</p>
+								<div class="p">
+									<table class="frame-none"><caption></caption><colgroup><col style="width:16.420361247947454%"><col style="width:83.57963875205255%"></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1">
+												<p><span class="keyword">ALL</span></p>
+												</td>
+												<td class="colsep-0 rowsep-1">
+												<p>By this option, the information of the status
+												byte is returned as an integer. This integer must
+												be translated into a binary number, and then be
+												interpreted as follows:</p>
+												<ul>
+												<li>Bit 0 (LSB): <span id="_97179__ph_TSST_status_bit_0_Current_sink">Current sink limit is
+												reached</span><p>Set to 1 if current sink limit is
+												reached (Clamp low) for at least one
+												measurement.</p></li>
+												<li>Bit 1: <span id="_97179__ph_TSST_status_bit_1_Current_source">Current source
+												limit</span><p>Set to 1 if current source limit is
+												reached (Clamp high) for at least one
+												measurement.</p></li>
+												<li>Bit 2: <span id="_97179__ph_TSST_status_bit_2_Clamp_low">Clamp low was
+												reached</span><p>Set to 1 if clamp low was reached
+												during the test for a DC Scale pin where no
+												measurement was executed.</p></li>
+												<li>Bit 3: <span id="_97179__ph_TSST_status_bit_3_Clamp_high">Clamp high was
+												reached</span><p>Set to 1 if clamp high was reached
+												during the test for a DC Scale pin where no
+												measurement was executed.</p></li>
+												<li>Bit 4: <span id="_97179__ph_TSST_status_bit_4_Underflow">Range underflow</span><p>Set
+												to 1 in case of a range underflow has been
+												detected for at least one measurement.</p></li>
+												<li>Bit 5: <span id="_97179__ph_TSST_status_bit_5_Overflow">Range overflow</span><p>Set
+												to 1 in case of a range overflow has been detected
+												for at least one measurement.</p></li>
+												<li>Bit 6-7: Reserved</li>
+												</ul>
+												</td>
+												</tr>
+											</tbody></table>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">test_result</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>If you specify <code>ALL</code> for the
+										<var class="varname">test_result_mask</var> parameter, the result
+									byte is returned as a decimal value. </p>
+								<p>If you specify a mask, <span class="keyword">P</span> or
+										<span class="keyword">F</span> is returned according to the result of
+									combining the mask and the test result bytes by AND. </p>
+								<ul>
+									<li>P: The result of the AND operation is 0 for all bit
+										pairs.</li>
+									<li>F: The result of the AND operation is 1 for at least 1 bit
+										pair.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">test_status</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>If you specify <span class="keyword">ALL</span> for the
+										<var class="varname">test_result_mask</var> parameter, the status
+									byte is returned as a decimal value. </p>
+								<p>If you specify a mask, <span class="keyword">P</span> or
+										<span class="keyword">F</span> is returned according to the result of
+									combining the mask and the test result byte by AND. </p>
+								<ul>
+									<li>P: The result of the AND operation is 0 for all bit
+										pairs.</li>
+									<li>F: The result of the AND operation is 1 for at least 1 bit
+										pair.</li>
+								</ul>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">pinlist</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>Results are provided only for the pins specified in
+										<var class="varname">pinlist</var>. If you specify more than one
+									pin, the names must be separated by commas. All pins in
+										<var class="varname">pinlist</var> must have test point
+									capability.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>DC Dynamic</p></div>
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&gt; TSST? ALL,ALL,(@)
+&lt; TSST 1,0,(dpsPin1)
+&gt; TSST? 0,256,(@)
+&lt; TSST P,P,(dpsPin1)</pre><p>This
+				example shows the effect of a mask. As shown by the first query, the only error was
+				that at least one pin has failed the limit check. In the second query, bit 0 of the
+				result byte is masked, and consequently <span class="keyword">TSST?</span> returns
+					<span class="keyword">P</span> for both result and status.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.5.1:  AVI64 and FVI16: Result bit 7 also set in case of internal buffer
+					overflow</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 97179</span><script type="text/javascript">var ti='97179';var tt='TSST? - (TeSt STatus)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

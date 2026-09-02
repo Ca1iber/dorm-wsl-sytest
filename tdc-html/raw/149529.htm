@@ -1,0 +1,79 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This function specifies a digital pin to be a channel for retrieving the search path of a search."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>pathPin()</title><meta name="keywords" content="path, Pin"></head><body id="_149529"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149529</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">pathPin()</h1>
+	
+	
+	<div><p>This function specifies a digital pin to be a channel for retrieving the search path of
+		a search. </p>
+		<section class="section"><p>If you have an ID in <code>cogo()</code> and a <code>pathPin()</code> in the
+				code, you can retrieve the result. </p><p>If you do not need a search result, you do not have to
+				add an ID and <code>pathPin()</code> in the searching code. </p>
+			<p>Starting from SmartRDI 7.5.3, you do not have to use <code>pathPin()</code> for retrieving
+				results in binary and linear searches, but you still need to use <code>pathPin()</code> for
+					<span class="keyword">HYST_LINEAR</span> tests.</p>
+			<p>Starting from SmartRDI <span>7.10.0</span>, you do not have to use
+					<code>pathPin()</code> for retrieving results in binary, linear, and hysteresis
+				searches.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">pathPin(const string&amp; sPin);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149529__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149529__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149529__entry__1"><p><span class="keyword">sPin</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149529__entry__2"><p>The name of a pin to be used for tracking the path. </p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<section class="section"><h2>Waveform definition for pathPin</h2>
+			
+			<p>You need to define a waveform in your <a href="51666.htm" title="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex).">wavetable</a> for the specified
+				pathPin. </p>
+			<p>For a binary search, define a waveform as follows: </p>
+			<div></div><pre class="prettyprint linenums copyable">PINS pinA
+...
+m "d1:1 r1:L" 1L</pre><div></div>
+			<p><code>m</code> indicates a physical index in the <a href="51666.htm" title="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex).">wavetable</a>,
+				for example <code>4</code>. Change <code>m</code> to a proper physical index number in
+				your wavetable.</p>
+			<p>For a linear search, define a waveform as follows: </p>
+			<div></div><pre class="prettyprint linenums copyable">PINS pinA
+HRPF # Enable both digital capture and functional pass/fail.
+...
+m  "d1:1 r1:C" 1C
+n  "d1:0 r1:C" 0C
+...</pre><div></div>
+			<p><code>m</code> and <code>n</code> indicate physical indexes in the <a href="51666.htm" title="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex).">wavetable</a>, for example, <code>4</code> and <code>5</code>. Change
+					<code>m</code> and <code>n</code> to proper physical index numbers in your
+				wavetable.</p>
+			<p>For more information about a wavetable, see <a href="51666.htm" title="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex).">Wavetables</a></p>
+			<p>To enable functional results in a digital capture test, set <span class="keyword">HRPF</span> to all
+				pins in the wavetable.</p>
+			<div class="note"><span class="title">Note</span> For the digital pin which is specified by pathPin(), you must close the AC
+				relay to make the internal loopback work. If there is any external interference, the
+				interference will impact the loopback signal of the pin.</div>
+			<div class="note"><span class="title">Note</span> A DUT board calibration might be required to ensure correct functionality of
+				the path pin at higher pattern speeds, for example, a cycle time greater than 50 MHz.</div>
+		</section>
+		<h2>Examples</h2><div class="example"><pre class="prettyprint copyable singleline">rdi.cogo("res").search(TA::LINEAR).pathPin("pinA").start(0).stop(4.0).step(10).blockBegin();</pre></div>
+		<div class="example">
+			<div class="p">Cogo search without
+				pathPin()<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.cogo("B1").search(TA::LINEAR).start(0).stop(4.0).step(10).blockBegin();  // No pathPin()
+  ...
+  rdi.cogo().search().blockEnd();
+RDI_END();
+
+rdi.id("B1").getSearchResult();
+rdi.id("B1").getSearchPath();</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="151486.htm" title="Retrieves the search path with the pass/fail results for all the nodes in the path.">getSearchPath()</a></div><div><a href="51666.htm" title="A wavetable consists of a series of pins or pin groups; for each of these, a set of physical waveform DC/DC power units are listed (these are sequential integers, starting at zero for each pin or group; in the example below they are listed under PhyIndex).">Wavetables</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.0</li><li>SmartRDI 7.5.3: pathPin() is no longer required for retrieving binary and linear search
+					results.</li><li>SmartRDI 7.10.0: pathPin() is no longer required for retrieving cogo search
+					results.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149529</span><script type="text/javascript">var ti='149529';var tt='pathPin()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

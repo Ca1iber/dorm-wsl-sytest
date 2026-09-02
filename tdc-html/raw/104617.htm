@@ -1,0 +1,844 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Baseband I/Q Calibration</title><meta name="keywords" content="cal"></head><body id="_104617"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 104617</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Baseband I/Q Calibration</h1>
+	
+	<div>
+		<p>Scott Chesnut, Verigy</p>
+		<p>Paper ID: 104617</p>
+		<section class="section"><h2>Abstract</h2><p>As RF modulation protocols become more complex, better
+				utilization of existing bandwidth becomes key to high density information transmission through
+				the ether. As RF devices become more monolithic, direct conversion of RF signals to base band I
+				and Q signals (and visa versa) becomes the norm. All of these phenomenon increase the
+				requirement that quadrature (I and Q) AWG and DGT be highly balanced in phase and magnitude
+				match relative to each other.</p><p>Historically, this requirement has challenged ATE since such
+				balance is frequency and magnitude dependent. In order to calibrate out the frequency response
+				of the I/Q paths, calibration at each tone frequency must occur. But it is impossible for a
+				system calibration procedure to calibrate a tester at all possible frequencies because of the
+				number involved - infinite.</p><p>A more tractable approach is to calibrate at only those
+				frequencies and amplitude to be used by a given test program.</p><p>SmarTest software has been
+				upgraded to enable users to accomplish this using new Application Programming Interface (API),
+				new additions to the analog calibration menu and a new calibration load board.</p><p>This
+				document describes a 93000 test program, which has been written to perform this extended
+				calibration of the I and Q signals of the MCB AWG and DGT when in I/Q mode. Its purpose is to
+				provide a working example of the capability which has been integrated into SmarTest.</p><p>The
+				reader of this document will understand: what the capability is, why, when and how it is
+				performed in a SmarTest program.</p></section>
+		<section class="section"><h2>Description of the Problem</h2><p>Non linear components in the AWG or DGT path
+				create frequency sensitive impulse functions. This creates frequency sensitive absolute phase
+				and magnitude offsets.</p><div class="p"><figure class="fignone">
+					<img src="104484.png" alt="Frequency sensitive impulse functions">
+				</figure></div><p>When two MCB AWG or DGT are used for quadrature (I/Q) modulation, the non linear
+				components of both paths have different impulse functions. Frequency sensitive phase and
+				magnitude mismatch occurs even if the AWG (DGT) triggering is precise (+/- 100pS).</p><div class="p"><figure class="fignone">
+					<img src="104485.png" alt="Different impulse functions">
+				</figure></div><p>I/Q modulators use relative phase and magnitude to encode data. The different
+				frequency responses of I and Q paths introduce significant error. The "slop" in phase and
+				magnitude corrupts the accuracy of measurement. It must be calibrated out but system level
+				calibration or characterization of this response is impossible. The number of possible
+				frequencies/filter/gain/loadboard component settings would be infinite. The calibration time
+				would take years.</p></section>
+		<section class="section"><h2>Theory of Operation</h2><p>Two independent AWG or DGT, when used to transmit or
+				receive I and Q signals, will have a given relative phase and magnitude inaccuracy between them
+				as they transmit or receive signals through an analog path. The extent of these imbalances is
+				frequency and amplitude dependent.</p><p>Users can calibrate this imbalance out by sourcing and
+				measuring signals at the amplitudes and frequencies of interest, measuring these offsets called
+				calibration factors, and apply them later during production test.</p><p>The process of phase and
+				magnitude calibration as a function of frequency will be referred to in this paper as Baseband
+				I/Q calibration (BIQC). BIQC can be simplified if the target AWG and DGT are used to calibrate
+				themselves instead of using external equipment.</p><p>To do so, step one would be to calibrate
+				the DGT using the differential signals of a single AWG. This is because it can be assumed that
+				the phase and magnitude difference between the AWG differential outputs is almost zero.</p><div class="p"><figure class="fignone">
+					<img src="104491.png" alt="Single AWG">
+				</figure></div><p>Once the DGT had been calibrated relative to each other, the AWG would then be
+				calibrated.</p><div class="p"><figure class="fignone">
+					<img src="104492.png" alt="DGT calibrated">
+				</figure></div><p>While the above explanation seems simple enough, in reality the implementation
+				become complex because of the necessity to use relays on the DUT board to enable not only the
+				calibration paths previously mentioned but also the paths required to test the DUT itself. Below
+				is a diagram of the relays connections required to calibration just one I/Q signal pair. There
+				are seven relays in the diagram below. But for differential circuits the number of relays would
+				be 14.</p><div class="p"><figure class="fignone">
+					<img src="104573.png" alt="Diagram of the relays connections">
+				</figure></div><p>Today's baseband devices have multiple I/Q signal pairs. If seven relays where
+				required for each I/Q pair, the number of relays becomes very large as does the maintenance of
+				the DUT board over time.</p><p>The implementation of Baseband I/Q Calibration into SmarTest
+				eliminates the need for DUT board relays and simplifies DUT board traces to the diagram below.
+				The only requirement is that the path lengths a=a' and b=b'. This restriction is a relatively
+				easy one to live with because modern DUT board manufacturing techniques make this possible.</p><div class="p"><figure class="fignone">
+					<img src="104494.png" alt="Loadboard traces">
+				</figure></div><p>This simplification is accomplished by realizing that the total frequency response
+				of the I/Q path is the result of two contributors. One is inside the tester itself; the other is
+				on the load board. If the tester's analog path is calibrated at a test program's set of specific
+				frequencies using a dedicated common DUT board whose "loop back" paths resemble those above,
+				then base calibration factors can be stored to disk.</p><p>When the specific DUT board is used
+				to test a device, the magnitude and phase imbalances from the traces on the board are added to
+				these base calibration factors in the form of time delays in seconds and attenuation values in
+				dB. All that is required is, that the DUT board path lengths a=a' and b=b' and that the user of
+				the DUT board derive these values, and plug them into the test program calibration
+			factors.</p></section>
+		<section class="section"><h2>Why should Baseband I/Q Calibration be done?</h2><p>After basic system
+				calibration, the MCB amplitude and digital timing has been calibrated at spot frequencies. But
+				system calibration cannot calibrate out:</p><ol>
+				<li>Either the absolute or relative phase or magnitude imbalance between two AWG or DGT
+					transmission paths through the test head up to the pogo pin. These are frequency dependent and
+					a function of nonlinearities in such transmission paths caused by inline attenuators, gain
+					stages, and filters. There are too many variables for system calibration to handle.</li>
+				<li>Loadboard buffer and/or trace length mismatches.</li>
+			</ol><p>Baseband I/Q Calibration (BIQC) allows the user to compensate for these perturbations in
+				a reasonably simple manner on a per frequency basis.</p><p>BIQC greatly improves the fidelity of
+				the following RF and baseband measurements:</p><ol>
+				<li>Multi-tone power ratio tests (MTPR). MTPR tests are ones where the cumulative
+					inter-modulation distortion (IMD) components of many tones accumulate to form energy in what
+					should be a missing tone location. Just a small phase imbalance between I and Q signals will
+					add significantly to the IMD component found in this missing tone location. Better phase
+					balance added by performing BIQC will reduce the amount of this IMD and decrease the missing
+					tone component of the MTPR. See Appendix B for more information.</li>
+				<li>The amount of upper or lower RF side band suppression on either side of an RF carrier, as
+					seen on the TX side of an RF transmitter, is a strong function of the balance between the
+					magnitude and phase of a tester's I/Q AWG base band input pair (see appendix C for the
+					mathematical derivation of this dependency). Similarly, the ability of a DUT RF receiver to
+					down convert signals is measured by how "in balance" it's I/Q AWGs are. If the testers I/Q DGTs
+					are not balanced, the device could be perceived as bad even though it is the tester which is
+					uncalibrated or out of balance.</li>
+				<li>Error Vector Measurements (EVM) as used in testing 802.11a/b/g transceivers are highly
+					sensitive to phase and magnitude imbalances. When testing this type of device, it is highly
+					desirable that the testers AWG/DGT are as balanced as possible. Appendix D has more
+					information.</li>
+			</ol></section>
+		<section class="section"><h2>When should Baseband I/Q Calibration be done?</h2><p>There are two answers to
+				this question. Theoretically, all analog instruments have given frequency responses which differ
+				from one unit to another. Variances across identical instruments are usually handled by applying
+				loose enough spec's to handle the Gaussian deviation of performance across all manufactured
+				boards. The result is the lost opportunity to access the true accuracy of an individual analog
+				instrument that is, unless BIQC is performed before production test.</p><p>System calibration
+				guarantees performance to all analog card specifications. BIQC increases analog card accuracy
+				above that specified for the family. It reveals and compensates for the individual card's
+				frequency response as well as the load board perturbations introduced by buffers or trace length
+				mismatches.</p><p>So, BIQC should be done whenever highly balanced I/Q signals are to be sourced
+				or measured by the I/Q AWG or DGTs of the MCB and it is know that such qualities are frequency
+				dependent. Typically, when baseband or RF measurements are to be made, BIQC should be
+				done.</p><p>Practically speaking, due to the method of implementation of Baseband I/Q
+				calibration into the SmarTest software, it should be re-run whenever a program implementing
+				BIQC:</p><ul>
+				<li>Is run on any 93000 tester for the first time.</li>
+				<li>Is run on a new MCB (if an old MCB is replaced for an existing one )</li>
+				<li>A new test is added to the program which requires highly balanced I/Q signals and new analog
+					sets are created.</li>
+				<li>A new pin configuration is used in the program.</li>
+				<li>A new analog setup is used in the program</li>
+			</ul><p>Later on in this paper, the reasons for all of these will become clear.</p><p>It is not
+				required to re-run BIQC for every DUT board for a given device since BIQC calibrates up to the
+				pogo pin plain. Phase and magnitude offsets of a given DUT board are added to the BIQC
+				calibration factors by way of a member function of a new API class. The arguments to these API
+				may have to be modified whenever:</p><ul>
+				<li>A new DUT board is developed for the same device or its baseband traces have changed.</li>
+				<li>In-line components (i.e. Buffers) on the DUT board are "swapped out" because of damage.</li>
+			</ul></section>
+		<section class="section"><h2>How is Baseband I/Q Calibration done?</h2><p>The bulk of this paper is
+				dedicated to this description. The program referenced herein will be available as a simple loop
+				back programming example to be located on Source Forge.</p><p>But in short, BIQC is accomplished
+				during the following steps:</p><ol>
+				<li>Surround the production program flow with test method which call "Calibration Condition"
+					start and stop APIs.</li>
+				<li>Insert into the C++ of any test method needing Baseband I/Q Calibration the
+					"activatePathSkew" API.</li>
+				<li>Create the Calibration Condition by executing the modified flow.</li>
+				<li>Create the calibration offsets by executing Analog Calibration from the diagnostics
+					menu.</li>
+				<li>Create the test suite which loads the calibration offsets.</li>
+				<li>Create the test suite which applies the DUT board offsets.</li>
+				<li>Run the program which applies these calibration offsets.</li>
+			</ol></section>
+		<section class="section"><h2>Downloading the base program from Source Forge</h2><p>The SmarTest program
+				which had been created in the implementation of Requirements numbers 1,2, 3 and 4 of the
+				Requirements documents will be augmented to accommodate the implementation of Baseband I/Q
+				Calibration.</p><p>The user will modify the program previously created in the directory called
+				"CPE" as a part of the Requirement number 4 exercise or will copy the program page and modify
+				it. To access the program, please contact your Advantest representative. The name of the program
+				at this location is: <kbd class="userinput">CPEImplementationRequirement4_tar.gz</kbd>.</p></section>
+		<section class="section"><h2>Program directory creation </h2><p>Unzip and untar the downloaded
+				directory.</p><p>Rename the directory to:
+				<kbd class="userinput">CPEImplementationRequirement4.1</kbd>.</p><p>A copy of the model file resides
+				in the program directory above; its name is
+					<span class="filepath">&lt;model.file.to.be.used.with.this.program&gt;</span></p><p>An example model
+				file is also found in this document under Appendix A.</p><p>If the user is doing off line
+				development, it will be necessary to export the model file into the xterm environment using the
+				following command:</p><p><kbd class="userinput">export
+					AGILENT93000_MODEL='model.file.to.be.used.with.this.program'</kbd></p><p>This model file
+				has references in it to the MCB hardware and will enable users to develop programs off
+				line.</p><p>Change directories into the CPEImplementationRequirement4.1 directory (if not
+				already done).</p><p>Start SmarTest using the command: <kbd class="userinput">SmarTest&amp;</kbd>.</p><div class="p"><figure class="fignone">
+					<img src="104495.png" alt="SmarTest&amp;">
+				</figure></div><p>Click the <span class="uicontrol">Change Device</span> Button when the software comes up.
+				(Step 1).</p><div class="p"><figure class="fignone">
+					<img src="104574.png" alt="Change Device">
+				</figure></div><ol>
+				<li>Click the directory (CPEImplementationRequirement4) which now shows in the popped up panel
+					(Step 2).</li>
+				<li>In the window which appears next click "Enter" (Step 3). </li>
+			</ol></section>
+		<section class="section"><h2>Top Level Program Loading</h2><p>Bring up the Data manager by clicking the
+				purple icon found under the "setup" tab of the top level window.</p><div class="p"><figure class="fignone">
+					<img src="104576.png" alt="Purple icon">
+				</figure></div><p>The program will already be named "CPE". </p><ol>
+				<li>Click the <span class="uicontrol">TestProg</span> icon.</li>
+				<li>Click the <span class="uicontrol">Load </span>button.</li>
+				<li>Create a new flow name: "CPEReq4.1" for Comprehensive Programming Example Requirements 4.1.
+					Do this by clicking the flow icon (which should currently be named: CPEReq4) and rename it,
+					again, to CPEReq4.1</li>
+			</ol><p>The actual process is described systematically below in terms of the SmarTest GUI windows
+				used.</p><p>Load the flow called: CPEReq4</p><div class="p"><figure class="fignone">
+					<img src="104498.png" alt="CPEReq4">
+				</figure></div><p>The flow below will appear.</p><div class="p"><figure class="fignone">
+					<img src="104499.png" alt="Testflow Editor">
+				</figure></div></section>
+		<section class="section"><h2>Calibration Condition Creation</h2><p>As mentioned previously, the path which
+				analog signals take through an MCB up to the pogo pins will have a given frequency response.
+				Phase and magnitude calibration offsets for a given tone frequency can only be gathered if
+				SmarTest has knowledge of the analog setup of a given test suite. Information about the DGT and
+				AWG settings must be recorded prior to the actual calibration. After the necessary modification
+				have been made to the program these calibration specifics or "conditions" are logged by
+				smarTest.</p></section>
+		<section class="section"><h2>Definition: Calibration Condition</h2><p>A calibration condition is a
+				description of the analog instrument set specifics which are to be logged to disk and used later
+				as calibration criteria by Baseband I/Q Calibration when it is formally executed from the
+				diagnostic/calibration menu. These specifics are the tone frequency, master clock rate,
+				connection type and the name of analog set being used. Connection type would be single or
+				differential.</p><p>What follows is a description of the modifications to a SmarTest program
+				used to teach it how to perform Baseband I/Q Calibration.</p><p>The first step when implementing
+				baseband I/Q calibration is to edit the flow in order to create what is called the "Calibration
+				Conditions".</p></section>
+		<section class="section"><h2>Modifying the test flow to create Calibration Conditions</h2><p>Open the
+				Eclipse editor and create a new test method whose name is "beginCalConitionCollect".</p><div class="p"><figure class="fignone">
+					<img src="104500.png" alt="New TestMethod">
+				</figure></div><p>The parameter pass into the test method will be the name of the Calibration
+				Condition file. In this case we have named the variable "BBIQCalDataFileName".</p><div class="p"><figure class="fignone">
+					<img src="104501.png" alt="TestMethod Parameters">
+				</figure></div><p>In the C++ code, enter the command:
+				BCAL.beginCalConditionCollect(BBIQCalDataFileName);</p><div class="p"><figure class="fignone">
+					<img src="104502.png" alt="Enter command">
+				</figure></div><ol>
+				<li>In front of the first test suite in the flow insert a test suit and name it:
+					"CalCondisionBegin".</li>
+				<li>Fill out the primary fields as shown new</li>
+				<li>Enter the name of the newly created test method: "beginCalConditionCollect".</li>
+			</ol><div class="p"><figure class="fignone">
+					<img src="104578.png" alt="First test suite">
+				</figure></div><p>In the test suit parameter dialog box type in the name "CPEReq4.1" as the name of
+				the Calibration Condition File name.</p><div class="p"><figure class="fignone">
+					<img src="104579.png" alt="Test suit parameter dialog box">
+				</figure></div><p>Next, create a test method whose name is EndCalCondidtionCollect.</p><div class="p"><figure class="fignone">
+					<img src="104505.png" alt="Creating a test method">
+				</figure></div><p>We will not be passing any parameters into the test method.</p><p> In the C++ code,
+				enter the command: BCAL.endCalConditionCollect();</p><div class="p"><figure class="fignone">
+					<img src="104506.png" alt="Enter command 2">
+				</figure></div><p>Insert another test suite at the end of the flow. Fill out the same primaries as in
+				the above test method. Select the newly created test method: "EndCalConditionCollection".</p><div class="p"><figure class="fignone">
+					<img src="104580.png" alt="Newly created test method">
+				</figure></div><p>In the case above there is only one test suite whose calibration conditions are
+				being collected. But in true production program, there may be any number of test suites between
+				the Calibration Condition collection begin and end.</p><p>Save this flow as the new name
+				CPEReq4.1</p><div class="p"><figure class="fignone">
+					<img src="104581.png" alt="CPEReq4.1">
+				</figure></div></section>
+		<section class="section"><h2>Modification of the existing test method C++</h2><p>We now want to modify the
+				C++ code of every test method which is to use baseband I/Q calibrated signals. Here we will
+				effectively tell SmarTest that, for this test method, we want it to make a log in the
+				Calibration Condition file of the analog instrument setup.</p><p>The first step is to open the
+				test method editor.</p><div class="p"><figure class="fignone">
+					<img src="104582.png" alt="Test method editor">
+				</figure></div><p>Enter the code below which has been highlighted in blue. The
+				"BCAL.activatePathSkew" command is a member function of a new class of API.</p><div class="p"><figure class="fignone">
+					<img src="104583.png" alt="Blue highlighted code">
+				</figure></div></section>
+		<section class="section"><h2>New API Class: BCAL.loadCalData &amp; BCAL.activatePathSkew</h2><p>This new
+				class of API has two new member functions. These are outlined below.</p><div class="p"><figure class="fignone">
+					<img src="104584.png" alt="activatePathSkew">
+				</figure></div><p>In our C++ implementation we used the "activatePathSkew" member function. The
+				member function serves two purposes:</p><ol>
+				<li>When collecting the calibration condition this API precipitates the entry of the analog
+					setup information into the calibration condition file.</li>
+				<li>During production, after the Baseband I/Q calibration data has been loaded, this API applies
+					the offsets to the pins and analog set specified.</li>
+			</ol><p>The primary set "PRI" is selected because it refers to the current primary set. The
+				calibration tone frequency 15.2344MHz is selected since this is the frequency of the looped back
+				signal on the loadboard. The master clock is currently set to 500MHz in the analog set so it
+				appears as 5th argument of the call.</p><p>If one opens the analog set for this test (set 40)
+				and examines the master clock frequency, it will be verified to be 500MHz.</p><div class="p"><figure class="fignone">
+					<img src="104585.png" alt="Clock value 500MHz">
+				</figure></div><p>IMPORTANT: A flush(), EXECUTE_TEST(), START_TEST() or FUNCTIONAL_TEST() is required
+				after the activatePathSkew command.</p></section>
+		<section class="section"><h2>Verification of Baseband I/Q Calibration functionality</h2><p>In order to
+				verify that Baseband I/Q Calibration has an effect on the accuracy of the MCB AWG and DGT, we
+				will want to modify the DSP routine so that it calculates the relative phase and magnitude
+				imbalance between the I and Q signals. We will run the program with and with out BIQC and note
+				the difference in accuracy.</p><p>Below is the routine where the digitized waveform of is
+				retrieved. The section highlighted in blue should be entered by the user. This section of code
+				records the fundamental bin of the signal for future users.</p><div class="p"><figure class="fignone">
+					<img src="104528.png" alt="Section highlighted in blue">
+				</figure></div><p>Next the code required to calculate the relative phase and magnitude of the I and Q
+				signals is to be entered (the entire section contained in the blue box).</p><div class="p"><figure class="fignone">
+					<img src="104587.png" alt="Digitized waveform">
+				</figure></div><p>Once the edits have been made, compile the program.</p><div class="p"><figure class="fignone">
+					<img src="104588.png" alt="Compiling the program">
+				</figure></div></section>
+		<section class="section"><h2>Hardware Connections on the DUT Board</h2><p>Before debug of the C++ code, the
+				load board connections must be made to loop back the IQ AWG output to the IQ DGT input, two
+				connections will be required:</p><p>Connect a trigger line from digital pin 10101 to pin 17 S2
+				of slot 231 or 228 (depending on where the MCB is installed). This wire will send the digital
+				triggering pulse from the digital pin to the trigger in put of the MCB. Connection of the
+				hardware trigger is optional since the I/Q pair are in master slave mode. This means that the
+				trigger delay between them is not effected by use of the HW or SW trigger.</p><p>Before debug of
+				the C++ code, the load board connections must be made to loop back the LF AWG output to the LF
+				DGT input, three connections will be required:</p><ol>
+				<li>Connect a trigger line from digital pin 10101 to pin 17 S2 of slot 231 or 228 (depending on
+					where the MBAv8 is installed). This wire will send the digital triggering pulse from the
+					digital pin to the trigger in put of the MBAv8.</li>
+				<li>Connect pin 16 S2 of slot 231 or 228 to pin 16 S1 of the same slot.</li>
+			</ol><table class="frame-none"><caption><span></span></caption><colgroup><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_104617__entry__1" colspan="2"><p>From Pin (slot 231 or 228)</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_104617__entry__2"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_104617__entry__3" colspan="2"><p>To Pin (slot 231 or 228)</p>
+							</th>
+						</tr>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_104617__entry__4"><p>Pin Name</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_104617__entry__5"><p>Connection on DUT board </p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_104617__entry__6"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_104617__entry__7"><p>Pin Name</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_104617__entry__8"><p>Connection on DUT board </p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>Digital Pin 10101 Hardware trigger input</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>17 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>AWGmcbU1_IP_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>16 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p> --&gt;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>DGTmcbU5_IP_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>16 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>AWGmcbU1_IN_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>15 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p> --&gt;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>DGTmcbU5_IN_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>15 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>14 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>14 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>13 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>13 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>AWGmcbU3_QP_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>12 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p> --&gt;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>DGTmcbU7_QP_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>12 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>AWGmcbU3_QN_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>11 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p> --&gt;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>DGTmcbU7_QN_X</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>11 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p>10 S2</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>10 S1</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__4"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__1 _104617__entry__5"><p> 9 S1</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__2 _104617__entry__6"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__3 _104617__entry__7"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_104617__entry__8"><p>9 S1</p>
+							</td>
+						</tr>
+					</tbody></table><p>Below is a picture of the connections required to source the IQ AWG to the IQ DGT.</p><div class="p"><figure class="fignone">
+					<img src="104625.jpg" alt="Hardware Trigger Input">
+				</figure></div></section>
+		<section class="section"><h2>Collection of the Calibration Conditions</h2><p>At this time, we are ready to
+				run the program.</p><div class="p"><figure class="fignone">
+					<img src="104627.png" alt="Run the program">
+				</figure></div><div class="p"><figure class="fignone">
+					<img src="104628.png" alt="Phase Imbalance">
+				</figure></div><p>To verify that the routine has executed correctly the signal analyzer tool can be
+				brought up to witness the captured waveform.</p><div class="p"><figure class="fignone">
+					<img src="104536.png" alt="Signal analyzer tool">
+				</figure></div><p>It is important to note that, thus far, we have accomplished two things. First we
+				have modified the test flow in order to "instruct" smarTest to collect calibration conditions.
+				Then we modified the C++ code to calculate the magnitude and phase imbalance between the I and Q
+				signals.</p><p>By executing the program, smarTest also performs two things also. It first
+				collects the calibration condition information and stored it to disk. Next, our program measured
+				the phase and magnitude of the I and Q signal. Baseband I/Q calibration has NOT been
+				executed.</p></section>
+		<section class="section"><h2>Calibration Condition File</h2><p>The calibration condition information has
+				been stored to disk in the "calibration" directory of the test program directory in a file whose
+				name is that of the test flow. Below is information regarding the location of the calibration
+				condition file as well as its contents. The contents of this file obey a syntax which is
+				explained in Appendix E.</p><p>This file could have been created while running the software in
+				offline mode, without actually being connected to the tester. This convenience gives users the
+				ability to avoid actually using a system in order to create calibration conditions.</p><div class="p"><figure class="fignone">
+					<img src="104558.png" alt="Calibration condition information">
+				</figure></div><p>It is important to realize that Baseband I/Q Calibration has not been performed.
+				All that has occurred till now is the collection of the conditions under which this calibration
+				will occur in the future.</p></section>
+		<section class="section"><h2>Executing Baseband I/Q Calibration</h2><p>Now that the calibration conditions
+				have been created, BIQC can be performed. First bring up the calibration GUI.</p><div class="p"><figure class="fignone">
+					<img src="104629.png" alt="Calibration GUI">
+				</figure></div><p>Then select "Analog Calibration" from the "Tools" pull down.</p><div class="p"><figure class="fignone">
+					<img src="104560.png" alt="Analog Calibration">
+				</figure></div><p>Select "Run" from the "Execute" pull down.</p><div class="p"><figure class="fignone">
+					<img src="104561.png" alt="Execute pull down">
+				</figure></div><ol>
+				<li>In the window which appears, click the <span class="uicontrol">Execute MCB Gain/Phase Repeatability
+						Calibration</span> radio button.</li>
+				<li>In the sub panel which appears, enter:<ol type="a">
+						<li>Then name of the pin configuration</li>
+						<li>The analog set name</li>
+						<li>The calibration condition name (the same name as the test flow).</li>
+					</ol></li>
+				<li>Click the <span class="uicontrol">START CAL</span> button.<div class="p"><figure class="fignone">
+							<img src="104632.png" alt="Executing Baseband I/Q Calibration">
+						</figure></div></li>
+			</ol><p>The calibration condition file name which was chosen happens to be the same name as that
+				used by the test flow. But it is not required that this be the case. The calibration condition
+				file can be called any name.</p><p>You will be prompted to dock the first calibration board:
+				E9728A as below</p><div class="p"><figure class="fignone">
+					<img src="104633.png" alt="First calibration board">
+				</figure></div><div class="p"><figure class="fignone">
+					<img src="104634.png" alt="DTZ I/Q Calibration">
+				</figure></div><p>When prompted, mount the second calibration board on the head.</p><div class="p"><figure class="fignone">
+					<img src="104635.png" alt="Second calibration board">
+				</figure></div><div class="p"><figure class="fignone">
+					<img src="104636.png" alt="AWG I/Q Calibration">
+				</figure></div><p>Once complete, the data collected by the calibration procedure has been saved on
+				the host system controller at the pathname listed below:</p><div class="p"><figure class="fignone">
+					<img src="104517.png" alt="Calibration procedure">
+				</figure></div><p>The contents of the Baseband IQ Calibration log file are below:</p><div class="p"><figure class="fignone">
+					<img src="104518.png" alt="Baseband IQ Calibration log file">
+				</figure></div><p>The contents of the Baseband I/Q Calibration file is below. Here we can see
+				contained some of the same arguments passed into the "activatePathSkew" command. The exact
+				syntax of this file is found in the Appendix E:</p><div class="p"><figure class="fignone">
+					<img src="104519.png" alt="Baseband I/Q Calibration file">
+				</figure></div><p>More about the FW syntax of this file can be found in Appendix E.</p><p>After
+				calibration is complete, it will be necessary to reload the program.</p><div class="p"><figure class="fignone">
+					<img src="104637.png" alt="Reload the program">
+				</figure></div><p>When prompted as below, be sure to click "Do not save".</p><div class="p"><figure class="fignone">
+					<img src="104638.png" alt="Do not save">
+				</figure></div><p>Load the program setups</p><div class="p"><figure class="fignone">
+					<img src="104522.png" alt="Load the program setups">
+				</figure></div><p>Loading the Calibration Data</p><p>Now that the calibration data has been created
+				by smarTest it is time to access it from the test program. This is done through the use of the
+				second new API: loadCalData.</p><div class="p"><figure class="fignone">
+					<img src="104639.png" alt="Second new API">
+				</figure></div><p>First create a new test method called LoadBBIQCalData.</p><div class="p"><figure class="fignone">
+					<img src="104524.png" alt="LoadBBIQCalData">
+				</figure></div><p>The only parameter to be passed in to the test method is a string which will
+				contain the name of the calibration file.</p><div class="p"><figure class="fignone">
+					<img src="104525.png" alt="Name of the calibration file">
+				</figure></div><p>In the body of the test method, enter the following line of code:</p><div class="p"><figure class="fignone">
+					<img src="104526.png" alt="Line of code">
+				</figure></div><p>Modify the flow as shown, inserting a test suite whose purpose is to load the
+				Baseband I/Q Calibration factors using the test method created above.</p><div class="p"><figure class="fignone">
+					<img src="104640.png" alt="Inserting a test suite">
+				</figure></div><p>Open the test suit parameter list and specify the name of the calibration file. In
+				this case the name is that we gave the calibration condition and the name of the flow.</p><div class="p"><figure class="fignone">
+					<img src="104641.png" alt="Name of the flow">
+				</figure></div><p>Now paste in to the new branch of the flow a copy of the original test suit:
+				IQAWGtoDGT as shown below.</p><div class="p"><figure class="fignone">
+					<img src="104642.png" alt="Paste a copy">
+				</figure></div><p>Remember to put the DUT board back on the head.</p><p>Be sure to change the "If"
+				condition in the flow to 0, hit test button, and notice that the phase measurement has gone from
+				21 degrees to 0.49 degrees.</p><div class="p"><figure class="fignone">
+					<img src="104568.png" alt="Test button">
+				</figure></div><p>USER NOTE: It is important to realize that if the calibration conditions are
+				accidentally recollected because the "1" in the "if" condition is not changed to "0", and then
+				user then realizes the mistake and executes the "0" condition path after recollection of the
+				calibration conditions, then the following run time error will occur:</p><p><span class="filepath">"Error:
+					loadCalData("CPEReq4.1)</span></p><p><span class="filepath">E10099: Board skew CAL data
+					'/var/opt/hp93000/soc/calibration/mc/CPEI4.1_529/OneLFAwg_OneLFAWG/CPEReq4.1' is not updated
+					after conditions modification."</span></p><p>This error is occurring because the time stamp
+				of the calibration condition
+					file:</p><p><span class="filepath">./CPEImplementationRequirement4.1/calibration/mc/CPEReq4.1</span></p><p>
+				is later than the time stamp of the calibration factors file:
+					</p><p><span class="filepath">/var/opt/hp93000/soc/calibration/mc/CPEI4.1_529/OneLFAwg_OneLFAWG/CPEReq4.1</span></p><p>Ordinarily
+				a complete recalibration would be required to rectify this problem. But by executing the
+				following command from a shell window, a newer date is assigned to the calibration factors file
+				and the problem is solved without the necessity to recalibrate:</p><p><span class="filepath">"touch
+					/var/opt/hp93000/soc/calibration/mc/CPEI4.1_529/OneLFAwg_OneLFAWG/CPEReq4.1"</span></p><p>Before
+				Baseband IQ Calibration After Baseband IQ Calibration</p><p><img src="104569.png" alt="Before Baseband IQ Calibration">
+				<img src="104537.png" alt="After Baseband IQ Calibration"></p><p>We know from the MCB specification that IQ AWG and DGT trigger skew is specified
+				as being +/-100pS (contained in the ERS and specification sheet). If we wanted to see how much
+				actual skew we currently are experiencing, the equation used to convert degrees into time is as
+				follows:</p><div class="p"><figure class="fignone">
+					<img src="104538.png" alt="Convert degrees">
+				</figure></div></section>
+		<section class="section"><h2>MCB Phase Specification</h2><p>The MCB phase imbalance after the calibration is
+				specified below.</p><p>DGT</p><ul>
+				<li>0.7degree @ 20MHz, 100MSa/s Fin:0-30dB full scale in case calibrated at
+					20MHz,&gt;1024point</li>
+				<li>0.3degree @ 5MHz, 100MSa/s Fin:0-30dB full scale in case calibrated at
+					5MHz,&gt;1024point</li>
+			</ul><p>AWG</p><ul>
+				<li>1 degree @ 20MHz, 200MSa/s, Fout:0-30dB full scale in case calibrated at
+					20MHz,&gt;1024point</li>
+				<li>0.4degree @ 5MHz, 200MSa/s, Fout: 0-30dB full scale in case calibrated at
+					5MHz,&gt;1024point</li>
+			</ul></section>
+		<section class="section"><h2>Application of DUT board Offsets</h2><p>We have calibrated the MCB for every
+				frequency of our simple program up to the pogo pin plane. If the user mounts a DUT board it
+				will introduce its own phase and magnitude response which will have to be compensated for. We
+				will do this using two new API:</p><ul>
+				<li>adjustGain</li>
+				<li>adjustDelay</li>
+			</ul></section>
+		<section class="section"><h2>Loadboard Gain and Phase Adjustment</h2><p>Let's start by creating a new test
+				method. Call it AdjustForLoadBoardPhaseAndGain.</p><div class="p"><figure class="fignone">
+					<img src="104539.png" alt="Loadboard Gain and Phase Adjustment">
+				</figure></div><p>No parameters are passed into this test method so click "Finish".</p><p>Type in the
+				code below. The value for gain and delay has been purposely set to zero because the wires on the
+				loadboard used in the development of this paper are expensive and highly matched. They have
+				imparted no phase or magnitude imbalance. However the user's loop back cables may not be of such
+				quality and require that the delay be adjusted (at least). This activity would be performed in
+				this routine.</p><div class="p"><figure class="fignone">
+					<img src="104540.png" alt="Value for gain">
+				</figure></div><p>Insert the "AdjustForLoadBoardPhaseAndGain" test method in the flow just before the
+				actual production test.</p><div class="p"><figure class="fignone">
+					<img src="104643.png" alt="AdjustForLoadBoardPhaseAndGain">
+				</figure></div></section>
+		<section class="section"><h2>New API Test Execution Times</h2><p>The new BCAL API need only be executed once
+				per lot not for each device. Therefore the test time associated with execution of each API is
+				not important except that it is nice to know that they are not long.</p><p>Below is the test
+				execution time associated with the execution of the new Baseband I/Q Calibration API commands.
+				Note that these times will differ as the number of analog sets in the program which have been
+				calibrated increases. In the case of the example, only one analog set calibration data is being
+				used.</p><table><caption><span>API Run</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_104617__entry__54"><p>API Run During Production</p>
+							</th>
+							<th class="colsep-1" id="_104617__entry__55"><p>Test Time</p>
+								<p>mS</p>
+							</th>
+							<th class="colsep-1" id="_104617__entry__56"><p>Number of Required Executions</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104617__entry__54"><p>BCAL.adjustGain</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__55"><p>6.5</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__56"><p>1st run only </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104617__entry__54"><p>BCAL.adjustDelay</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__55"><p>6.5</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__56"><p>1st run only</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104617__entry__54"><p>BCAL.activatePathSkew</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__55"><p>0.1</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__56"><p>1st run only</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104617__entry__54"><p>BCAL.LoadCalData</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__55"><p>2</p>
+							</td>
+							<td class="colsep-1" headers="_104617__entry__56"><p>1st run only</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>GUI Calibration Times</h2><p>The time required to run the GUI base Baseband IQ
+				Calibration was collected for a set of 310 different tone frequencies. It is found that 45
+				minutes (3/4 hour) is the length of time required for completion for this large number. This
+				works out to 8.7 seconds per frequency.</p><p>This large number of I/Q frequencies was chosen in
+				order get an approximate time per frequency. It is not likely that a typical production program
+				would have this many I/Q frequencies.</p></section>
+		<section class="section"><h2>Recommended Calibration Interval</h2><p>It is expected that Baseband I/Q
+				calibration be executed at the same intervals as the system calibration, which is 3
+			months.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>We began by identifying the requirement to match I and Q in
+				phase and magnitude. Our motivations were to make more accurate measurements which are magnitude
+				and phase sensitive. These where: MTPR, side band suppression and EVM.</p><p>We then saw how
+				SmarTest has been updated to enable test flows to be analyzed for a set of "calibration
+				conditions". These where collected after making minor modifications to test flow and test
+				methods requiring matched I/Q AWG or DGT pairs.</p><p>The test method was modified to measure
+				phase and magnitude imbalance between the companion I and Q signals. The phase imbalance is
+				found to be approximately 20 degrees at a tone frequency of 15MHz.</p><p>The SmarTest analog
+				calibration menu was brought up and a Baseband I/Q calibration was executed from the GUI menu.
+				This process required that we mount two boards, sequentially on the test head after being
+				prompted by the software. The first board function is to calibrate the I/Q DGT pairs. The second
+				board function is to calibrate I/Q AWG pairs. When completed, Baseband I/Q calibration factors
+				where stored to disk at a system directory.</p><p>Once this process was complete, the test
+				program was reloaded, the BIQC calibration factors read from disk, and the I/Q phase and
+				magnitude imbalance was re-measured. The phase imbalance is found to be approximately 0.5
+				degrees at a tone frequency of 15MHz. This result is 43 times more accurate than that measured
+				without BBIC being run.</p></section>
+		<section class="section"><h2>Appendix A Model file Example</h2><p>Below is an example of the model file to
+				be loaded before running the CPE in software only mode. The command to evoke this model file,
+				from the xterm where SmarTest is started is as
+			follows:</p><pre class="prettyprint linenums copyable">export AGILENT93000_MODEL=model.file.to.be.used.with.this.program
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+# Example model file: model.file.to.be.used.with.this.program
+GLOBAL
+  tester = Ce            # P   | C   | Ce   | MCU
+  testhead = 1024        # 256 | 512 | 1024
+  dut_interface = SOC    # F330| SOC | EXHIBITION
+IOCHANNEL
+  10101-11916: model = C400e,  sram = 2M, sdram = 28M
+ANALOGBOARD
+231: TYPE = MCB
+BOARDCONF
+#MCA: BOARD=228, MODULE=8, MTYPE=MESA
+MCB: BOARD=231, MODULE=1, MTYPE=SRCB
+MCB: BOARD=231, MODULE=2, MTYPE=SRCB
+MCB: BOARD=231, MODULE=3, MTYPE=SRCB
+MCB: BOARD=231, MODULE=4, MTYPE=SRCB
+MCB: BOARD=231, MODULE=5, MTYPE=MESB
+MCB: BOARD=231, MODULE=6, MTYPE=MESB
+MCB: BOARD=231, MODULE=7, MTYPE=MESB
+MCB: BOARD=231, MODULE=8, MTYPE=MESB</pre></section>
+		<section class="section"><h2>Appendix B Effects of Baseband I/Q Calibration on MTPR</h2><p>The plot below
+				indicates that the Multitone Power Ratio (MTPR) can be increased if Baseband I/Q calibration is
+				performed.</p><div class="p"><figure class="fignone">
+					<img src="104542.png" alt="Multitone Power Ratio">
+				</figure></div></section>
+		<section class="section"><h2>Appendix C: Derivation of the equations describing sideband suppression as a
+				function of AWG I an Q phase and magnatude imbalance</h2><div class="p"><figure class="fignone">
+					<img src="104543.png" alt="Appendix C">
+				</figure></div><div class="p"><figure class="fignone">
+					<img src="104544.png" alt="getComplex Waveform command">
+				</figure></div><p>Below are plots of Equation 8. The top plot is results when the relative phase
+				between the signals at input channel 1 and 2 is swept from -180 degrees to 180 degrees. This is
+				accomplished by holding the absolute phase of channel one constant while moving the phase of
+				channel 2 through this range.</p><p>The plot below this, results when the relative magnitude is
+				swept from 0Vp to 2Vp while holding the signal on channel 1 constant at 1Vp.</p><div class="p"><figure class="fignone">
+					<img src="104545.png" alt="Relative magnitude">
+				</figure></div><p>Plots of negative tone sideband suppression as a function of relative phase and
+				magnitude between RookII channels 1 and 2.</p><div class="p"><figure class="fignone">
+					
+					<img src="104546.png" alt="I and Q signals are 90 degrees out of balance. Rejection = 0db">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="104547.png" alt="I and Q are 90 degrees out of balance. Rejection = 73dB">
+				</figure></div></section>
+		<section class="section"><h2>Appendix D Effects of Baseband I/Q Calibration on EVM</h2><div class="p"><figure class="fignone">
+					<img src="104548.png" alt="Appendix D">
+				</figure></div></section>
+		<section class="section"><h2>Appendix E Baseband I/Q Calibration Firmware Syntax</h2><p>There are two new
+				firmware commands which support Baseband I/Q Calibration. These are:</p></section>
+		<section class="section"><h2>SRCM : Gain/Phase Baseband I/Q CAL measurement FW syntax</h2><p>This command
+				executes the Baseband I/Q Calibration measurement. It checks the current configuration for
+				measuring pins and trigger and specified Analog Set.</p><p>Second syntax is used to Reference
+				CAL. Reference CAL calibrates the digitizer pair, and this result is used for AWG CAL. Reference
+				CAL data is only stored in HW and it is not able to upload/download by hardware.</p><p>Command
+				syntax:</p><pre class="prettyprint linenums copyable">ACMD "SRCM","&lt;core&gt;,&lt;aset&gt;,&lt;site&gt;,&lt;cnct&gt;,&lt;ref1&gt;,&lt;ref2&gt;,&lt;mclk&gt;,&lt;freq&gt;",(&lt;pin1&gt;,&lt;pin2&gt;)
+&lt;core&gt;:    Core number. Default is 1.
+&lt;aset&gt;:    analog set name
+&lt;site&gt;:    site number
+&lt;cnct&gt;:    connection mode. SGL or DIFF
+&lt;ref1&gt;:    reference pin number for pin1
+&lt;ref2&gt;:    reference pin number for pin2 (for AWG CAL only)
+&lt;mclk&gt;:    Master clock freq (MHz)
+&lt;freq&gt;:    Signal freq (MHz)
+&lt;pin1&gt;:    pin 1 name string
+&lt;pin2&gt;:    pin 2 name string
+ACMD "SRCM","&lt;board&gt;,&lt;pnum1&gt;,&lt;pnum2&gt;,&lt;range&gt;_&lt;impd&gt;_&lt;divn&gt;,&lt;cnct&gt;,&lt;ref1&gt;,&lt;ref2&gt;,&lt;mclk&gt;,&lt;freq&gt;",
+&lt;board&gt;:   board ID. Example MCB232
+&lt;pnum1&gt;:   pin number for pin1. 1 to 32 (same as DFAN command)
+&lt;pnum2&gt;:   pin number for pin2.
+&lt;range&gt;:   volt range. 4, 2, 1, 0.5 or 0.25
+&lt;impd&gt;:    input impedance. 0 means 10K, 2 means 50ohm.
+&lt;divn&gt;:    divide ratio of sampling clock</pre><p>Usage
+				Example:</p><p>The calibration condition information is stored to disk in the "calibration"
+				directory of the test program directory in a file whose name is that of the test flow. Below is
+				information regarding the location of the calibration condition file as well as its contents.
+				The contents of this file obey a syntax which is explained in Appendix E.</p><p>This file could
+				have been created while running the software in offline mode.</p><div class="p"><figure class="fignone">
+					<img src="104549.png" alt="Usage Example">
+				</figure></div><p>It is important to realize that Baseband I/Q Calibration has not been performed.
+				All that has occurred till now is the collection of the conditions under which this calibration
+				will occur in the future.</p></section>
+		<section class="section"><h2>SRCR Baseband I/Q Calibration result download and upload FW</h2><p>This command
+				is used to download Baseband IQ CAL result into Tester. And Query is used to upload CAL result
+				from Tester. Baseband IQ CAL result file format is collection of this download FW by plain
+				text.</p><p>Command
+				syntax:</p><pre class="prettyprint linenums copyable">ACMD  "SRCR","&lt;core&gt;,&lt;aset&gt;,&lt;site&gt;,&lt;cnct&gt;,&lt;mclk&gt;,&lt;count&gt;,&lt;ecode1&gt;,&lt;code2&gt;,&lt;gain&gt;,&lt;freq&gt;",(&lt;pin1&gt;,&lt;pin2&gt;)
+&lt;core&gt;:    Core number. Default is 1.
+&lt;aset&gt;:    analog set
+&lt;site&gt;:    site number
+&lt;cnct&gt;:    connection mode. SGL or DIFF
+&lt;mclk&gt;:    Master clock freq (MHz)
+&lt;freq&gt;:    Signal freq (MHz)
+&lt;count&gt;:   Relative deskew counter value for pin1 &amp; pin2
+&lt;code1&gt;:   Analog vernier code for pin1
+&lt;code2&gt;:   Analog vernier code for pin2
+&lt;gain&gt;:    Relative corrective gain for pin1 &amp; pin2
+&lt;pin1&gt;:    pin 1 name string
+&lt;pin2&gt;:    pin 2 name string</pre><p>Query
+				syntax:</p><pre class="prettyprint linenums copyable">ACMD? "SRCR","&lt;core&gt;,&lt;aset&gt;,&lt;site&gt;,&lt;cnct&gt;,&lt;mclk&gt;,&lt;freq&gt;",(&lt;pin1&gt;,&lt;pin2&gt;)
+&lt;core&gt;:    Core number. Default is 1.
+&lt;aset&gt;:    analog set
+&lt;site&gt;:    site number
+&lt;cnct&gt;:    connection mode. SGL or DIFF
+&lt;mclk&gt;:    Master clock freq (MHz)
+&lt;freq&gt;:    Signal freq (MHz)
+&lt;pin1&gt;:    pin 1 name string
+&lt;pin2&gt;:    pin 2 name string
+Returned syntax is same as command syntax.</pre><p>This
+				command is used to download Gain/Phase Repeatability CAL result into Tester. And Query is used
+				to upload CAL result from Tester. Gain/Phase Baseband IQ CAL result file format is collection of
+				this download FW by plain text.</p><p>Usage Example:</p><p>After Baseband I/Q calibration is
+				executed from the GUI, the data collected by the calibration procedure has been saved on the
+				host system controller at the pathname listed below:</p><div class="p"><figure class="fignone">
+					<img src="104550.png" alt="Workstation">
+				</figure></div><p>The contents of the Baseband IQ Calibration log file are below:</p><div class="p"><figure class="fignone">
+					<img src="104551.png" alt="Contents of the Baseband IQ Calibration log file">
+				</figure></div><p>The contents of the Baseband I/Q Calibration file is below and this is where the
+				"SRCR" command is used.</p><div class="p"><figure class="fignone">
+					<img src="104552.png" alt="SRCR command">
+				</figure></div></section>
+		<section class="section"><h2>SRCA: Baseband I/Q Calibration condition activation and deactivation
+				FW</h2><p>Command
+				syntax:</p><pre class="prettyprint linenums copyable">ACMD  "SRCA","&lt;core&gt;,&lt;aset&gt;,&lt;site&gt;,&lt;cnct&gt;,&lt;mclk&gt;,&lt;actv&gt;,&lt;freq&gt;",(&lt;pin1&gt;,&lt;pin2&gt;)
+ACMD? "SRCA","&lt;core&gt;,&lt;aset&gt;,&lt;site&gt;,&lt;cnct&gt;,&lt;mclk&gt;,&lt;freq&gt;",(&lt;pin1&gt;,&lt;pin2&gt;)
+&lt;core&gt;:    Core number. Default is 1.
+&lt;aset&gt;:    analog set
+&lt;site&gt;:    site number
+&lt;cnct&gt;:    connection mode. SGL or DIFF
+&lt;mclk&gt;:    Master clock freq (MHz)
+&lt;freq&gt;:    Signal freq (MHz)
+&lt;actv&gt;:    YES means activated, NO means deactivated
+&lt;pin1&gt;:    pin 1 name string
+&lt;pin2&gt;:    pin 2 name string
+ALL is usable for any parameter in query.
+Query returns as same as command syntax.</pre><p>This
+				command is used to activate or deactivate downloaded Gain/Phase Repeatability CAL result. And
+				this query is used to check activation state. No return means no specified CAL is downloaded or
+				measured.</p><p>Command
+				syntax:</p><pre class="prettyprint linenums copyable">ACMD  "SRCU","&lt;core&gt;,&lt;aset&gt;,&lt;site&gt;,&lt;cnct&gt;,&lt;mclk&gt;,&lt;freq&gt;",(&lt;pin1&gt;,&lt;pin2&gt;)
+&lt;core&gt;:    Core number. Default is 1.
+&lt;aset&gt;:    analog set
+&lt;site&gt;:    site number
+&lt;cnct&gt;:    connection mode. SGL or DIFF
+&lt;mclk&gt;:    Master clock freq (MHz)
+&lt;freq&gt;:    Signal freq (MHz)
+&lt;pin1&gt;:    pin 1 name string
+&lt;pin2&gt;:    pin 2 name string</pre><p>This
+				command is used to erase downloaded Gain/Phase Repeatability CAL result.</p></section>
+		<section class="section"><h2>SRCB : Baseband I/Q Calibration condition collection FW</h2><p>Command
+				syntax:</p><pre class="prettyprint linenums copyable">ACMD  "SRCB","&lt;name&gt;",
+&lt;name&gt;:    CAL condition filename</pre><p>This
+				command starts CAL conditions recording. If file is already created, it is
+				overwritten.</p><p>Each time FLSH is done with Gain/Phase Repeatability CAL is activated analog
+				set, ACMD "SRCM" FW command and other setup are written in this file.</p><p>Command
+				syntax:</p><p>ACMD "SRCE",,</p><p>This command stops CAL condition recording.</p></section>
+		<section class="section"><h2>Appendix F: Using test functions to create Calibration Condition: An alternative
+				to test method calls.</h2><p>Calibration conditions can be created using test functions
+				instead of C++ test method calls.</p><ol>
+				<li>Open the original flow.</li>
+				<li>In front of the first test suite in the flow insert a test suit and name it:
+						<kbd class="userinput">"CalCondisionBegin"</kbd>. </li>
+				<li>Fill out the primary fields as shown and create a new test function of the type
+						<kbd class="userinput">"FW_escape"</kbd>. </li>
+				<li>Fill in the command: <kbd class="userinput">ACMD "SRCB","CPEReq4.1",</kbd></li>
+			</ol><p>Be sure to enter the last comma in the string. This is the command which tells smartest
+				to start collection of the calibration conditions it encounters during execution of the flow.
+				Also notice that the last argument is the name of the current flow. This command basically says:
+				"Begin collecting the information used by this program to source and measure analog signals and
+				store them to the disk".</p><div class="p"><figure class="fignone">
+					<img src="104646.png" alt="Last comma">
+				</figure></div><p>Next, insert another test suite at the end of the flow. Fill out the primaries as
+				above. Create an FW_Escape test function whose name is CalConditsionEnd and enter the
+				string:</p><p><code>ACMD "SRCE",,</code></p><p>Notice the double comma at the end of this
+				string. The purpose of this suite is to stop collection of the Calibration Conditions. This
+				command merely says: "End of Calibration Condition collection".</p><p>In the case below there is
+				only one test suite whose calibration conditions are being collected. But in true production
+				program, there may be any number of test suites between the "begin" and "end".</p><div class="p"><figure class="fignone">
+					<img src="104647.png" alt="Test suite">
+				</figure></div><p>Save this flow as the new name CPEReq4.1.</p><div class="p"><figure class="fignone">
+					<img src="104648.png" alt="Save CPEReq4.1">
+				</figure></div></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 104617</span><script type="text/javascript">var ti='104617';var tt='Baseband I/Q Calibration'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

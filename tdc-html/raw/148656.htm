@@ -1,0 +1,59 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies a line number in a pattern where you want to apply dynamic DC measurement actions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>insertVec()</title><meta name="keywords" content="insert, Vec"></head><body id="_148656"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 148656</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">insertVec()</h1>
+	
+	
+	<div><p>Specifies a line number in a pattern where you want to apply dynamic DC measurement
+		actions.</p>
+		<section class="section">Supported DC actions are such as <a href="143892.htm" title="Specifies a current to force.">iForce()</a>, <a href="143535.htm" title="Specifies the range of forcing current for DC Scale pins.">iForceRange()</a>, <a href="143893.htm" title="Creates a current measurement.">iMeas()</a>, <a href="143895.htm" title="Specifies a voltage to force.">vForce()</a>, <a href="143891.htm" title="Specifies a voltage measurement.">vMeas()</a>,
+			and <a href="144853.htm" title="Restores the very first current measurement range specified in the RDI_BEGIN() ... RDI_END() block.">restoreRange()</a>. When using <span class="keyword">iMeas()</span> or <span class="keyword">vMeas()</span>,
+				<a href="142823.htm" title="Specifies the number of samples used to do the averaging. The result of the measurement has been averaged.">average()</a> and <a href="148662.htm" title="Adds limits for judging the pass/fail result of a dynamic DC measurement on digital pins or DC Scale pins. You must use this function within the RDI_BEGIN and RDI_END block. This function supports one-side limits only on DC Scale pins.">limit()</a> can be used.<div class="note"><span class="title">Note</span> DC measurement
+				actions cannot be applied to vectors that have <a href="99880.htm" title="The vector sequencer has its own set of instructions which you use to control the execution of your test. The default instruction is GENV (GENerateVectors) for every vector, but the system does not display it and you do not have to enter it.">Sequencer instructions</a>. </div><p>You can apply
+				multiple dynamic DC actions on a pattern. When more than one lines in the pattern
+				are applied with DC actions and the applied pins are the same, the number of lines
+				between any two of these places must be greater than 32. Otherwise, errors will be
+				generated.</p><p>To obtain the measured values, use <a href="141793.htm" title="Retrieves the measured value.">getValue()</a> or <a href="148658.htm" title="Retrieves all the values measured on a specified pin.">getMultiValue()</a>.</p><p><span class="keyword">insertVec()</span> can be used for DC Scale DIG/SIG pins
+				only.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">insertVec(int <span class="keyword">iVecNum</span>);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_148656__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_148656__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_148656__entry__1"><p><span class="keyword">iVecNum</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_148656__entry__2"><p>The line number in a pattern where you want to perform DC actions.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc("dynamic").label("label")
+                   .pin("pinA")
+                   .insertVec(55).vForce(5)
+                   .insertVec(90).vForce(3) // here, the line number cannot be lower than 87.
+                   .pin("pinB")
+                   .insertVec(65). vMeas()
+                   .insertVec(185).vMeas()  // here, the line number cannot be lower than 97.
+                   .execute();
+RDI_END();
+
+double value = rdi.id("dynamic").getValue("pinB");        // only the last measurement result
+
+ARRAY_D values = rdi.id("dynamic").getMultiValue("pinB"); // multiple results </pre></div>
+		<div class="example"><h3>insertVec() with cont() for the same pin</h3>
+			
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">rdi.dc().label("sLabel").pin("A").insertVec(50).vForce(1).cont();
+rdi.dc().label("sLabel").pin("A").insertVec(100).vForce(2).cont();
+......
+rdi.dc().label("sLabel").pin("A").insertVec(1000).vForce(5).cont();
+rdi.dc().execute();</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="152250.htm" title="Specifies the name of a pattern‑based on which a copy of the pattern is to be generated.">label()</a></div><div><a href="141793.htm" title="Retrieves the measured value.">getValue()</a></div><div><a href="148658.htm" title="Retrieves all the values measured on a specified pin.">getMultiValue()</a></div><div><a href="150932.htm" title="This function inserts one or more subroutines with DC, PPMU or BADC actions into an existing pattern.">insertSub()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li><li>SmartRDI 7.5.1: insertVec() supports cont() for the same pin.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 148656</span><script type="text/javascript">var ti='148656';var tt='insertVec()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The TPSE command serves to define and modify a test point sequence for channels with test point capability like DPS128. The TPSE? query returns the current definition of a selected or all test point sequences."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>TPSE, TPSE? - (Test Point SEquence)</title><meta name="keywords" content="testpoint, TPSE_, S, Equence"></head><body id="_99875"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99875</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">TPSE, TPSE? - (Test Point SEquence)</h1>
+	
+	
+	<div><p>The <span class="keyword">TPSE</span> command serves to define and modify a test point sequence
+		for channels with test point capability like DPS128. The
+			<span class="keyword">TPSE?</span> query returns the current definition of a selected or all test
+		point sequences.</p>
+		<section class="section"><p>With this command you configure setups of those sites that have the setup focus: For
+			more information, see also: <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC, PSFC?</a>.</p><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<section class="section" id="_99875__section_terminology"><h2>Terminology</h2><p>A test point connects a test event (<span class="keyword">td</span>
+				element defined with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>) with a logical vector of a pattern. Test
+				events are instructions to the hardware to perform some action, for example, set the measurement
+				range for a DC measurement or execute such a measurement. These actions can be executed
+				synchronously with digital vectors. In fact, test point sequences are the counterpart of digital
+				vectors for channels with test point capability (however, vector download with <a href="98853.htm" title="The VECD command downloads data in binary format into the vector area of the pin given by pin, from the absolute address address for the length length. The target area is determined by the applic parameter; the interpretation of the data depends on the specified target area. If necessary, VECD extends the size of the target area.">VECD</a> or <a href="98850.htm" title="The VECC command downloads data in a compressed binary format into the vector area of the pin (given by the parameter pin), from the absolute address (given by the parameter address) and for the specified length (given by the parameter length). The target area is determined by the applic parameter; the interpretation of the data depends on the specified target area. If necessary, VECC extends the size of the target area. Downloading the data with the VECC command in compressed format is generally faster than downloading it in uncompressed format.">VECC</a> is not allowed for such
+				channels). </p></section>
+		<section class="section"><h2>Predependencies</h2><p>The overall number of usable test points for all
+				patterns must be defined per pin in the <span class="filepath">.technology</span> file
+					(<span class="keyword">testpoints</span> keyword) or the <span class="uicontrol">Device settings</span> editor;
+				the default is 0. The test point data collection specified in the
+					<span class="keyword">testdata_name</span> parameter of <span class="keyword">TSPE</span>, which contains the data
+				for the sequence, must have been defined with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a> for all pins wth
+				test point capability that are specified in the <span class="keyword">pinlist</span> parameter of
+					<span class="keyword">TSPE</span>.</p><p>The <span class="keyword">TPSE</span> command is based on XML (eXtended
+				Markup Language). Only the ISO-8859-1 character encoding is supported.</p></section>
+		<section class="section"><h2>Mode of operation</h2><p>Every test point sequence is associated with a
+				pattern. The sequence attaches test events defined with the <span class="keyword">DFTD</span> command to
+				vectors of this pattern. When a functional test is run with the pattern, the test event is
+				executed at the specified vector. All test events within one test point sequence must belong to
+				the same test data collection, the name of which is specified in the <span class="keyword">TPSE</span>
+				call.</p><p>Only one test point sequence can be defined for any combination of pin and pattern.
+				It is not necessary to define a test point sequence for every pin with test point capability. If
+				no such sequence is defined, hold vectors are generated for every cycle that is executed by the
+				sequencer. Cycles that are not needed to communicate data to the hardware are also filled with
+				hold vectors.</p><p>Partial save in the Pattern Debug tool is supported, that is, only the
+					<span class="keyword">TPSE</span> commands of the selected patterns will be stored in the new vector
+				setup file. Changes of the test point sequence are reflected in the <span class="keyword">VEC</span> flag
+				of <a href="98834.htm" title="The UPTD (UP To Date) command allows you to declare a given setup, result or command set as up to date or out of date.">UPTD?</a> status query.</p><p>The definition of the test point
+				sequence is coded as an XML string. The XML data must have the following general
+				structure:</p><pre class="prettyprint linenums copyable">&lt;?xml version="1.0"?&gt;
+  &lt;sequence&gt;
+    &lt;tp anchor="<span class="keyword">vector_nr_1</span>" td="<span class="keyword">td_1</span>"&gt;
+    &lt;tp anchor="<span class="keyword">vector_nr_2</span>" td="<span class="keyword">td_2</span>"&gt;
+    . . .
+    &lt;tp anchor="<span class="keyword">vector_nr_n</span>" td="<span class="keyword">td_n</span>"&gt;
+  &lt;/sequence&gt;</pre><p>Every
+				test point (<span class="keyword">tp</span> element) has two attributes. The <span class="keyword">anchor</span>
+				attribute defines the vector to which the test point is attached, the <span class="keyword">td</span>
+				attribute points to the test event. For details see the description of the
+					<span class="keyword">#spec(test_points)</span> parameter.</p></section>
+		<section class="section"><h2>Postdependencies</h2><p>If you want to integrate the test point data into your
+				setup, you can insert the <span class="keyword">TPSE</span> commands at the end of the vector setup file.
+				This is also where the commands are stored if you edit the test points in the pattern debug
+				tool.</p></section>
+		<div class="syntax"><h2>TPSE</h2><pre class="prettyprint copyable singleline"><code>TPSE</code> {<span class="keyword">testdata_name</span>}, {<span class="keyword">label_type</span>}, {<span class="keyword">label_name</span>}, {<span class="keyword">edit_mode</span>}, {(<span class="keyword">pinlist</span>)}, [<span class="keyword">#spec(test_points)</span>]</pre></div><div class="syntax"><h2>TPSE?</h2><pre class="prettyprint copyable singleline"><code>TPSE?</code> {<span class="keyword">label_type</span>}, {<span class="keyword">label_name</span>}, [<span class="keyword">anchor_number</span>],{(<span class="keyword">pinlist</span>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><code>TPSE</code> {<span class="keyword">testdata_name</span>}, {<span class="keyword">label_type</span>}, {<span class="keyword">label_name</span>}, <span class="keyword">REPLACE</span>, {(<span class="keyword">pinlist</span>)}, [<span class="keyword">#spec(test_points)</span>]</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">testdata_name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies the test data collection from
+									which the test events are to be selected. The collection must have been defined with <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">labelType</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The following types are supported:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MAIN</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>requires a label name defined with <a href="98748.htm" title="The SQLB (SeQuencer LaBel definition) command defines a label for a port. It specifies the label name, the label type, position and length of the associated sequencer program within the sequencer area, and the base waveform set or wavetable. It also generates a rudimentary sequencer program at the specified position; for details on the sequencer instructions see the SQPG command.">SQLB</a>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">SVEC</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>requires a label name defined with <span class="keyword">SQLB</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">PPSQ</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Per pin subroutine defined with <a href="98568.htm" title="The DPPS (Define Per Pin Subroutine label) command is generated by the MTL compiler. Do not attempt to execute it from the hpt utility! The following information is provided to improve your understanding of any hpt output listings you may make. You may execute the query.">DPPS</a>. This
+									type is only used for memory tests. You should not define a test point sequence for a per
+									pin subroutine manually. Note also that the anchor of a per pin subroutine is an address,
+									not a vector number.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ALL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>reports the test points of all label types (query only).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">label_name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The name of the pattern to which the test
+									point sequence belongs. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ALL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>returns the test points of all labels (query only)</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">edit_mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Possible modes are:</p>
+								<ul>
+									<li><span class="keyword">REPLACE</span>: All existing test point definitions are replaced with the
+										new definitions.</li>
+									<li><span class="keyword">UPDATE</span>: Existing test points can be modified, that is, you can
+										associate a different test event with the given vector position. You cannot add new test
+										points or remove existing ones.</li>
+									<li><span class="keyword">INSERT</span>: Additional test points can be defined. The existing setups
+										are unchanged. Existing test points cannot be replaced.</li>
+									<li><span class="keyword">DELETE</span>: All specified test points are removed. If a group does no
+										longer contain a test point, it will be removed as well.</li>
+								</ul><p>The <span class="keyword">TPSE?</span> query always responds with <span class="keyword">REPLACE</span>
+									mode.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">anchor_number</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Selects a single test point for the query.
+									In the command, the anchor numbers are specified within the XML code
+										(<span class="keyword">anchor</span> attribute of the <span class="keyword">tp</span> element).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Only pins with test point capability (DC
+									Scale DPS32 and VI32 pins) are considered.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">#spec(test_points)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The binary data stream that contains the
+									test points. The general format is:</p>
+								<p><code>#</code><span class="keyword">Nn</span><sub>1</sub><span class="keyword">n</span><sub>2</sub><span class="keyword">n</span>...<span class="keyword">n</span><sub>N</sub><span class="keyword">data_stream</span></p>
+								<p>where the digit <span class="keyword">N</span> defines the number of the digits
+										<span class="keyword">n</span><sub>i</sub> (1 ≤ <span class="keyword">i</span>≤ <span class="keyword">N</span>) that
+									specify the length of <span class="keyword">data_stream</span> in bytes. </p>
+								<p>The general format of the XML string is explained above. The two attributes of the
+										<span class="keyword">tp</span> element must take the following values:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">anchor</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The value of this attribute must be a logical vector number of the
+									specified pattern. This is the vector at which the test point becomes active. At least 32
+									vectors must be generated before the first anchor and between any two anchors. These
+									vectors are needed to download data to the hardware.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">td</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The value of this attribute must be the identifier of a
+										<span class="keyword">td</span> element in the test data block specified with the
+										<span class="keyword">testdata_name</span> parameter.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>DC Dynamic</p></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><p>This example sets up a test label that generates a ramp of 4 samples on pin
+					<code>vdd</code> in the default
+			port.</p><pre class="prettyprint linenums copyable">DFTD "ramp_events",REPLACE,(vdd),#3628&lt;?xml version="1.0"?&gt;
+&lt;testdata&gt;
+  &lt;td id="init" type="dcset"&gt;
+    &lt;setMeasureRange type="voltage" minValue="0" maxValue="3.0"/&gt;
+  &lt;/td&gt;
+  &lt;td id="1" type="dcset"&gt;
+    &lt;setForceValue type="voltage" value="0.0"/&gt;
+  &lt;/td&gt;
+  &lt;td id="2" type="dcset"&gt;
+    &lt;setForceValue type="voltage" value="0.5"/&gt;
+  &lt;/td&gt;
+  &lt;td id="3" type="dcset"&gt;
+    &lt;setForceValue type="voltage" value="1.0"/&gt;
+    &lt;measure    type="current" samples="4"/&gt;
+  &lt;/td&gt;
+  &lt;td id="4" type="dcset"&gt;
+    &lt;setForceValue type="voltage" value="1.5"/&gt;
+  &lt;/td&gt;
+&lt;/testdata&gt;
+
+SQLB "ramp4",SVEC,0,3,"wavetable",(@)
+. . .
+SQPG 0,STVA,0,,,(@) 
+SQPG 1,STSA,,,,(@)
+SQPG 2,GENV,512,,,(@)
+SQPG 3,STOP,,,,(@)
+
+TPSE "ramp_events",SVEC,"ramp4",REPLACE,(vdd),#3226&lt;?xml version="1.0"?&gt;
+&lt;sequence&gt;
+  &lt;tp anchor="64" td="init"/&gt;
+    &lt;tp anchor="120" td="1"/&gt;
+    &lt;tp anchor="200" td="2"/&gt;
+    &lt;tp anchor="300" td="3"/&gt;
+    &lt;tp anchor="400" td="4"/&gt;
+&lt;/sequence&gt;</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99875</span><script type="text/javascript">var ti='99875';var tt='TPSE, TPSE? - (Test Point SEquence)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

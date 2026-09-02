@@ -1,0 +1,84 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This function assigns ID to a pattern burst test. After the testing, this function stores the pass/fail results of a pin, a group of pins, all pins or a port to buffer."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>rdi.func().burstId()</title></head><body id="_148642"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 148642</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">rdi.func().burstId()</h1>
+	
+	
+	<div><p>This function assigns ID to a pattern burst test. After the testing, this function
+		stores the pass/fail results of a pin, a group of pins, all pins or a port to buffer. </p>
+		<section class="section"><p>You must use this function before the setup of a burst pattern test. To read the
+				result from the buffer, use <code>rdi.id().getBurstPassFail()</code> at any time in your
+				test method. See <a href="148644.htm" title="Retrieves a burst pattern test result (pass/fail). The pass/fail result has been stored in buffer by rdi.func().burstId().">id()</a> and <a href="141532.htm" title="Retrieves the pass/fail result of a pattern burst test either on all pins, or on a specific pin or port.">rdi.getBurstPassFail()</a> for more
+				information. </p>
+			<p>You must place this function inside an <code>RDI_BEGIN()/RDI_END()</code> block, otherwise
+					<code>rdi.id().getBurstPassFail()</code> always returns a PASS result.</p>
+			<div class="note"><span class="title">Note</span> If the <a href="345141.htm" title="SmartRDI features alarm handling for DCVI channels by inserting compare events between measurements and judging pass or fail based on alarm limit values set in the alarm setup file.">SmartRDI alarm handling</a> is used, the burst
+				pass/fail result is impacted by an alarm fail. This means if an alarm check fails, the burst
+				result will fail too. </div></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void rdi.func().burstId(string <span class="keyword">burstId</span>, string <span class="keyword">resultPins</span>);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_148642__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_148642__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_148642__entry__1"><p><span class="keyword">burstId</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_148642__entry__2"><p>The ID assigned to a burst pattern test. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_148642__entry__1"><p><span class="keyword">resultPins</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_148642__entry__2"><p>A pin, multiple pins, the name of a pin group or a port to generate the pass/fail test
+									result.</p>
+								<p>If no pin is specified, all pins are used by default.</p>
+								<div class="p">
+									<div class="note"><span class="title">Note</span> Any ID specified in rdi.burstId() must match those result IDs specified
+										in getBurstPassFail(). For example, if a pin group ID is specified in burstId(), you must
+										use the group ID in getBurstPassFail(). If you use an ID of a pin from the group,
+										getBurstPassFail() cannot return the result for the pin. </div>
+								</div>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Generic
+			example</h3><pre class="prettyprint linenums copyable">{
+...
+ON_FIRST_INVOCATION_BEGIN();
+
+  RDI_BEGIN();
+    rdi.burstId("bid1","pinA,pinB");
+    // Burst pattern setups and execution
+    ...
+  RDI_END();
+  
+  RDI_BEGIN();
+    rdi.burstId("bid2","pinGrpAB"); 
+    // Burst pattern setups and execution
+    ...
+  RDI_END();
+
+ON_FIRST_INVOCATION_END();
+
+  int result = rdi.id("bid1").getBurstPassFail("pinA"); // Retrieve the burst pattern test result from pinA.
+  int result = rdi.id("bid1").getBurstPassFail("pinB"); // Retrieve the burst pattern test result from pinB.
+  int result = rdi.id("bid2").getBurstPassFail("pinGrpAB"); // Retrieve the burst pattern test result from the pin group.
+  int resultALL = rdi.id("bid1").getBurstPassFail();    // Retrieve the burst pattern test result from all pins.
+...
+}</pre></div>
+		<div class="example"><h3>For a port
+			ID</h3><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.burstId("idA","ptA"); // ptA is a port
+  rdi.func()...
+  rdi.dc()...
+  rdi.smartVec()...
+  ...
+RDI_END();
+
+rdi.id("idA").getBurstPassFail("ptA");</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="141532.htm" title="Retrieves the pass/fail result of a pattern burst test either on all pins, or on a specific pin or port.">rdi.getBurstPassFail()</a></div><div><a href="148644.htm" title="Retrieves a burst pattern test result (pass/fail). The pass/fail result has been stored in buffer by rdi.func().burstId().">rdi.id().getBurstPassFail()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li><li>SmartRDI 2.4.3: Support a port ID.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 148642</span><script type="text/javascript">var ti='148642';var tt='rdi.func().burstId()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

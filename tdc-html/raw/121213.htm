@@ -1,0 +1,51 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SharedLeakageParallel test method supports parallel leakage testing in a shared-driver environment. It can test shared pins which are terminated by a common DPS, non-shared, and cross-terminated pins in one pass."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SharedLeakageParallel test method</title><meta name="keywords" content="testmethod, Shared, Leakage, Parallel"></head><body id="_121213"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121213</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SharedLeakageParallel test method</h1>
+	
+	
+	<div><p>The SharedLeakageParallel test method supports parallel leakage testing in a
+		shared-driver environment. It can test shared pins which are terminated by a common DPS,
+		non-shared, and cross-terminated pins in one pass.</p>
+		<section class="section"><p>The SharedLeakageParallel test method is part of the libMTP_SolutionTools.so
+				library.</p><p>For information when to use this test method and when to use SharedLeakage test
+				method, see <a href="98403.htm" title="Leakage test in a shared driver environment is supported by the SharedLeakage test method. The parameters for this test method are described in this topic.">SharedLeakage test method</a>.</p><p>If you require greater control over test details than
+				this test method offers, you can also develop your own shared leakage parallel test method with
+				either the <a href="129213.htm" title="The SHARED_LEAKAGE_PARALLEL_TEST class provides an API for doing parallel leakage test for the DUTs with driver sharing. It tests non-shared pins, cross-terminated pins, and the shared pins terminated by a common DPS in a single pass.">SHARED_LEAKAGE_PARALLEL_TEST</a> API, or the <a href="131607.htm" title="The MTP_LEAKAGE_TASK class provides an API for performing the leakage test for the DUTs with driver sharing. It provides the similar function with the SharedLeakageParallel test method and the SHARED_LEAKAGE_PARALLEL_TEST API but can test different shared, non-shared, and cross-terminated pins which have different measurement conditions within one test method. All tested pins are measured in parallel.">MTP_LEAKAGE_TASK</a> API. For the detailed
+				differences between the three methodologies, see <a href="131607.htm" title="The MTP_LEAKAGE_TASK class provides an API for performing the leakage test for the DUTs with driver sharing. It provides the similar function with the SharedLeakageParallel test method and the SHARED_LEAKAGE_PARALLEL_TEST API but can test different shared, non-shared, and cross-terminated pins which have different measurement conditions within one test method. All tested pins are measured in parallel.">MTP_LEAKAGE_TASK</a>.</p></section>
+		<section class="section"><h2>Test methodology</h2><p>The test method uses this algorithm to check the
+				DUT:</p><ol>
+				<li>It connects all power supplies. The power supply‘s DPS‘ are left configured as specified in
+					the primaries.</li>
+				<li>If there is a utility control block in the sharing configuration file, it executes the
+						<span class="keyword">leakage</span> command to disconnect the shared lines from the termination
+					supplies.</li>
+				<li>It uses the PPMU to precharge and waits for the precharge interval.<ul>
+						<li>If shared pins are tested: It automatically sets the precharge voltage to the force
+							voltage and pauses for the precharge time.</li>
+						<li>If non-shared and cross-terminated pins are tested, manually precharge these pins when
+							needed by setting the <a href="123425.htm" title="The parameters of the SharedLeakageParallel let you specify the sharing configuration file, the different kinds of pins (shared, non-shared, cross-terminated), and voltage and settling times to use.">"PPMU Precharge", "Precharge Voltage", and
+								"Precharge Time" parameters</a>.</li>
+					</ul></li>
+				<li>It connects the PPMUs of the pins to be measured to the DUT and forces the specified force
+					voltage.</li>
+				<li>After the specified settling time has passed, it measures the leakage current on each pin.
+					All pins (shared but terminated by a common DPS, non-shared, cross-terminated) are measured in
+					parallel in a single pass.<div class="p"><figure class="fignone">
+							<img src="123423.png" alt="SharedLeakageParallel measurement principle">
+						</figure></div></li>
+				<li>If the <span class="keyword">leakage</span> command was executed in step 3, execute the
+						<span class="keyword">default</span> command of the utility control section to reset the utility lines
+					to their default states and reconnect them to the termination DPS.</li>
+			</ol><p>All pins and sites are measured in a single pass.</p><div class="p"><figure class="fignone">
+					<img src="123424.png" alt="SharedLeakageParallel measurement principle 2">
+				</figure></div></section>
+		<h2>Syntax</h2><div class="syntax"><p>The syntaxes are described in <a href="123425.htm" title="The parameters of the SharedLeakageParallel let you specify the sharing configuration file, the different kinds of pins (shared, non-shared, cross-terminated), and voltage and settling times to use.">SharedLeakageParallel syntax</a>.</p></div><div class="syntax"><h2>Utility control</h2><p>The keyword for specifying the utility line settings for
+				SharedLeakageParallel in the utility control section of the sharing configuration file is
+					<span class="keyword">leakage</span>.</p><p>For information on the syntax, see <a href="96971.htm" title="The sharing configuration file defines the sharing structure of the load board. It is used by all sharing test methods as well as the fd_merge tool.">Sharing configuration file</a>.</p></div>
+		
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="123425.htm" title="The parameters of the SharedLeakageParallel let you specify the sharing configuration file, the different kinds of pins (shared, non-shared, cross-terminated), and voltage and settling times to use.">SharedLeakageParallel syntax</a></div><div><a href="129213.htm" title="The SHARED_LEAKAGE_PARALLEL_TEST class provides an API for doing parallel leakage test for the DUTs with driver sharing. It tests non-shared pins, cross-terminated pins, and the shared pins terminated by a common DPS in a single pass.">SHARED_LEAKAGE_PARALLEL_TEST</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.0.1</li><li>MTP 3.1.3: The SHARED_LEAKAGE_PARALLEL_TEST API is introduced to develop a customized test
+					method.</li><li>MTP 3.1.5: The non-shared and cross-terminated pins can be precharged before measuring
+					leakage current.</li><li>MTP 3.1.5: Added new API: MTP_LEAKAGE_TASK.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121213</span><script type="text/javascript">var ti='121213';var tt='SharedLeakageParallel test method'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

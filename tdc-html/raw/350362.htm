@@ -1,0 +1,114 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="For setting site-specific PPMU voltage levels as runtime values, SmartRDI features a fast transfer mode that shortens the test time in high-site-count applications."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PPMU fast transfer mode of SmartRDI</title><meta name="keywords" content="parametric measurement unit per-pin PMU smart rdi srdi"></head><body id="_350362"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 350362</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PPMU fast transfer mode of SmartRDI</h1>
+	
+	
+	<div><p>For setting site-specific PPMU voltage levels as runtime values, SmartRDI features a
+		fast transfer mode that shortens the test time in high-site-count applications.</p>
+		<section class="section">
+			<div class="p">The fast transfer mode is intended to be used for high-site-count applications. This
+				mode can increase the test time for low-site-count applications:<ul>
+					<li>The minimum number of sites to take advantage of the fast transfer mode is
+						&gt;= 4 sites.</li>
+					<li>The break-even point can be higher depending on the configuration of your application.</li>
+				</ul></div>
+		</section>
+		<section class="section"><h2>Basic rules to consider</h2>
+			
+			<p>With fast transfer mode enabled, SmartRDI will automatically use the mode if the following
+				rules are met. Otherwise, the normal transfer mode is used:</p>
+			<ul>
+				<li>The fast transfer mode can be used only with SmartScale test head cards.</li>
+				<li>The fast transfer mode is only supported for site-specific PPMU voltage levels that are to
+					be set as runtime values.</li>
+				<li>Common runtime values and other PPMU settings are not supported.</li>
+				<li>The fast transfer mode is not supported for resources shared between active sites. The
+					following error message is issued if shared resources are used<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a>:<div></div><pre class="msgblock">ERROR: MTRA - mismatch between number of sites selected and number of values given</pre></li>
+			</ul>
+		</section>
+		<section class="section"><h2>Using the fast transfer mode</h2>
+			
+			<p>The fast transfer mode is to be enabled for the entire testflow using keyword <a href="146692.htm#_146692__row_FAST_PPMU_LEVEL_TRANSFER">FAST_PPMU_LEVEL_TRANSFER</a> in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>.</p>
+			<p>The fast transfer mode requires that a minimum <a href="49363.htm#_49363__row_fast_transfer_buffer_size">fast transfer buffer size</a> of
+				131072 bytes is specified in the <a href="49363.htm" title="The .technology file defines the source directory for technology-related settings, some device specific system parameters and some maximum values for certain system parameters.">Technology file for a device</a>. Otherwise the following
+				error message is issued:</p>
+			<div></div><pre class="msgblock">ERROR: MTRA - ... a minimum fast transfer buffer size of 131072 bytes ...</pre><div></div>
+		</section>
+		<h2>Example</h2><div class="example"><h3>Example 4: Fast download of PPMU force voltage values</h3>
+			
+			<p>The example downloads first a runtime value that is common for all sites to pin
+				"PS1600_1". The related <span class="keyword">double</span>
+				<var class="varname">commonRuntimeValue</var> is named "rtv_common" when passing it to <a href="144754.htm" title="Specifies the value to be used at runtime.">runTimeVal()</a>.</p>
+			<p>An <span class="keyword">ARRAY_D</span> that is named
+					<var class="varname">siteSpecificRuntimeValues</var> holds site specific values for pin
+				"PS1600_2". This array is passed to <span class="keyword">runTimeVal()</span> as
+				"rtv_site_specific". The fast transfer mode is used only for these site specific
+				runtime values.</p>
+			<div></div><pre class="prettyprint linenums copyable">INT         numOfConfiguredSites;
+ARRAY_I     configuredSitesArray;
+double      commonRuntimeValue;
+ARRAY_D     siteSpecificRuntimeValues;
+
+numOfConfiguredSites = GET_CONFIGURED_SITES(configuredSitesArray);
+
+siteSpecificRuntimeValues.resize(numOfConfiguredSites);
+siteSpecificRuntimeValues.init(0.0);
+
+RDI_INIT();
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Define the common value
+    //
+    commonRuntimeValue = 5.0 V;
+
+    //
+    // Fill the array for all active sites with site specific data
+    //
+    FOR_EACH_SITE_BEGIN();
+    {
+        siteSpecificRuntimeValues[CURRENT_SITE_NUMBER()-1] = 3.0 V + CURRENT_SITE_NUMBER() * 0.1 V;
+    }
+    FOR_EACH_SITE_END();
+
+    //
+    // Announce the already defined runtime values
+    //
+    rdi.runTimeVal("rtv_common",        commonRuntimeValue);
+    rdi.runTimeVal("rtv_site_specific", siteSpecificRuntimeValues);
+
+    //
+    // Apply site specific values
+    //
+    RDI_BEGIN();
+    {
+        rdi.dc().pin("PS1600_1")
+                .vForce("rtv_common")
+                .iRange(1 mA)
+                .relay(TA::ppmuRly_onPPMU, TA::ppmuRly_NO)
+                .execute();
+
+        rdi.dc().pin("PS1600_2")
+                .vForce("rtv_site_specific")
+                .iRange(1 mA)
+                .relay(TA::ppmuRly_onPPMU, TA::ppmuRly_NO)
+                .execute();
+    }
+    RDI_END();
+}
+ON_FIRST_INVOCATION_END();</pre><div></div>
+			<p>The fast transfer mode is to be enabled for the entire testflow using keyword <a href="146692.htm#_146692__row_FAST_PPMU_LEVEL_TRANSFER">FAST_PPMU_LEVEL_TRANSFER</a> in the <a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a>.</p>
+			<p>The fast transfer mode requires that a minimum <a href="49363.htm#_49363__row_fast_transfer_buffer_size">fast transfer buffer size</a> of
+				131072 bytes is specified in the <a href="49363.htm" title="The .technology file defines the source directory for technology-related settings, some device specific system parameters and some maximum values for certain system parameters.">Technology file for a device</a>.</p>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.3</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  The firmware
+						command <span class="keyword">MTRA</span> shows the error message only, if resources
+						are shared between active sites. For example, in a 4-site configuration
+						where one resource is shared by sites 1 and 3 and another resource is shared
+						by sites 2 and 4, no error message is issued if only sites 1 and 2 are
+						active. To verify that your configuration is supported, you must activate
+						all configured
+					sites.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 350362</span><script type="text/javascript">var ti='350362';var tt='PPMU fast transfer mode of SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

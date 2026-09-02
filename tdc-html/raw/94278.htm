@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When x-modes are used, memory patterns may not line up with tester cycle boundaries, requiring padding. The MTL compiler can automatically insert padding; this task describes how to set it up to do so."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up padding</title></head><body id="_94278"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 94278</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up padding</h1>
+	
+	
+	<div><p>When x-modes are used, memory patterns may not line up with tester cycle boundaries,
+		requiring padding. The MTL compiler can automatically insert padding; this task describes how to
+		set it up to do so.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Perform this procedure whenever you use the x2 mode or a higher x-mode.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Set up x-modes as desired.</p></section>
+		<section class="sectiontitlefake"><h2>Procedure</h2><ol>
+				<li>Write a padding routine.<p>A padding routine is a subroutine that can have any name. Padding
+						routines must take no arguments and must not contain a number of elements:</p><ul>
+						<li><span class="keyword">for</span> loops</li>
+						<li>Global variables</li>
+						<li>Device accesses containing the <span class="keyword">dbi</span> macro<p>It must include all pins,
+								and all pins must have the same cycle count (taking x-modes into account).</p>
+							<p>While any program statements (other than loops) can be used in a padding routine, we
+								recommend to make the routine a single idle statement.</p>
+							<p>In place of the padding routine, you can also define a device access that will be used for
+								padding purposes.</p>
+							<p>A very simple padding routine might look like this:</p></li>
+					</ul><pre class="prettyprint linenums copyable">myPaddingRoutine()
+{
+  Idle();
+}</pre></li>
+				<li>Call the padding routine from the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a> using the <span class="keyword">pad()</span>
+					macro; the name of the routine is the parameter for <span class="keyword">pad()</span>. For
+						example:<div></div><pre class="prettyprint copyable singleline">pad(myPaddingRoutine)</pre><p>The
+							<span class="keyword">pad()</span> macro automatically repeats the padding function you pass to it
+						until the tester cycle boundary is reached. (If no padding is required, the padding function
+						is not executed at all.)</p>
+					<p>Insert it:</p><ul>
+						<li>At the end of a test pattern (required)</li>
+						<li>At the end of a refresh routine (required)</li>
+						<li>Directly before or after an <span class="keyword">is{}</span> statement (optional)</li>
+						<li>Directly before or after a <span class="keyword">nis{}</span> statement (optional)</li>
+						<li>Directly before a <span class="keyword">for</span> loop (optional)</li>
+						<li>As the last instruction inside a <span class="keyword">for</span> loop (optional)</li>
+						<li>Before a call to the <span class="keyword">DC_EVENT()</span> function, if the called event is of the
+								<span class="keyword">pmu</span> type.<p>Padding is not permitted inside <span class="keyword">nis{}</span>
+								statements. If you use <span class="keyword">pad()</span> inside the curly braces of these statements,
+								a compiler error is usually generated. As an exception, <span class="keyword">pad()</span> is quietly
+								ignored inside a <span class="keyword">nis{}</span> statement that contains another
+									<span class="keyword">nis{}</span> statement.</p>
+							<p>For example, this is a valid use for <span class="keyword">pad()</span>:</p></li>
+					</ul><pre class="prettyprint linenums copyable">main()
+{
+  for (...)
+  {
+    Act();
+    Wrt();
+    Pre();
+    pad(PaddingRoutine) {} /* padding before "is{}" */
+    is{}
+  }
+  pad(PaddingRoutine); /* end padding */
+}</pre><div class="note"><span class="title">Note</span> You can disable <span class="keyword">for</span> loop padding by compiling with the
+							<span class="keyword">-dp0</span> option or disable both <span class="keyword">for</span> loop as well as
+							<span class="keyword">is</span> and <span class="keyword">nis</span> padding by compiling with the
+							<span class="keyword">-dp1</span> option. If you compile with neither option, all padding is
+						active.</div>
+				</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>When you next compile the pattern, the compiler automatically inserts padding as
+				specified to align memory test patterns with tester cycle boundaries.</p></section>
+		<h2>Examples</h2><section><h3>End padding</h3><p>If a memory pattern does not end on a tester cycle boundary,
+				it requires end padding:</p><div class="p"><figure class="fignone">
+					
+					<img src="94280.png" alt="Padding control at end of pattern">
+				</figure></div></section>
+		<section><h3>Padding to enable dynamic refreshing</h3><p>If dynamic refreshes are used
+				together with x-modes, locations in the pattern where refreshes are possible may not fall on
+				tester cycle boundaries. Since dynamic refreshes can only occur on tester cycle boundaries,
+				padding is required to fill the space between the point where the pattern allows refreshes and
+				the next tester cycle boundary:</p><div class="p"><figure class="fignone">
+					
+					<img src="94235.png" alt="Transparent X-Mode, dynamic refresh (2)">
+				</figure></div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="67809.htm" title="An x-mode is a way to send multiple edges to the DUT in one test system cycle. For example, x4 mode means that the test system can send four edges to the DUT in each cycle.">Transparent x-modes</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: Padding is now supported before and at the end of for loops</li><li>MTP 3.0.1: Padding is required before certain DC events</li><li>MTP 3.0.1: Padding can be partly disabled using compiler switches</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 94278</span><script type="text/javascript">var ti='94278';var tt='Setting up padding'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

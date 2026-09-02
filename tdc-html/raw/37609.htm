@@ -1,0 +1,138 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Since the data for every SCAN instruction of the subroutine is stored at a different location for every call of the subroutine, you must specify these data in the ASCII vector file as often as the subroutine is to be called in the vector setup. Thus you will have to define three different instances for each of the two SCAN instructions in the example illustrated in Understanding Scan Subroutines."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining Scan Subroutines in the ASCII Interface</title></head><body id="_37609"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37609</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining Scan Subroutines in the ASCII Interface</h1>
+	
+	
+	<div><p>Since the data for every <kbd class="userinput">SCAN</kbd> instruction of the subroutine is
+		stored at a different location for every call of the subroutine, you must specify these data in
+		the ASCII vector file as often as the subroutine is to be called in the vector setup. Thus you
+		will have to define three different instances for each of the two <kbd class="userinput">SCAN</kbd>
+		instructions in the example illustrated in <a href="37606.htm" title="When executing the SCAN instructions of a pattern, the scan instances for these instructions are read from the associated scan area segment in sequential order; successive SCAN instructions use successive data. This principle of reading the instance data sequentially also holds for patterns containing calls of scan subroutines. This has two main consequences:">Understanding Scan Subroutines</a>.</p>
+		<p>Because of this requirement, the ASCII vector files for scan subroutines have a special format.
+			Their scan instances are split. The <kbd class="userinput">SCAN</kbd> rows with the parallel part are
+			specified in the ASCII vector table as before, but the template instances are specified
+			separately below the ASCII vector table with a header line that consists of the special keyword
+				<kbd class="userinput">SCAN_DATA</kbd> and the template name. </p>
+		<p>The following figure shows such an ASCII vector file:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="37607.png" alt="ASCII Vector File for Scan Subroutine">
+			</figure></div>
+		<p>The order and number of the <kbd class="userinput">SCAN_DATA</kbd> sections are used to determine
+			which <kbd class="userinput">SCAN_DATA</kbd> sections belongs to which <kbd class="userinput">SCAN</kbd> row,
+			and how often the subroutine is to be called. In the figure above, the scan subroutine contains
+			two scan calls and four <kbd class="userinput">SCAN_DATA </kbd>sections. This implies that the scan
+			subroutine is to be called twice, once with the first two sections, and once with the last two
+			sections. The first <kbd class="userinput">SCAN</kbd> row is associated with the first and third
+			section, the second row with the second and fourth section.</p>
+		<p>Observe that only the template instances are specified in the <kbd class="userinput">SCAN_DATA</kbd>
+			sections. The parallel parts for the different calls of the same <kbd class="userinput">SCAN</kbd>
+			instruction are always the same.</p>
+		<p>If one scan subroutine is to be called from several <kbd class="userinput">MAIN</kbd> patterns, the
+			structure of the Vector Memory requires that you create a separate ASCII vector file of the
+			subroutine for each of these <kbd class="userinput">MAIN</kbd> patterns (see the figure below). In this
+			case, it must be ensured that the sequencer program of the subroutine is translated only once. To
+			account for this and other similar situations, ASCII vector files for scan subroutines can be
+			translated in three different ways, which are controlled by certain <strong>v2b</strong> parameters as
+			specified in the following table:</p>
+		<table class="frame-topbot"><caption><span><strong>v2b</strong> Parameters for Controlling the Translation of Scan Subroutines</span></caption><colgroup><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_37609__entry__1"><p>v2b parameters </p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_37609__entry__2"><p>Effects</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_37609__entry__1"><p><kbd class="userinput">-S</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_37609__entry__2"><p>Both the ASCII vector table and the scan instance data are translated. In this case
+								the ASCII interface creates a rudimentary MAIN pattern from which the subroutine is called.
+								If the ASCII vector file contains <em>m</em> blocks of SCAN_DATA sections, this MAIN pattern
+								will repeat the call <em>m</em> times (using the RPTJ instruction).</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_37609__entry__1"><p><kbd class="userinput">-SI</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_37609__entry__2"><p>Only the SCAN_DATA sections are translated. In this case only the download commands
+								for the scan vectors are created, but no sequencer program and no download commands for the
+								parallel vectors.</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_37609__entry__1"><p><kbd class="userinput">-S -u &lt;</kbd><em>st_w</em><kbd class="userinput">&gt;</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_37609__entry__2"><p>Only the ASCII vector table is translated. A sequencer program and download commands
+								for the parallel vectors are created, but no commands for the scan vectors. The numerical
+								value <strong>&lt;</strong><em>st_w</em><strong>&gt;</strong> of the -u parameter defines the so called
+									<em>stepwidth</em>. The stepwidth is the amount by which the vector translation increments
+								the minor instance offsets of successive SCAN instructions (if they use the same template)
+								within the subroutine.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<p>If you use the <kbd class="userinput">-u</kbd> or the <kbd class="userinput">-SI</kbd> option, you have to
+			insert the call of the subroutine (<kbd class="userinput">JSUB</kbd> sequencer instruction) and an
+			eventual counted loop (<kbd class="userinput">RPTJ</kbd> sequencer instruction) into the ASCII vector
+			file of the <kbd class="userinput">MAIN</kbd> pattern manually. </p>
+		<p>You must also take care to select the stepwidths and major instance offsets so that the
+			uniqueness of all calculated instance numbers is ensured for all calls of a subroutine. The
+			stepwidth must be so large that the sums of any minor offset and any loop index are different.
+			For the example of the figure above, a stepwidth of 2 is sufficient, but 1 would be too small;
+			for since the subroutine is called twice, the sum of the second minor offset and loop index 1
+			would then be equal to the sum of the first minor offset and loop index 2. This problem can
+			always be avoided if you set </p>
+		<p><em>stepwidth = maximum_counted_loop</em>,</p>
+		<p>where <em>maximum_counted_loop</em> is the greatest value of any <strong>RPTJ</strong> instruction that
+			applies to a call of the scan subroutine in question.</p>
+		<p>For the major instance offsets, the uniqueness of the calculated instance numbers can be
+			ensured in the case of two subroutine calls by setting</p>
+		<p><em>major_offset_2</em> &gt; <em>major_offset_1</em> + <em>max_minor_offset</em> +
+				<em>repeat_factor_1</em>,</p>
+		<p>where</p>
+		<p><em>major_offset_2</em> = major instance offset of the second call,</p>
+		<p><em>major_offset_1</em> = major instance offset of the first call,</p>
+		<p><em>max_minor_offset </em>= maximum minor instance offset of the subroutine,</p>
+		<p><em>repeat_factor_1 </em>= value of an eventual <strong>RPTJ</strong> instruction for the first call.</p>
+		<p>This rule of thumb can be generalized to any number of calls.</p>
+		<div class="note"><span class="title">Note</span> When translating a scan subroutine, <strong>v2b</strong> creates an auxiliary file
+				<em>label</em>.par which contains the number of SCAN calls within the subroutine. This information
+			is required for translating the comments to the vectors of the calling pattern (see <a href="37561.htm" title="A (parallel) ASCII vector has the following format:">The ASCII Vector Row</a>) into a BCMT firmware command. These comments are connected to their vectors by
+			the row number of the vector within the pattern tool. Since the scan vectors of the subroutine
+			are stored and displayed within the calling pattern, the row number of the vector following a
+			scan subroutine call must be calculated as <em>number_of_the_vector_before_the_call</em> +
+				<em>number_of_subroutine_scan_vectors</em> + 1. The second addend is supplied by
+			<em>label</em>.par.</div><p>The following figure shows the translation of a scan subroutine that is called from two
+			different <kbd class="userinput">MAIN</kbd> patterns. In one of these the call is repeated once:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="37608.png" alt="Calling a Scan Subroutine from Two Different MAIN patterns">
+			</figure></div>
+		<p>The first row of the vector configuration file serves to create the sequencer program of the
+			subroutine and the download commands for its parallel vectors. The second and third row create
+			the scan data for the two calls. The last two rows define the two calling patterns. </p>
+		<p>Observe also the following points in the example:</p>
+		<ul>
+			<li>The pattern names must be different in every row of the vector configuration file. Since,
+				however, the dummy pattern names of the second and third row will not occur in the generated
+				vector setup file, this presents no problem.</li>
+			<li>Since<ul>
+					<li>the scan data of a scan subroutine is stored in the scan area section of the calling
+						pattern, and </li>
+					<li>the structure of the Vector Memory requires that the start address for the scan data of any
+						pattern is a multiple of 28,<p>the scan data for the calls from two different patterns must be
+							passed to <strong>aiv</strong> in two different files. If all 6 <kbd class="userinput">SCAN_DATA</kbd>
+							sections were contained in one and the same file, the scan data for
+								<kbd class="userinput">scmain_b</kbd> would start at address 14, and thus would not be found by
+							SmarTest.</p></li>
+				</ul></li>
+			<li>In the vector configuration file, the order of the scan data translations must correspond to
+				the order of the <kbd class="userinput">MAIN</kbd> patterns to which the scan data belong. Thus, since
+				the <kbd class="userinput">scsubx</kbd> row precedes the <kbd class="userinput">scsuby</kbd> row, the row
+				for pattern <kbd class="userinput">scmain_a</kbd> must precede the row for
+					<kbd class="userinput">scmain_b</kbd>.</li>
+		</ul>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37609</span><script type="text/javascript">var ti='37609';var tt='Defining Scan Subroutines in the ASCII Interface'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

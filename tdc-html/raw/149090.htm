@@ -1,0 +1,67 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SmartRDI TMU class provides APIs for TMU measurements based on Smart Scale digital cards and selected DC Scale cards."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmartRDI: TMU test setup</title><meta name="keywords" content="smart rdi srdi"></head><body id="_149090"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149090</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmartRDI: TMU test setup</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="149111.htm" title="Sets the expected data rate for TMU pins.">rdi.tmu().dataRate()</a></li><li><a href="149323.htm" title="Defines the position of the TMU disable event in the created pattern burst.">rdi.tmu().disable()</a></li><li><a href="149618.htm" title="Enable retrieving of the functional test result for a user defined pattern.">rdi.tmu().enPassFail()</a></li><li><a href="149114.htm" title="Sets the number of events to ignore before the samples are taken for TMU pin(s).">rdi.tmu().initDiscard()</a></li><li><a href="149121.htm" title="Creates TMU events in specified pattern.">rdi.tmu().insertVec()</a></li><li><a href="149115.htm" title="Sets the number of events to ignore between the samples that are taken by TMU pin(s). If data rate is specified, the value will only take effect if it is greater than the value calculated from rdi.tmu().dataRate().">rdi.tmu().interSkip()</a></li><li><a href="149120.htm" title="Specifies the label that you want to insert to the TMU event.">rdi.tmu().label()</a></li><li><a href="152246.htm" title="This function follows a label() command and gives an option to edit the existing patterns. One purpose is to save vector memory. It must be used inside a RDI_BEGIN()/RDI_END() block.">rdi.tmu().label().copyLabel()</a></li><li><a href="149091.htm" title="Sets the measurement mode for the time measurement unit.">rdi.tmu().measMode()</a></li><li><a href="151472.htm" title="Specifies the number of existing arming events defined in the used pattern.">rdi.tmu().measNum()</a></li><li><a href="149869.htm" title="Specifies the pins for the following TMU measurements. It indicates the ending of the setups for the previous pin and the start of the setups for the specified pin.">rdi.tmu().pin()</a></li><li><a href="149112.htm" title="Sets the required prescaler value for TMU pin(s).">rdi.tmu().preScaler()</a></li><li><a href="149110.htm" title="Sets the number of samples for each measurement of TMU pin(s).">rdi.tmu().samples()</a></li><li><a href="149118.htm" title="Extracts the arm time and saves it to a double value. The arm time is the time from the beginning of the used pattern to the position where the arming of the TMU is done. This time is the reference point for the time stamper measurements.">rdi.id().getArm()</a></li><li><a href="149116.htm" title="Returns the interSkip value set by rdi.tmu().interSkip() or calculated and set by the rdi.tmu().dataRate() API.">rdi.id().getInterSkip()</a></li><li><a href="149119.htm" title="Retrieves the multiple arm time of the same ID and saves it to an array of type ARRAY_D. The arm time is the time from the beginning of the used pattern to the position where the arming of the TMU is done. This time is the reference point for the following time stamper measurements.">rdi.id().getMultiArm()</a></li><li><a href="149113.htm" title="Returns the preScaler value set by rdi.tmu().preScaler() or calculated and set by the rdi.tmu().dataRate() API.">rdi.id().getPreScaler()</a></li><li><a href="141723_2.htm" title="Retrieves the pass/fail result of the functional test.">rdi.id().getPassFail()</a></li><li><a href="355596.htm" title="Retrieves the propagation delay of TMU measurements.">rdi.id().getPropDelay()</a></li><li><a href="149117.htm" title="Uploads and extracts the measured TMU time stamp values and save them to an array of type ARRAY_D.">rdi.id().getStamp()</a></li><li><a href="351689.htm" title="Retrieves the TMU error state of a specified pin.">rdi.id().getTmuErrorState()</a></li><li><a href="350395.htm" title="Checks if TMU measurements have been finished or SmarTest Work Center.">rdi.id().getTmuFinished()</a></li></ol></div></nav>
+	
+	
+	<div><p>The SmartRDI TMU class provides APIs for TMU measurements based on Smart Scale
+		digital cards and selected DC Scale cards.</p>
+		<section class="section">
+			
+			<p>The TMU class supports the <a href="127607.htm">digital cards</a>. See
+					<a href="142069.htm#_142069__supported_hardware">Supported hardware</a> for all the digital cards
+				that SmartRDI supports.</p>
+			<p>With this class, you can:</p>
+			<ul>
+				<li>Create an independent TMU measurement.</li>
+				<li>Insert a TMU measurement into an existing pattern.</li>
+			</ul>
+			<p>Note that the default sequencer timeout is 900 s (see <a href="98753.htm" title="The SQTO command allows you to set the timeout for the sequencer. The main application is for timed (old style) match loops.">SQTO, SQTO? - (SeQuencer TimeOut)</a>).</p>
+			<div class="p">When using PS1600 TMU to perform ABSOLUTE timing measurements, pay attention to the following
+				points: <ul>
+					<li>Phenomena: Arming may not work properly and a shift in measurement values or other
+						undefined behaviors may occur.</li>
+					<li>Solution: When the arming of the TMU starts to be executed on pattern, the input signal
+						through the TMU channel must always have the same level. This means that if the input signal
+						is 0, the next one must be zero too; the same to the input signal 1.</li>
+					<li>Workaround: Add a vector to the end of the pattern to ensure that the input signal returns
+						to its initial state. In this way, the input remains the same state when the next arming
+						starts.</li>
+				</ul>Relative timing measurements are not affected by this phenomena.</div>
+			<p>After the TMU execution, you must set a wait time long enough for the TMU to capture all
+				samples.</p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Creating an independent TMU measurement</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+
+    rdi.tmu("1").pin("PVI8_1")
+            .vth(3.0 V, 5.0 V)
+            .samples(4)
+            .measMode(TA::PULSE_HIGH)
+            .execute();
+
+    rdi.wait(1 ms);
+
+RDI_END();</pre><div></div>
+			<p>The <code>execute()</code> here means the start of the TMU measurement. The TMU
+				measurement takes place in the next event within this RDI_BEGIN/END() block.</p>
+		</div>
+		<div class="example"><h3>Inserting a TMU measurement into an existing pattern</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+
+    rdi.tmu("id").label("func1").pin("DATA1")
+            .insertVec(200)
+            .vth(1.5 V)
+            .samples(2)
+            .measMode(TA::RISE_FALL)
+            .execute();
+
+RDI_END();</pre><div></div>
+			<p>In this example, a TMU measurement is inserted into a copy of the <span class="keyword">func1</span>
+				pattern.</p>
+			
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li><li>SmartRDI 2.4.2: DC Scale AVI64 card added</li><li>SmartRDI 2.4.2: New functions compHyst(), compMode(), ith()</li><li>SmartRDI 7.5.0: DC Scale FVI16 card added</li><li>SmartRDI 7.5.1: New function holdOffTime()</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149090</span><script type="text/javascript">var ti='149090';var tt='SmartRDI: TMU test setup'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

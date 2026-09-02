@@ -1,0 +1,122 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Executes the handler operation which you have defined with SOURCESYNC_HANDLER."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SOURCESYNC_TEST.handle()</title></head><body id="_144020"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144020</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SOURCESYNC_TEST.handle()</h1>
+	
+	
+	<div><p>Executes the handler operation which you have defined with <a href="144021.htm" title="Creates your own handler operation. You must inherit all its member functions to create your own handler class for use. For the detailed usage, see the example code in SOURCESYNC_TEST.handle().">SOURCESYNC_HANDLER</a>.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void handle (SOURCESYNC_HANDLER&amp; <span class="keyword">handler</span>);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_144020__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_144020__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_144020__entry__1"><p><span class="keyword">handler</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_144020__entry__2"><p>An instance of a handler operation defined with <a href="144021.htm" title="Creates your own handler operation. You must inherit all its member functions to create your own handler class for use. For the detailed usage, see the example code in SOURCESYNC_TEST.handle().">SOURCESYNC_HANDLER</a>.</p>
+							</td>
+						</tr>
+					</tbody></table><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		<h2>Example</h2><div class="example"><p>This example demonstrates the basic flow to use <span class="keyword">SOURCESYNC_HANDLER</span>
+				to create a handler. </p><p>In this example, a handler operation, MyHandler, is created to
+				output a customized error map.</p><p><strong>File: MyHandler.h</strong>
+			</p><pre class="prettyprint linenums copyable">#include "SOURCESYNC_HANDLER.h"
+class MyHandler : public SOURCESYNC_HANDLER
+{
+  public:
+  virtual void OPERATION_PRE_ITERATE_EACH_CYCLE(const EMAPVars&amp; emap);
+  virtual void OPERATION_PRE_ITERATE_EACH_EDGE(const EMAPCycleVars&amp; emap);
+  virtual void OPERATION_ITERATE_EACH_EDGE(const EMAPEdgeVars&amp; emap);
+  virtual void OPERATION_POST_ITERATE_EACH_EDGE(const EMAPCycleVars&amp; emap);
+  virtual ~MyHandler()
+  {
+  }
+};
+</pre><p><strong>File:
+					MyHandler.cpp
+					</strong></p><pre class="prettyprint linenums copyable">#include "MyHandler.h"
+#include &lt;iostream&gt;
+
+using namespace std;
+
+void MyHandler::OPERATION_PRE_ITERATE_EACH_CYCLE(const EMAPVars&amp; emap)
+{
+  cout &lt;&lt; "Cycle Range: " &lt;&lt; emap.startCycle &lt;&lt; " - " &lt;&lt; emap.startCycle + emap.cycleNum - 1 &lt;&lt; endl;
+  cout &lt;&lt; " ";
+  for (unsigned int iShotNo = 0; iShotNo &lt; emap.shotNum; iShotNo++)
+  {
+    cout &lt;&lt; iShotNo % 10;
+  }
+  cout &lt;&lt; endl;
+}
+
+void MyHandler::OPERATION_PRE_ITERATE_EACH_EDGE(const EMAPCycleVars&amp; emap)
+{
+}
+
+void MyHandler::OPERATION_ITERATE_EACH_EDGE(const EMAPEdgeVars&amp; emap)
+{
+  char szLine[16];
+  sprintf(szLine, "%8d:%1d ", (int)emap.cycleNO, emap.edgeNO);
+  cout &lt;&lt; szLine;
+  // For all shots of one edge.
+  for (unsigned int iShotNo = 0; iShotNo &lt; emap.shotNum; iShotNo++)
+  {
+    const char symbol = (emap.shotsState[iShotNo] == SOURCE_SYNC::EMAP_PASS) ? '.' : '#';
+    cout &lt;&lt; symbol;
+  }
+  cout &lt;&lt; " ";
+  // Print summary.
+  if (emap.accumulatedState == SOURCE_SYNC::EMAP_PASS)
+  {
+    if (emap.marginState == SOURCE_SYNC::UNREASONABLE)
+    {
+      // unreasonable
+      cout &lt;&lt; " - " &lt;&lt; emap.marginValue;
+    }
+    else
+    {
+      // pass
+      cout &lt;&lt; " . " &lt;&lt; emap.marginValue;
+    }
+  }
+  else
+  {
+    cout &lt;&lt; " FAIL " &lt;&lt; emap.marginValue;
+  }
+  cout &lt;&lt; endl;
+}
+
+void MyHandler::OPERATION_POST_ITERATE_EACH_EDGE(const EMAPCycleVars&amp; emap)
+{
+}
+</pre><p><strong>Testmethod
+					File</strong></p><pre class="prettyprint linenums copyable">class CSourceSyncTest: public testmethod::TestMethod
+{
+  virtual void run()
+  {
+    SOURCESYNC_TEST ssTest;
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+      ssTest.startCycle("1;200").stopCycle("10;220");
+      ssTest.test("Setup").edgeList("1,3,5,7").specVar("tSetup")
+            .sweepSpecVar("tsweep_a").sweepStart(0.5).sweepStop(0.70).sweepStepSize(0.1);
+      ssTest.test("Hold").edgeList("2,4,6,8").specVar("tHold")
+            .sweepSpecVar("tsweep_a").sweepStart(0.5).sweepStop(0.70).sweepStepSize(0.1);
+      ssTest.domain("domainA").pins("DQA0_PS,DQA1_PS,DQA2_PS,DQA3_PS,DQS_A_p_PS,DQS_A_n_PS");
+      ssTest.execute();
+    }
+    ON_FIRST_INVOCATION_END();
+    ssTest.judgeAndLog();
+
+    // Use MyHandler to handle user-specified case.
+    MyHandler handler;
+    ssTest.handle(handler);
+  }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144021.htm" title="Creates your own handler operation. You must inherit all its member functions to create your own handler class for use. For the detailed usage, see the example code in SOURCESYNC_TEST.handle().">SOURCESYNC_HANDLER</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.2.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144020</span><script type="text/javascript">var ti='144020';var tt='SOURCESYNC_TEST.handle()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

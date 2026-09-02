@@ -1,0 +1,66 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Bursts and multi-port bursts must be defined in the vector configuration file. Thus, they can only be generated with the high level tool aiv, not with v2b. The BURST statement of the vector configuration file has the following format:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Bursts and Multi-Port Bursts</title><meta name="keywords" content="multiport"></head><body id="_37554"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37554</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Bursts and Multi-Port Bursts</h1>
+	
+	
+	<div><p>Bursts and multi-port bursts must be defined in the vector configuration file. Thus,
+		they can only be generated with the high level tool <span class="keyword">aiv</span>, not with
+			<span class="keyword">v2b</span>. The <code>BURST</code> statement of the vector configuration file has
+		the following format:</p>
+		<div></div><pre class="prettyprint linenums copyable">BURST &lt;name&gt; &lt;wavetable&gt;
+&lt;pattern_1&gt;
+&lt;pattern_2&gt;
+...
+&lt;pattern_n&gt;</pre><div></div>
+		<p>The <code>BURST</code> statement in the vector configuration file is created automatically
+			by the timing translation from the <code>BURST</code> statement in the global configuration
+			file (see <a href="37473.htm" title="The GROUPS section is optional. It consists of the keyword GROUPS, followed by of zero or more group entries. There are four types of groups. Two of these concern multi-port setups and will be explained in The MULTI_PORT_BURST Statement and The MULTI_PORT_TIMING Statement. The other two define the members of single port bursts and the subpatterns (type SVEC) that are called directly from one MAIN pattern, respectively. The format of these latter two statements is as follows:">Structure of the GROUPS Statements</a>). The two statements differ in that the
+				<span class="keyword">NCT</span>/<span class="keyword">CT</span> attribute is no longer present in the vector
+			configuration file (this information has been converted into parameters of
+			<span class="keyword">v2b</span>), and that a wavetable is associated with it instead.</p>
+		<p>The <code>MULTI_PORT_BURST</code> statement serves to generate a multi-port burst in the
+			binary vector file. Its general format is:</p>
+		<div></div><pre class="prettyprint linenums copyable">MULTI_PORT_BURST "&lt;burst_name&gt;"
+PORTS     &lt;port_1&gt;     &lt;port_2&gt;    ...  &lt;port_n&gt;
+[SEQ_GRPS &lt;group_1&gt;    &lt;group_2&gt;   ...  &lt;group_n&gt;]
+          &lt;pat_1_1&gt;|"" &lt;pat_2_1&gt;|"" ... &lt;pat_n_1&gt;|""
+          &lt;pat_1_2&gt;|"" &lt;pat_2_2&gt;|"" ... &lt;pat_n_2&gt;|""
+          ... </pre><div></div>
+		<p>The <code>MULTI_PORT_BURST</code> statement in the vector configuration file is generated
+			automatically by the timing translation from the <code>MULTI_PORT_BURST</code> statement in
+			the global configuration file (see <a href="37520.htm" title="The MULTI_PORT_BURST statement is intended for a setup where the timing ports and the vector ports are identical. It is organized as a table. Every column contains the information for one port; every row contains information of a certain type. The information type is determined for most rows by a row header; rows without a header contain pattern names. The pattern rows must follow the rows with headers. The order of the latter is arbitrary.">The MULTI_PORT_BURST Statement</a>). If you create the vector
+			configuration file manually, observe the following points:</p>
+		<ul>
+			<li>The ports of the <code>PORTS</code> row must not overlap, that is, no pin must belong to
+				more than one of these ports.</li>
+			<li>The patterns specified for the individual ports must be defined for the respective port in
+				the <code>PATTERNS</code> section.</li>
+			<li>If the number of patterns is not the same for all the ports, the place holder
+					<kbd class="userinput">""</kbd> must be used to inform <span class="keyword">aiv</span> which patterns belong
+				to which column. </li>
+			<li>The <code>SEQ_GRPS</code> <kbd class="userinput"></kbd>row, which specifies the sequencing
+				groups for the ports, is optional. If the <code>MULTI_PORT_BURST</code> statement is created
+				by the timing translation, this row is copied from the global configuration file. If you create
+				the vector configuration file manually and specify a <code>SEQ_GRPS</code> row, you must
+				take care that the specified sequencing groups are compatible with those defined in the timing
+				setup.</li>
+		</ul>
+		<p>The following figure shows how a <code>MULTI_PORT_BURST</code> statement in the vector
+			configuration file is translated into a multi-port burst in the binary vector file. It also shows
+			the sequencer programs of two of the patterns; note that every command of the program has the
+			port of the respective pattern as its last parameter. For more information on the sequencer
+			program, see <a href="37558.htm" title="The basic components of a vector pattern are an array of physical waveform DC/DC power units and a sequencer program. The rows of the index array represent the parallel vectors that are sent to the DUT by the sequencer program. The array columns contain the waveform DC/DC power units for one pin in temporal order. A pattern can also contain scan vectors, but these will be discussed elsewhere (see Creating a Scan Test Setup).">General Overview of Pattern Structure and Parallel Vector Translation</a>.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46155.png" alt="Generating a Multi-Port Burst in the Binary Vector File">
+			</figure></div>
+		<p>The timing translation for this example is shown in <a href="37523.htm" title="The following figure shows how the input information is converted and transferred to the target files. (The vector translation for this example is shown in Bursts and Multi-Port Bursts.)">Generating the Specification and the Vector Configuration File</a>.</p>
+		<div class="note"><span class="title">Note</span> The vector translation is less strict than the timing translation in that it
+			does not require the specified ports to contain all configured pins. However, you must create the
+			vector configuration file manually and call <strong>aiv</strong> separately if you want to create a
+			multi-port burst that does not cover all configured pins.</div>
+		
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="105164.htm" title="Multi-port burst labels serve to start the execution of bursts for different ports in parallel. They consist of one or more user port bursts. The only difference between a user port burst and a normal single-port burst is that the user port burst is associated with a port that is defined by the user and will usually contain only a proper subset of the configured pins, whereas a single-port burst is defined for the default port @.">Multi-port burst labels</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37554</span><script type="text/javascript">var ti='37554';var tt='Bursts and Multi-Port Bursts'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

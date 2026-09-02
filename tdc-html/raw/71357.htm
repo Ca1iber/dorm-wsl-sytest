@@ -1,0 +1,327 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PATTERN_CONTROLLER</title><meta name="keywords" content="vector label"></head><body id="_71357"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 71357</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PATTERN_CONTROLLER</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a></li></ol></div></nav>
+	
+	
+	<div><p>The <span class="keyword">PATTERN_CONTROLLER</span> API serves to execute DC Scale DC and PPMU
+		BADC tests from within a pattern (for conceptual information see <a href="77802.htm" title="You can run predefined PPMU tests from within a pattern with the sequencer instruction MEAS. This can be used to:">Executing PPMU tests from a pattern</a>). It
+		can be used to execute DC tests in parallel with digital test for different ports, and also
+		to alternate (switch between) digital and DC tests in one pattern run, without the need to
+		stop and start the sequencer before the DC test. The API:</p>
+		<section class="section"><ul>
+				<li>Downloads measurement sets defined with the <span class="keyword">PPMU_...</span> and
+						<span class="keyword">BADC_...</span> APIs</li>
+				<li>Inserts instructions (which will execute these sets) into a predefined
+					subpattern</li>
+				<li>Executes the current primary sets</li>
+			</ul><p>The API can also be used to retrieve global pass/fail test results.</p><p>The
+					<span class="keyword">PATTERN_CONTROLLER</span> API calls objects of the
+					<span class="keyword">PATTERN</span> class. This is a subsidiary data container that holds
+				the measurement data for individual subpatterns.</p><div class="note"><span class="title">Note</span> For PPMU BADC
+				tests with digital cards the subpattern must be empty, as the
+					<span class="keyword">PATTERN_CONTROLLER</span> will dynamically link the measurements
+				defined with test method APIs into the empty subpattern in the order they are added
+				to the <span class="keyword">PATTERN_CONTROLLER</span>. This link uses internal IDs. Once the
+				measurements are linked into the subpattern, it cannot be stored permanently, as
+				these IDs are dynamically created depending on single test suite execution and
+				complete test flow execution.</div><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/PatternController.h</span>.</p><div class="note"><span class="title">Note</span> 
+			<p>The typical time required for a BADC or PPMU measurement can be calculated as follows:</p>
+			<table class="ly"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0" colspan="2"><strong>t<sub>wait</sub>&nbsp;=&nbsp;(25&nbsp;μs&nbsp;+&nbsp;N&nbsp;*&nbsp;4&nbsp;μs)</strong></td>
+						</tr>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0">where:</td>
+							<td class="colsep-0">25&nbsp;μs is a one-time overhead</td>
+						</tr>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0"></td>
+							<td class="colsep-0">"N" is the number of samples</td>
+						</tr>
+					</tbody></table>
+			<p>After the measurement is performed, SmarTest needs an additional time (typical) of
+				20&nbsp;μs&nbsp;*&nbsp;N, where N is the number of samples, to fetch the results. For this
+				additional duration of time, the BADC cannot be used to perform a new measurement.</p>
+			<p>In additional, an extra wait time of, at least, 60 μs must be added for the
+				first BADC measurement after switching the measurement mode on one channel for EXA Scale digital
+				cards or Smart Scale digital cards in Exa Scale compatibility mode.</p>
+		</div></section>
+		<section class="section"><h2>Class
+				definition</h2><p>Constructor:</p><pre class="prettyprint copyable singleline">PATTERN_CONTROLLER();</pre><p>Member
+				functions:</p><ul>
+				<li><a href="71357.htm#_71357__dlentry_label">label(...)</a></li>
+				<li><a href="71357.htm#_71357__dlentry_execMode">execMode(...)</a></li>
+				<li><a href="71357.htm#_71357__dlentry_setup">setup()</a></li>
+				<li><a href="71357.htm#_71357__dlentry_execute">execute()</a></li>
+				<li><a href="71357.htm#_71357__dlentry_getPassFail">getPassFail(...)</a></li>
+			</ul></section>
+		<section class="section"><h2>Syntax</h2><p>The general format for setting up a DC subpattern
+				is</p><pre class="prettyprint copyable singleline"><var class="varname">obj</var>.label().add(<var class="varname">dc_task_1</var>).add(<var class="varname">dc_task_2</var>)...add(<var class="varname">dc_task_n</var>);</pre><p>The
+				general format for downloading or executing a DC subpattern, or retrieving test
+				results,
+				is</p><pre class="prettyprint copyable singleline"><var class="varname">obj</var>.<var class="varname">func</var>();</pre><p>The
+				parameters have the following meaning:</p><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><var class="varname">obj</var></td>
+							<td class="colsep-0 rowsep-0">Object of the <span class="keyword">PATTERN_CONTROLLER</span> class</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><var class="varname">func()</var></td>
+							<td class="colsep-0 rowsep-0">Member function of the <span class="keyword">PATTERN_CONTROLLER</span>
+								class</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><var class="varname">add()</var></td>
+							<td class="colsep-0 rowsep-0">Member function of the <span class="keyword">PATTERN</span> class</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Member functions</h2><dl>
+				
+					<dt class="dlterm" id="_71357__dlentry_label">label(...)</dt>
+					<dd><pre class="prettyprint copyable singleline">PATTERN &amp; label(const STRING&amp; subpattern_name, STRING&amp; port = "@"); </pre><p>This
+							member function returns the reference to the <a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a>
+							object holding the DC tasks for the specified label. </p><div class="note"><span class="title">Note</span> A call of this function must be followed by calls of member
+							functions of the <span class="keyword">PATTERN</span> class. You cannot call
+							another member function of the <kbd class="userinput">PATTERN_CONTROLLER</kbd>
+							class after calling <span class="keyword">label()</span>.</div><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">subpattern_name</var></td>
+										<td class="colsep-0 rowsep-0"><p>The subpattern for which the DC task are to be
+												specified. Note that the subpattern must already
+												exist.</p>
+											<p>For PPMU BADC tests with digital cards you must use
+												an empty subpattern.</p>
+											<p>For DC tests with DC Scale DPS cards it can also be a
+												MAIN or SVEC pattern.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">port</var></td>
+										<td class="colsep-0 rowsep-0">The port for which the subpattern has been defined.
+											If this parameter is omitted, the default port
+												<span class="keyword">@</span> will be assumed.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_71357__dlentry_execMode">execMode(...)</dt>
+					<dd><pre class="prettyprint linenums copyable">PATTERN_CONTROLLER &amp; execMode(const TM::DCTEST_MODE mode);
+PATTERN_CONTROLLER &amp; execMode(const STRING&amp; mode_string);</pre><p>This
+							member function specifies the execution mode for the DC test.</p><div class="note"><span class="title">Note</span> It is the <kbd class="userinput">execMode()</kbd> function of the
+								<kbd class="userinput">PATTERN_CONTROLLER</kbd> API that determines the
+							execution mode. The execution mode of the
+								<kbd class="userinput">PPMU_MEASURE</kbd> API is ignored. But it must be
+							specified nonetheless, since otherwise no measurement would be
+							performed.</div><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" rowspan="4"><var class="varname">mode</var></td>
+										<td class="colsep-0 rowsep-0" colspan="2">Execution mode. Possible
+											values are:</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::GPF</span></td>
+										<td class="colsep-0 rowsep-0">Global PASS/FAIL The test will pass if it passes for
+											all measured pins. This is the default.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::PPF</span></td>
+										<td class="colsep-0 rowsep-0">Per pin PASS/FAIL. With this execution mode, the
+											result can be retrieved for every measured pin.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::DCTEST_AUTO</span></td>
+										<td class="colsep-0 rowsep-0"><p>Executes the DC test according to the test suite
+												flags. </p>
+											<p>If the flag <a href="342556.htm#_342556__row_per_pin_on_pass">Per pin on pass</a> or <a href="342556.htm#_342556__row_per_pin_on_fail">Per pin on
+												fail</a> is <strong>on</strong>, the DC test will
+												executes in the same way as the mode
+												<span class="keyword">TM::PPF</span>.</p>
+											<p>If the flag <a href="342556.htm#_342556__row_per_pin_on_pass">Per pin on pass</a> and <a href="342556.htm#_342556__row_per_pin_on_fail">Per pin on
+												fail</a> are <strong>off</strong>, the DC test will
+												executes in the same way as the mode
+												<span class="keyword">TM::GPF</span>.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0" rowspan="4"><var class="varname">mode_string</var></td>
+										<td class="colsep-0 rowsep-0" colspan="2">Execution mode,
+											specified as a string. Possible values are:</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">"GPF"</span></td>
+										<td class="colsep-0 rowsep-0">Global PASS/FAIL. This is the default.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">"PPF"</span></td>
+										<td class="colsep-0 rowsep-0">Per pin PASS/FAIL</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">"DCTEST_AUTO"</span></td>
+										<td class="colsep-0 rowsep-0">Executes the DC test according to the test suite
+											flags. This is the same with the mode
+												<span class="keyword">TM::DCTEST_AUTO</span>.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_71357__dlentry_setup">setup()</dt>
+					<dd><pre class="prettyprint copyable singleline">void setup();</pre><p>This member function serves to
+							download the previously defined DC tasks and to insert the corresponding
+								<kbd class="userinput">MEAS</kbd> instructions into the specified
+							predefined subpattern. If the subpattern already contains any
+							instructions, these are removed.</p><p>For performance reasons, the
+							instructions are written into the subpattern only once within one
+							testflow execution; that is, the API will not modify them later on.
+							Therefore, if the same subpattern is used by more than one class object
+							of the <span class="keyword">PATTERN_CONTROLLER</span> API within one testflow, or
+							if the testflow is executed in a loop, <span class="keyword">setup()</span>
+							expects that the same measurement sets can be used for the subpattern
+							every time. If this is not the case (because the measurement parameters
+							depend on variables so that they change from one loop repetition to the
+							next, or because they are different for two class objects), it will
+							issue an error message. </p><p><span class="keyword">setup()</span> can also
+							temporarily modify a previous parameter definition within the same class
+							object. This is exploited for measurement parameters that contain
+							variables. For details, see <a href="75890.htm" title="DC measurement parameters can be defined by using variables. If a testflow containing such a variable dependent DC test is repeated in a loop, then the values of the variables may be different for each testflow repetition. In this case a new DC set, or a new measurement set, would be created with each new testflow execution, and the testflow would eventually fall back on using only one DC set, as described in DC set management.">Managing DC Tests with Variable Parameters</a>.</p><p>There are no
+							parameters in this member function.</p></dd>
+				
+				
+					<dt class="dlterm" id="_71357__dlentry_execute">execute()</dt>
+					<dd><pre class="prettyprint copyable singleline">void execute();</pre><p>This member function executes the
+							current primary sets. If the actual measurement parameters have not yet
+							been downloaded, and the predefined subpattern is still empty,
+								<span class="keyword">execute()</span> first calls <span class="keyword">setup()</span>
+							to download the parameters and insert the <span class="keyword">MEAS</span>
+							instructions.</p><p>There are no parameters in this member
+						function.</p></dd>
+				
+				
+					<dt class="dlterm" id="_71357__dlentry_getPassFail">getPassFail(...)</dt>
+					<dd><pre class="prettyprint linenums copyable">Boolean getPassFail() const;
+Boolean getPassFail(const STRING &amp; pinlist) const;</pre><p>If
+							no parameter is specified, this member function returns the global
+							PASS/FAIL result of the test.</p><p>If a pin list is specified, the
+							function returns a single PASS/FAIL result for these pins. PASS is only
+							returned if all specified pins passed.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">pinlist</var></td>
+										<td class="colsep-0 rowsep-0">List of pins for which a global result is to be
+											retrieved</td>
+									</tr>
+								</tbody></table>
+						<table class="ly"><caption><span>Return value</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">true</span></td>
+										<td class="colsep-0 rowsep-0">Value for pass result of the measurement.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">false</span></td>
+										<td class="colsep-0 rowsep-0">Value for fail result of the measurement.</td>
+									</tr>
+								</tbody></table></dd>
+				
+			</dl></section>
+		<section class="section"><h2>Important points</h2><ul>
+				<li>When DC tests are executed with a DC subpattern, you cannot use the
+						<span class="keyword">PPMU_MEASURE</span> API to retrieve the test results; the
+					execMode() settings of <span class="keyword">PPMU_MEASURE</span> will be ignored. Instead,
+					you must use the <span class="keyword">getPassFail</span> member function of the
+						<span class="keyword">PATTERN_CONTROLLER</span> API or the
+						<span class="keyword">GET_FUNCTIONAL_RESULT</span> API. Therefore, you cannot retrieve
+					the measured values of the test.</li>
+				<li>If a test suite triggers a DC subpattern, and if all PPMU DC sets have been used
+					up, then the <span class="keyword">PATTERN_CONTROLLER</span> API will throw an error if
+					the DC subpattern needs a new DC set. It does <em>not</em> employ the fall-back
+					mechanism that is used for standard DC tests in this situation (for the
+					fall-back mechanism, see <a href="75771.htm" title="Every DC test stores its measurement parameters in a DC set, which is identified by a number. All those DC tests that (can) define a PPMU test use a common pool of DC sets, which are stored in the Sequencer Memory: if the firmware commands they issue specify the same DC set number, they refer to the same object.">DC set management</a>).</li>
+				<li>The sequencer subpattern into which the <span class="keyword">PATTERN_CONTROLLER</span>
+					API writes the <span class="keyword">MEAS</span> instructions cannot be modified with this
+					API after insertion of the <span class="keyword">MEAS</span> instructions. Therefore you
+					must use the <span class="keyword">setup()</span> member function, as illustrated in
+					Example, if you want to run a variable dependent DC subpattern in a loop. This
+					ensures that the same measurement sets are used for every loop repetition, and
+					that the DC subpattern need not be changed. For more information see <a href="75890.htm" title="DC measurement parameters can be defined by using variables. If a testflow containing such a variable dependent DC test is repeated in a loop, then the values of the variables may be different for each testflow repetition. In this case a new DC set, or a new measurement set, would be created with each new testflow execution, and the testflow would eventually fall back on using only one DC set, as described in DC set management.">Managing DC Tests with Variable Parameters</a>.</li>
+				<li>When the main pattern that calls the DC subpattern contains any vectors after
+					the call, the temporal relations of these vectors to those of the digital ports
+					will not be represented correctly by the Timing Diagram. The reason for this is
+					that the Timing Diagram will display only a small amount of the break vectors
+					that are generated during measurement execution for the pins of the port on
+					which the PPMU test is executed.</li>
+				<li>Global pass/fail results can be retrieved, but detail results per pin are not
+					available. Pin results for the Board ADC measurement, for example, must be
+					uploaded using the <a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a> API. Therefore, the
+						<kbd class="userinput">execMode()</kbd> is ignored for <a href="126248.htm" title="The BADC_MEASURE class is a data container holding the contents of the task for setting up measurement operations of BADCs. This class can be used to call the BADC_PIN_MEASURE class that is a subsidiary data container to set up per pin measurement mode for BADCs. This class also contains the member functions to retrieve test results.">BADC_MEASURE</a>
+					objects. The pass/fail result of the Board ADC measurement is also part of the
+					global pass/fail result of the functional test.</li>
+			</ul></section>
+		<h2>Examples</h2><div class="example"><h3>PPMU IVFM test</h3><p>In this example, a PPMU IVFM test on the pin
+					<code>S0</code> and a PPMU VFIM test on the pin <code>S1</code> are
+				performed from the pattern. The subroutine label <code>DC_Sub_Q0</code> is used
+				for the execution of DC
+			test.</p><pre class="prettyprint linenums copyable">PPMU_SETTING        setting, precharge;
+PPMU_RELAY          relay_on, relay_off;
+PPMU_MEASURE        meas1;
+PPMU_CLAMP          clamp_on, clamp_off;
+PATTERN_CONTROLLER  controller;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    //
+    // Setups for PPMU
+    //
+    setting.pin("S0").iRange(1 mA).min(0 V).max(4.3 V).iForce(10 uA);
+    setting.pin("S1").iRange(10 mA).min(-10 uA).max(30 uA).vForce(3.3 V);
+
+    precharge.pin("S0").iRange(20 mA).min(0 mA).max(30 mA) .vForce(2.8 V);
+
+    //
+    // Relay setups
+    //
+    relay_on.pin("S0,S1").status("PPMU_ON");
+    relay_on.wait(1.3 ms);
+    relay_off.pin("S0,S1").status("AC_ON");
+
+    //
+    // Measurement setups
+    //
+    meas1.pin("S0,S1").execMode(TM::PVAL);
+
+    //
+    // Hardware specific programming to avoid hot switching
+    // on the Current Force setup
+    //
+    if(GET_TESTER_CLASS()==TM::PINSCALE)
+    {
+        clamp_on.pin("S0").status("CLAMP_ON").low(2.6 V).high(2.9 V);
+        clamp_off.pin("S1").status("CLAMP_OFF");
+    }
+
+    //
+    // Set up the controller
+    //
+    if(GET_TESTER_CLASS()==TM::PINSCALE)
+        controller.label("DC_Sub_Q0","Q0_Port").add(setting).add(clamp_on)
+              .add(relay_on).add(clamp_off).add(meas1).add(relay_off);
+    else
+        controller.label("DC_Sub_Q0","Q0_Port").add(precharge)
+              .add(relay_on).add(setting).add(meas1).add(relay_off);
+
+    controller.execMode("PPF").execute();
+
+ON_FIRST_INVOCATION_END();
+
+//
+// Result upload and datalog
+//
+TEST("S0", "DC_TEST", controller.getPassFail("S0")?TM::Pass:TM::Fail,TRUE);
+TEST("S1", "DC_TEST", controller.getPassFail("S1")?TM::Pass:TM::Fail,TRUE);</pre></div>
+		<div class="example"><h3>PS1600 DC measurement examples</h3><p>For DC value measurement examples
+				using the PS1600 pin PMU (PPMU) and board ADC (BADC) see <a href="126336.htm" title="With the PS1600 pin PMU and the board ADC, you can perform pattern-synchronous DC value measurements. Your options are:">PS1600 DC value measurements</a>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a></div><div><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></div><div><a href="55670.htm" title="Defines and executes parallel DC measurements with the DC Scale card in PMU mode or the BADC of digital cards.">SPMU_TASK</a></div><div><a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a></div><div><a href="126336.htm" title="With the PS1600 pin PMU and the board ADC, you can perform pattern-synchronous DC value measurements. Your options are:">PS1600 DC value measurements</a></div><div><a href="126251.htm" title="The BADC_PIN_MEASURE class is the data container holding the object reflecting the BADC measurement modes. The BADC_PIN_MEASURE object can only be accessed via the BADC_MEASURE class.">BADC_PIN_MEASURE</a></div><div><a href="126273.htm" title="The BADC_PIN_SETTING class is a data container holding the object reflecting the BADC's measurement setup data. The target BADC can be specified via the BADC_SETTING class because the BADC_PIN_SETTING class can be called as a subsidiary data container of the BADC_SETTING class.">BADC_PIN_SETTING</a></div><div><a href="126272.htm" title="The BADC_SETTING class is a data container holding the contents of the task for setting up measurement conditions of BADCs. This class can be used to call the BADC_PIN_SETTING class that is a subsidiary data container to set up per pin measurement conditions for the BADC.">BADC_SETTING</a></div><div><a href="126248.htm" title="The BADC_MEASURE class is a data container holding the contents of the task for setting up measurement operations of BADCs. This class can be used to call the BADC_PIN_MEASURE class that is a subsidiary data container to set up per pin measurement mode for BADCs. This class also contains the member functions to retrieve test results.">BADC_MEASURE</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 71357</span><script type="text/javascript">var ti='71357';var tt='PATTERN_CONTROLLER'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

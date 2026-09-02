@@ -1,0 +1,95 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="MTL arrays can be passed to functions or device accesses through the function parameters, or the interface parameters of device accesses."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Passing MTL arrays to functions and device accesses</title><meta name="keywords" content="ALPAD ALPADC"></head><body id="_130272"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 130272</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Passing MTL arrays to functions and device accesses</h1>
+	
+	
+	<div><p>MTL arrays can be passed to functions or device accesses through the function
+		parameters, or the interface parameters of <a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">device
+		accesses</a>.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The purpose of passing MTL arrays either to subfunctions or to device accesses is to
+				employ such functions or device accesses for programming patterns.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p><a href="130245.htm" title="Defining MTL arrays (either global arrays or non-global arrays) includes defining the array sizes and providing initial values for all array elements. They are defined in the APG program file (*.prog) with C-like syntax.">Define the MTL arrays</a>.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>For a called function or device access, add array parameters to the parameter list of the
+					function, or the interface definition of the device access.</span>
+				<div><p>The array parameters are made by names followed by the needed dimension sizes, such
+							as <span class="keyword">dataArray[8][8]</span>. The dimension sizes must be specified.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>When you call this function, or device access in another function, replace the array
+					parameters by declared arrays.</span>
+				<div><p>You can pass a full array by only providing the array name. You also can pass a partial
+						array by specifying the original array name and the needed dimension sizes, such as
+							<span class="keyword">fullArray[1][4]</span>.</p>
+					<p>Note that the passed arrays sizes, no matter full arrays or partial arrays, must match the
+						sizes of the called functions or device accesses' array parameters.</p>
+				</div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">:deviceAccess:
+{
+  # DBUS_WR8 - write access BL = 8
+  :apgAccess:
+  {
+    :name:   DBUS_WR8
+    :interface: { bData[BL] bSeq[BL] row col bank }
+    :table:
+    {
+      :format:
+      { :pin:   :states: :data: }
+      { DQ.Data { 0 1 }  data(bData[bSeq[0]], row, col + bSeq[0], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[1]], row, col + bSeq[1], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[2]], row, col + bSeq[2], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[3]], row, col + bSeq[3], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[4]], row, col + bSeq[4], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[5]], row, col + bSeq[5], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[6]], row, col + bSeq[6], bank) }
+      {   ""    { 0 1 }  data(bData[bSeq[7]], row, col + bSeq[7], bank) }
+    }
+  }
+}
+
+
+// Write
+// write a burst of BL = 8; BL is defined either in :defines:, or :progParam:, or :deviceParams:.
+Write(burstSequence[BL], burstData[BL], row, col, bank)
+{
+  CLK();  CTRL(1,ODT_OFF);  WR(col, bank);
+  DBUS_WR8(burstData, burstSequence, row, col, bank);
+  CLK();  CTRL(1,ODT_OFF);  DES();
+  CLK();  CTRL(1,ODT_OFF);  DES();
+  CLK();  CTRL(1,ODT_OFF);  DES();
+}
+
+
+
+main()
+{
+  burstOrder[8][8] = {{0,1,2,3,4,5,6,7},
+                      {1,2,3,0,5,6,7,4},
+                      {2,3,0,1,6,7,4,5},
+                      {3,0,1,2,7,4,5,6},
+                      {4,5,6,7,0,1,2,3},
+                      {5,6,7,4,1,2,3,0},
+                      {6,7,4,5,2,3,0,1},
+                      {7,4,5,6,3,0,1,2}};
+
+  burstData[8] = {dw0, dw1, dw2, dw3, dw4, dw5, dw6, dw7};
+
+for(bank = zStart; bank &lt; zStop; bank +=1)
+  { 
+    for(row = xStart; row &lt; xStop; row += 1)
+    { 
+      for(col = yStart; col &lt; yStop; col += 8)
+      { 
+        ...
+        offset = col &amp; 0x7;
+        Write(burstOrder[offset], burstData, row, col, bank);
+        ...
+      }
+    }
+  }
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="130245.htm" title="Defining MTL arrays (either global arrays or non-global arrays) includes defining the array sizes and providing initial values for all array elements. They are defined in the APG program file (*.prog) with C-like syntax.">Defining MTL arrays</a></div><div><a href="130248.htm" title="The elements of an MTL array are accessed individually by array index which is made up of the array's name, and a series of indexes - one for each dimension of the array - to identify the element's location within the array.">Accessing elements of an MTL array</a></div><div><a href="130300.htm" title="MTL array carry some restrictions regarding their use in loops and changing their values.">Restrictions when using MTL arrays</a></div><div><a href="130224.htm" title="Array in MTL is a C-like array.">Array in MTL</a></div><div><a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.1.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 130272</span><script type="text/javascript">var ti='130272';var tt='Passing MTL arrays to functions and device accesses'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

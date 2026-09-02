@@ -1,0 +1,107 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="After conversion to a concurrent test, one important aspect of the test flow settings is based on the decision whether to re-run or terminate the test execution upon a port failure."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Set up the CCT Test Flow</title></head><body id="_105808"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105808</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Set up the CCT Test Flow</h1>
+	
+	
+	<div><p>After conversion to a concurrent test, one important aspect of the test flow settings is
+		based on the decision whether to re-run or terminate the test execution upon a port
+		failure.</p>
+		<p>The reason for this is the following:</p>
+		<p>In a concurrent test, you test several or all of the device cores simultaneously. However, the
+			normal operating conditions of the device may not require all of these cores to be operating at
+			the same time.</p>
+		<p>Hence, during the concurrent test, if a core fails it may be as a result of crosstalk, noise,
+			power limitations or other factors coming from the activity of the other cores.</p>
+		<p>In this case, the failed cores will require re-testing separately as a stand-alone test before
+			you can decide whether it is defective or not.</p>
+		<p>For example, consider a setup where you combine the testA (core A), testB (core B), and testC
+			(core C) into one simultaneous CCT test suite.</p>
+		<p>If, under normal operating conditions of the device, cores A and B are not active when core C
+			is, then a failure of the concurrent test, due to a failure of core C means that you will have to
+			test core C on its own before deciding whether to discard the device or not.</p>
+		<p>If, however, under normal operating conditions for the device, the cores A, B and C are all
+			active together, then any failure of the CCT test flow means that the device is defective and it
+			can be discarded without any further testing.</p>
+		<p><strong>Test Method Code</strong></p>
+		<p>An example of a piece of CCT test method code for this purpose is shown below:</p>
+		
+		<p><strong>The case where core C fails in CCT together with core A and core B</strong></p>
+		<div></div><pre class="prettyprint linenums copyable">    if (coreA_result&amp;&amp;coreB_result&amp;&amp;coreC_result)
+    {    
+        SET_SYSTEM_FLAG("hard_bin",1);
+        SET_SYSTEM_FLAG("soft_bin", 1);
+        if (debug) cout&lt;&lt; " PASS: All cores"&lt;&lt; endl;
+    }    
+    else
+    {
+        if (coreA_result&amp;&amp;coreB_result)
+        {
+          if (!(coreC_result)
+          {
+           SET_SYSTEM_FLAG("hard_bin",3);
+           SET_SYSTEM_FLAG("soft_bin", 130);
+           if (debug) cout&lt;&lt; "FAIL: parallel test on core C"&lt;&lt; endl;
+          }
+         }
+         else
+         {  if(coreC_result)
+            {
+            SET_SYSTEM_FLAG("hard_bin",3);
+            SET_SYSTEM_FLAG("soft_bin",200);
+            if (debug) cout&lt;&lt; "FAIL: coreA and coreB "&lt;&lt; endl;
+            }
+            else
+            {
+            SET_SYSTEM_FLAG("hard_bin",3);
+            SET_SYSTEM_FLAG("soft_bin",300);
+            if (debug) cout&lt;&lt; "FAIL: coreA, coreB, and coreC "&lt;&lt; endl;
+         }
+       }
+     }
+
+// The case where core C needs to be re-tested
+    if (coreA_result&amp;&amp;coreB_result)
+     {
+          if (!(coreC_result)
+          {
+            Primary.label("coreC_mpb");
+        FLUSH();
+            FUNCTIONAL_TEST();
+             if (TEST())
+             {
+              SET_SYSTEM_FLAG("hard_bin",1);
+              SET_SYSTEM_FLAG("soft_bin", 1);
+              if (debug) cout&lt;&lt; "PASS: coreA and coreB in parallel and coreC in serial test"&lt;&lt; endl;
+              }
+              else
+              {
+              SET_SYSTEM_FLAG("hard_bin",3);
+              SET_SYSTEM_FLAG("soft_bin", 130);
+              if (debug) cout&lt;&lt; "FAIL: coreC in serial test"&lt;&lt; endl;
+              } 
+          }
+          else
+          {
+             SET_SYSTEM_FLAG("hard_bin",1);
+             SET_SYSTEM_FLAG("soft_bin", 1);
+             if (debug) cout&lt;&lt; "PASS: coreA and coreB in parallel and coreC in serial test"&lt;&lt; endl;
+           }
+      }
+      else
+      {
+          if(coreC_result)
+          {
+             SET_SYSTEM_FLAG("hard_bin",3);
+             SET_SYSTEM_FLAG("soft_bin",200);
+             if (debug) cout&lt;&lt; "FAIL: coreA and coreB "&lt;&lt; endl;
+           }
+           else
+           {
+             SET_SYSTEM_FLAG("hard_bin",3);
+             SET_SYSTEM_FLAG("soft_bin",300);
+             if (debug) cout&lt;&lt; "FAIL: coreA, coreB, and coreC "&lt;&lt; endl;
+          }
+       }</pre><div></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105808</span><script type="text/javascript">var ti='105808';var tt='Set up the CCT Test Flow'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

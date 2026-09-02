@@ -1,0 +1,320 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API sets one of the system-supplied error handlers for a fatal error that occurred in the specified API category. If a fatal error that aborts the current test program execution occurs in an API in the specified API category, the error handler is executed."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SET_EXCEPTION_HANDLER</title></head><body id="_29710"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29710</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SET_EXCEPTION_HANDLER</h1>
+	
+	
+	<div><p>This API sets one of the system-supplied error handlers for a fatal error that occurred
+		in the specified API category. If a fatal error that aborts the current test program execution
+		occurs in an API in the specified API category, the error handler is executed.</p>
+		<section class="section"><p>In addition to the system-supplied error handlers, you can also specify your custom
+				function in the test method shared library to be used currently, as an error handler.</p><p>The
+				behavior of the default test method exception handler is like below.</p><ul>
+				<li>If the test method process crashes, the test suite will be consider failed, the current
+					testflow execution for all sites will be stopped and binned to the otherwise bin, no matter a
+					bin was assigned to the test suite or not.</li>
+				<li>If there is an unhandled exception and no exception handler is registered, the test suite
+					will be consider failed, the current testflow execution will be stopped for all sites and
+					binned to the otherwise bin, no matter a bin was assigned to the test suite or not.</li>
+				<li>If an exception handler is registered, the exception handler will be called first and you
+					can decide whether to continue or abort the testflow execution in the handler.</li>
+				<li>If the exception happened in the first invocation block, the testflow execution for all
+					sites will be stopped and binned to the otherwise bin.</li>
+			</ul><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/ExceptionHandler.h</span>.</p><div class="note"><span class="title">Note</span> Starting with the 7.3.3.1 patch release, the crash and exception
+			handling is easier and more straightforward. It is not necessary to register an exception handler
+			via SET_EXCEPTION_HANDLER. </div><p>The <a href="342556.htm#_342556__row_tm_crash_as_fatal">tm_crash_as_fatal</a> 
+				will be evaluated firstly:</p><ul>
+			<li id="_29710__d500e27">When it is off: all affected sites are binned to the otherwise bin. Use this setting
+				if your test method code can handle a restart of the test method process at any time (for
+				example proper re-initialization of all your cached data) and you want to continue the lot
+				testing.</li>
+			<li id="_29710__d500e30">When it is on: all of the not-binned sites are binned to the otherwise bin. Use this
+				setting if you don´t allow any unhandled issue in the test program. However, the lot testing
+				will be aborted in case an issue happens. </li>
+		</ul></section>
+		<h2>Syntax</h2><div class="syntax"><p>For setting up one of the system-supplied error
+				handlers</p><pre class="prettyprint copyable singleline">SET_EXCEPTION_HANDLER(TM::EXIT_CASE case, TM::EXIT_TYPE type);</pre><p>For
+				setting your custom function as an error
+				handler</p><pre class="prettyprint copyable singleline">SET_EXCEPTION_HANDLER(TM::EXIT_CASE case, TM::EXIT_TYPE *func, void *arg);</pre><p>For
+				setting up the error handler setting retrieved by the
+					<kbd class="userinput">GET_EXCEPTION_HANDLER</kbd>
+				API</p><pre class="prettyprint copyable singleline">SET_EXCEPTION_HANDLER(GET_EXCEPTION_HANDLER&amp; restore);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29710__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29710__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29710__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__2"><p>case</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__3"><p>An API category for which you want to set an error handler. This must be one in
+									TM::EXIT_CASE. See Important Points. </p>
+								<p>No default value is defined. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__2"><p>type</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__3"><p>An error handler that you want to set. This must be one in TM::EXIT_TYPE. See
+									Important Points.</p>
+								<p>No default value is defined. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__2"><p>func</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__3"><p>The custom function name to be used as an error handler. This is the pointer to the
+									function. If you set this pointer, the function that is pointed to will be called when an
+									error occurs in the specified API category. Declare this as a global or static variable if
+									necessary.</p>
+								<p>The function has to return a value as TM::EXIT_TYPE. This API needs to refer to the
+									returned value.</p>
+								<p>See Important Points.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__2"><p>arg</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__3"><p>The void pointer for data to be handed to the custom function. This parameter
+									allows you to handle any data type of data. Declare this as a global or static variable if
+									necessary.</p>
+								<p>This void pointer is given to the second argument of the custom function. If you do not
+									need to give data to the custom function, specify 0.</p>
+								<p>For SmarTest revision 4.3 or earlier on the HP-UX operating system, you can also use the
+									"NULL" pointer instead of "0". See Important Points.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__2"><p>restore</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29710__entry__3"><p>The error handling setting retrieved by the <a href="29391.htm" title="This API retrieves the error handler settings that have been set by the SET_EXCEPTION_HANDLER.">GET_EXCEPTION_HANDLER</a> API. This
+									parameter is a GET_EXCEPTION_HANDLER class object.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Important points</h2><ul>
+				<li>You can select an API category for which you want to set an error handler by specifying the
+						<kbd class="userinput">case</kbd> parameter.<p>The system supports the enumerator
+							<kbd class="userinput">TM::EXIT_CASE</kbd> for the <kbd class="userinput">case</kbd> parameter as
+						follows: </p>
+					<p><kbd class="userinput">SETUP</kbd>, <kbd class="userinput">EXECUTE</kbd>, <kbd class="userinput">RESULT</kbd>,
+							<kbd class="userinput">COMPUTATION</kbd>, <kbd class="userinput">TEST_CONTROL</kbd>,
+							<kbd class="userinput">DC_TEST</kbd>, <kbd class="userinput">GPIB</kbd>,
+							<kbd class="userinput">MULTI_SITE</kbd>, <kbd class="userinput">MISC</kbd>,
+							<kbd class="userinput">DIGITAL_TEST</kbd>, <kbd class="userinput">SPECSEARCH</kbd>,
+							<kbd class="userinput">SEQUENCER_CONTROL</kbd>, <kbd class="userinput">COMMON_CLASS</kbd>,
+							<kbd class="userinput">TESTMETHOD </kbd>or <kbd class="userinput">ALL</kbd>. </p>
+					<p>This category corresponds perfectly to the grouping of the Test Method Panel's menu, except
+						for <kbd class="userinput">ALL</kbd>.</p></li>
+				<li>You can select how to terminate the current testflow or test program execution by specifying
+					the <kbd class="userinput">type</kbd> parameter. The system supports the enumerator
+						<kbd class="userinput">TM::EXIT_TYPE</kbd> for the <kbd class="userinput">type</kbd> parameter as
+						follows:<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr id="_29710__d3353e27" class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_29710__d3353e27__entry__1"><p>Error Handler Type (<kbd class="userinput">TM::EXIT_TYPE</kbd>)</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_29710__d3353e27__entry__2"><p>Description</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr id="_29710__d3353e46" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>ABORT_FLOW</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>All sites that have not been binned yet will be aborted and binned to the otherwise
+								bin.</p>
+							<p>The testflow execution ends after the current run. It needs user interaction to restart
+								the next testflow execution.</p>
+						</td>
+					</tr>
+					<tr id="_29710__d3353e62" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>EXIT_FLOW</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>All sites of the current test suite, which are to be executed, are sent to the
+								otherwise bin. </p>
+							<p>All other sites continue their normal flow logic. There is no termination at the end of
+								the current testflow execution.</p>
+						</td>
+					</tr>
+					<tr id="_29710__d3353e78" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>EXIT_TO_BIN</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>A failing site of the current test suite is disconnected and sent to the otherwise bin. Test
+								suite execution continues with the other sites. There is no termination at the end of the
+								current testflow execution.</p>
+						</td>
+					</tr>
+					<tr id="_29710__d3353e91" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>RETURN_TO_FLOW</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>For the current test site the test method execution is terminated and the test suite
+								is set to fail (continues a fail branch in case of a "run and branch" node). The test method
+								will be called for all the remaining sites without any more special handling.</p>
+						</td>
+					</tr>
+					<tr id="_29710__d3353e104" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>RETRY</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>For the current test site the test method execution is retried after the current
+								result is logged as unreliable. </p>
+							
+						</td>
+					</tr>
+					<tr id="_29710__d3353e122" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>INTERACTIVE</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>A dialog box opens. You can select one of the above error handler actions in the
+								dialog box interactively.</p>
+						</td>
+					</tr>
+					<tr id="_29710__d3353e135" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>THROUGH</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>The test method program execution is continued even if an error occurs. Note that
+								this is valid only for GPIB and Computation API (<kbd class="userinput">GPIB_XXXX</kbd> and
+									<kbd class="userinput">DSP_XXXX</kbd>).</p>
+						</td>
+					</tr>
+					<tr id="_29710__d3353e154" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__1"><p>NONE</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29710__d3353e27__entry__2"><p>No exception is thrown. The previously installed exception handlers will be
+								removed.</p>
+						</td>
+					</tr>
+				</tbody></table>
+				</li>
+			</ul><p>Note that the <kbd class="userinput">TM::RETRY</kbd> repeats the program execution until no
+				fatal error occurs for the specified API category. Avoid specifying the
+					<kbd class="userinput">TM::RETRY</kbd> for a fatal error that occurs with very high frequency.</p><ul>
+				<li>If the <kbd class="userinput">SET_EXCEPTION_HANDLER</kbd> is executed, it sets the error handler
+					in a testflow globally; that is, it is effective for all subsequent test method programs.
+					Therefore, it is advisable to use this API at the beginning of the testflow or the
+					testmethod-based testsuites. You do not need to use this API in every test method program.<p>If
+						you set an error handler for TM::ALL (all API categories) then set another error handler for a
+						certain API category, it means to except the latter setting from the former setting. As a
+						result, they set up different error handlers for the particular API category and other API
+						categories.</p>
+					<p><kbd class="userinput">SET_EXCEPTION_HANDLER(TM::ALL, TM::ABORT_FLOW);</kbd></p>
+					<p><kbd class="userinput">SET_EXCEPTION_HANDLER(TM::COMPUTATION, TM::THROUGH);</kbd></p>
+					<p>In this example, the error handler ABORT_FLOW is set for all API categories except the
+						computation API category, and the error handler THROUGH is set for the computation API
+						category only.</p></li>
+				<li>If you set the <kbd class="userinput">type</kbd> parameter to
+						<kbd class="userinput">TM::INTERACTIVE</kbd>, the following dialog box opens when an error occurs in
+					the specified API category. You can select one of the four error handler actions in the dialog
+					box manually.</li>
+			</ul><div class="p"><figure class="fignone">
+					
+					<img src="29714.png" alt="Dialog Box">
+				</figure></div><ul>
+				<li>If you set the type parameter to TM::NONE, this API can reset the current error handler for
+					the specified API category. </li>
+				<li>To set up a custom function as an error handler, consider the following topics:<ul>
+						<li>The type of a custom function must be defined as <kbd class="userinput">TM::EXIT_TYPE</kbd>, and
+							it must return a value as <kbd class="userinput">TM::EXIT_TYPE</kbd> at the end of the function.
+							This means to specify how to terminate the testflow or program execution after running your
+							function code.</li>
+						<li>The following shows the skeleton of a custom function program.</li>
+					</ul><pre class="prettyprint linenums copyable"><kbd class="userinput">TM::EXIT_TYPE </kbd><em>Func_Name</em><kbd class="userinput">(const EXCEPTION_INFO&amp; </kbd><em>info</em><kbd class="userinput">, void* </kbd><em>arg</em><kbd class="userinput">)</kbd>
+<kbd class="userinput">{</kbd>
+
+ <kbd class="userinput">//Your Error Handler Program</kbd>
+
+ <kbd class="userinput">return TM::ABORT_FLOW; //return one of TM::EXIT_TYPE</kbd>
+<kbd class="userinput">}</kbd></pre><ul>
+						<li>You must declare the following two arguments for the custom function:<p><kbd class="userinput">const
+									EXECPTION_INFO&amp; </kbd><em>info</em></p>
+							<p>In your custom function, you can refer to the error information using the object
+									<em>info</em> and the member functions of this special class
+									<kbd class="userinput">EXECPTION_INFO</kbd> below.</p>
+							<p>info.getExitCase():</p>
+							<p>One of TM::EXIT_CASE is returned. This indicates an error and its API category.</p>
+							<p>info.getName():</p>
+							<p>The name of the API where an error occurred is returned as string data.</p>
+							<p>info.getMessage():</p>
+							<p>Issued error message for the API is returned as string data.</p>
+							<p><kbd class="userinput">void *</kbd><em>arg</em></p>
+							<p>You can receive any data type of data from the <kbd class="userinput">arg</kbd> parameter of the
+									<kbd class="userinput">SET_EXCEPTION_HANDLER</kbd>. In your custom function, cast the received
+								data to your preferred data type.</p>
+							<p>If you do not use this parameter, declare a dummy variable to the second argument of your
+								custom function and specify 0 to the <kbd class="userinput">arg</kbd> parameter of
+									<kbd class="userinput">SET_EXCEPTION_HANDLER</kbd>.</p></li>
+					</ul></li>
+				<li>The <kbd class="userinput">restore</kbd> parameter is useful when you want to pass the error
+					handler setting retrieved by the <kbd class="userinput">GET_EXCEPTION_HANDLER</kbd> API to
+						<kbd class="userinput">SET_EXCEPTION_HANDLER</kbd>.<p>For example, it is very easy to return to the
+						original error handler when you switch the error handler temporarily. In this case, you
+						retrieve the current error handler setting by the <kbd class="userinput">GET_EXCEPTION_HANDLER</kbd>
+						API. The setting data is returned as an object of the
+							<kbd class="userinput">GET_EXCEPTION_HANDLER</kbd> class. Then, after you switch the error handler
+						temporarily, use <kbd class="userinput">SET_EXCEPTION_HANDLER</kbd> with the
+							<kbd class="userinput">restore</kbd> parameter to return the error handler to the previous
+						setting.</p></li>
+			</ul></div>
+		
+		<h2>Examples</h2><div class="example"><h3>Set the GPIB and computation
+				exception</h3><pre class="prettyprint linenums copyable">
+SET_EXCEPTION_HANDLER(TM::GPIB, TM::RETRY);
+SET_EXCEPTION_HANDLER(TM::COMPUTATION,TM::THROUGH);</pre><p>The
+				first <kbd class="userinput">SET_EXCEPTION_HANDLER</kbd> sets to retry the current testsuite execution
+				if a fatal error occurs in the GPIB API category. Then, the second
+					<kbd class="userinput">SET_EXCEPTION_HANDLER</kbd> sets to ignore a fatal error that has occurred in
+				the computation API category.</p></div>
+		<div class="example"><h3>Set exception with custom
+				function</h3><pre class="prettyprint linenums copyable">/*The function ErrHandler is put before the class test method definition*/
+static TM::EXIT_TYPE ErrHandler(const EXCEPTION_INFO&amp; info, void *arg)
+{
+ static int called = 0;
+
+ if (info.getExitCase() == TM::GPIB &amp;&amp; called == 0)
+ {
+ called++;
+ // Clean up external instruments
+ return TM::RETRY;
+ } 
+ else
+ {
+ cout &lt;&lt; info.getName() &lt;&lt; endl;
+ cout &lt;&lt; info.getMessage() &lt;&lt; endl;
+ return TM::ABORT_FLOW;
+ }
+}
+...
+
+virtual void run()
+{
+ SET_EXCEPTION_HANDLER(TM::ALL, ErrHandler, 0);
+ SET_EXCEPTION_HANDLER(TM::COMPUTATION, TM::THROUGH);
+ return;
+}</pre><p>By
+				two <kbd class="userinput">SET_EXCPTION_HANDLER</kbd> APIs, the error handler that calls the custom
+				function <kbd class="userinput">ErrHandler</kbd> is set for all API categories except the computation
+				API category, and the error handler <kbd class="userinput">TM::THROUGH</kbd> that ignores the error is
+				set for the computation API category only.</p><p>If a fatal error occurs in all API categories
+				except the computation API category, the program will call the custom function ErrHandler. This
+				function checks the API category of the error and the frequency of the error
+				occurrence.</p><p>If they are the GPIB API category of the error and the first error, the
+				counter of the error occurrence is increased; then your clean-up routine for the GPIB instrument
+				is executed and the current test is retried. </p><p>Otherwise, the program displays the name of
+				the API where the error occurred and the error message in the report window with two cout
+				statements; then the testflow execution is terminated.</p><p>If a fatal error occurs in the
+				computation API category, the error is ignored and program execution goes to the next statement
+				of the API where the error occurred.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="20935.htm" title="This section explains the prim error handling approach using the SET_EXCEPTION_HANDLER API.">How to handle the fatal errors with SET_EXCEPTION_HANDLER</a></div><div><a href="29391.htm" title="This API retrieves the error handler settings that have been set by the SET_EXCEPTION_HANDLER.">GET_EXCEPTION_HANDLER</a></div><div><a href="29664.htm" title="This API resets all the error handler settings that had been set by the SET_EXCEPTION_HANDLER API.">RESET_EXCEPTION_HANDLER</a></div><div><a href="29309.htm" title="This API is used mainly for error handling purposes.">ERROR_EXIT</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.1: New option TESTMETHOD for TM::EXIT_CASE.</li><li>SmarTest 7.3.1:  Modified the functionality of the exit type TM::EXIT_FLOW.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29710</span><script type="text/javascript">var ti='29710';var tt='SET_EXCEPTION_HANDLER'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

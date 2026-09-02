@@ -1,0 +1,71 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To use the concurrent test framework, you can implement the test method with the CCF test method template CCTestMethod. The template includes the functions, addParameters(), init(), buildAnalogSetName(), createBurst(), preStart(), postStart(), process(),cleanup() and postParameterChange()."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CCF test method template</title><meta name="keywords" content="testmethod"></head><body id="_122233"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122233</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CCF test method template</h1>
+	
+	
+	<div><p>To use the concurrent test framework, you can implement the test method with the CCF
+		test method template CCTestMethod. The template includes the functions,
+			<code>addParameters()</code>, <code>init()</code>, <code>
+			buildAnalogSetName()</code>, <code>createBurst()</code>, <code>preStart()</code>, <code>postStart()</code>,
+			<code>process(),cleanup() and postParameterChange().</code></p>
+		<section class="section"><p>An extended template CCTestMethodEx including the same functions above is provided to
+					<a href="145699.htm" title="The extended template CCTestMethodEx, the function setCCExecuteStatus() and the testflow variable CCF_AllTestPass are provided to handle the fail branch in the concurrent test framework.">handle the execution of fail branch in a CCF block</a>.</p><p>The
+					<code>run()</code> function is not visible anymore. It is implemented in the framework. You
+				do not need to touch it. The calling of the execution statements like <a href="29780.htm" title="Starts the digital sequencer at the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution goes to the next statement.">START_TEST</a> and <a href="28758.htm" title="The DIGITAL_CAPTURE_TEST API executes a test which contains digital capturing.">DIGITAL_CAPTURE_TEST</a> is done in the framework based on the execution
+				mode specified in the <code>init()</code> method.</p><p>The following diagram shows the
+				execution sequence of these functions in the serial mode (CCF_Concurrent =0). You can find the
+				execution sequence of these functions in the concurrent mode in the overview of <a href="122230.htm">Concurrent test framework</a>.</p><div class="p"><figure class="fignone">
+					<img src="141226.png" alt="CCF execution sequence in serial mode">
+				</figure></div>
+			<p>Note that the functions <code>createAnalogSet()</code> and
+					<code>createRFSet()</code> are not currently supported in SmarTest 7.10. The function
+					<code>init()</code>, <code>createAnalogSet()</code>, <code>createRFSet()</code> and
+					<code>createBurst()</code> are only invoked for the first run of the testflow when running
+				a lot.</p><p>You can customize the functions provided in the template according to your actual
+					requirement.</p><p>The multi-site handling is done by CCF. CCF invokes the function <code>init()</code>,
+						
+				<code>createBurst()</code>,<code>preStart()</code>, <code>postStart()</code> and
+					<code>cleanup()</code> for all enabled sites. You do not need to use "<a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">first invocation block</a>" in these functions. If you want to do some site-specific
+				setups, add the "<a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">each site loop block</a>". The process() function is
+				invoked outside the "first invocation block". If needed, you can enclose your code in the "<a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">first invocation block</a>" in the process() function.</p><p>When using the
+				CCF_ISR mode, a looping mechanism is provided. You can use the CCT_ContinueCurrentTest() API to
+				control the looping of the tests. The following diagram shows the execution sequence of the test
+				suites using the CCF_ISR mode (CCF_ContextType = "Independent").</p><div class="note"><span class="title">Note</span> The
+				looping mechanism only works for the CCF-ISR mode.</div><div class="p"><figure class="fignone">
+					<img src="141227.png" alt="CCF execution sequence in serial mode (with looping mechanism)">
+				</figure></div></section>
+		<section class="section"><h2>void addParameters()</h2><p>Defines the test method parameters in this
+				function. Do not use any other APIs here.</p></section>
+		<section class="section"><h2>void init()</h2><p>In this function, the configuration for CCF is done,
+				including</p><ul>
+				<li>configure the execution mode</li>
+				<li>configure the smartCalc support</li>
+				<li>register the digitizer capture pins</li>
+				<li>configure the result area for digital capture hidden upload</li>
+				<li>other configuration that can only be executed in the first run of a lot run</li>
+			</ul></section>
+		
+		<section class="section"><h2>string createBurst()</h2><p>In this function, you can create a multiport burst,
+				for example, using D2S to create a multiport burst as primary label. The returned string will
+				replace the primary label name in the test suite.</p><p>The function is invoked after
+					<code>createRFSetup()</code> and <code>createAnalogSetup()</code>, but only for the
+				first run. </p></section>
+		
+		
+		<section class="section"><h2>void preStart()</h2><p>This function includes the actions that happen before
+				the execution of the test. The typical tasks include setting relays, setting registers, enabling
+				hardware trigger, connecting instruments and setting RF variables.</p></section>
+		<section class="section"><h2>void postStart()</h2><p>This function is executed after the start of test
+				sequencer. Tests that do not interfere with other sequencers can be put here. The typical
+				content can be the setup and execution of a DC test.</p></section>
+		<section class="section"><h2>void process()</h2><p>This function is executed after the execution of test. It
+				includes the tasks for result uploading, calculation, data logging and binning.</p></section>
+		<section class="section"><h2>void cleanup()</h2><p>This function is executed after the result processing is
+				done. It usually includes disabling hardware triggers, disconnecting instruments and setting
+				relays to a known state.</p></section>
+		<section class="section"><h2>void postParameterChange(const std::string&amp;
+				parameterIdentifier)</h2><p>This function will be invoked once the value of the specified
+				parameter is changed. </p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li><li>SmarTest 7.2.1: New function createBurst() and buildAnalogSetName()</li><li>SmarTest 7.3.1:  Added extended concurrent test method template CCTestMethodEx.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122233</span><script type="text/javascript">var ti='122233';var tt='CCF test method template'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

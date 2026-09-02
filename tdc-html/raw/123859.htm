@@ -1,0 +1,143 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using the d2s-framework</title></head><body id="_123859"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123859</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using the d2s-framework</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="123986.htm">Multiple transaction ports</a></li><li><a href="124026.htm">Transaction ports without a protocol</a></li><li><a href="123988.htm">Global framework mode</a></li></ol></div></nav>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The d2s-framework controls the generation of multiport bursts and the execution of the
+				transaction block. Therefore each protocol needs to be registered with the <a href="124495.htm" title="The d2sFramework provides classes and member functions to generate multiport burst pattern and to execute register transactions. These member functions can be categorized in general and transaction port specific member functions.">d2sFramework</a> in order to make the protocol methods available to your test
+				method.</p><p>The d2s-block, created by <code>d2s_LABEL_BEGIN()</code> and
+					<code>d2s_LABEL_END()</code>, defines the unique name of the burst pattern and controls the
+					<a href="122657.htm" title="The d2s-framework is an efficient way to do register transactions, like read and write. The d2s-framework provides a learning mode for generating and bursting static patterns and a production mode for executing those burst pattern.">mode of the d2s-framework</a>. All transactions done within the
+				d2s-block will be sent to the device in a single burst.</p><p>This task describes the steps
+				necessary for instantiating and registering protocols with the d2sFramework.</p><div class="note"><span class="title">Note</span> Do not use any other API calls other than the d2s methods in the
+			d2s-block.</div></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Ensure you have carried out all preparation and configuration steps as described in
+					<a href="123748.htm">Prepare device setup</a>, <a href="123821.htm">Prepare the test method infrastructure</a> and <a href="123831.htm">Configure the protocol</a>.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Create a d2sFramework handle.</span>
+				<div><pre class="prettyprint copyable singleline">d2sFramework fr;</pre><p>This framework handle
+							("<code>fr</code>") will be used to access the d2sFramework methods.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Instantiate your protocol, for example <code>d2sJTAG</code>.</span>
+				<div><pre class="prettyprint copyable singleline">d2sJTAG&amp; jtag = d2sJTAG::Instance();</pre><p>The
+							<code>jtag</code> object reflects your protocol. It uses your protocol file, for example
+							<code>d2sJTAG.h</code> to handle transactions, like write and read.</p>
+					<div class="note"><span class="title">Note</span> If you are using multiple protocols, each protocol has to be instantiated
+						this way. Refer to <a href="123986.htm">Multiple transaction ports</a>.</div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Register your protocol ("<code>jtag</code>") with the framework..</span>
+				<div><pre class="prettyprint copyable singleline">fr.registerTransactionPort(jtag);</pre></div>
+			</li><li class="stepexpand">
+				<span>Define the d2s-block's begin API with the appropriate details, like burst label name and
+					mode.</span>
+				<div><pre class="prettyprint copyable singleline">fr.d2s_LABEL_BEGIN("my_BurstLabelName", d2sFrameWorkModeType::<span class="keyword">LearningMode</span><code>);</code></pre></div>
+			</li><li class="stepexpand">
+				<span>Specify protocol port specific transactions within the d2s-block, for example</span>
+				<div><pre class="prettyprint copyable singleline">jtag.write(0xdead, 0xbeaf);</pre></div>
+			</li><li class="stepexpand">
+				<span>Call the d2s-block's end API.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You have completed the implementation of a protocol using d2s.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>This example code is based on the example code shown in <a href="123821.htm">Prepare the test method infrastructure</a>. It has been
+				enhanced to multisite and by the d2s-block to show where to add d2s code. The modifications
+				mentioned above are highlighted in bold.</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+
+//for test method API interfaces
+#include "mapi.hpp"
+
+//for d2s specific interfaces
+#include "d2s_files/d2sJTAG.h"        // This is the users protocol template file.
+#include "d2s_files/d2sFramework.h"
+
+using namespace std;
+
+/**
+ * Test method class.
+ *
+ * For each testsuite using this test method, one object of this
+ * class is created.
+ */
+class d2sExample: public testmethod::TestMethod {
+
+protected:
+  /**
+   *Initialize the parameter interface to the testflow.
+   *This method is called just once after a testsuite is created.
+   */
+  virtual void initialize()
+  {
+    //Add your initialization code here
+    //Note: Test Method API should not be used in this method!
+  }
+
+  /**
+   *This test is invoked per site.
+   */
+  virtual void run()
+  {
+    //Add your test code here.
+    ...
+    //Add the initial d2s framework specific code to your test method.
+    //Each protocol needs to be registered with the d2s-framework.
+
+    // step 1
+<strong>    d2sFramework fr;</strong>
+
+    // step 2
+<strong>    d2sJTAG&amp; jtag = ds2JTAG::Instance();</strong>
+
+    // step 3
+<strong>    fr.registerTransactionPort(jtag);</strong>
+
+    //Multi site handling and d2s-block
+    ON_FIRST_INVOCATION_BEGIN();
+
+       // step 4
+<strong>fr.d2s_LABEL_BEGIN("my_BurstLabelName", d2sFrameWorkModeType::LearningMode);</strong>
+          //LearningMode - creating labels and the burst-label
+          //ProductionMode - using predefined burst-labels
+
+          // step 5
+<strong>jtag.write(0xdead, 0xbeaf);</strong>
+<strong>jtag.write(0xabcd, 0xef);</strong>
+<strong>jtag.read(0x1, "one");</strong>
+
+       // step 6
+<strong>fr.d2s_LABEL_END();</strong>
+
+       // do your measurement here
+          ...
+
+    ON_FIRST_INVOCATION_END();
+
+    return;
+  }
+
+  /**
+   *This function will be invoked once the specified parameter's value is changed.
+   *@param parameterIdentifier
+   */
+  virtual void postParameterChange(const string&amp; parameterIdentifier)
+  {
+    //Add your code
+    //Note: Test Method API should not be used in this method!
+    return;
+  }
+
+  /**
+   *This function will be invoked once the Select Test Method Dialog is opened.
+   */
+  virtual const string getComment() const 
+  {
+    string comment = " please add your comment for this method.";
+    return comment;
+  }
+};
+REGISTER_TESTMETHOD("d2sExample", d2sExample);</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="124495.htm" title="The d2sFramework provides classes and member functions to generate multiport burst pattern and to execute register transactions. These member functions can be categorized in general and transaction port specific member functions.">d2sFramework API</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123859</span><script type="text/javascript">var ti='123859';var tt='Using the d2s-framework'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

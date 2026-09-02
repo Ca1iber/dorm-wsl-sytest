@@ -1,0 +1,934 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The CYCI? query returns the test data of the last executed test for every requested cycle and all pins. A separate answer is given for every cycle."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CYCI? - (get CYCle Information)</title><meta name="keywords" content="CYCI_, CY, Cle"></head><body id="_99098"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99098</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CYCI? - (get CYCle Information)</h1>
+	
+	
+	<div><p>The <span class="keyword">CYCI?</span> query returns the test data of the last executed test for
+		every requested cycle and all pins. A separate answer is given for every cycle.</p>
+		<section class="section"><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<section class="section"><h2>Mode of operation</h2><p><span class="keyword">CYCI?</span> reads vector and error
+				information and analyzes the sequencer program in the requested cycle range. The overall
+				structure of the reply is as follows:</p><ol>
+				<li>A header containing global information on the cycle</li>
+				<li>One block of binary data for every pin of the specified port, each block consisting of<ol type="a">
+						<li>23 bytes of cycle specific information</li>
+						<li>a variable number of 3 byte units with edge information (so-called <em>receive events)</em>,
+							one for each used edge </li>
+					</ol></li>
+			</ol><p>The pins are ordered by ascending channel numbers. Item 2.b is only present if
+					<span class="keyword">CYCI?</span> requires information on the edge level
+					(<span class="keyword">resolution_mode</span> parameter set to <span class="keyword">CYRM</span>), and the
+					<span class="keyword">CYRM</span> command has been set to <span class="keyword">EDGE</span>. This restriction holds
+				for <em>all</em>
+				<span class="keyword">DCRM</span> configurations where results are recorded on the edge level, not only
+				for repetition of the test when <span class="keyword">DCRM</span> is set to <code>1,PFC</code>.
+				</p><p>In the case of HXA pins, only the multiplexed Pin Scale pin 0 is returned, the results of
+				the others are integrated into the answer for pin 0. Thus if edge level information is returned,
+				item 2.b can comprise up to 32 receive events.</p></section>
+		<h2>Syntax</h2><div class="syntax"><p><span class="keyword">CYCI?</span><kbd class="userinput">
+					{</kbd><span class="keyword">start_cycle</span><kbd class="userinput">},
+					{</kbd><span class="keyword">no_of_cycles</span><kbd class="userinput">},
+					{</kbd><span class="keyword">resolution_mode</span><kbd class="userinput">}
+					[</kbd><span class="keyword">,MUX</span><kbd class="userinput">]
+					[,(</kbd><span class="keyword">port</span><kbd class="userinput">)]</kbd></p><p>returns:
+					</p><p><span class="keyword">CYCI</span> <kbd class="userinput">{</kbd><span class="keyword">cycle</span><kbd class="userinput">},
+					[</kbd><span class="keyword">res_mode</span><kbd class="userinput">] [,
+					(</kbd><span class="keyword">port</span><kbd class="userinput">)],
+					{</kbd><span class="keyword">vector_number</span><kbd class="userinput">},
+					[</kbd><span class="keyword">label</span><kbd class="userinput">],
+					[</kbd><span class="keyword">type</span><kbd class="userinput">],
+					[</kbd><span class="keyword">seq_status</span><kbd class="userinput">],
+					[</kbd><span class="keyword">comment</span><kbd class="userinput">],
+					[</kbd><span class="keyword">no_of_waveforms</span><kbd class="userinput">]
+					[,</kbd><span class="keyword">MUX</span><kbd class="userinput">],
+					{</kbd><span class="keyword">#spec(data</span><kbd class="userinput">)}</kbd></p></div><div class="syntax"><h2>Parameters</h2><table class="frame-none"><caption></caption><colgroup><col><col><col><col><col><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">start_cycle</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>The start cycle is an integer
+									that defines the first cycle to be reported. The start cycle is in the range 0 to
+										2<sup>48</sup> when the sequencer runs in the Start Analysis mode, and -2<sup>48</sup> to
+									-1 when the sequencer is in the Stop Analysis mode. If a positive number is entered, cycles
+									are counted from 0 upwards. If a negative number is entered, the cycles are counted from
+									the end of the test to -1. In both cases the reported start cycles are in Start Analysis
+									mode.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">no_of_cycles</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Defines the number of cycles to
+									be reported. The integer must be in the range 0 to 256. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="3"><p><span class="keyword">resolution_mode</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Defines the answer format of the
+									binary data. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">CYCL</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>This is the default value. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">CYRM</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>This option lets the result
+									granularity depend on the <span class="keyword">CYRM</span> command. If <span class="keyword">CYRM</span> is
+									set to <span class="keyword">EDGE</span>, then <span class="keyword">CYCI?</span> will supply information on
+									the edge level (receive events).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>If you specify a port,
+									information is returned for this port. If you do not specify any port, the default port
+										<span class="keyword">@</span>, to which all pins belong, is reported.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">cycle</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>In the reply, this is the
+									consecutive number of the reported cycle. The numbering starts with the value of
+										<span class="keyword">start_cycle</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="3"><p><span class="keyword">res_mode</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>This has the same values as
+									defined in the <span class="keyword">CYRM</span> mode parameter.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">CYCL</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>This is the answer if the
+										<span class="keyword">CYRM</span> command mode is <span class="keyword">CYCL</span>. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">EDGE</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>If <span class="keyword">CYRM</span> is
+									set to <span class="keyword">EDGE</span> and <span class="keyword">resolution_mode</span> was set to
+										<span class="keyword">CYRM</span>, then <span class="keyword">EDGE</span> will be returned for this
+									parameter.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">vector_number</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Returns the logical number of
+									the first vector of the instruction that generated the cycle. The logical vector number
+									counts the active vectors within one label, starting from 0. If the vectors generated by
+									the instruction are break vectors, then -1 is returned.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">label</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Returns the label name. It
+									references the label to which the reported cycle belongs. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" rowspan="5"><p><span class="keyword">type</span></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Returns the label type. The
+									following types are reported: </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">MAIN</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>The MAIN program.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">SJMP</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>A JuMP Subroutine.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">SVEC</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>A VECtor Subroutine.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">BRST</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>BuRST mode.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">MPBU</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Multi-Port BUrst mode</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" rowspan="16"><p><span class="keyword">seq_status</span></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Returns the current sequencer
+									status. The status is expressed on most occasions in the form of the sequencer instruction
+									that was used to generate the vectors in the requested cycle range. Otherwise it is
+									expressed in terms of the current sequencer activity. Note that
+										<span class="keyword">seq_status</span> is not the same as the sequencer state determined by <a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST, SQST? - (SeQuencer STate)</a>. Sequencer instructions are parameters to <a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG, SQPG? - (SeQuencer ProGramming)</a>. For
+									additional information on sequencer programming see also see <a href="10523.htm">Vector Setup Commands</a>.</p>
+								<p>The <span class="keyword">seq_status</span> parameter is required for the reconstruction of
+									received data. Some of the values it returns signify that vectors are being generated,
+									others inform of sequencer status changes, which cause some or no break vectors to be
+									generated.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">GENV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This is returned if
+										<kbd class="userinput">GENV</kbd> is the sequencer instruction that generated the parallel
+									vector for the reported cycle.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">SRCV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This is returned if
+										<span class="keyword">SRCV</span> is the sequencer instruction that generates vectors in the
+									reported cycle range. </p>
+								<p>For "non-source pin" the reported cycle range is generated by the parallel vectors
+									exactly the same way as <span class="keyword">RPTV</span>. That means
+										"<kbd class="userinput">no_of_vectors</kbd>" parallel vectors are repeated for a repeating count
+									(equal to <kbd class="userinput">no_of_cycles</kbd> divided by<kbd class="userinput">
+										no_of_vectors</kbd>) to generate "<kbd class="userinput">no_of_cycles</kbd>" cycles on the
+									test system.</p>
+								<p>For "<kbd class="userinput">source pin</kbd>" the reported cycle range is generated by the
+									vectors stored in the source memory. It means "<kbd class="userinput">no_of_cycles</kbd>" vectors
+									are generated from the source memory to produce "<kbd class="userinput">no_of_cycles</kbd>" cycle
+									on the test system, and the information of "<kbd class="userinput">no_of_vectors</kbd>" has no
+									meaning to "<kbd class="userinput">source pin</kbd>".</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">RPTV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This is returned if
+										<span class="keyword">RPTV</span> is the sequencer instruction that generated the parallel vector
+									for the reported cycle.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">JPPS</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This keyword indicates that a
+									per pin subroutine is executed that cannot be reconstructed because it is too complex. In
+									this case, <span class="keyword">PP</span> is returned for the drive data and expected data
+									parameters in the result data (<span class="keyword">#spec(data)</span> parameter).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">CTIM</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This is returned if a change
+									timing instruction has been issued in the queried cycle range. Each timing change generates
+									break vectors.</p>
+								<p>The real number of break cycles depends on the test system period and will not be shown
+									in the cycle reconstruction.</p>
+								<p>Between 0 to 7 break cycles will be recorded during a <kbd class="userinput">CTIM</kbd>
+									instruction, the exact number depends on the number of vectors loaded previously. For
+									instance, if the previous number of cycles was a multiple of 8, then <em>no</em> break
+									vectors are issued during the reload.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">CLEV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>The <kbd class="userinput">CLEV</kbd>
+									(change levels) parameter indicates that unrecorded break cycles, due to a change of level
+									set, exist in the specified cycle range.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p><span class="keyword">BRK</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This is returned if break cycles
+									are being generated during the reported cycle range - for example, if a timed match loop is
+									in progress. Between 0 and 7 break cycles will be recorded.</p>
+								<p>Additionally, the following sequencer instructions also generate break vectors:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><strong>Sequencer instruction</strong></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><strong>reported as</strong></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><span class="keyword">CTIM</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">CTIM</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><span class="keyword">CLEV</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">CLEV</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><span class="keyword">WTER</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">BRK</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><span class="keyword">FLQU</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">BRK</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><span class="keyword">MEAS</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">BRK</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="4"><p><span class="keyword">STOP</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p><span class="keyword">BRK</span></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">MTCH</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="6"><p>This is returned if </p>
+								<ul>
+									<li>the test contains a counted match loop,</li>
+									<li>the test has been executed online, and </li>
+									<li>the last cycle of the match loop is not the last cycle of a 8-cycle block. </li>
+								</ul><p>In this case the last match loop cycles belonging to this block (up to 7) are
+									recorded in the Error Map and reported by <span class="keyword">CYCI?</span>. For details see
+											<em><a href="96934.htm" title="The sequencers pass waveform DC/DC power units to the data queue in blocks of 8. Each such block is supplemented by the information whether or not it is part of a match loop. This information applies to the block as a whole. The block with which the match loop starts is marked as a match loop block, and therefore all of the 8 cycles that are generated from it are supposed to be match loop cycles, which will not be recorded in the Error Map. The block in which the surrounding test continues after the match loop is marked as part of the surrounding test, and therefore all of its cycles will be recorded in the Error Map.">Adjusting the junctions between match loop and surrounding label</a></em>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">comment</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Returns the comment text
+									inserted at <span class="keyword">vector_number</span>. (See also <a href="98767.htm" title="The TCMT (Test CoMment Transfer) command is used for inserting comments in the Vector Table. This command works on the label that is currently activated for editing with TSTL, TSTL? - (TeST Label). If no label is active, the command does nothing. If the comment text text is empty, the comment is deleted.">TCMT, TCMT? - (Test CoMment Transfer)</a>)</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">no_of_waveforms</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>This parameter will always be
+									1.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p><span class="keyword">MUX</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>If this flag is set, and one of
+									the Pin Scale pins is multiplexed to an HXA pin, then the reply for this pin will combine
+									the results of all Pin Scale pins that are multiplexed to the respective HXA pin.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p><span class="keyword">#spec(data)</span></p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>Returns result data in binary
+									format. This parameter reports the length of data (in bytes) being transferred, followed by
+									the data for each pin. The pins are ordered by ascending channel numbers from the first
+									site.</p>
+								<p>The format of the pin specific output data is controlled by the
+										<span class="keyword">res_mode</span> parameter: Cycle resolution format is used if
+										<span class="keyword">res_mode</span> was set to <span class="keyword">CYCL</span>, edge resolution format is
+									used if <span class="keyword">res_mode</span> was set to <span class="keyword">CYRM</span>. Both formats agree
+									for the first 23 bytes, which contain the following information:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>byte 0-16:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Device cycle name or 'BREAK' in
+									case of break cycles, zero terminated. The reserved device cycle name 'JPPS' can be
+									returned if the reconstructed data belongs to a Per-Pin subroutine.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>byte 17: </p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>HXA information</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bit 0-3: NOT USED (always
+									0).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bit 4-5: channel selector for
+									pins mapped to a HXA pin. Indicates the logical position of the pin in the multiplexing
+									order. Set to 0 for standard pins.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bit 6-7: pin multiplexing factor
+									for HXA pins. Possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>Pin not mapped to HXA pin</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>One of two Pin Scale pins that
+									are mapped to HXA pin</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>One of 4 Pin Scale pins that are
+									mapped to HXA pin</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Information relating to HXA
+									multiplexing is only returned if the <span class="keyword">MUX</span> flag is set.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>byte 18, 19:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>NOT USED (always set to 4).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>byte 20, 21:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>NOT USED (always set to 15).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>byte 22:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Received data. Possible values
+									are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>No error</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>FF</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>This means that an error has
+									occurred, but that it is not reconstructible for one of the following reasons:</p>
+								<ul>
+									<li>The waveform contains more than 1 edge.</li>
+									<li>The waveform contains a window compare.</li>
+									<li>Only 1 bit results are recorded.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Bits 0-2 contain the received
+									value:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>Received high</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>2</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>Received intermediate</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>Received low</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>5</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>Received unstable </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1"><p>7</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>Failed but not
+									reconstructible</p>
+								<p>This value will be returned for single-ended standard mode if only one bit results are
+									recorded and the edge failed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bits 3 - 5: number of failing
+									compare edge or failing window close. If the edge was not reconstructible (bits 6-7 set to
+									3) the value is set to 7.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bits 6-7: </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>This is the default.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="3"><p>The failing edge is not
+									reconstructible.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>The cycle resolution format
+									consists of the 23 bytes described above. If the data is returned in edge resolution
+									format, <span class="keyword">CYCI?</span> provides additional information about receive events.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>byte 23:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Number of the following receive
+									events. Note that only used receive events will be reported.</p>
+								<p>Every receive event consists of three bytes (A, B, C), that are to be read as
+									follows:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>byte A:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>CURRENTLY NOT USED (Always
+									0).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>byte B:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Receive event index</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bits 0-2: edge index (0 through
+									7)</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bit 3-4: channel selector for
+									HXA pins. </p>
+								<p>If the multiplexing factor in byte 17 is &gt; 0, and the channel selector in byte 17 is
+									set to 0, then <span class="keyword">CYCI?</span> will add the edges of all the other channels for
+									the same HXA pin to the binary data. This field indicates to which of these channels the
+									edge belongs. It specifies the position number of the respective channel in the logical
+									multiplexing order.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Information relating to HXA
+									multiplexing is only returned if the <span class="keyword">MUX</span> flag is set.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>byte C:</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>Receive data</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-0" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bits 0 - 3: compare method</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="5"><p>bits 4 - 6: received value</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1 rowsep-1" colspan="7"><p>For details see the tables
+									below.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Codes for byte C of a receive event</h2><p>The following tables explain the
+				codes for the compare methods and the received values in byte C of a receive event. The codes
+				for the compare method are as follows: </p><table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_99098__entry__200"><p>code</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_99098__entry__201"><p>explanation</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_99098__entry__202"><p>letters in data logging</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>0001</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Edge compare to intermediate</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>M</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>0010</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Edge compare to 0</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>L</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>0011</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Edge compare to 1</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>H</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>0100</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Edge compare to mask</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>X</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>0101</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Edge compare to unstable</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>U</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>0110</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Edge compare, reconstruction not possible!</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>F</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1001</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window compare to intermediate</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WM</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1010</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window compare to 0</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WL</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1011</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window compare to 1</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WH</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1100</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window compare to mask</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WX</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1101</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window compare to unstable</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WU</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1110</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window compare, reconstruction not possible!</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WF</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__200"><p>1111</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__201"><p>Window close</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__202"><p>WC</p>
+							</td>
+						</tr>
+					</tbody></table><p>The codes for the received values are as follows:</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_99098__entry__242"><p>code</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_99098__entry__243"><p>explanation</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__242"><p>000</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__243"><p>No error</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__242"><p>001</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__243"><p>High</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__242"><p>010</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__243"><p>Intermediate</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__242"><p>100</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__243"><p>Low</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__242"><p>101</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__243"><p>Unstable</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__242"><p>111</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_99098__entry__243"><p>Failed but not reconstructible</p>
+								<p>This value will be returned if only one bit results are recorded and the edge failed.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Reconstruction command used for data logging.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if: </p><ul>
+				<li>the primary timing setup has changed since last test execution. </li>
+				<li>you entered an invalid cycle range.</li>
+			</ul></div><div class="syntax"><h2>Warnings</h2><p>A warning is generated if more than 256 cycles are requested. In
+				this case only 256 cycles are reported. </p></div>
+		
+		
+		
+		
+		
+		<h2>Example</h2><div class="example"><p><kbd class="userinput">CYCI? 20,2,CYCL</kbd></p><p>returns: </p><p><kbd class="userinput">CYCI
+					20,11,"TEST1",SVEC,RPTV,"comment",1,</kbd></p><p><kbd class="userinput">#9000000046</kbd></p><p><kbd class="userinput">
+					dvc_01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x04\x99</kbd></p><p><kbd class="userinput">
+					dvc_02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x0F\x0F\x00</kbd></p><p><kbd class="userinput">CYCI
+					21,12,"TEST1",SVEC,GENV,,1,</kbd></p><p><kbd class="userinput">#9000000046</kbd></p><p><kbd class="userinput">
+					dvc_03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x04\x05\x0F\x6C</kbd></p><p><kbd class="userinput">
+					dvc_04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x04\x0F\x0F\x0D</kbd></p><p>This
+				example returns result information (on the cycle level) for 2 cycles and 2 output pins of the
+				label <code>TEST1</code>, which is of type <span class="keyword">SVEC</span>. The first cycle was
+				generated by a <span class="keyword">RPTV</span> instruction from logical vector 11 and has an associated
+				comment, the second cycle was generated by a <span class="keyword">GENV</span> instruction for logical
+				vector 12.</p><p>The binary data reports the device cycle names, which in this example are
+				different for each pin and cycle. The waveform offsets are zero. The reported
+				drive/expected/received data are:</p><table><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>dvc_01:</p>
+							</td>
+							<td class="colsep-1"><p>DD1 = F00, DD2 = F10, ED1 = FX, ED2 = F0</p>
+								<p>error: high received on edge 3 (param E2)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>dvc_02:</p>
+							</td>
+							<td class="colsep-1"><p>DD1 = F00, DD2 = N, ED1 = N, ED2 = N</p>
+								<p>no error</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>dvc_03:</p>
+							</td>
+							<td class="colsep-1"><p>DD1 = N, DD2 = N, ED1 = FU, ED2 = N</p>
+								<p>error: high received on edge 5 (param E1)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>dvc_04:</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1"><p>DD1 = N, DD2 = N, ED1 = N, ED2 = N</p>
+								<p>error: unstable received on edge 1 (FIX)</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.0.3: Removed MTST type parameter option</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99098</span><script type="text/javascript">var ti='99098';var tt='CYCI? - (get CYCle Information)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

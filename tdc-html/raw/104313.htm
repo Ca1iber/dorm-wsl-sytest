@@ -1,0 +1,54 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="DC events allow you to control initiate measurements as well as control voltage or current on DC Scale pins and PMUs on standard pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up a DC event</title></head><body id="_104313"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 104313</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up a DC event</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="114571.htm" title="When you set up a DC event, you must define what is to happen when a particular named event (as specified in a :dcSet: in the DC event file) is called in the pattern.">Specifying DC event details</a></li><li><a href="113368.htm" title="Because of technical differences between the respective accessed hardware, there are some differences regarding the use of DCScale type events on the one hand and pmu type events on the other hand.">Differences between DCScale type and PMU type events</a></li><li><a href="112867.htm" title="The special nature of DC events with the pmu type results in some limitations regarding their use.">Limitations of PMU type DC events</a></li></ol></div></nav>
+	
+	
+	<div><p>DC events allow you to control initiate measurements as well as control voltage or
+		current on DC Scale pins and PMUs on standard pins.</p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>In SmarTest, set up any DC events that you want to call from the DC event
+			file.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Setting up a DC event</h3><ol>
+				<li>If there is no DC event file yet, create a new one or copy an existing one.<p>The structure
+						of DC event files is described in <a href="102566.htm" title="The syntax of the DC event file follows the conventions of the MTL compiler syntax.">DC event file syntax</a>.</p></li>
+				<li>If there is no DC set or you need an additional set, create a DC set in the DC event
+					file.</li>
+				<li>Specify the desired events in the DC set.<p>For details on doing so, see <a href="114571.htm" title="When you set up a DC event, you must define what is to happen when a particular named event (as specified in a :dcSet: in the DC event file) is called in the pattern.">Specifying DC event details</a>.</p></li>
+				<li>Save the DC event file in the appropriate device directory.</li>
+				<li>Reference the DC event file and DC set from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> using the
+						<span class="keyword">:dcTest:</span> keyword.</li>
+				<li>In the appropriate locations in the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">program code</a>, insert the
+						<span class="keyword">DC_EVENT</span> function, providing the name of the event as its parameter.<p>When
+						a DC event with a type of <span class="keyword">pmu</span> is called by the <span class="keyword">DC_EVENT</span>
+						function, a <span class="keyword">pad()</span> instruction must be inserted before it. This is required
+						because a PMU DC event interrupts the pattern on all pins, which means that the pattern must
+						be kept in an interruptible state until a tester cycle boundary is reached. The
+							<span class="keyword">pad()</span> instruction ensures that this happens.</p>
+					<div class="note"><span class="title">Note</span> Strictly speaking, a <span class="keyword">pad()</span> instruction is not necessary
+						when you make sure that all PMU events in your program occur on tester cycle boundaries when
+						all pins are in an interruptible state. (If this is not the case, a compiler error is created
+						for PMU events without preceding <span class="keyword">pad()</span> instructions.) However, since there
+						is usually no benefit in leaving out <span class="keyword">pad()</span> instructions, we recommend that
+						you always put them before all DC events.</div>
+				</li>
+			</ol></section>
+		<section class="section"><h3>Placement of DC events in code</h3><p>There are certain limitations to observe
+				when placing multiple DC events in code:</p><ul>
+				<li><span class="keyword">DCScale</span> type DC events must have a minimum distance of 32 vectors.</li>
+				<li>After a measurement in a <span class="keyword">DCScale</span> type DC event, a settling time of 2 µs
+					is required. If another measurement is initiated on the same board before this time is elapsed,
+					the accuracy may be impaired.</li>
+				<li>The maximum frequency of <span class="keyword">DCScale</span> type measurements on a DPS board is in
+					the region of 300,000 samples per second. </li>
+				<li>The frequency for forcing voltages using <span class="keyword">DCScale</span> type DC events must not
+					exceed 3 kHz per DPS board.</li>
+			</ul>
+			<p>For more information about the number of vectors, sampling, and settling time for DC events,
+				see <a href="153185.htm" title="The settling time and data processing time of the front end and a minimum number of vectors between DC events or at the end of a pattern has to be respected when using DC event based programming of the DC Scale DPS128/DPS64 cards.">Timing of DC events - DPS128 / DPS64</a>.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The pins in the DC events are accessed as specified when the compiled program is
+				executed.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="102814.htm" title="MTL includes some predefined macros and functions for use in the APG program file.">Macros and functions in program files</a></div><div><a href="104316.htm" title="DC event sequences allow you to execute a sequence of DC events with a single call.">Setting up DC event sequences</a></div><div><a href="153185.htm" title="The settling time and data processing time of the front end and a minimum number of vectors between DC events or at the end of a pattern has to be respected when using DC event based programming of the DC Scale DPS128/DPS64 cards.">Timing of DC events - DPS128 / DPS64</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: DC events now support also PMUs</li><li>MTP 3.0.3:  (MTP on SOC 103.0.0) Controlling PMUs is now supported in both MTP on HSM and
+					MTP on SOC</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 104313</span><script type="text/javascript">var ti='104313';var tt='Setting up a DC event'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

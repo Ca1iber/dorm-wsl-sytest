@@ -1,0 +1,53 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The bitseq attribute, which always has the value copy, allows you to instruct the MTL compiler to copy the vector from the reference pin instead of compiling a new vector for a pin, thereby speeding up the compilation process."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Copying vectors</title></head><body id="_121672"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121672</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Copying vectors</h1>
+	
+	
+	<div><p>The <span class="keyword">bitseq</span> attribute, which always has the value
+			<code>copy</code>, allows you to instruct the MTL compiler to copy the vector from the
+		reference pin instead of compiling a new vector for a pin, thereby speeding up the compilation
+		process.</p>
+		<h2>Syntax</h2><div class="syntax"><p>The attribute is included as a normal pin attribute in the <a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a>:</p><pre class="prettyprint copyable singleline"><span class="keyword">&lt;mtlPinName&gt;</span>(<span class="keyword">&lt;refPinName&gt;</span>)=<span class="keyword">&lt;smartestPinName&gt;</span>@(bitseq=copy)</pre><p>The
+				reference pin (<span class="keyword">&lt;refPinName&gt;</span>) can be:</p><ul>
+				<li>An MTL pin: The vector is copied from the specified pin.</li>
+				<li>A reference macro: The macro is defined in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> and the vector is
+					copied from the pin named in the macro. See <em>Reference macros</em>, below, for more
+					information.</li>
+			</ul><p>If no reference pin is specified or if a reference macro is used and an empty string is
+				specified for it in the APG pattern file, the <span class="keyword">bitseq</span> attribute is ignored. In
+				this case, the MTL compiler compiles the vector for the pin normally.</p><p>The attributes of
+				the specified MTL pin must match the attributes of the reference pin from which the vector is
+				copied.</p><p>The reference pin must not itself reference another pin.</p></div><div class="syntax"><h2>Reference macros</h2><p>A reference macro lets you define the actual reference
+				pin name in the APG pattern file and include only a macro reference in the pin mapping file.
+				This allows you to use the same pin mapping file for different purposes and make only changes to
+				the pattern file.</p><p>The syntax in this case
+					is:</p><p><span class="keyword">&lt;mtlPinName&gt;</span>({<span class="keyword">&lt;pinNameMacro&gt;</span>})=<span class="keyword">&lt;smartestPinName&gt;</span>@(bitseq=copy)</p><p>The
+				macro <span class="keyword">&lt;pinNameMacro&gt;</span> must be defined in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>
+				using the <span class="keyword">:define:</span> statement, with the name
+					<span class="keyword">&lt;pinNameMacro&gt;</span> specified in the <span class="keyword">:name:</span> column and
+				the pin name you want to associate with it specified in the <span class="keyword">:value:</span>
+				column.</p></div>
+		
+		<h2>Examples</h2><div class="example"><h3>MTL
+				pin</h3><pre class="prettyprint copyable singleline">DQo.003(DQo.000)=DQ_o.03@(bitseq=copy)</pre><p>This statement
+				instructs the compiler to equate the MTL pin name DQo.003 with the SmarTest pin name DQ_o.03
+				and, instead of compiling the vector for this pin, copy the vector from the pin with the MTL
+				name DQo.000.</p></div>
+		<div class="example"><h3>Reference macro</h3><p>In the pin mapping
+				file:</p><pre class="prettyprint copyable singleline">DQo.003({$myRefPin})=DQ_o.03@(bitseq=copy)</pre><p>In the APG pattern
+				file:</p><pre class="prettyprint linenums copyable">:defines:
+{
+  :format:
+  { :name:     :value: }
+  { myRefPin   DQo.000 }
+}</pre><p>This
+				statement instructs the compiler to equate the MTL pin name DQo.003 with the SmarTest pin name
+				DQ_o.03 and, instead of compiling the vector for this pin, copy the vector from the pin that is
+				specified in the macro myRefPin.</p><p>The current value of this macro is DQo.000 (so the
+				compiler copies the vector from the pin with the MTL name DQo.000), but you could specify a
+				different pin in the APG pattern file without having to change the pin mapping file at
+			all.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99199.htm" title="Reference pins are standard MTL pins to which other pins can be aligned, that is, from which they receive their tester cycle counts and maintenance operation interrupts.">Reference pins</a></div><div><a href="102801.htm" title="MTL supports a range of standard preprocessor statements that allow modularizing and parameterizing the compilation process.">Preprocessor statements</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121672</span><script type="text/javascript">var ti='121672';var tt='Copying vectors'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

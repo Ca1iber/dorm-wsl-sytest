@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Redundant code can slow down your test time."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Code Clean-up</title></head><body id="_122752"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122752</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Code Clean-up </h1>
+	
+	
+	<div><p>Redundant code can slow down your test time.</p>
+		<section class="section"><p>For
+				example, equation sets that contain lots of spec sets, timing, or level sets slow down spec
+				changes sometimes quite a lot. If you have unused spec or timing or level sets in equation sets,
+				they should be cleaned out.</p><ul>
+				<li>Avoid primary set and spec set changes where possible.<ul>
+						<li>If all spec values are known at development time, use a predefined spec set instead of
+							spec changes.</li>
+						<li>Create an "initial" item to do all spec change actions on the first run.</li>
+						<li>If only the driver level needs to be changed, use the DRLV Firmware command, or use third
+							level setting instead of driver level change where possible.</li>
+						<li>If you only need to change DPS voltages without accessing io-pins, then the SVLR command
+							is faster than switching the level sets or using the PSLV command.</li>
+						<li>Use "Vbump" instead of DPS changes if possible.</li>
+						<li>If you use the SVLR command, ensure that your equation sets only contains the timing or
+							level sets that you want to change. If you change only one spec, ensure that your equation
+							set contains only one timing (or level) set. <p>Put the other level and timing sets into
+								different equation sets and apply SVLR only to the equation set containing the levels and
+								timings to be changed. </p>
+							<p>This will avoid SVLR running through all the timing or level sets unnecessarily and save
+								time.</p>
+							<p>The figure below shows this principle for timing sets. The same applies for level sets. </p>
+							<div class="p"><figure class="fignone">
+									
+									<img src="107937.png" alt="Reducing the Number of Timing and Level Sets in an Equation Sets">
+								</figure></div></li>
+					</ul></li>
+				<li>Equation sets that contain lots of spec sets, timing, or level sets slow down spec changes,
+					sometimes quite a lot. </li>
+				<li>If you have unused spec or timing or level sets in equation sets, they should be cleaned
+					out.</li>
+				<li>If a search is a must:<ul>
+						<li>Use a binary search with small search ranges. </li>
+						<li>For the Pin Scale cards, you can use the SEARCH_FUNC_TASK and SEARCH_FUNC_PIN_TASK APIs
+							instead of SPEC_SEARCH API to get parallel efficiency. With the SEARCH_FUNC_TASK and the
+							SEARCH_FUNC_PIN_TASK API you can execute different spec variable, or edge searches in
+							parallel on the Pin Scale system.</li>
+					</ul></li>
+				<li>Avoid the use of FLUSH where possible as this also uses up time.</li>
+				<li>Avoid any unnecessary ABORT_TEST() APIs wherever possible.</li>
+				<li>Re-think your test concept, reduce wait time (WAIT_TIME()), reduce sample size, oversampling
+					rate, optimize pattern length, remove unnecessary code, for example, PPMU .getPassFail vs
+					.getValue).</li>
+				<li>Improve your test methods where possible.<p>It depends on the individual case how the best
+						improvement can be done. </p><p>It is good practice where possible to do a test method action
+						only once during first execution of the test flow.</p><p>For example:</p><ul>
+						<li>Reading a spec-value that does not get changed during the test program execution.</li>
+						<li>Expensive consistency check on input parameters to your Test Method.</li>
+						<li>Cache data.</li>
+					</ul><pre class="prettyprint linenums copyable">static bool wasRun = false;
+if(!wasRun){
+//do your procedure here
+wasRun = true;
+}</pre></li>
+				<li>Try to group firmware commands together wherever possible. For
+						example:<div></div><pre class="prettyprint linenums copyable">FW_TASK("RLYC IDLE,OFF,(Dat0);");
+FW_TASK("RLYC IDLE,OFF,(Dat1);");</pre><p>can
+						be reduced
+						to:</p><pre class="prettyprint copyable singleline">FW_TASK("RLYC IDLE,OFF,(Dat0); RLYC IDLE,OFF,(Dat1);");</pre><p>or</p><pre class="prettyprint copyable singleline">FW_TASK("RLYC IDLE,OFF,(Dat0,Data1)");</pre></li>
+				<li>In general, the use of FLUSH should be kept to a minimum as it can also add to
+							overhead<p><code>EXECUTE_TEST</code>, <code>EXECUTE_GROUP</code>,
+							<code>START_TEST</code>, <code>DIGITAL_CAPTURE_TEST</code> and
+							<code>NB_DIGITAL_CAPTURE_START</code> contain a FLUSH.</p>
+					<p><code>FUNCTIONAL_TEST()</code> only activates digital primaries such as timing and
+						levels and, therefore, typically has a faster execution time.</p>
+					<p>No FLUSH is required for <code>trigger()</code>, <code>abort()</code> and
+							<code>getXXX()/isRunning()</code>.</p></li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="123084.htm" title="When using the FLUSH API, the following points should be considered:">Working with FLUSH()</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122752</span><script type="text/javascript">var ti='122752';var tt='Code Clean-up'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

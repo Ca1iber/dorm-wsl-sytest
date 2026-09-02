@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SmartLoop license also enables you to define short compliance patterns for pattern‑based SmartLoop tests. These patterns are allowed to run with the speed that is associated with the SmartLoop license even if this speed exceeds the speed license for the digital channels."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining a compliance pattern for pattern‑based SmartLoop testing</title><meta name="keywords" content="vector label loopback, Smart, Loop"></head><body id="_126514"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 126514</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining a compliance pattern for pattern‑based SmartLoop testing</h1>
+	
+	
+	<div><p>The SmartLoop™ license also enables you to
+		define short compliance patterns for pattern‑based SmartLoop™ tests. These patterns are allowed to run with the speed that is associated with
+		the SmartLoop™ license even if this speed exceeds the
+		speed license for the digital channels. </p>
+		<p>A compliance pattern is identified by the memory type <span class="keyword">HSER</span>. The timing that
+			is used for a compliance pattern must be marked by the keyword <span class="keyword">compliance</span> in
+			the equation set. The vector area of a compliance pattern is restricted to 32 K. However, it can
+			be expanded by memory pooling up to 128 K on a PS9G system (512 K on PS1600) on the following
+			conditions, where <strong>P</strong> is the port of the compliance pattern:</p>
+		<ul>
+			<li>All channels of any PS9G 4-channel group (PS1600 8-channel group) that provides the channel
+				for a pin of <strong>P</strong> are licensed for SmartLoop™.</li>
+			<li>All the other compliance patterns are defined for ports that share no pins with
+				<strong>P</strong>.</li>
+		</ul>
+		<p>For more information on memory pooling see <a href="126543.htm" title="Channels that belong to the same 4-channel group or 8-channel group (Channel groups of Smart Scale cards) use the same physical memory. This is exploited by the so-called memory pooling. Memory pooling allows you to distribute the vector memory of the same type (SM, HSER) within a channel group flexibly among the channels of the group.">Memory pooling within channel groups</a>.</p>
+		<h2>Examples</h2><div class="example"><h3>Model file
+			entry</h3><pre class="prettyprint linenums copyable">IOCHANNEL
+10101-10108: HW=PS9G, speed= 3600Mbps, smem = 112M, loopback = 6800Mbps
+...</pre></div>
+		<div class="example"><h3>Pin
+			configuration</h3><pre class="prettyprint linenums copyable">&gt;  DFPN? (PortD)
+&lt;  DFPN 10101,"4",(Pin4)
+&lt;  DFPN 10105,"5",(Pin5)</pre></div>
+		<div class="example"><h3>Equation
+			set</h3><pre class="prettyprint linenums copyable">EQNSET 1 "equation set 1"
+
+DEFINES  PortD
+
+SPECS  
+p      [ns]
+
+compliance
+
+TIMINGSET 1 "eq 1 ts 1"
+period=1.5
+
+PINS  Pin4
+d1=0 #DU
+
+PINS  Pin5
+r1=16 #RU</pre></div>
+		<div class="example"><h3>Pattern</h3><pre class="prettyprint linenums copyable">&gt;  SQLB? ALL,MAIN,(PortD)
+&lt;  SQLB "compl",MAIN,0,3,"wavetable 1",(PortD)
+&gt;  SQLA? ALL,ALL,ALL,(PortD)
+&lt;  SQLA LBL,"compl","PARA_MEM=HSER,PARA_MCTX=DEFAULT",(PortD)
+&lt;  SQLA LBL,"burst","PARA_MEM=NONE",(PortD)
+&gt;  SQPG? ALL,(PortD)
+&lt;  SQPG 0,STVA,,0,,(PortD)
+&lt;  SQPG 1,STSA,,,,(PortD)
+&lt;  SQPG 2,GENV,100501,,,(PortD)
+&lt;  SQPG 3,STOP,,,,(PortD)
+&lt;  SQPG 4,CALL,,"compl",,(PortD)
+&lt;  SQPG 5,BEND,,,,(PortD)</pre><p>Note
+				that the compliance pattern <code>compl</code> comprises 100501 vectors. This is possible
+				because channels 10101 through 10104 and 10105 through 10108 are all licensed for SmartLoop™, but only 10101 and 10105 are associated with a
+				pin.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 126514</span><script type="text/javascript">var ti='126514';var tt='Defining a compliance pattern for pattern‑based SmartLoop testing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

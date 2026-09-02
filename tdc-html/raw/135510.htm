@@ -1,0 +1,400 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Level set 0: Protecting sensitive DUTs and DUT board circuitries from tri-stated digital channel voltage transients</title><meta name="keywords" content="card loadboard load board DIB tristate, DU, Ts"></head><body id="_135510"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 135510</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Level set 0: Protecting sensitive DUTs and DUT board circuitries from tri-stated digital
+		channel voltage transients</h1>
+	
+	<div>
+		<p>Stefan Walther, Advantest</p>
+		<p>Gianluca Lombardi, Advantest</p>
+		<p>Clemens Leichtle, Advantest</p>
+		<p>Paper-ID: 135510 May 2012</p>
+		<section class="section"><h2>Abstract</h2><p>State-of-the-art (CMOS) SoC devices manufactured using the
+				latest process nodes, 40 nm and smaller, have become more sensitive to voltage stress and
+				latch-uph [1]; at the same time, complex SoC devices now feature multiple power domains with
+				different VDD levels. For these reasons, newest devices demand more flexibility on ATE-systems
+				to protect DUT and DUT board circuitries from voltage transients. This note discusses the
+				underlying phenomena in detail, and gives clear recommendations on how to cope with these
+				emerging technology requirements on the Advantest V93000 SOC test system.</p></section>
+		<section class="section"><h2>Introduction</h2><p>Electronic circuitries, including ATE pin electronics, leak
+				small current, even when the drivers are tri-stated (high-Z state). The leakage current, which
+				varies across ATE digital channel, will eventually charge the pin's internal capacitance [2]
+				which will eventually discharge on the transmission line to the DUT or the DUT board circuitries
+				directly connected to the tester (upon connecting the tester resources).</p><div class="p"><figure class="fignone">
+					<img src="135512.png" alt="Levelset0: Protecting sensitive DUT's and DUT board circuitries from voltage transients (1)">
+				</figure></div><p>Figure 1: Simplified picture of pin electronics in high-Z with lumped node
+				capacitance CL</p><p>When connecting tester resources (closing AC-relays and powering up DPS'),
+				the device and DUT board circuitries may be electrically stressed by transient
+				overvoltages/undervoltages, as electrical currents flow from higher to lower potential nodes; this may
+				damage the DUT and/or DUT board components.</p><p>The traditional V93000 high-Z protection
+				scheme relies on an "across-the-board"-fixed voltage clamping, and thus it does NOT provide a
+				totally customizable -transient voltage protection.</p><p>This traditional scheme has perfectly
+				worked in the last decade for the vast majority of CMOS processes and SoC devices; however, the
+				newest semiconductor processes and highly-integrated, multi-power-domain SoC devices have shown
+				to be more sensitive to voltage stress and latch-up. These devices may require a
+				per-pin/per-DPS-customizable, power-domain-aware, transient voltage protection.</p><p>These new
+				device requirements have been supported by a new SW feature, starting from SmarTest 6.5.2: here
+				firmware commands (see TDC topic <a href="119431.htm">119431</a>) can be issued to redefine
+				the default system-defined "level set 0" to control clamping and termination of high-Z state
+				digital channels.</p></section>
+		<section class="section"><h2>V93000 driver high-Z behavior and level setups</h2><p>A V93000 driver in high-Z
+				state floats to an arbitrary voltage, which typically varies from pin to pin, also depending on
+				the pin electronics type; this voltage...</p><ul>
+				<li>is limited by the voltage rails or driver clamps, and affected by the active load, if
+					programmed</li>
+				<li>can be anywhere between the voltage rails or the pin electronics HW type typical maximum
+					positive and negative voltage clamps</li>
+			</ul><p>A V93000 digital driver pins is in a high-Z state when ...</p><ul>
+				<li>explicitly programmed by the user<ul>
+						<li>either during pattern execution (sequencer in "RUN" state)</li>
+						<li>or when the sequencer is in "BRK" state, applying a user-defined high-Z break
+								waveform<p>Note that in the above cases, a user-defined fixed or equation-based level set is
+								being used, that is, the user programs clamps and/or active load and has full control over
+								the resulting (floating) voltage on a per-pin basis.</p></li>
+					</ul></li>
+				<li>sequencers are in "OFF" state (see TDC topic <a href="119431.htm">119431</a>), or the
+					drivers are explicitly switched to high-Z state via the firmware command <a href="98564.htm" title="The DLSO command activates level set 0 for the channels of those sites that have the setup focus (for level set 0, see Controlling the high-Z behavior of digital pins with level set 0). By default, this means that they are switched to high-impedance.">DLSO (Driver Level Switch Off)</a>, which is typically executed during the default
+					CONNECT/DISCONNECT sequences shown in Figure 2 [3] - unless these are replaced
+					by <a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">user-defined sequences</a>.<ul>
+						<li>In the case of default CONNECT/DISCONNECT sequences, a system-defined
+							"level set 0" is active. By default, this default "level set 0"does not
+							have active load enabled, and uses the same clamp value across all pins.
+							These clamps are set close to the min/max Z-clamp values supported by
+							the specific pin electronics HW type (see Table 1 below, as well as TDC
+							topic <a href="121827.htm" title="This test method allows you to change the clamp settings and active load settings of level set 0 (high-z state).">SetupLevelSet0</a>).<p>Please note that PS1600 high-voltage
+								(HV) pins, as well as PS9G- and PS3600 fast-mode pin drivers cannot
+								be put in high-Z state, thus the voltage will not float: these pins
+								will be clamped to 0V when "level set 0" is active.</p></li>
+					</ul></li>
+			</ul><table class="frame-none"><caption><span>Table 1: Global default clamps and active load used by the system defined "level set
+					0"</span></caption><colgroup><col><col><col><col><col><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_135510__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__2"><p>Ce-model</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__3"><p>P-model</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__4"><p>PS400</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__5"><p>PS800</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__6"><p>PS1600</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__7"><p>PS1600 HV-mode</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__8"><p>PS3600 std-mode</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__9"><p>PS3600 fast-mode</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__10"><p>PS9G</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__1"><p><span class="keyword">Vcl</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__2"><p>-2000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__3"><p>-100 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__4"><p>-300 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__5"><p>-1800 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__6"><p>-2000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__7"><p>not programmable</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__8"><p>-100 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__9"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__10"><p>not available</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__1"><p><span class="keyword">Vch</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__2"><p>7000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__3"><p>5300 mv</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__4"><p>6200 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__5"><p>6800 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__6"><p>7000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__7"><p>not programmable</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__8"><p>4150 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__9"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__10"><p>not available</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__1"><p><span class="keyword">Active load</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__2"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__3"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__4"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__5"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__6"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__7"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__8"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__9"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__10"><p>not available</p>
+							</td>
+						</tr>
+					</tbody></table><div class="p"><figure class="fignone">
+					<img src="135513.png" alt="Levelset0: Protecting sensitive DUT's and DUT board circuitries from voltage transients (2)">
+				</figure></div><p>Figure 2: Default connect and disconnect sequence (see TDC topic <a href="52816.htm" title="SmarTest provides you with the flexibility to modify the behavior of the standard connect/disconnect sequence.">Defining connect/disconnect sequences</a>)</p><p>Note that "level set 0" must not be confused with "fixed
+				level set 1", which is the default level set when the sequencer is in "BRK" or in "RUN" state
+				and either no level set has been selected as primary or no levels have yet been loaded (see
+				Appendix A on "fixed level set 1").</p></section>
+		<section class="section"><h2>Proper clamping based on device-specific power domains</h2><p>Protection diodes
+				inside the DUT typically turn on at ~0.6V; so the internal DUT-diodes typically clamp the
+				voltages to VDD+0.6V and GND-0.6V. The ATE digital channel clamps should turn on a little
+				earlier than the DUT diodes to prevent damage. A rule of thumb is to program the ATE-digital
+				channel clamps to vch = VDD+0.3V and vcl = GND-0.3V.</p><div class="p"><figure class="fignone">
+					<img src="135514.png" alt="Levelset0: Protecting sensitive DUT's and DUT board circuitries from voltage transients (3)">
+				</figure></div><p>Figure 3: ATE-channel clamps and connected DUT-pin protection diodes</p><p>Please
+				note that VDD is power domain specific, therefore clamps need to be programmed on a per-power
+				domain basis, i.e., all pins belonging to the same power domain must have the same
+			clamping!</p></section>
+		<section class="section"><h2>V93000 high-Z protection: changing system default "level set 0" settings</h2><ol>
+				<li>Default system high-Z protection scheme:<p>As outlined above, the V93000 default high-Z
+						protection methodology is governed by the system-defined "level set 0" which, as default,
+						applies the same clamps across all pins.</p></li>
+				<li>User-defined high-Z protection scheme:<p>If the user desires to customize the system-defined
+						high-Z protection scheme to account for specific device/loadboard protection
+						requirements, the user can access "level set 0" and modify the default
+						values on a per-pin basis; specifically, the user has full control over the
+						applied clamp values, as well as over the active load, via the following
+						level setup firmware commands (see TDC topics <a href="98505.htm" title="The CLMP(CLaMP level) command defines the low and the high clamp voltage levels and switches the clamp on and off for the specified pins. These levels are included in the level set you specify.">CLMP, CLMP? - (CLaMP level)</a> and
+							<a href="98771.htm" title="The TERM command sets the termination mode for the output and IO pins.">TERM, TERM? - (TERMination mode)</a>)</p><pre class="prettyprint copyable singleline">CLMP 0,ON,clamp_v_low,clamp_v_high,(pin_group)</pre><p>[clamp
+						voltages] =
+						mV</p><pre class="prettyprint copyable singleline">TERM 0,A,commutation_v,low_i,high_i,(pin_group)</pre><p>[commutation_v]
+						= mV</p>
+					<p>[low_i ]=[ high_i] = µA</p></li>
+			</ol><p>When customizing the system default "level set 0"values, the following things must be
+				observed:</p><ul>
+				<li>The "level set 0" settings, once changed, are activated only upon the next execution of the
+					firmware command SQST OFF or DLSO: thus, the redefinition of level set 0 clamps and
+						termination<div></div><pre class="prettyprint linenums copyable">CLMP 0,...
+TERM 0,...</pre><p>must be followed by the
+						FW-commands</p><pre class="prettyprint linenums copyable">SQST BRK
+SQST OFF</pre><p>For example, the following will
+						define the Level set 0 clamps and termination for "pin_group_1" and subsequently activate
+						them</p><pre class="prettyprint linenums copyable">CLMP 0,ON,vcl,vch,(pin_group)
+TERM 0,A,vcom,iol,ioh,( pin_group)
+SQST BRK
+SQST OFF</pre><p>In
+						the above example the "level set 0" clamp levels are modified to vcl and vch mV and the active
+						load to vcom mV commutation voltage with iol/ioh µA load current for pins in "pin_group".</p></li>
+				<li>Downloading a levels file will restore the system default "level set 0" values, i.e. any
+					modifications done by the user will be removed.</li>
+				<li>"level set 0" firmware commands CANNOT be added manually into the levels file as<ul>
+						<li>This breaks any backward compatibility with earlier SmarTest versions which will not be
+							able to load in the levels file</li>
+						<li>User added "level set 0" firmware commands will be removed when the levels file is
+							saved</li>
+						<li>"level set 0" firmware commands are not supported by the Master File Handler</li>
+					</ul></li>
+				<li>"level set 0" firmware commands should not be used in a user-defined connect/disconnect
+					sequence when running SmarTest in production mode because it negatively affects throughput</li>
+				<li>Access to the "level set 0" via firmware-commands "CLMP 0,..." and "TERM 0, ..." is only
+					supported on Pin Scale (Pin Scale 400, Pin Scale 800, Pin Scale 3600) as well as Smart Scale
+					(Pin Scale 1600, Pin Scale 9G ) digital cards, but not on single-density cards (refer to
+					Appendix B which discusses a solution for single-density cards ).</li>
+			</ul></section>
+		<section class="section"><h2>Recommended usage of "level set 0" firmware-commands</h2></section>
+		<section class="section"><h2>Production use case</h2><p>For production, use the test method "miscellaneous_tml =&gt; TestControl =&gt; SetupLevelSet0"
+				introduced in SmarTest 6.5.3 (see TDC topic <a href="121827.htm" title="This test method allows you to change the clamp settings and active load settings of level set 0 (high-z state).">SetupLevelSet0</a>), which provides
+				the template to modify "level set 0" default settings and the proper activation
+				sequence.</p><p>This testmethod ...</p><ul>
+				<li>Should be called in the very first testsuite in the testflow</li>
+				<li>Should be executed before the first connect is performed</li>
+				<li>Can be skipped in any subsequent executions in order to ensure that there will not be any
+					negative impact on throughput<p>Please note that the special "Download" and "Init" testsuites
+						cannot be used to call a test method to customize "level set 0" because, in production, these
+						testsuites are executed before the levels file is downloaded (see TDC topic <a href="20281.htm" title="Special test suites are executed at a particular point in time, which can be either dependent or independent of the testflow. For example, downloading an initial set of values to the test system, or defining what will be executed if you abort the testflow.">Special test suites</a>), upon which, the tester restores the default "levelset 0".</p></li>
+			</ul></section>
+		<section class="section"><h2>(B) Engineering use case</h2><p>For engineering , it is recommended to
+				integrate the "level set 0" firmware commands into a user-defined connect sequence, as this
+				ensures that any custom "level set 0" clamps are constantly applied - even after the user has
+				saved the levels file, as soon as he/she presses the connect-button in the Eclipse Workcenter,
+				even before executing the entire testflow:</p><div class="p"><figure class="fignone">
+					<img src="135515.png" alt="Levelset0: Protecting sensitive DUT's and DUT board circuitries from voltage transients (4)">
+				</figure></div><p>Figure 3: Example for a user-defined connect sequence which modifies default "level
+				set 0" clamp-values and enables the active load.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>The Advantest V93000 SoC test systems allows the user to have
+				full control over clamps and terminations of tri-stated digital pins on a per-pin basis.
+				Although this has always been possible with the sequencer in "RUN" and "BRK"state, this
+				capability has been further extended , starting from Smartest 6.5.2, to the "OFF"-state
+				sequencers or the tri-stated drivers corner cases by the means of the "DLSO" firmware-command.
+				This enhancement, which allows the user to modify "level set 0", was implemented to further
+				protect the latest and more electrically sensitive technology node devices upon connecting ATE
+				system resources to the DUT and to the DUT board circuitries.</p><p>To prevent electrical stress
+				caused by transient voltages experienced by the DUT pins and the consequential irreversible
+				damage, it is strongly recommended that the guidelines described in this paper are rigorously
+				applied.</p></section>
+		<section class="section"><h2>Appendix</h2></section>
+		<section class="section"><h2>Appendix A: "Fixed level set 1"</h2><p>"Fixed level set 1" is the SmarTest default level set: whenever the sequencer is put into a/the
+				"BRK"- or "RUN"-state, and the user does not specify any other fixed or
+				equation-based level set as primary, this level set is used as level primary; the
+				currently selected primaries can be checked by executing the <a href="98742.htm" title="The SPRM (Set PRiMary sets) command is used to define and change the primary sets in a test suite or a test that is defined in a user procedure. If, for example, your test involves repeating a functional test with varying parameters, you can use the SPRM command to define the primary sets for each test run. Unless otherwise specified, the functional test uses the parameters defined in the actual primary sets.">SPRM, SPRM? - (Set PRiMary sets)</a>
+				firmware command. Please note that the user can overwrite the system default values
+				of "fixed level set 1" via GUI or level firmware commands, see Table 2 for a subset
+				of those values.</p><table class="frame-none"><caption><span>Table 2: Some system default values as used by the implicitly defined "fixed level set
+					1"</span></caption><colgroup><col><col><col><col><col><col><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_135510__entry__41"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__42"><p>Ce-model</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__43"><p>P-model</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__44"><p>PS400</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__45"><p>PS800</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__46"><p>PS1600</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__47"><p>PS1600 HV-mode</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__48"><p>PS3600 std-mode</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__49"><p>PS3600 fast-mode</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_135510__entry__50"><p>PS9G </p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__41"><p><span class="keyword">Vcl</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__42"><p>-2000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__43"><p>-200 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__44"><p>-875 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__45"><p>-1800 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__46"><p>-2000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__47"><p>not programmable</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__48"><p>0 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__49"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__50"><p>not available</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__41"><p><span class="keyword">Vch</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__42"><p>7000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__43"><p>5200 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__44"><p>5625 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__45"><p>6800 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__46"><p>7000 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__47"><p>not programmable</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__48"><p>4250 mV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__49"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__50"><p>not available</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__41"><p><span class="keyword">Active load</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__42"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__43"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__44"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__45"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__46"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__47"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__48"><p>disabled</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__49"><p>not available</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_135510__entry__50"><p>not available</p>
+							</td>
+						</tr>
+					</tbody></table><p><em>* Not programmable</em></p></section>
+		<section class="section"><h2>Appendix B: special note on single-density digital cards</h2><p>Access to the
+				"level set 0" via firmware-commands CLMP 0,... and TERM 0, ... is only supported for Pin Scale
+				and Smart Scale digital cards, but not for single-density cards (P- as well as Ce-models); for
+				single-density cards, instead, the FW-command "LOFF" is provided which is introduced with
+				SmarTest 6.3.5.3: this firmware-command, however, only allows to modify the clamp-values, but
+				not the active load
+				settings:</p><pre class="prettyprint copyable singleline">LOFF HIGHZ,clamp_v_low,clamp_v_high,(pin_group)</pre><p>Here:
+				clamp voltages in mV</p><p>When making explicit use of "LOFF" to change "level set 0" system
+				default clamp-values, the following things must be observed:</p><ul>
+				<li>The modified clamp-settings are first activated upon the next execution of the firmware
+					command "SQST OFF "or "DLSO": thus, usage of "LOFF" should be directly followed by applying the
+					sequence of the FW-commands "SQST BRK" as well as "SQST
+					OFF":<div></div><pre class="prettyprint linenums copyable">LOFF HIGHZ,vcl,vch,(@)
+SQST BRK
+SQST OFF</pre></li>
+			</ul><p>In the above example the clamp-settings of "level set 0" will be changed to vcl and vch
+				mV for all pins.</p><ul>
+				<li>The modified clamp-settings will not be restored to the default system values when
+					downloading a levels file but only at the next "change device"-operation or when overwritten
+					again via the "LOFF" firmware-command.</li>
+			</ul></section>
+		<section class="section"><h2>Appendix C: enabling the pulldown resistor available with Pin Scale 1600 with
+				"level set 0" firmware commands</h2><p>Pin Scale 1600 offers a pulldown resistor which can be
+				enabled in any fixed and equation-based level set (including "level set 0") and which is
+				activated (i.e. connected to the pin line) permanently independent on state of the driver
+				(active or Hi-Z) or of the PPMU and which remains connected to the pin line even when the AC
+				relay is opened (using RLYC command) or when the pin is disconnected by using standard
+				disconnect sequence (requires enabling of pulldown resistor in level set 0 prior to execution of
+				disconnect sequence). Please note that enabling the pulldown resistor, which is specified at
+				14.3KOhm +/-10%, has a similar effect like enabling a weak active load and programming the
+				commutation voltage to 0V.</p><p>Starting with SmarTest 7.1.4.5, the pulldown resistor is
+				enabled by default in level set 0 but it can be switched off by the user at any time by applying
+				the appropriate TERM firmware command to level set 0:</p><pre class="prettyprint linenums copyable">TERM 0,OFF,NONE,,,,,,(pin_group)
+SQST BRK
+SQST OFF
+
+</pre><div class="p"><figure class="fignone">
+					<img src="135516.png" alt="Levelset0: Protecting sensitive DUT's and DUT board circuitries from voltage transients (5)">
+				</figure></div><p>Figure 4: Hardware-monitor showing enabled pull down resistor for PS1600</p><p>and
+				disabled via</p><pre class="prettyprint copyable singleline">TERM 0,OFF,NONE,,,,,,(pin_group)</pre><div class="p"><figure class="fignone">
+					<img src="135517.png" alt="Levelset0: Protecting sensitive DUT's and DUT board circuitries from voltage transients (6)">
+				</figure></div><p>Figure 5: Hardware-monitor showing disabled pull down resistor for
+			PS1600</p></section>
+		<section class="section"><h2>Reference</h2><p>[1] See, <a href="http://en.wikipedia.org/wiki/Latchup" target="_blank" rel="external noopener" class="ex">http://en.wikipedia.org/wiki/Latchup</a></p><p>[2] Typical
+				V93000 digital channel cards pin capacitance is 2pF to 10 pF</p><p>[3] These sequences are
+				executed for example before the first testflow execution, during binning, or at the end of the
+				testflow execution and more.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 135510</span><script type="text/javascript">var ti='135510';var tt='Level set 0: Protecting sensitive DUTs and DUT board circuitries from tri-stated digital channel voltage transients'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

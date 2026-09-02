@@ -1,0 +1,96 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies the way to capture the waveform when the PPMU or BADC is used as digitizer."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>capMode()</title><meta name="keywords" content="cap, Mode"></head><body id="_144778"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144778</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">capMode()</h1>
+	
+	
+	<div><p>Specifies the way to capture the waveform when the PPMU or BADC is used as
+		digitizer.</p>
+		<section class="section"><h2>Syntax</h2><pre class="prettyprint copyable singleline">capMode(TA::DC_CAP_MODE capMode);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr id="_144778__d5999e35" class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_144778__d5999e35__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_144778__d5999e35__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr id="_144778__d5999e51" class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_144778__d5999e35__entry__1"><p><span class="keyword">capMode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_144778__d5999e35__entry__2"><p>The way to capture the waveform.</p>
+							</td>
+						</tr>
+					</tbody></table>
+			<table id="_144778__table2"><caption><span>List of available options of parameter: <span class="keyword">capMode</span></span></caption><colgroup><col><col></colgroup><thead>
+						<tr id="_144778__row3" class="rowsep-1">
+							<th class="colsep-1" id="_144778__row3__entry__1"><p>Option</p>
+							</th>
+							<th class="colsep-1" id="_144778__row3__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr id="_144778__row4" class="rowsep-1">
+							<td class="colsep-1" headers="_144778__row3__entry__1"><p>TA::TRIG </p>
+							</td>
+							<td class="colsep-1" headers="_144778__row3__entry__2"><p><a href="136310.htm">Trigger-based measurement</a>. It only works for BADC
+								(pure BADC or through PPMU) and is limited to the sharing of one BADC among 16 pins. It
+								provides the sampling frequency up to 250 KHz.</p>
+								<p>This mode is only supported on SmarTest 7.2.1 or above.</p>
+							</td>
+						</tr>
+						<tr id="_144778__row5" class="rowsep-1">
+							<td class="colsep-1" headers="_144778__row3__entry__1"><p>TA::VEC (default)</p>
+							</td>
+							<td class="colsep-1" headers="_144778__row3__entry__2"><p><a href="136310.htm">Sequencer based measurement</a>. It works for both BADC
+								and successive approximation. The highest sampling frequency supported is 50 KHz for BADC
+								and 3 KHz for the successive approximation. </p>
+							</td>
+						</tr>
+					</tbody></table>
+			<p>For the TRIG mode, when all DC digitizer measurements have been done, the results are
+				read from the FPGA memory and then transferred into the channel memory. This reading and
+				transferring process takes about 20 to 25 µs per sample. This means if you measure 1,024
+				samples, you have to wait about 1,024*25 µs after the measurements for further
+			actions.</p>
+			<div class="note"><span class="title">Note</span> About the sampling by <span class="keyword">samples()</span> on DC Scale, PPMU, and BADC:
+					<p>The <span class="keyword">samples() … execute()</span> command can have two different execution
+					behaviors: blocking execution and non-blocking execution. </p><div class="p">For example,
+					<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+   rdi.dc().pin(A).....samples().FS().execute();// Command 1
+   rdi.func().label().....execute(); // Command 2
+RDI_END();</pre></div><p>In
+					this example, </p><div class="p">
+					<ul>
+						<li>If Command 1 runs in the non-blocking execution, <span class="keyword">pin(A)</span> will keep
+							sampling while Command 2 is running the pattern till the block end. </li>
+						<li>If Command 1 runs in the blocking execution, Command 2 will run the pattern after the
+								<span class="keyword">pin(A)</span> sampling has been done. </li>
+					</ul>
+				</div><div class="p">Points to remember: <ul>
+						<li>For DC Scale, all the sampling executions with <span class="keyword">samples()</span> are blocking
+							execution. The pattern will be run after the sampling is done.</li>
+						<li>For PPMU and BADC, the sampling mode depends on the parameter specified by
+								<span class="keyword">capMode()</span>: <ul>
+								<li>For <span class="keyword">capMode(TA::VEC)</span>, the sampling is blocking execution. </li>
+								<li>For <span class="keyword">capMode(TA:TRIG)</span>, the sampling is non-blocking execution. The
+									operations of pattern and sampling are running in parallel till the end of the code block.
+								</li>
+							</ul></li>
+					</ul></div><div class="p">Example for <span class="keyword">samples()</span> with <span class="keyword">capMode(TA::VEC)</span>:
+					<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN( ); 
+  rdi.port("pt").dc().pin("pin").samples(1024).capMode(TA::VEC)...execute(); 
+  rdi.port("pt").func().label(B).execute(); // Pattern running after sampling.
+RDI_END();</pre></div><div class="p">Example for <span class="keyword">samples()</span> with
+					<span class="keyword">capMode(TA::TRIG)</span>:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN( ); 
+  rdi.port("pt").dc().pin("pin").samples(1024).capMode(TA::TRIG)...execute();
+  rdi.port("pt").label(A).execute();  // Pattern running while sampling.
+  rdi.port("pt").wait(TA::WAIT_DCDGT);
+  rdi.port("pt").func().label(B).execute(); // Pattern running after sampling.
+RDI_END();</pre></div></div></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">rdi.port("ptPin1").dc().pin("DATA1",TA::BADC).samples(1024)
+                       .capMode(TA::TRIG).FS(10 KHz).execute();
+rdi.dc().pin("DATA1").vForce(1 V).iMeas().samples(1024)
+                     .capMode(TA::VEC).valueMode(TA::BADC).FS(10 KHz).execute();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149594.htm" title="This function with a parameter TA::WAIT_DCDGT specifies a waiting interval that must pass when a digitizer action is executed.">wait()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144778</span><script type="text/javascript">var ti='144778';var tt='capMode()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The APG program file syntax supports for loops and Counted match loops. You can use these loops for repeating any set of instructions. for loops are specially useful for iterating the same instructions over columns, rows, and banks of memory devices. Match loops are functionally equivalent to repeat...until loops with an upper limit of how often they can be repeated."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Loops</title></head><body id="_102610"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102610</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Loops</h1>
+	
+	
+	<div><p>The APG program file syntax supports <span class="keyword">for</span> loops and <a href="114614.htm" title="Match loops are specialized loop constructs in the device access file or program file. Match loops are functionally equivalent to repeat...until loops with an upper limit of how often they can be repeated.">Counted match loops</a>. You can use these loops for repeating any set of instructions.
+			<span class="keyword">for</span> loops are specially useful for iterating the same instructions over
+		columns, rows, and banks of memory devices. Match loops are functionally equivalent to
+			<span class="keyword">repeat</span><span class="keyword">...</span><span class="keyword">until</span> loops with an upper limit
+		of how often they can be repeated.</p>
+		<section class="section"><div class="note"><span class="title">Note</span> MTL does not support other types of loops, such as
+					<span class="keyword">while</span> or <span class="keyword">repeat</span> loops.</div></section>
+		<section class="section"><h2><span class="keyword">for</span> loops</h2><p>MTL <span class="keyword">for</span> loops follow C
+				conventions, with some limitations: </p><ul>
+				<li>Loop variables (that is, the variables that are automatically incremented in each loop
+					iteration) cannot be assigned values in the loop body. For example, this code is not
+					supported:<div></div><pre class="prettyprint copyable singleline">for (x = 0; x &lt; 8; x += 1) {x += 1}  # Incorrect</pre></li>
+				<li>The selection of operators that can be used in the loop increment statement is limited to
+						<span class="keyword">+=</span>, <span class="keyword">-=</span>, <span class="keyword">++</span>, and
+					<span class="keyword">--</span>.</li>
+				<li>While nested loops are supported, dependent nested loops are not. That is, you cannot
+					program nested loops where the inner loop is initialized with, compared with, or incremented by
+					the current value of the outer loop's loop variable. (See the "Correct nested loop" and
+					incorrect nested loop" examples below.) Neither can inner loops depend on other variables that
+					change in subsequent iterations of outer loops.</li>
+				<li>By default, the values of variables (other than the loop variables themselves) are handled
+					differently in loop iterations by MTL than by C. This is discussed in "Variable handling in
+					loop iterations", below.</li>
+			</ul></section>
+		<section class="section"><h2>Variable handling in loop iterations</h2><p>There are two ways in which the
+				values of variables are updated in loop iteration by MTP, one of which varies significantly from
+				the standard way C handles variables:</p><ul>
+				<li>By default, the values of variables are not preserved from one iteration to the next.
+					Instead, the variables are reset at the beginning of each iteration to the values they had
+					during the first iteration.<p>This behavior can be forced by choosing the <span class="uicontrol">Limit
+							Variable Scope</span> option in the <a href="86744.htm" title="The MTL Compiler Control dialog provides a graphical user interface for running the MTL compiler.">compiler control dialog</a>
+						or using the <code>-lvs</code> compiler switch.</p></li>
+				<li>Optionally, variables can behave like in standard C, preserving their values from one loop
+					iteration to the next.<p>To get this behavior, choose the <span class="uicontrol">Extend Variable
+							Scope</span> option in the <a href="86744.htm" title="The MTL Compiler Control dialog provides a graphical user interface for running the MTL compiler.">compiler control dialog</a> or use
+						the <code>-evs</code> compiler switch.</p></li>
+			</ul><p>To see the effect of the two different behaviors, consider this code
+				snippet:</p><pre class="prettyprint linenums copyable">myVar = 0
+for(x=0; x&lt;10; x += 1)
+{
+  myVar += 1;
+}</pre><p>With
+				the default (limited scope) behavior, <span class="keyword">myVar</span> has the value 1 in each of the
+				ten loop iterations.</p><p>With the standard C behavior (extended scope), the value of
+					<span class="keyword">myVar</span> changes in each iteration: 1, 2, 3, 4, ...</p></section>
+		<section class="section"><h2>Counted match loops</h2><p>For more information about counted match loops, see
+					<a href="114614.htm" title="Match loops are specialized loop constructs in the device access file or program file. Match loops are functionally equivalent to repeat...until loops with an upper limit of how often they can be repeated.">Counted match loops</a>.</p><p>For the usage of counted match loops in the program file, see
+				the Example below.</p><div class="note"><span class="title">Note</span> Do not use loop dependent variables in the count
+				expression for counted match loops in the program file.</div></section>
+		<h2>Syntax</h2><div class="syntax"><p><code>For</code> loops and counted match loops in MTL use the standard C
+				syntax.</p></div>
+		<h2>Examples</h2><div class="example"><h3>for
+				loops</h3><pre class="prettyprint linenums copyable">for (i = 0; i &lt; maxTest; i += 2)
+{
+<span class="keyword">...</span>  # any code here
+}</pre><p>Correct
+				nested
+				loop:</p><pre class="prettyprint linenums copyable">for (i = 0; i &lt; 100; i += 1)
+{
+  for (j = 0; j &lt; 10; j += 1)
+  {
+<span class="keyword">...</span>
+  }
+}</pre><p>Incorrect
+				nested
+			loop:</p><pre class="prettyprint linenums copyable">for (i = 0; i &lt; 100; i += 1)
+{
+  for (j = 0; j &lt; i; j += 1) # Incorrect code: the inner
+  {                          # loop variable is compared
+    ...                      # with the outer loop variable
+  }
+}</pre></div>
+		<div class="example"><h3>Counted match
+				loops</h3><pre class="prettyprint linenums copyable">countedMatch (10) // countedMatchWithBreak(n) for counted match loops with a break. 
+{
+  MATCH_WRITE_DQ (xAddr, yAddr, DW);
+}</pre><div class="note"><span class="title">Note</span> Do not use counted match loops in the APG program file and device access file at the
+				same time.</div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="114614.htm" title="Match loops are specialized loop constructs in the device access file or program file. Match loops are functionally equivalent to repeat...until loops with an upper limit of how often they can be repeated.">Counted match loops</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 2.6.6: Reference to match loops added</li><li>MTP 3.4.1: Support counted match loops in the APG program file.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102610</span><script type="text/javascript">var ti='102610';var tt='Loops'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The high-speed DQ bus of an XDR memory device shows some remaining timing/skew, that is, the timing of input and output edges varies from pin to pin, because of the different line length within the device without any timing correction/compensation. Both write and read operations on the DQ bus are therefore unreliable. In actual applications, a separate memory-controller device compensates for this problem (using a process known as FlexPhase adjustment). During testing of the memory device, the test system itself must compensate for this problem using the EyeFinder."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>EyeFinder theory of operation</title><meta name="keywords" content="Eye, Finder"></head><body id="_79388"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 79388</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">EyeFinder theory of operation</h1>
+	
+	
+	<div><p>The high-speed DQ bus of an XDR memory device shows some remaining timing/skew, that is,
+		the timing of input and output edges varies from pin to pin, because of the different line length
+		within the device without any timing correction/compensation. Both write and read operations on
+		the DQ bus are therefore unreliable. In actual applications, a separate memory-controller device
+		compensates for this problem (using a process known as FlexPhase adjustment). During testing of
+		the memory device, the test system itself must compensate for this problem using the
+		EyeFinder.</p>
+		<p>The test system compensates for timing skew by means of a calibration process which (1)
+			collects timing data on the DUT input and output pins, and (2) makes compensating adjustments to
+			the timing of the test system's drive and receive edges. The EyeFinder test method performs this
+			calibration. The calibration is DUT-specific; it must be performed each time another device is
+			loaded for testing. </p>
+		<p>The term "eye" refers to the passing region of a pass/fail Shmoo plot. In the plot, the
+			drive-edge timing varies along the X axis and the receive-edge timing varies along the Y axis.
+			Somewhere in the plot will be a region (known as the eye) in which the DUT consistently passes.
+			In the example plot below, the bright green region (representing a 100% passing rate) is the eye.
+			The X/Y coordinates of the center of the eye represent the best possible timing offsets for the
+			drive and receive edges. Note that the eye (where the test is passing) is not centered at or near
+			(0,0), but the test is initially performed at the test point (0,0). Therefore, if the DUT is
+			tested with no timing adjustments for the drive and receive edges, it would never pass: </p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="79321.png" alt="&#34;Eye&#34; in pass/fail data">
+			</figure></div>
+		<p>The EyeFinder collects pass/fail data for different X/Y values, identifies the X/Y coordinates
+			for the center of the eye, and downloads these values as edge-timing offsets to the system
+			hardware, so that they can be applied during subsequent testing of the DUT.</p>
+		<p>Place an EyeFinder test suite at the start of the test flow, so that a calibration is run on
+			each new DUT; the appropriate timing offsets will be applied during the rest of the test flow. </p>
+		<p>The effect of the calibration is illustrated by the Shmoo plot below; the passing region is now
+			centered on (0,0) and has cleaner edges, because the calibration is correcting for skew
+			effects:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="79465.png" alt="Effect of EyeFinder calibration">
+			</figure></div>
+		<section class="section"><h2>The calibration process</h2><div class="p"><figure class="fignone">
+					
+					<img src="102276.png" alt="EyeFinder algorithm">
+				</figure></div><p>The EyeFinder calibrates first the output and then the input, as described
+				below.</p><ol>
+				<li><strong>Output calibration</strong>: First, the EyeFinder measures the pin-to-pin timing variations of
+					the DUT outputs using the output pins as both setup and result pins.<p>To do so, it loads a
+						data sequence from the WDSL pattern specified as the vector label in the EyeFinder test suite
+						(a standard training pattern for XDR devices) into the DUT's memory cells, so that the
+						sequence can then be read on the DUT output pins.</p>
+					<p>Because the high-speed DQ bus cannot be used reliably for read and write operations until
+						the EyeFinder calibration has been performed, the data sequence is loaded by way of the DUT's
+						low-speed serial bus instead (the timing accuracy of which is not critical).</p></li>
+				<li>The EyeFinder instructs the DUT to send the data sequence (1s and 0s) to its output
+					pins.</li>
+				<li>The test system reads the outputs on the DQ bus, varying the timing of the test system
+					receive edges in order to determine when the 0-to-1 and 1-to-0 transitions are occurring on the
+						outputs.<p>The varying of the timing follows this algorithm (see <a href="79390.htm">Using EyeFinder</a> for an
+						overview of the available parameters):</p><ol type="a">
+						<li>To find the lower edge of the eye, the EyeFinder performs a linear search from
+								<span class="keyword">out_start</span> to <span class="keyword">out_stop</span> in steps of
+								<span class="keyword">out_step</span> ps. </li>
+						<li>When the EyeFinder finds a fail-pass transition between two measurements, it performs a
+							binary search between those two to position the edge more precisely. The binary search ends
+							when the search steps have reached the size specified in <span class="keyword">resolution</span>.</li>
+						<li>To find the upper edge, the EyeFinder repeats the same process from
+								<span class="keyword">out_stop</span> to <span class="keyword">out_start</span> (that is, in the opposite
+							direction).</li>
+						<li>The EyeFinder calculates the vertical center of the eye from the two edges found.<p>The
+								search and results determination are performed using the <a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR</a>
+								and <a href="98724.htm" title="The RSSR? query returns the result of a parallel search previously executed by EXSR for selected pins. The search is identified by the search set number.">RSSR?</a> firmware commands; the timing specs are updated from
+								the results using <a href="98764.htm" title="The SVLR command sets a base (spec) variable to the supplied value and recalculates the timing or levels. The value must be within the minimum and maximum range specified in the given spec set. The new values are activated at the start of the next functional test. Note that SVLR does not change the setup value of the spec variable. The previous modifications are reset to the setup values when you make a new one.">SVLR</a>.</p>
+							<p>Edge searches and center calculations are performed independently for each pin and the
+								results stored as calibration offsets to the standard timing.</p>
+							<p>After this process, the DUT output timing is calibrated. The DQ bus can be reliably read
+								from, but it still cannot be reliably written to, because the input side of the DUT is not
+								yet calibrated.</p></li>
+					</ol></li>
+				<li><strong>Input calibration</strong>: To calibrate the DUT input, the test system applies the pattern
+					specified in the <span class="keyword">pattern</span> parameter of the EyeFinder test method, using the
+					input pins as setup pins and the output pins as result pins.</li>
+				<li>The EyeFinder instructs the device to send the data pattern that it received to its output
+					pins (which can now be read reliably).</li>
+				<li>The test system reads the outputs, varying the timing of the test system drive edges in
+					order to determine when the transitions are occurring on the inputs.<p>The varying of the
+						timing follows this algorithm (see <a href="79390.htm">Using EyeFinder</a> for an overview of the available
+						parameters):</p><ol type="a">
+						<li>To find the left edge of the eye, the EyeFinder performs a linear search from
+								<span class="keyword">in_start</span> to <span class="keyword">in_stop</span> in steps of
+								<span class="keyword">in_step</span> ps. </li>
+						<li>When the EyeFinder finds a fail-pass transition between two measurements, it performs a
+							binary search between those two to position the edge more precisely. The binary search ends
+							when the search steps have reached the size specified in <span class="keyword">resolution</span>.</li>
+						<li>To find the right edge, the EyeFinder repeats the same process from
+								<span class="keyword">in_stop</span> to <span class="keyword">in_start</span> (that is, in the opposite
+							direction).</li>
+						<li>The EyeFinder calculates the horizontal center of the eye from the two edges found.<p>The
+								search and results determination are performed using the <a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR</a>
+								and <a href="98724.htm" title="The RSSR? query returns the result of a parallel search previously executed by EXSR for selected pins. The search is identified by the search set number.">RSSR?</a> firmware commands; the timing specs are updated from
+								the results using <a href="98764.htm" title="The SVLR command sets a base (spec) variable to the supplied value and recalculates the timing or levels. The value must be within the minimum and maximum range specified in the given spec set. The new values are activated at the start of the next functional test. Note that SVLR does not change the setup value of the spec variable. The previous modifications are reset to the setup values when you make a new one.">SVLR</a>.</p>
+							<p>Edge searches and center calculations are performed independently for each pin and the
+								results stored as calibration offsets to the standard timing.</p></li>
+					</ol></li>
+			</ol><p>At this point, the calibration process is completed for both the output and input sides
+				of the DUT, and the test system can write to and read from the DUT's DQ bus reliably.
+				</p><p>Optionally, you can specify that the output-side calibration should be repeated at the
+				end (this time with the pattern that was used for the input side calibration), but this option
+				is included only for the sake of backwards-compatibility with previous versions of this test
+				method. It is not necessary to exercise this option, and doing so will not make the calibration
+				more accurate.</p><p>The process is performed either in software on the controller workstation
+				or in hardware in the test processor, depending on the setting of the
+					<span class="keyword">TrainingAlgorithm</span> test method parameter:</p><ul>
+				<li>If <span class="keyword">TrainingAlgorithm</span> is <span class="keyword">SpecTraining</span>: The process is
+					performed on the workstation.</li>
+				<li>If <span class="keyword">TrainingAlgorithm</span> is <span class="keyword">EmbeddedTraining</span>: The process
+					is performed on the test processor.</li>
+			</ul><p>Embedded training requires an HSM3G or HSM6800 card. If you test on one of these cards,
+				we recommend that you use embedded training for improved performance and support for parallel
+				operation.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: Training can now run embedded on the test processor</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 79388</span><script type="text/javascript">var ti='79388';var tt='EyeFinder theory of operation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

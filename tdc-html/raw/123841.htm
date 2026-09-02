@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Configuring read parameters</title></head><body id="_123841"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123841</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Configuring read parameters</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This task describes the modifications of the read parameters you need to carry out in
+				your protocol file, for example <span class="filepath">d2sJTAG.h</span> .</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Rename the <span class="filepath">d2sSerialProtocolTemplate.h</span> template to reflect your
+				protocol, for example <span class="filepath">d2sJTAG.h</span> .</p><p>Configure the general parameters as
+				described in <a href="123830.htm">Configuring general parameters</a>.</p><p>Configure the write parameters as described in <a href="123839.htm">Configuring write parameters</a>.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Replace the read template pattern name ("<code>d2s_sbiA_read_template</code>") to match
+					your pattern name (1).</span>
+				<div><div class="note"><span class="title">Note</span> The numbers in brackets() refer to the corresponding number in the
+						figure below.</div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Replace the read address pin name ("<code>di_A</code>") to match your read address pin
+					name (2).</span>
+			</li><li class="stepexpand">
+				<span>Replace the read pin name ("<code>do_A</code>") to match your read (data out) pin name
+					(3).</span>
+			</li><li class="stepexpand">
+				<span>Enter the read address' MSB and LSB vector number (4).</span>
+			</li><li class="stepexpand">
+				<span>Enter the read data's MSB and LSB cycle number (5).</span>
+				<div><div class="note"><span class="title">Note</span> These numbers are used to read from the error map, thus it has to be
+						cycle-based.</div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Enter the read data's MSB and LSB vector number (6).</span>
+				<div><div class="note"><span class="title">Note</span> These numbers are to prepare the template label for expect values and
+						the read operation.</div><div class="p"><figure class="fignone">
+							
+							<img src="123855.png" alt="Configuring d2s read parameter">
+						</figure></div>
+				</div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The above modifications are highlighted in bold in this <span class="filepath">d2sJTAG.h</span>
+				file
+			example.</p><pre class="prettyprint linenums copyable">#ifndef D2SSERIALPROTOCOLTEMPLATE_H_
+#define D2SSERIALPROTOCOLTEMPLATE_H_
+#include "d2s_Serial.h"
+
+class d2sSerialProtocolTemplate : public d2s_Serial{
+private:
+    d2sJTAG(std::string pName):d2s_Serial(pName){};
+    d2sJTAG(const d2sJTAG&amp;);
+    d2sJTAG&amp; operator= (const d2sJTAG&amp;);
+
+public:    
+    //singleton
+    static d2sJTAG&amp; Instance(){
+        static d2sJTAG instance("my_d2sPort");
+        d2sJTAG&amp; ref = instance;
+        return ref;
+    }
+    
+    /*general parameters*/
+    int getAddressBits(){ return 6;}
+    int getDataBits(){ return 16;}
+    int getHighWaveformIndex(){ return 1;}
+    int getLowWaveformIndex(){ return 0;}
+    int getHighStrobeWaveformIndex(){ return 3;}
+    int getLowStrobeWaveformIndex(){ return 2;}
+    int getMaskStrobeWaveformIndex(){ return 4;}
+    std::string getInterfaceName(){ return "my_PA";}
+    std::string getPatternStoragePath() { return "d2s/my_sbiA"; }
+
+
+    /*write parameters*/
+    std::string getWriteTemplatePatternName(){ return "d2s_simple_write_templ";}
+    std::string getWritePinName() { return "di_A";}
+    int getWriteAddressVectorNumberLSB(){ return 8;}
+    int getWriteAddressVectorNumberMSB(){ return 3;}
+    int getWriteDataVectorNumberLSB(){ return 24;}
+    int getWriteDataVectorNumberMSB(){ return 9;}
+
+    /*read parameters*/
+    // step 1
+    std::string getReadTemplatePatternName(){ return "<strong>d2s_simple_read_templ</strong>";}
+
+    // step 2
+    std::string getReadAddressPinName() { return "<strong>di_A</strong>";}
+
+    // step 3
+    std::string getReadPinName() { return "<strong>do_A</strong>";}
+
+    // step 4
+    int getReadAddressVectorNumberLSB(){ return <strong>8</strong>;}
+    int getReadAddressVectorNumberMSB(){ return <strong>3</strong>;}
+
+    // step 5
+    int getReadDataCycleNumberLSB(){ return <strong>24</strong>;}
+    int getReadDataCycleNumberMSB(){ return <strong>9</strong>;}
+
+    // step 6
+    int getReadDataVectorNumberLSB(){ return <strong>24</strong>;}
+    int getReadDataVectorNumberMSB(){ return <strong>9</strong>;} 
+    
+    /*wait parameters*/
+    std::string getTimingPort(){ return "@";}
+    std::string getWaitTemplatePatternName(){ return "d2s_sbiA_wait_template";}
+};
+
+#endif</pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p><a href="123840.htm">Configure your wait parameters.</a></p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="124495.htm" title="The d2sFramework provides classes and member functions to generate multiport burst pattern and to execute register transactions. These member functions can be categorized in general and transaction port specific member functions.">d2sFramework API</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123841</span><script type="text/javascript">var ti='123841';var tt='Configuring read parameters'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PS1600 PPMU AWG Channel Assignment Considerations</title><meta name="keywords" content="parametric measurement unit per-pin PMU Pin Scale 1600 PinScale 1600, PS, 1600"></head><body id="_342968"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 342968</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PS1600 PPMU AWG Channel Assignment Considerations</h1>
+		
+	<div>
+		<p>	Khaled Ben-Fatma, Advantest</p>
+		<p>Paper-ID: 342968, July 2017</p>
+		<section class="section"><h2>Abstract</h2>
+			<p>The PS1600 per-pin parametric measurement unit (PPMU) can be used as an arbitrary waveform
+				generator (AWG) supporting both voltage and current waveforms.</p>
+			<p>The effective sample rate of the PPMU depends on the settling time of the instrument. The
+				maximum AWG sample rate is set to 150 ksps (75 ksps if differential pin-pair PPMUs are used in
+				parallel).</p>
+			<p>For best AWG performance certain considerations need to be followed. In addition to the
+				required settling time you need to consider recommendations with regard to the DUT board when
+				assigning DUT pins to digital channels that will be used as AWG sources. These are described in
+				this paper.</p>
+		</section>
+		<section class="section"><h2>PPMU Voltage Reprogramming</h2>
+			
+			<p>Each time the PPMU level is reprogrammed the settling time of the instrument must be
+				considered. The settling time consists of the PPMU reprogramming time plus the time required to
+				reach the target level. During the PPMU reprogramming phase glitch detection/correction is
+				applied in order to avoid large glitches. </p>
+			<figure class="fignone">
+				
+				<img src="342975.jpg" alt="Figure 1: PPMU settling time">
+			</figure>
+			<p>Figure 1: PPMU settling time</p>
+					<p>At the same time the de-glicher circuitry attempts to hold the output voltage at a constant
+				level. Nevertheless, voltage variations or overshoots in the order of several mV can still occur
+				and can last for up to <strong>4 us</strong> (8 us if differential pin-pair PPMUs are used in parallel).</p>
+		</section>
+		<section class="section"><h2>Channel Assignment Considerations</h2>
+			
+			<p>Voltage variations can occur on all channels but only within the settling time of the PPMU as
+				allowed by the PPMU specification. Once the PPMU has settled the output voltage is very stable. </p>
+			<p>During the PPMU reprogramming phase the <strong>positive</strong> channels in a differential pin-pair
+				(xxx01, xxx02, xxx05, xxx06, xxx09, xxx10, xxx13, xxx14) show better behavior than the
+					<strong>negative </strong>channels (xxx03, xxx04, xxx07, xxx08, xxx11, xxx12, xxx15, xxx16) when the
+				programmed voltage step size is below 20mV: 
+			</p>
+				<ul>
+							<li>On the <strong>positive</strong> channels the voltage variation is very small (typically below 4 mV
+								relative to the original level) and overshoots may not occur during the PPMU reprogramming
+								phase. </li>
+							<li>On the <strong>negative</strong> channels overshoots can reach up to around <strong>20 mV </strong>(relative
+					to the original level). These overshoots do not appear if the incremental step size is positive
+					and close to, or greater than, 20 mV. </li>
+				</ul>
+			<p>For step sizes greater than 20mV no differences have been observed. </p>
+			<p><a href="342968.htm#_342968__Figure2">Figure 2</a> to 7 compare positive and negative channels for step sizes
+				above and equal to 20 mV, while <a href="342968.htm#_342968__Figure8">Figure 8</a> to 13 compare positive and
+				negative channels for step sizes below 20 mV. </p>	
+		</section>
+	 <section class="section"><h2>Conclusions and Recommendations</h2>
+			
+				<p>These recommendations are to be observed only if	you need to program analog waveforms using the 
+					PS1600 PPMU AWG with step sizes below 20 mV. When	assigning DUT pins to digital channels try to 
+					avoid assigning pins to negative channels that will	be used as PPMU AWG with step sizes below 20 mV. 
+					Use positive channels instead. </p>
+				<p>If you still need to use negative channels then follow the recommendations outlined below to
+					achieve best linearity performance: </p>
+			<ul>
+					<li>Sample around the transient period: that is, synchronize the DUT timing with the PPMU
+						waveform such that DUT A/D conversions do not occur during the transient period (the PPMU
+						reprogramming time plus the settling time) but rather after the settling time for each PPMU
+						step.</li>
+					<li>If the DUT needs to sample the waveform at a faster rate and you cannot avoid the transient
+						period then simply discard the samples that fall at the start of each PPMU step and use the
+						remaining samples.</li>
+					<li>Use filters to remove the high frequency portion of the signal. </li>
+			</ul> 
+	 </section>	
+			<section class="section"><h2>Figures</h2>
+					
+					<p>Voltage staircase waveform: comparing positive channels (on the left left) and negative
+				channels (on the right)  for different step sizes. </p>
+			<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<img id="_342968__Figure2" src="342980.jpg" alt="Figure 2 - Positive channel, 200mV steps">
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<img src="342981.jpg" alt="Figure 3 - Negative channel, 200mV steps">
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">Figure 2 - Positive channel, 200mV steps</td>
+							<td class="colsep-0 rowsep-0">Figure 3 - Negative channel, 200mV steps</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><img src="342983.jpg" alt="Figure 4 - Positive channel, 100mV steps">
+							</td>
+							<td class="colsep-0 rowsep-0"><img src="342984.jpg" alt="Figure 5 - Negative channel, 100mV steps">
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">Figure 4 - Positive channel, 100mV steps</td>
+							<td class="colsep-0 rowsep-0">Figure 5 - Negative channel, 100mV steps</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">
+								<img src="342986.jpg" alt="Figure 6 - Positive channel, 20mV steps">
+							</td>
+							<td class="colsep-0 rowsep-0">
+								<img src="342987.jpg" alt="Figure 7 - Positive channel, 20mV steps">
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">Figure 6 - Positive channel, 20mV steps</td>
+							<td class="colsep-0 rowsep-0">Figure 7 - Negative channel, 20mV steps</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><img id="_342968__Figure8" src="342988.jpg" alt="Figure 8 - Positive channel, 10mV steps"></td>
+							<td class="colsep-0 rowsep-0"><img src="342989.jpg" alt="Figure 9 - Negative channel, 10mV steps"></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">Figure 8 - Positive channel, 10mV steps</td>
+							<td class="colsep-0 rowsep-0">Figure 9 - Negative channel, 10mV steps</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><img src="342990.jpg" alt="Figure 10 - Positive channel, 5mV steps"></td>
+							<td class="colsep-0 rowsep-0"><img src="342991.jpg" alt="Figure 11 - Negative channel, 5mV steps"></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"> Figure 10 - Positive channel, 5mV steps</td>
+							<td class="colsep-0 rowsep-0"> Figure 11 - Negative channel, 5mV steps</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><img src="342992.jpg" alt="Figure 12 - Positive channel, 1mV steps"></td>
+							<td class="colsep-0 rowsep-0"><img src="342993.jpg" alt="Figure 13 - Negative channel, 1mV steps"></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">Figure 12 - Positive channel, 1mV steps</td>
+							<td class="colsep-0 rowsep-0">Figure 13 - Negative channel, 1mV steps</td>
+						</tr>
+					</tbody></table>
+			</section>
+		</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 342968</span><script type="text/javascript">var ti='342968';var tt='PS1600 PPMU AWG Channel Assignment Considerations'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

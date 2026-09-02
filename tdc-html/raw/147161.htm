@@ -1,0 +1,126 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Smart Scale test system has BNC (Bayonet Neill-Concelman) connectors for the DC-rail of each card cage, while the EXA Scale test system has a DSUB-9 connection on the front panel for an Ext. DC-rail. This allows connecting the Keysight 3458A Digital Multimeter (DMM) to the V93000 and doing high-accuracy voltage measurements through utility pogo pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Direct DMM high-accuracy voltage measurements via utility pogo block</title></head><body id="_147161"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 147161</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Direct DMM high-accuracy voltage measurements via utility pogo block</h1>
+	
+	
+	<div><p>The <span> Smart Scale</span> test system has BNC (Bayonet
+		Neill-Concelman) connectors for the DC-rail of each card cage<span>, while the EXA Scale test system has a DSUB-9 
+			connection on the front panel for an Ext. DC-rail</span>. This allows connecting the Keysight
+		3458A Digital Multimeter (DMM) to the V93000 and doing high-accuracy voltage measurements through
+		utility pogo pins.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>To force a voltage and measure it with a digital multimeter (DMM), requires integrating the DMM
+				in the model file, defining  pins for the measurement, and
+				setting up a test method.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div>
+			<p>These high-accuracy voltage measurements require the Agilent 3458A Digital
+				Multimeter (DMM). On Smart Scale test systems, the DMM must be connected to the card cage of the
+				utility pogo pins to be used for the measurement. On the EXA Scale test system, the DMM must be
+				connected at the front panel of the System control board (marked "Ext. DC-rail").</p>
+			<div class="p">
+				<table class="frame-topbot"><caption><span>Utility pin names</span></caption><colgroup><col><col></colgroup><thead>
+							<tr class="rowsep-1">
+								<th class="colsep-0 rowsep-0" id="_147161__entry__1">
+									<p>Pin name</p>
+								</th>
+								<th class="colsep-0 rowsep-0" id="_147161__entry__2">
+									<p>Function</p>
+								</th>
+							</tr>
+						</thead><tbody>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__1">
+									<p>PDCS</p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__2">
+									<p>High-sense</p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__1">
+									<p>PDCF</p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__2">
+									<p>High-force</p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__1">
+									<p>PGDS</p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__2">
+									<p>Low-sense</p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__1">
+									<p>PGRD</p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__2">
+									<p>Low-force (GND)</p>
+								</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__1">PGND</td>
+								<td class="colsep-0 rowsep-0" headers="_147161__entry__2">Ground / return (EXA Scale test systems only)</td>
+							</tr>
+						</tbody></table>
+			</div>
+			<p>For additional details, see <a href="136717.htm" title="The A-test head fitted with the DUT Scale interface uses an active wiring board to generate utility lines.">Utility pogo block - ATH DUT Scale interface</a>, <a href="127828.htm" title="The compact test head fitted with the DUT Scale interface uses an active wiring board to generate utility lines.">Utility pogo block - CTH DUT Scale interface</a>, <a href="128358.htm" title="The small test head system fitted with the DUT Scale interface uses an active wiring board to generate utility lines.">Utility pogo block - STH DUT Scale interface</a>, <a href="74858.htm" title="The large test head system uses an active wiring board to generate utility lines.">Utility pogo block - LTH large DUT interface</a><span> for Smart Scale test systems, and <a href="347642.htm" title="V93000 EXA Scale systems can be equipped with the optional Utility Card (EK051A) that provides 256 dynamically controlled utility lines and several utility power supplies per card. The 256 utility lines and the utility power supplies are routed to eight 4-row utility pogo blocks.">Utility pogo block - Utility Card (V93000 EXA Scale systems)</a> for EXA Scale test systems</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2>
+			</section>
+		<section class="section"><h3>Modifying the model file</h3><p>To integrate the DMM in the <a href="55954.htm" title="The model file contains the tester hardware configuration. It specifies what test head cards are installed, their features, and the mapping of these cards to pogo pins on the DUT board interface. It also specifies the reference clock signal for the test system. SmarTest needs this information in order to set the configuration and features of the test system resources for your addressed tests.">model file</a> you need to specify the GPIB interface (hpib_interface) in the
+				GLOBAL section and add a DMM section:</p><ol>
+					<li>In the <a href="56406.htm" title="In the GLOBAL section of the model file you define what kind of system is used and what features are available system-wide.">GLOBAL section</a> type, for
+					example:<div></div><pre class="prettyprint linenums copyable">GLOBAL
+...
+  hpib_interface = vxi11/192.168.0.100/gpib0
+...</pre></li>
+				<li>To add the <a href="102452.htm" title="In the DMM section of the model file you specify digital multimeters, as they are required for focus calibration.">DMM section</a> type, for
+					example:<div></div><pre class="prettyprint linenums copyable">DMM
+  1: cardcage=1, type=HP3458A, address=22 
+...</pre><div></div>
+					<div class="note"><span class="title">Note</span> For EXA Scale test systems the "cardcage=X" should be omitted.</div></li>
+				<li>Save the model file and restart SmarTest. </li>
+			</ol></section>
+		<section class="section"><h3>Defining the <span>Utility DC</span>pins</h3>
+			<p>To access the DMM via the utility pogo pins, you need to define <span>Utility DC</span>
+				pins in the <span class="uicontrol">Digital Pins</span> configuration tool:</p><ol>
+				<li>According to your design of the DUT board you have already selected the utility block where
+					your <span>Utility DC</span> measurement will be
+					connected to the DUT (On EXA Scale test systems, you can connect the DC-rail only to utility
+					block 1).</li>
+					<li>The naming of the <span>Utility DC</span> tester channel is 
+						"<span>UTIDC</span>" + utility block number. </li>
+			</ol></section>
+		<section class="section"><h3>Setting up the test method</h3><p>In the test method, set up the utility connections and measurement parameters and execute the
+					<a href="147181.htm" title="The DVM_TASK class is a data container for high-accuracy direct voltage measurements (DVM) via utility pogo pins using the Keysight Technologies 3458A Multimeter.">DVM_TASK</a>.<span>
+					In this example, for a Smart Scale test systems, the EXT and the DUT relay on the clock board
+					are closed by setting <span class="keyword">dc_target</span> to <span class="keyword">EXT</span> in <a href="74898.htm" title="This class is a data container holding the setting for digital pins or digital inputs of DC Scale cards.">FLEX_PIN_RELAY</a> (see <a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC, RLYC? - (ReLaY Control)</a> for details).</span></p><p>For example:</p><pre class="prettyprint linenums copyable">DVM_TASK   measDVM;
+FLEX_RELAY connectDVM, disconnectDVM;
+TASK_LIST  taskList;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    connectDVM.pin   ("Utility_Pogo_1").set("X","<span>EXT</span>");
+    disconnectDVM.pin("Utility_Pogo_1").set("X","<span>OFF</span>");
+
+    measDVM.pin("Utility_Pogo_1")
+           .doAcal(TM::DO_ACAL_IF_NECESSARY);
+
+    taskList.add(connectDVM)
+            .add(measDVM)
+            .add(disconnectDVM)
+            .execute();
+
+ON_FIRST_INVOCATION_END();
+
+ARRAY_D result = measDVM.getValues("Utility_Pogo_1");
+
+for ( int i = 0; i &lt; result.size(); ++i )
+{
+    cout &lt;&lt; "Measured Value: " &lt;&lt; result[i] &lt;&lt; endl;
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="55954.htm" title="The model file contains the tester hardware configuration. It specifies what test head cards are installed, their features, and the mapping of these cards to pogo pins on the DUT board interface. It also specifies the reference clock signal for the test system. SmarTest needs this information in order to set the configuration and features of the test system resources for your addressed tests.">The model file</a></div><div><a href="147181.htm" title="The DVM_TASK class is a data container for high-accuracy direct voltage measurements (DVM) via utility pogo pins using the Keysight Technologies 3458A Multimeter.">DVM_TASK</a></div><div><a href="147187.htm" title="The DVM_PIN_TASK class is a data container holding the object reflecting the setup data for high-accuracy direct voltage measurements (DVM) using a digital multimeter (DMM).">DVM_PIN_TASK</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.2</li><li>SmarTest 7.10.2: Support for EXA Scale test systems added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 147161</span><script type="text/javascript">var ti='147161';var tt='Direct DMM high-accuracy voltage measurements via utility pogo block'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

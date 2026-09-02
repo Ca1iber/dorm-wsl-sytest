@@ -1,0 +1,152 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section describes how to use the session info API."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to use session info API</title></head><body id="_103783"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 103783</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to use session info API</h1>
+	
+	
+	<div><p>This section describes how to use the session info API.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The client using HVM session info API is independent of SmarTest versions.
+			</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Get the HVM session info API release package
+					<kbd class="userinput">hvmapi-1.0.0-0.el7.x86_64.rpm.</kbd></p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>To install the HVM session info API, change to the directory where the release package
+					locates and enter the following command in the command line:</span>
+				<div><p><kbd class="userinput">$ rpm -i </kbd><span class="filepath">hvmapi-1.0.0-0.el3.i386.rpm</span></p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Create your daemon C/C++ program with the APIs. </span>
+				<div><p>You can find the example program in the directory
+							<span class="filepath">/opt/hp93000/soc_hvmapi/examples</span>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Build your client program like any ordinary C++ program. Use a <code>makefile</code> or
+					other tools to build the program. For example, you use a <code>makefile</code>, change to
+					your program directory and type in <kbd class="userinput">make</kbd> in the Linux command line to
+					build your program. </span>
+				<div><p>You can find the example <code>makefile</code> in the directory
+							<span class="filepath">/opt/hp93000/soc_hvmapi/examples</span>.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Execute the client.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The client will monitor the SmarTest session information and execute the functions
+				defined. </p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following code reports the current active SmarTest
+			session.</p><pre class="prettyprint linenums copyable">#include &lt;xoc/hvmapi/hvmapi.hpp&gt;"
+#include &lt;iostream&gt;
+#include &lt;unistd.h&gt;
+ 
+using namespace std;
+using namespace ::xoc::hvmapi;
+ 
+ 
+int main(int argc, char **argv) 
+{
+ 
+  cout &lt;&lt; "New Session Detector is running..." &lt;&lt; endl &lt;&lt; endl;
+ 
+  ParamList outParams;
+  Status retObj;
+ 
+  vector&lt;string&gt; sessionIdList;
+  vector&lt;string&gt; activeSessionIdList;
+  vector&lt;string&gt; lastActiveSessionIdList;
+  vector&lt;string&gt; lifeStatusList;
+  bool isNewSession = true;
+ 
+  // daemon runs 24x7
+  while(true)
+  {
+    // list SmarTest session ids
+    retObj = query("PingSmartestSessions", outParams);
+    if(retObj.isSuccess())
+    {
+      sessionIdList = outParams.valueArray("SESSION_ID_LIST");
+      lifeStatusList = outParams.valueArray("LIFE_STATUS_LIST");
+ 
+      // filter the active session ID list
+      activeSessionIdList.clear();
+      for(unsigned int i=0; i&lt;lifeStatusList.size(); i++)
+      {
+        if(lifeStatusList.at(i) == "ACTIVE")
+        {
+          activeSessionIdList.push_back(sessionIdList.at(i));
+        }
+      }
+ 
+      // active session list change detect
+      if(activeSessionIdList != lastActiveSessionIdList)
+      {
+        // display current session ID list each time session list changes
+        if(!activeSessionIdList.empty())
+        {
+          cout &lt;&lt; endl &lt;&lt; "********************************************" &lt;&lt; endl;
+          cout &lt;&lt; "current active smartset session id list:" &lt;&lt; endl;
+          for(vector &lt;string&gt;::iterator it=activeSessionIdList.begin();
+              it!= activeSessionIdList.end(); it++)
+          {
+            cout &lt;&lt; *it &lt;&lt; endl;
+          }
+          cout &lt;&lt; endl &lt;&lt; "********************************************" &lt;&lt; endl;
+        }
+        else
+        {
+          cout &lt;&lt; endl &lt;&lt; "********************************************" &lt;&lt; endl;
+          cout &lt;&lt; "no active SmarTest session." &lt;&lt; endl;
+          cout &lt;&lt; endl &lt;&lt; "********************************************" &lt;&lt; endl;
+        }
+ 
+        for(unsigned int i = 0; i &lt; activeSessionIdList.size(); i++)
+        {
+          isNewSession = true;
+          for(unsigned int j = 0; j &lt; lastActiveSessionIdList.size(); j++)
+          {
+            if(activeSessionIdList[i] == lastActiveSessionIdList[j]) 
+            {
+              isNewSession = false;
+              break;
+            }
+          }
+          // display session profile for each new active session
+          if(isNewSession)
+          {
+            cout &lt;&lt; endl &lt;&lt; "New session \"" &lt;&lt;activeSessionIdList.at(i)&lt;&lt;"\" detected." &lt;&lt; endl;
+            retObj = query("GetSmartestSessionProfile", outParams,
+                           ParamList(), activeSessionIdList.at(i));
+            if(retObj.isSuccess())
+            {
+              cout &lt;&lt; "session \"" &lt;&lt; activeSessionIdList.at(i)&lt;&lt;"\" profile:" &lt;&lt; endl;
+              cout &lt;&lt; "version: " &lt;&lt; outParams["VERSION"] &lt;&lt; endl;
+              cout &lt;&lt; "patch_level: " &lt;&lt; outParams["PATCH_LEVEL"] &lt;&lt; endl;
+              cout &lt;&lt; "online_mode: " &lt;&lt; outParams["ONLINE_MODE"] &lt;&lt; endl;
+              cout &lt;&lt; "user_mode: " &lt;&lt; outParams["USER_MODE"] &lt;&lt; endl;
+              cout &lt;&lt; "login_user: " &lt;&lt; outParams["LOGIN_USER"] &lt;&lt; endl;
+            }
+            else
+            {
+              cout &lt;&lt; "GetSmartestSessionProfile query faied" &lt;&lt; endl;
+              cout &lt;&lt; "-info: "&lt;&lt;retObj.text() &lt;&lt; endl;
+            }
+          }
+        }// for each activeSessionIdList
+      }
+ 
+    lastActiveSessionIdList = activeSessionIdList;
+    }
+    else
+    {
+      cout &lt;&lt; "PingSmartestSessions query faied" &lt;&lt; endl;
+      cout &lt;&lt; "-info: "&lt;&lt;retObj.text() &lt;&lt; endl;
+    }
+ 
+      usleep(200000);
+ 
+  }// while(true)
+ 
+  return 0;
+ 
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="95807.htm" title="This data query command acquires the life cycle of each SmarTest session that is visible.">PingSmartestSessions</a></div><div><a href="103782.htm" title="This is a data query command. It retrieves the profile information of the SmarTest session specified by session ID.">GetSmartestSessionProfile</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 103783</span><script type="text/javascript">var ti='103783';var tt='How to use session info API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

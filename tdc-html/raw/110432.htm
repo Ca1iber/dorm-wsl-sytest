@@ -1,0 +1,854 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The TMLimits class lets you control limits and test numbering in your testflow with data from a CSV file."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>TMLimits</title><meta name="keywords" content="TM, Limits"></head><body id="_110432"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 110432</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">TMLimits</h1>
+	
+	
+	<div><p>The <span class="keyword">TMLimits</span> class lets you control limits and test numbering in
+		your testflow with data from a CSV file.</p>
+		<section class="section"><p>This concept of storing important testflow parameters externally in a CSV file
+				provides greater flexibility and ease of use:</p><ul>
+				<li>You can easily switch between different testing modes or stages in the same
+					testflow for different situations. For example, you can use a looser set of
+					limits for wafer testing and a tighter one for quality control. These modes or
+					stages are selected using the <a href="110432.htm#_110432__dle_load">load()</a> function.</li>
+				<li>The settings in the CSV file can be easily edited even without access to
+					SmarTest, for example, using Open Office Calc or a standard text editor. This
+					allows you to make adaptations on the fly. </li>
+			</ul></section>
+		<section class="section"><h2>Setting the test mode</h2><p>The test mode can either be defined by the
+					<span class="keyword">TMLimit_TestMode</span> testflow variable or with the <a href="110432.htm#_110432__dle_setTestMode">setTestMode()</a> and <a href="110432.htm#_110432__dle_load">load(&lt;limitfile&gt;,&lt;mode&gt;)</a> member functions of
+					<span class="keyword">TMLimits</span>. Which setting is actually valid (which can be
+				checked with the <a href="110432.htm#_110432__dle_getTestMode">getTestMode()</a> member function) depends on
+				the change history of both access methods.</p><p>Generally, the test mode of the
+				testflow variable becomes valid if the following two conditions are both
+				satisfied:</p><ul>
+				<li>One of the following member functions of <span class="keyword">TMLimits</span> is called:<ul>
+						<li><a href="110432.htm#_110432__dle_getLimit">getLimit()</a>, <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, <a href="110432.htm#_110432__dle_getLimitObj">getLimitObj()</a></li>
+						<li><a href="110432.htm#_110432__dle_load">load()</a> (without parameters!).</li>
+					</ul></li>
+				<li>The current value of the variable is different from the value it had at the last
+					call of one of these member functions or of <a href="110432.htm#_110432__dle_setTestMode">setTestMode()</a>.</li>
+			</ul><p>In contrast, if the test mode is set with one of the member functions, the
+				specified test mode becomes valid always and immediately, even if the value of the
+				actual call equals that of the last call.</p><p>Note that this behavior holds across
+				multiple test flow executions. If the variable is set and the testflow is executed
+				for the first time, then its value will be the valid test mode until the first
+				change of the test mode within the testflow. But if the testflow is executed
+				repeatedly, the initial test mode of the later executions will depend on whether the
+				initial value of the testflow variable is different from its value at the end of the
+				previous execution. If it is, the value of the testflow variable will be the initial
+				valid test mode of the actual execution. If it is not, the test mode that was valid
+				at the end of the previous execution will be used as the first test mode of the
+				actual
+			execution.</p></section>
+		<section class="section"><h2>TMLimits within the SMC framework</h2>
+			<p>If you use TMLimits within the SMC framework together with background processing (as described in
+					<a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a>), the following rules must be observed:</p><ul>
+				<li>The functions <a href="110432.htm#_110432__dle_getLimit">getLimit()</a>, <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, and <a href="110432.htm#_110432__dle_getLimitObj">getLimitObj()</a> for retrieving data from the TMLimits table are threadsafe.</li>
+				<li>Ensure that the TMLimits table is loaded into the memory before calling <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>, for
+					example:<div></div><pre class="prettyprint linenums copyable">tmLimits.load("tmuVerify_limits.csv");
+SMC_ARM(XXX);</pre></li>
+				<li>Ensure that all required settings are done before an SMC background process is armed.</li>
+			</ul>
+			<div class="caution"><span class="title">CAUTION</span> You must not change or reload a TMLimits table while an SMC background
+				process is armed or running. Violating this rule may result in invalid data or the
+				crash of the test method.</div>
+		</section>
+		<div class="syntax"><h2>Class definition</h2>
+			<div class="note"><span class="title">Note</span> If you want to use the SmarTest implementation of TMLimits described
+				herein, declare the V93kLimits namespace in your test method with the statement
+					<code>using namespace V93kLimits;</code>.</div>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/TMLimits.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">Constructor</dt>
+					<dd><p>There is no constructor available for this class. You cannot create any
+							object of this class:</p>
+						<ul>
+							<li>To use the <span class="keyword">TMLimits</span> class, you must always use
+								the system-prepared class object <span class="keyword">tmLimits</span>.</li>
+							<li>To use the API, you need also to declare the using of
+									<span class="keyword">V93kLimits</span> namespace in your test method:
+								<div></div><pre class="prettyprint copyable singleline">using namespace V93kLimits;</pre></li>
+						</ul>
+					</dd>
+				
+				
+					<dt class="dlterm">Member functions</dt>
+					<dd>
+						<ul>
+							<li><a href="110432.htm#_110432__dle_clear">clear()</a></li>
+							<li><a href="110432.htm#_110432__dle_getInstance">getInstance()</a></li>
+							<li><a href="110432.htm#_110432__dle_getLimit">getLimit()</a></li>
+							<li><a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a></li>
+							<li><a href="110432.htm#_110432__dle_getLimitObj">getLimitObj()</a></li>
+							<li><a href="110432.htm#_110432__dle_load">load()</a></li>
+							<li><a href="110432.htm#_110432__dle_setTestMode">setTestMode()</a></li>
+							<li><a href="110432.htm#_110432__dle_getTestMode">getTestMode()</a></li>
+							<li><a href="110432.htm#_110432__dle_loadOnDemandAndReturnStatus">loadOnDemandAndReturnStatus()</a></li>
+							<li><a href="110432.htm#_110432__dle_setLookupKey">setLookupKey()</a></li>
+							<li><a href="110432.htm#_110432__dle_setDefaultLookupKeys">setDefaultLookupKeys</a></li>
+							<li><a href="110432.htm#_110432__dle_getLookupKey">getLookupKey()</a></li>
+						</ul></dd>
+				
+				
+					<dt class="dlterm" id="_110432__LimitInfo">TMLimits::LimitInfo</dt>
+					<dd><p><span class="keyword">TMLimits::LimitInfo</span> is a struct for limit
+							data:</p><table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">SuiteName</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The name of the test suite</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">TestName</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The name of the test</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">PinName</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The pins to which the test applies</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">TestNumber</span></td>
+										<td class="colsep-0 rowsep-0">int</td>
+										<td class="colsep-0 rowsep-0">The test number of the test</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">PassRegion</span></td>
+										<td class="colsep-0 rowsep-0">char</td>
+										<td class="colsep-0 rowsep-0">The pass region, used for part average testing: L, I,
+											H, or X</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">LslTyp</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The type of lower limit: GT, GE, or NA</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">UslTyp</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The type of upper limit: LT, LE, or NA</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">Lsl</span></td>
+										<td class="colsep-0 rowsep-0">double</td>
+										<td class="colsep-0 rowsep-0">The lower spec limit</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">Usl</span></td>
+										<td class="colsep-0 rowsep-0">double</td>
+										<td class="colsep-0 rowsep-0">The upper spec limit</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">Units</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The units for test results and spec limits</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">OffSet</span></td>
+										<td class="colsep-0 rowsep-0">DOUBLE</td>
+										<td class="colsep-0 rowsep-0">A value that is added to the test results before they
+											are compared to the limits</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">BinhNum</span></td>
+										<td class="colsep-0 rowsep-0">int</td>
+										<td class="colsep-0 rowsep-0">The hardware bin number for failed tests</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">BinhName</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The name of the hardware bin specified by
+											BinhNum</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">BinsNum</span></td>
+										<td class="colsep-0 rowsep-0">int</td>
+										<td class="colsep-0 rowsep-0">The software bin number for failed tests</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">BinsNumString</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The software bin number for failed tests in the type of
+											string.</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">BinsName</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">The name of the software bin specified by BinsNum</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">TestRmrks</span></td>
+										<td class="colsep-0 rowsep-0">string</td>
+										<td class="colsep-0 rowsep-0">Optional comments for explaining this test</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">TEST_API_LIMIT</span></td>
+										<td class="colsep-0 rowsep-0"><a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a></td>
+										<td class="colsep-0 rowsep-0">The SmarTest object for this test</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">Exec</span></td>
+										<td class="colsep-0 rowsep-0">char</td>
+										<td class="colsep-0 rowsep-0">Whether this test is to be executed
+												(<span class="keyword">Y</span>) or not
+											(<span class="keyword">N</span>)</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">ParamString</span></td>
+										<td class="colsep-0 rowsep-0">map &lt;string, string&gt;</td>
+										<td class="colsep-0 rowsep-0">The calling parameter string, for accessing
+											user-defined columns</td>
+									</tr>
+									<tr class="rowsep-1">
+										<td class="colsep-0 rowsep-0"><span class="keyword">ParamDouble</span></td>
+										<td class="colsep-0 rowsep-0">map &lt;string, double&gt;</td>
+										<td class="colsep-0 rowsep-0">The calling parameter doubles, for accessing
+											user-defined columns</td>
+									</tr>
+								</tbody></table><p>Most of the elements of <span class="keyword">LimitInfo</span> correspond
+							to columns in <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">TMLimits CSV files</a>.</p>
+					</dd>
+				
+			</dl></div><div class="syntax"><h2>Member functions</h2>
+			<dl>
+				
+					<dt class="dlterm" id="_110432__dle_clear">clear()</dt>
+					<dd><pre class="prettyprint copyable singleline">void clear()</pre><p>Clears all values from the limit table
+							in the TMLimits object.</p></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_getInstance">getInstance()</dt>
+					<dd><pre class="prettyprint copyable singleline">static TMLimits&amp; getInstance()</pre><p>This function is
+							used for internal purposes only.</p></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_getLimit">getLimit()</dt>
+					<dd><div class="note"><span class="title">Note</span> For performance reasons, we recommend that you use <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, described below, instead of this
+							function unless you want to modify the test limits it
+							returns.</div><pre class="prettyprint linenums copyable">LimitInfo&amp; getLimit(const std::string&amp; key);
+LimitInfo&amp; getLimit(const std::string&amp; testSuiteName, const std::string &amp; limitParamName);
+LimitInfo&amp; getLimit(const std::string&amp; testSuiteName, const std::string &amp; limitParamName, const std::string &amp; pinName);
+LimitInfo&amp; getLimit(const std::string&amp; testSuiteName, const std::string &amp; limitParamName, const std::string &amp; pinName, int testNumber);</pre><p>Returns
+							a reference to an internal <a href="110432.htm#_110432__LimitInfo">LimitInfo</a> object of the system-prepared class object
+								<span class="keyword">tmLimits</span> describing an individual test for use
+							with <span class="keyword">TMLimits</span> functions. Data of the requested test
+							are copied from the TMLimits table into the internal
+								<span class="keyword">LimitInfo</span> object.</p>
+						<p>The internal <span class="keyword">LimitInfo</span> object is available once per
+							thread, meaning there is one object for the main thread of SmarTest and
+							one more internal <span class="keyword">LimitInfo</span> object for each SMC
+							background thread.</p>
+						<p>You can change the contents of the internal <span class="keyword">LimitInfo</span>
+							object but changes apply only to the object that is assigned to the
+							current thread.</p>
+						<p>Multiple calls of this function within one thread refer always to the
+							same internal <span class="keyword">LimitInfo</span> object. You must therefore
+							immediately process the retrieved data before the next call is issued or
+							you must create a local copy of the data.</p><p>Depending on the
+							structure of the CSV file you use, there are four variants of the
+							function:</p><ul>
+							<li>If the CSV file contains a unique key for each test in the first
+								column, use the first variant.</li>
+							<li>If the CSV file contains the test suite name in the first column and
+								the test name in the second, use the second variant of the
+								function.</li>
+							<li>If the CSV file contains additional a dedicated pin name in the
+								third column use the third variant of the function and use the
+								fourth variant if the fourth column contains a test number.</li>
+						</ul><dl>
+							
+								<dt class="dlterm">Parameters</dt>
+								<dd><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">key</var></td>
+												<td class="colsep-0 rowsep-1">The unique test key describing the test in
+												the returned object.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">testSuiteName</var></td>
+												<td class="colsep-0 rowsep-1">The name of the test suite that contains
+												the described test.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">limitParamName</var></td>
+												<td class="colsep-0 rowsep-1">The name of the test that is described in
+												the returned object.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">pinName</var></td>
+												<td class="colsep-0 rowsep-1">
+												<p>The name of a pin used by a test for which you
+												want to read the limits.</p>
+												<p>The provided pin name is matched against the
+												<span class="keyword">Pins</span> column in the limits:</p>
+												<ul>
+												<li>If a test matching <span class="keyword">pin</span> (and
+												the other provided parameters) is found, the
+												corresponding limits are returned. This includes
+												tests where the <span class="keyword">Pins</span> column
+												contains a pin group that includes
+												<span class="keyword">pin</span>.</li>
+												<li>
+												<p>If there is a <span class="keyword">Pins</span> column in
+												the limits but no test matches
+												<var class="varname">pin</var>, the execution will lead to
+												an error:</p>
+												<p><samp class="sysout">Error: no limit found for
+												testsuite=..., testname=..., pin=...,
+												testnumber=...</samp></p>
+												</li>
+												<li>If no <span class="keyword">Pins</span> column exists,
+												<var class="varname">pin</var> is ignored.</li>
+												</ul>
+												<p>This parameter is optional. If you omit it, the
+												pin name is not considered for finding the test
+												limits.</p>
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">testNumber</var></td>
+												<td class="colsep-0 rowsep-1">
+												<p>The number of the test for which you want to
+												read the limits.</p>
+												<p>This parameter is optional. If you omit it, the
+												test number is not considered for finding the test
+												limits.</p>
+												</td>
+												</tr>
+											</tbody></table></dd>
+							
+							
+								<dt class="dlterm">Return value</dt>
+								<dd>A reference to an internal <a href="110432.htm#_110432__LimitInfo">LimitInfo</a> object of the system-prepared class object
+										<span class="keyword">tmLimits</span>. This internal object holds the
+									data of the requested test.</dd>
+							
+							
+								<dt class="dlterm">Using the function</dt>
+								<dd><p>The following code creates a reference to the internal <a href="110432.htm#_110432__LimitInfo">LimitInfo</a> object of the
+										system-prepared class object <span class="keyword">tmLimits</span>.
+										The object is available once for the current
+										thread:</p><pre class="prettyprint copyable singleline">TMLimits::LimitInfo <strong>&amp;</strong> limitInfo_1 = tmLimits.getLimit("testSuite_1","test_1");</pre><p>Variable
+											<var class="varname">limitInfo_1</var> refers to an internal
+											<span class="keyword">LimitInfo</span> object that is filled with
+										the requested data. Rerunning the function immediately using
+										another variable and other parameters will override the data
+										that <var class="varname">limitInfo_1</var> refers: Both variables
+										refer to the same internal <span class="keyword">LimitInfo</span>
+										object of the system-prepared class object
+											<span class="keyword">tmLimits</span>. In this case you must
+										create a local copy of the internal
+											<span class="keyword">LimitInfo</span>
+									object:</p><pre class="prettyprint linenums copyable">TMLimits::LimitInfo limitInfo_1 = tmLimits.getLimit("testSuite_1","test_1");
+TMLimits::LimitInfo limitInfo_2 = tmLimits.getLimit("testSuite_1","test_2");</pre></dd>
+							
+						</dl>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_getLimitRef">getLimitRef()</dt>
+					<dd><pre class="prettyprint linenums copyable">const LimitInfo&amp; getLimitRef(const string&amp; key)
+const LimitInfo&amp; getLimitRef(const string&amp; testsuite, const string&amp; testname, const string&amp; pin = "", int testnumber = -1, int sbin = -1)</pre><p>Returns
+							a reference to a <a href="110432.htm#_110432__LimitInfo">LimitInfo</a> object
+							that represents directly the requested test in the TMLimits table.
+							Unlike <a href="110432.htm#_110432__dle_getLimit">getLimit()</a>, the content of the
+							referenced object cannot be modified.</p><p>The referenced
+								<span class="keyword">LimitInfo</span> object holds the data for the first
+							test that matches all specified criteria. In the second variant of the
+							function, you must always specify the test suite and test name. The
+							other criteria are optional and are ignored if you do not specify
+							them.</p><p>This function is significantly faster than <a href="110432.htm#_110432__dle_getLimit">getLimit()</a> and should be preferred. If you do
+							not need to modify the <span class="keyword">LimitInfo</span> object, use this
+							function for maximum performance.</p>
+						<dl>
+							
+								<dt class="dlterm">Parameters</dt>
+								<dd><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">key</var></td>
+												<td class="colsep-0 rowsep-1">The unique test key describing the test in
+												the returned object.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">pin</var></td>
+												<td class="colsep-0 rowsep-1"><p>The name of a pin used by a test for
+												which you want to read the limits.</p>
+												<p>The provided pin name is matched against the
+												<span class="keyword">Pins</span> column in the limits:</p>
+												<ul>
+												<li>If a test matching <span class="keyword">pin</span> (and
+												the other provided parameters) is found, the
+												corresponding limits are returned. This includes
+												tests where the <span class="keyword">Pins</span> column
+												contains a pin group that includes
+												<span class="keyword">pin</span>.</li>
+												<li>
+												<p>If there is a <span class="keyword">Pins</span> column in
+												the limits but no test matches
+												<var class="varname">pin</var>, the execution will lead to
+												an error:</p>
+												<p><samp class="sysout">Error: no limit found for
+												testsuite=..., testname=..., pin=...,
+												testnumber=...</samp></p>
+												</li>
+												<li>If no <span class="keyword">Pins</span> column exists,
+												<var class="varname">pin</var> is ignored.</li>
+												</ul><p>This parameter is optional. If you omit
+												it, the pin name is not considered for finding the
+												test limits.</p></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">sbin</var></td>
+												<td class="colsep-0 rowsep-1"><p>The software bin number of the test for
+												which you want to read the limits.</p>
+												<p>This parameter is optional. If you omit it, the
+												software bin number is not considered for finding the
+												test limits.</p></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">testname</var></td>
+												<td class="colsep-0 rowsep-1">The name of the test for which you want to
+												read the limits.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">testnumber</var></td>
+												<td class="colsep-0 rowsep-1"><p>The number of the test for which you
+												want to read the limits.</p>
+												<p>This parameter is optional. If you omit it, the
+												test number is not considered for finding the test
+												limits.</p></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><var class="varname">testsuite</var></td>
+												<td class="colsep-0 rowsep-1">The name of the test suite that contains
+												the described test.</td>
+												</tr>
+											</tbody></table>
+								</dd>
+							
+							
+								<dt class="dlterm">Return value</dt>
+								<dd>A reference to an internal <a href="110432.htm#_110432__LimitInfo">LimitInfo</a> object of the system-prepared class object
+										<span class="keyword">tmLimits</span>. This internal object holds the
+									data of the requested test.</dd>
+							
+							
+								<dt class="dlterm">Using the function</dt>
+								<dd><p>The following code returns a reference to a <a href="110432.htm#_110432__LimitInfo">LimitInfo</a> object that
+										represents directly the requested test in the TMLimits
+										table:</p><pre class="prettyprint copyable singleline">const TMLimits::LimitInfo <strong>&amp;</strong> limitInfoRef = tmLimits.getLimitRef("testSuite_1","test_1");</pre><p>The
+											<span class="keyword">LimitInfo</span> object referenced by the
+											<var class="varname">limitInfoRef</var> variable, cannot be
+										modifed. However this version is significantly faster than
+											<a href="110432.htm#_110432__dle_getLimit">getLimit()</a>.</p><p>If you need
+										to modify the requested <var class="varname">limitInfoRef</var>, you
+										must create a local copy of the object as
+									follows:</p><pre class="prettyprint copyable singleline">TMLimits::LimitInfo limitInfoCopy = tmLimits.getLimitRef("testSuite_1","test_1");</pre><div></div>The
+									local object <var class="varname">limitInfoCopy</var> of type
+										<span class="keyword">LimitInfo</span> can by modified and does not
+									have the limitation of internal object referenced by <a href="110432.htm#_110432__dle_getLimit">getLimit()</a>. However, creating the local
+									object and filling it with the data from the TMLimits table
+									needs about the same amount of test time as
+										<span class="keyword">getLimit()</span>.<p>These are some sample calls to
+											<span class="keyword">getLimitRef()</span> and the test number for
+										which it returns the limits, given the example test table
+										below:</p><ul>
+										<li><code>tmLimits.getLimitRef("a","test","Pin1")</code>
+											returns the limits for test number 301.</li>
+										<li><code>tmLimits.getLimitRef("a","test","Pin2")</code>
+											returns the limits for test number 302.</li>
+										<li><code>tmLimits.getLimitRef("a","test","Pin3")</code>
+											returns the limits for test number 303.</li>
+										<li><code>tmLimits.getLimitRef("a","test","PinNew")</code>
+											returns the limits for test number 300.</li>
+										<li><code>tmLimits.getLimitRef("a","test","PortOdd")</code>
+											returns the limits for test number 303.</li>
+									</ul><table class="frame-none"><caption></caption><colgroup><col><col><col><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-1 rowsep-1">Test suite name</td>
+												<td class="colsep-1 rowsep-1">Test name</td>
+												<td class="colsep-1 rowsep-1">Pins</td>
+												<td class="colsep-0 rowsep-1">Test number</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-1 rowsep-1">a</td>
+												<td class="colsep-1 rowsep-1">test</td>
+												<td class="colsep-1 rowsep-1">Pin1</td>
+												<td class="colsep-0 rowsep-1">301</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-1 rowsep-1">a</td>
+												<td class="colsep-1 rowsep-1">test</td>
+												<td class="colsep-1 rowsep-1">Pin2</td>
+												<td class="colsep-0 rowsep-1">302</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-1 rowsep-1">a</td>
+												<td class="colsep-1 rowsep-1">test</td>
+												<td class="colsep-1 rowsep-1"></td>
+												<td class="colsep-0 rowsep-1">300</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-1 rowsep-0">a</td>
+												<td class="colsep-1 rowsep-0">test</td>
+												<td class="colsep-1 rowsep-0">PortOdd</td>
+												<td class="colsep-0 rowsep-0">303</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"></td>
+												<td class="colsep-0 rowsep-0" colspan="4">Note: PortOdd contains the pins Pin1
+												and Pin3.</td>
+												</tr>
+											</tbody></table></dd>
+							
+						</dl>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_getLimitObj">getLimitObj()</dt>
+					<dd><pre class="prettyprint linenums copyable">LIMIT&amp; getLimitObj(const string&amp; LimitParamName)
+LIMIT&amp; getLimitObj(const string&amp; LimitParamName, const string&amp; PinName)</pre><div></div>
+						<p>Returns a reference to an internal <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> object of the system-prepared
+							class object <span class="keyword">tmLimits</span>. Data of the requested test are
+							copied from the TMLimits table into the internal
+								<span class="keyword">LIMIT</span> object.</p>
+						<p>The internal <span class="keyword">LIMIT</span> object is available once per thread, meaning there is
+							one object for the main thread of SmarTest and one more internal
+								<span class="keyword">LIMIT</span> object for each SMC background thread.</p>
+						<p>You can change the contents of the internal <span class="keyword">LIMIT</span> object but changes
+							apply only to the object that is assigned to the current thread.</p>
+						<p>Multiple calls of this function within one thread refer always to the same internal
+								<span class="keyword">LIMIT</span> object. You must therefore immediately
+							process the retrieved data before the next call is issued or you must
+							create a local copy of the data.</p>
+						<dl>
+							
+								<dt class="dlterm">Parameters</dt>
+								<dd><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-0"><var class="varname">limitParamName</var></td>
+												<td class="colsep-0 rowsep-0">
+												<p>The name of the test that is described in the
+												returned object</p>
+												<p>In contrast to functions <a href="110432.htm#_110432__dle_getLimit">getLimit()</a> and <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, the test suite
+												name is derived from the function call itself and
+												must therefore also match. Otherwise the test
+												defined by <var class="varname">limitParamName</var> will
+												not been found in the limit table.</p>
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><var class="varname">PinName</var></td>
+												<td class="colsep-0 rowsep-0">The name of the pin to which the particular
+												set of limits applies that is defined for the test
+												described in the returned object</td>
+												</tr>
+											</tbody></table></dd>
+							
+							
+								<dt class="dlterm">Return value</dt>
+								<dd>A reference to an internal <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> object of the system-prepared class
+									object <span class="keyword">tmLimits</span>. This internal object holds
+									the data of the requested test.</dd>
+							
+							
+								<dt class="dlterm">Using the function</dt>
+								<dd><p>The following code creates a reference to the internal <a href="29504.htm" title="The LIMIT class accesses a data container holding the information on the lower limit, upper limit, and comparison operators.">LIMIT</a> object
+										of the system-prepared class object
+											<span class="keyword">tmLimits</span>. The object is available
+										once for the current
+										thread:</p><pre class="prettyprint copyable singleline">LIMIT <strong>&amp;</strong> limit_1 = tmLimits.getLimitObj("testname_1");</pre><p>Variable
+											<var class="varname">limit_1</var> refers to an internal
+											<span class="keyword">LIMIT</span> object that is filled with the
+										requested data. Rerunning the function immediately using
+										another variable and other parameters will override the data
+										that <var class="varname">limit_1</var> refers: Both variables refer
+										to the same internal <span class="keyword">LIMIT</span> object of the
+										system-prepared class object <span class="keyword">tmLimits</span>. In
+										this case you must create a local copy of the internal
+											<span class="keyword">LIMIT</span>
+										object:</p><pre class="prettyprint linenums copyable">LIMIT limit_1 = tmLimits.getLimitObj("testname_1");
+LIMIT limit_2 = tmLimits.getLimitObj("testname_2");</pre><p>There
+										are two ways to specify the object:</p><ul>
+										<li>By specifying the parameter name</li>
+										<li>By specifying the parameter name and the pin name<div class="note"><span class="title">Note</span> If you specify just a parameter name for
+												a test that defines different limits for different
+												pins, the function returns the first limit set for
+												the test.</div></li>
+									</ul>In contrast to functions <a href="110432.htm#_110432__dle_getLimit">getLimit()</a> and <a href="110432.htm#_110432__dle_getLimitRef">getLimitRef()</a>, the test suite
+									name is derived from the function call itself and must therefore
+									also match. Otherwise the test defined by
+										<var class="varname">limitParamName</var> will not been found in the
+									limit table.<p>This function sets multibin to the values
+										contained in the TMLimits object. If multibin is used in the
+										testflow, do not use getLimitObj() to access the TMLimits
+										object. Instead, use getLimit() or, if you use a <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">judgeAndLog_xxx</a> or <a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST()</a> function, use a variant
+										that directly accesses TMLimits (instead of through a member
+										function).</p><p>For example, instead of code like
+										this:</p><pre class="prettyprint copyable singleline">TestSet.cont(true).TEST("DC_Test", "lim1", tmLimits.getLimitObj("lim1"), mLim1);</pre><p>use
+										code like
+									this:</p><pre class="prettyprint copyable singleline">TestSet.cont(true).TEST("DC_Test", "lim1", tmLimits, mLim1);</pre></dd>
+							
+						</dl>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_load">load()</dt>
+					<dd><pre class="prettyprint linenums copyable">int load()
+int load(const string&amp; limitfile)
+int load(const string&amp; limitfile, const string&amp; mode)
+int load(TM::LIMIT_WARNING_LEVEL = TM::LIMIT_DEFAULT_WARNING)</pre><p>Loads
+							a CSV file into the TMLimits object. There are three ways to specify the
+							desired file:</p><ul>
+							<li>If you call <span class="keyword">load()</span> without any parameters, it
+								uses the <span class="keyword">TMLimit_FileName</span> testflow variable to
+								determine the file to load and the current value of the
+									<span class="keyword">TMLimit_TestMode</span> variable for the desired
+								mode. <p>Note that this variant is subject to the restrictions
+									outlined above. The test mode of the variable will only be used
+									if it has changed since the last call of one of the member
+									functions specified above. </p></li>
+							<li>If you specify a file when calling <span class="keyword">load()</span> but no
+								mode, it loads the specified file and uses the mode "Default". With
+								the "Default" test mode, the first test mode occurring in the
+								specified test table is selected. </li>
+							<li>If you call <span class="keyword">load()</span> with both a file name and a
+								mode, it loads the specified file and sets the specified mode.</li>
+						</ul><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">limitfile</var></td>
+										<td class="colsep-0 rowsep-0"><p>The CSV file to load.</p>
+											<p>The specified name can include a path, which must be
+												relative to the <span class="filepath">testtable/</span>
+												directory within the current device directory. If
+												just a file name is given, the file must be located
+												in the <span class="filepath">testtable/</span>
+												directory.</p>
+											<p>The file must confirm to the TMLimits data format,
+												such as files written by saving the test table from
+												the test program explorer. This is described in
+												<a href="110093.htm" title="Test numbers from any testflow can be exported as a CSV file for use with TMLimits.">Saving test numbers as TMLimits CSV files</a>.</p></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">mode</var></td>
+										<td class="colsep-0 rowsep-0"><p>The mode (or test stage) from the testflow to
+												use.</p>
+											<p>A TMLimits CSV file can contain multiple versions of
+												any of the parameters (such as upper and lower test
+												limits) except the key columns, with each version
+												being assigned to a test mode. Test modes can also
+												be specified for user-defined columns.</p>
+											<p>These modes, such as quality assurance, are user
+												definable; a CSV file can include an unlimited
+												number of modes.</p></td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">LIMIT_WARNING_LEVEL</var></td>
+										<td class="colsep-0 rowsep-0"><p>Warning level of type
+												<span class="keyword">TM::LIMIT_WARNING_LEVEL</span>.</p>
+											<p>Enables you to set the verbosity of warnings
+												displayed to the system console and report UI
+												window.</p>
+											<p>Available options are:</p>
+											<ul>
+												<li><span class="keyword">LIMIT_DEFAULT_WARNING</span><p>Default.</p>
+												<p>Use this if you want to reset the warning to
+												default. This is, all warnings are outputted to
+												the system console and report UI window.</p></li>
+												<li><span class="keyword">LIMIT_NO_DUPLICATE_KEY_WARNING</span><p>Optional.</p>
+												<p>Sets the verbosity of reported warnings not to
+												show duplicate keys. This is, duplicate keys will
+												only be outputted once to the system console and
+												report UI window.</p></li>
+												<li><span class="keyword">LIMIT_NO_DUPLICATE_TEST_WARNING</span><p>Optional.</p>
+												<p>Sets the verbosity of reported warnings not to
+												show duplicate test numbers. This is, duplicate
+												test numbers will only be outputted once to the
+												system console and report UI window.</p></li>
+												<li><span class="keyword">LIMIT_NO_WARNING</span><p>Optional.</p>
+												<p>Sets the verbosity of reported warnings not to
+												show any warnings. This is, no warning will be
+												outputted to the system console and report UI
+												window.</p>
+												<p>Use this with caution, because no warnings will
+												be displayed at all.</p></li>
+											</ul></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_setTestMode">setTestMode()</dt>
+					<dd><pre class="prettyprint copyable singleline">int setTestMode(const string&amp; mode)</pre><p>Sets the
+							test mode for the TMLimits object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">mode</var></td>
+										<td class="colsep-0 rowsep-0"><p>The mode (or test stage) from the testflow to
+												use.</p>
+											<p>See the description of this parameter in <a href="110432.htm#_110432__dle_load">load()</a>, above.</p></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_getTestMode">getTestMode()</dt>
+					<dd><pre class="prettyprint copyable singleline">string getTestMode();</pre><p>This function returns the
+							currently configured test mode.</p></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_loadOnDemandAndReturnStatus">loadOnDemandAndReturnStatus()</dt>
+					<dd><pre class="prettyprint copyable singleline">bool loadOnDemandAndReturnStatus();</pre><p>This function
+							returns whether a test table exists and can be loaded or is already
+							loaded. </p><ul>
+							<li>If a test table is already loaded in the test method or in the Test
+								Program Explorer, true will be returned. </li>
+							<li>If a test table exists and is used in the testflow but not loaded,
+								the function will load the test table and return true. </li>
+							<li>If no test table exists or a test table exists but not loaded and
+								not used in the testflow, false will be returned.</li>
+						</ul></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_setLookupKey">setLookupKey()</dt>
+					<dd><pre class="prettyprint copyable singleline">void setLookupKey(const std::string&amp; lookupkey);</pre><p>Sets
+							the key(s) to look up for a limit in the test table.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><var class="varname">lookupkey</var></td>
+										<td class="colsep-0 rowsep-0"><p>The name of the columns in the test table
+												separated by colons.</p>
+											<p>To retrieve the limits with
+												<span class="keyword">getLimitRef()</span>, you can specify
+												any combinations of columns in the test table as the
+												lookup key.</p>
+											<p>To directly use the <span class="keyword">tmLimits</span> as an
+												input parameter of <a href="127827.htm" title="Performs a pass/fail judgment of a parametric test and logs the results.">TESTSET().judgeAndLog_ParametricTest()</a>, only the
+												combinations of Suite name, Test name, Pins or Test
+												number can be used as the lookup key.</p></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_setDefaultLookupKeys">setDefaultLookupKeys</dt>
+					<dd><pre class="prettyprint copyable singleline">void setDefaultLookupKeys();</pre><p>Reset the lookup keys
+							of the test table. The default lookup keys can be the four combinations
+							below.</p><ul>
+							<li>Suite name, Test name, Pins</li>
+							<li>Suite name, Test name</li>
+							<li>Limit key, Pins</li>
+							<li>Limit key</li>
+						</ul></dd>
+				
+				
+					<dt class="dlterm" id="_110432__dle_getLookupKey">getLookupKey()</dt>
+					<dd><pre class="prettyprint copyable singleline">const std::string&amp; getLookupKey();</pre><p>Returns the
+							current lookup key.</p></dd>
+				
+			</dl></div>
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1: Declare namespace</h3><p>To use the TMLimits API, you need to
+				declare the using of V93kLimits namespace in your test
+			method:</p><pre class="prettyprint copyable singleline">using namespace V93kLimits;</pre></div>
+		<div class="example"><h3>Example 2: Setting the test mode and performing a
+			test</h3><pre class="prettyprint linenums copyable">tmLimits.setTestMode("FT"); 
+TestSet.TEST("pinName", "myTestName", tmLimits, 4);</pre></div>
+		<div class="example"><h3>Example 3: Performing a test for testflow using
+				multibin</h3><p>Use</p><pre class="prettyprint copyable singleline">TestSet.cont(true).TEST("DC_Test", "myTestName", tmLimits, mLim1);</pre><p>instead
+				of</p><pre class="prettyprint copyable singleline">TestSet.cont(true).TEST("DC_Test", "myTestName", tmLimits.getLimitObj("myTestName"), mLim1); </pre></div>
+		<div class="example"><h3>Example 4: Using the test table bins</h3><p>Test table bins with TMLImits
+				support different bins for one test suite.</p><p>Several tmLimits API calls remember
+				the first failing bins, see Behavior example in <a href="127827.htm" title="Performs a pass/fail judgment of a parametric test and logs the results.">TESTSET().judgeAndLog_ParametricTest()</a>.</p><p>Requirements:</p><ul>
+				<li>Testflow: Multibin icon in the fail branch of test suite</li>
+				<li>Test table: Bins of the corresponding limit keys are
+					defined<div></div><pre class="prettyprint copyable singleline">TESTSET().cont(true).judgeAndLog_ParametricTest(pin, <span class="keyword">&lt;testname&gt;</span>, , V93kLimits::tmLimits, <span class="keyword">&lt;singlevalue&gt;</span>);</pre></li>
+			</ul></div>
+		<div class="example"><h3>Example 5: Accessing a value from LimitInfo</h3><p>This code reads the
+				limits from the test "myTestName" of the current test suite into a LimitInfo struct
+				and retrieves the value for the units, storing it in a string
+			variable.</p><pre class="prettyprint linenums copyable">using namespace V93kLimits;
+
+string sTestsuiteName;
+GET_TESTSUITE_NAME( sTestsuiteName );
+string sTestName = "myTestName";
+
+TMLimits::LimitInfo strLimitInfo;
+strLimitInfo = tmLimits.getLimit( sTestsuiteName, sTestName );
+string sTestTableTestModeUnit = strLimitInfo.Units;</pre></div>
+		<div class="example"><h3>Example 6: Changing the values of a TMLimits
+				object</h3><pre class="prettyprint linenums copyable">LimitInfo&amp; MyInfo = tmlimits.getLimit(testsuiteName, testname);
+MyInfo.Lsl = 4;</pre><p>This
+				example creates a reference to a <a href="110432.htm#_110432__LimitInfo">LimitInfo
+					object</a> for the specified testsuite and test, and changes the
+					<code>Lsl</code> value of the object to 4. Note that a reference is needed
+				for this to work.</p></div>
+		<div class="example"><h3>Example 7: Using the lookup key to manually retrieve the limit with
+				getLimitRef()</h3><pre class="prettyprint linenums copyable">STRING_VECTOR string_vector_odd;
+PPMU_MEASURE ppmu_measure_odd;
+DOUBLE resultValue = 0.0;
+//test setup and execution
+....
+//get the limit with the Limit key of ContactShort
+tmLimits.setLookupKey("Limit key");
+TMLimits::LimitInfo limitInfoContactShort = tmLimits.getLimitRef("ContactShort");
+for (int i = 0; i &lt; string_vector_odd.size(); i++)
+{
+    if (string_vector_odd[i] == "BBIOI_N_ch0")
+    {
+        //get the limit with the Limit key of ContactShort and with the pin of BBIOI_N_ch0
+        tmLimits.setLookupKey("Limit key:Pins");
+        TMLimits::LimitInfo limitInfoContactShortPin = tmLimits.getLimitRef("ContactShort:" + string_vector_odd[i]);
+        resultValue=ppmu_measure_odd.getValue(string_vector_odd[i]);
+        TestSet.cont(true).testnumber(limitInfoContactShortPin.TestNumber).judgeAndLog_ParametricTest(string_vector_odd[i],"Contact_Short",limitInfoContactShortPin.TEST_API_LIMIT, resultValue);
+    }
+    else
+    {
+        resultValue=ppmu_measure_odd.getValue(string_vector_odd[i]);
+        TestSet.cont(true).testnumber(limitInfoContactShort.TestNumber).judgeAndLog_ParametricTest(string_vector_odd[i],"Contact_Short",limitInfoContactShort.TEST_API_LIMIT, resultValue);
+    }
+}</pre></div>
+		<div class="example"><h3>Example 8: Using the lookup key to automatically retrieve the limit in
+				judgeAndLog_ParametricTest()</h3><pre class="prettyprint linenums copyable">tmLimits.setLookupKey("Test number");
+// use the limit with the test number of 555:
+TESTSET().testnumber(555).judgeAndLog_ParametricTest("io1","test12",tmLimits,-12);
+tmLimits.setDefaultLookupKeys();
+// use the limit with the Pins of "io1" and with the Test name of "test12"
+TESTSET().judgeAndLog_ParametricTest("io1","test12",tmLimits,-12);</pre></div>
+		<div class="example"><h3>Example 9: Limiting displayed warnings when loading a limits
+				file.</h3><p>This example shows all available parameter. However, it will
+				suppress duplicate test
+			numbers.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+    ON_FIRST_INVOCATION_BEGIN();
+
+        tmLimits.setLookupKey("Test number:Limit_type");
+        cout &lt;&lt; "default usage" &lt;&lt; endl;
+        tmLimits.load();
+
+        // use this to re-/set to default
+        // tmLimits.load(TM::LIMIT_DEFAULT_WARNING);
+
+        // use this to suppress duplicate key warnings
+        // tmLimits.load(TM::LIMIT_NO_DUPLICATE_KEY_WARNING);
+
+        // use this to suppress duplicate test number warnings
+        tmLimits.load(TM::LIMIT_NO_DUPLICATE_TEST_WARNING);
+
+        // use this to suppress all warnings
+        // use this carefully!
+        // tmLimits.load(TM::LIMIT_DEFAULT_WARNING);
+
+    ON_FIRST_INVOCATION_END();
+
+    return;
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="108775.htm" title="The Test Number Generator is a software module that can be used either from the SmarTest GUI or by calling its APIs from a user-written test method to consistently number tests for data logging and evaluation purposes.">Test Number Generator and TMLimits</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li><li>SmarTest 6.5.1: dump() function removed</li><li>SmarTest 6.5.1: load() can now be called without parameters</li><li>SmarTest 6.5.1: New function setTestMode()</li><li>SmarTest 6.5.3: New function getTestMode()</li><li>SmarTest 7.1.4: New function getLimitRef()</li><li>SmarTest 7.1.4: New function setLookupKey()</li><li>SmarTest 7.1.4: New function setDefaultLookupKeys()</li><li>SmarTest 7.1.4: New function getLookupKey()</li><li>SmarTest 7.1.4: New member function loadOnDemandAndReturnStatus()</li><li>SmarTest 7.2.0: The sbin and testnumber parameters are evaluated</li><li>SmarTest 7.3.4:  New parameters for the load member function:
+					LIMIT_WARNING_LEVEL</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 110432</span><script type="text/javascript">var ti='110432';var tt='TMLimits'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To judge the test result, the TEST API requires the lower and upper limit values. There are two ways of providing these limit values. One is to specify in the Properties view, and another is to specify in the test method program. This section describes how to use the test method APIs for each case."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Comparing AC Test Results with Limit Values</title></head><body id="_20892"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 20892</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Comparing AC Test Results with Limit Values</h1>
+	
+	
+	<div><p>To judge the test result, the <kbd class="userinput">TEST</kbd> API requires the lower and
+		upper limit values. There are two ways of providing these limit values. One is to specify in the
+		Properties view, and another is to specify in the test method program. This section describes how
+		to use the test method APIs for each case.</p>
+		<section class="section"><h2>Applying Limit Values specified in Properties view</h2><p>The following example
+				shows the basic usage of the <kbd class="userinput">TEST</kbd>
+				API.</p><pre class="prettyprint linenums copyable">DOUBLE thd_result;
+ :
+TEST("Aout", "THD", thd_result);</pre><p>This
+				example compares a test result stored in the <kbd class="userinput">thd_result</kbd> variable with the
+				limit values defined for the <kbd class="userinput">THD</kbd> test name, which are specified in the
+				Properties view. Where, <kbd class="userinput">Aout</kbd> is a pin name. If the value of the
+					<kbd class="userinput">thd_result</kbd> variable is within the limit range, the
+					<kbd class="userinput">TEST</kbd> API judges this test as PASS. Then, the program execution proceeds
+				to the next statement. For the out-of limit range, the <kbd class="userinput">TEST</kbd> API judges
+				this test as FAIL. Then, the test execution will return to the Testflow after completing the
+					<kbd class="userinput">TEST</kbd> API execution. The judgment result of the
+					<kbd class="userinput">TEST</kbd> API will be a pass/fail result of the <em>test suite</em>.</p><p>You
+				can compute multiple test parameters in a test method program. In this case, you can use
+				multiple <kbd class="userinput">TEST</kbd> APIs by adding a parameter as
+				follows:</p><pre class="prettyprint linenums copyable">DOUBLE thd_result, snr_result;
+  :
+TEST("Aout", "THD", thd_result, TRUE);
+  :
+TEST("Aout", "SNR", snr_result);</pre><p>The
+				first <kbd class="userinput">TEST</kbd> API has "<kbd class="userinput">TRUE</kbd>" as an additional Boolean
+				type parameter (called <kbd class="userinput">continue</kbd> parameter). This continues executing the
+				test program after the <kbd class="userinput">TEST</kbd> API, even if the test result is judged as
+				fail. Even if you omit <kbd class="userinput">TRUE</kbd>, when the first test result is pass, program
+				execution will continue. The second <kbd class="userinput">TEST</kbd> API does not have this
+				parameter. Hence, if the test is judged as fail, the test-method program is terminated after
+				completing the second <kbd class="userinput">TEST</kbd> API execution, and the test execution will
+				return to the Testflow.</p><p>In the above example, the test method program returns a result of
+				the logical AND operation over all judgment results of the <kbd class="userinput">TEST</kbd> APIs to
+				the Testflow, as a pass/fail result of the test suite. If one of the results of a
+					<kbd class="userinput">TEST</kbd> API is FAIL, the test suite fails.</p><p>The
+					<kbd class="userinput">TEST</kbd> API can also return the judgment result into a variable. In the
+				following example, the judgment result is stored into the variable
+					<kbd class="userinput">thd_pass</kbd> (TRUE if within the limit range. Otherwise,
+			FALSE).</p><pre class="prettyprint linenums copyable">Boolean thd_pass;
+DOUBLE thd_result;
+  :
+thd_pass = TEST("Aout", "THD", thd_result, TRUE);</pre></section>
+		<section class="section"><h2>Using Limit Values Specified in Program</h2><p>Instead of setting the limit
+				values in the Properties view, you can set the limit values in the test method program. You can
+				change the limit values temporarily for debugging. To set up the limit values in a test method
+				program, use the <kbd class="userinput">LIMIT</kbd> API.</p><p>You can write a
+					<kbd class="userinput">TEST</kbd> API statement using the class object of the
+					<kbd class="userinput">LIMIT</kbd>
+				API:</p><pre class="prettyprint linenums copyable">DOUBLE thd_result;
+  :
+TEST("Aout","THD", LIMIT(TM::GE,-99.0 dB,
+TM::LE,-45.0 dB), thd_result);</pre><p>In
+				this example, the class object of the <kbd class="userinput">LIMIT</kbd> API defines the limit values.
+				The defined limit range is as follows:</p><p><kbd class="userinput">-99.0 dB &lt;= thd_result &lt;= -45.0
+					dB</kbd></p><p>The <kbd class="userinput">TM::GE</kbd> and <kbd class="userinput">TM::LE</kbd> are
+				enumerators supported by the system. The following lists all enumerators for this parameter:</p><ul>
+				<li><kbd class="userinput">TM::LT</kbd>: Less than a limit value</li>
+				<li><kbd class="userinput">TM::LE</kbd>: Less than or equal to a limit value</li>
+				<li><kbd class="userinput">TM::GT</kbd>: Greater than a limit value</li>
+				<li><kbd class="userinput">TM::GE</kbd>: Greater than or equal to a limit value</li>
+				<li><kbd class="userinput">TM::NA</kbd>: Not compare with a limit value</li>
+			</ul><p>Where, <kbd class="userinput">TM::</kbd><em>XXX</em> means that the enumerators are defined as
+				the <kbd class="userinput">TM</kbd> object. Therefore, even if you use a variable
+					<kbd class="userinput">LT</kbd> in the program, the variable <kbd class="userinput">LT</kbd> and
+					<kbd class="userinput">TM::LT</kbd> do not conflict.</p><p>You can also create the class object of
+				the <kbd class="userinput">LIMIT</kbd> API before the <kbd class="userinput">TEST</kbd> API. In the
+				following example, the object <kbd class="userinput">thd_limits</kbd> specifies the limit range for
+				the <kbd class="userinput">thd_result</kbd>
+				variable.</p><pre class="prettyprint linenums copyable">DOUBLE thd_result;
+  :
+LIMIT thd_limits(TM::GE, -99.0 dB, TM::LE, -45.0 dB);
+TEST("Aout", "THD", thd_limits, thd_result);</pre><p>During
+				debugging, you may need the test result to be always judged as pass or fail, regardless of the
+				result. The system supports system-prepared class objects of the <kbd class="userinput">LIMIT</kbd>
+				API: <kbd class="userinput">TM::Pass</kbd> and <kbd class="userinput">TM::Fail</kbd>. To handle the test as
+				always pass, use the <kbd class="userinput">TM::Pass</kbd> object as
+			follows:</p><pre class="prettyprint copyable singleline"><kbd class="userinput">TEST("Aout", "THD", TM::Pass, thd_result);</kbd></pre></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 20892</span><script type="text/javascript">var ti='20892';var tt='Comparing AC Test Results with Limit Values'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

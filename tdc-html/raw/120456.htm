@@ -1,0 +1,137 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Accurate Incoherent Signal Measurement with RTSPU</title><meta name="keywords" content="RT-SPU"></head><body id="_120456"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120456</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Accurate Incoherent Signal Measurement with RTSPU</h1>
+	
+	<div>
+		<p>Liang Ge, Verigy</p>
+		<p>Paper-ID: 12456 April 2010</p>
+		<section class="section"><h2>Abstract</h2><p>In Analog test, sometimes we meet the incoherent or uncertain
+				frequency test condition. In this paper, we would like to introduce a DSP processing technique
+				to make accurate incoherent signal measurements without compromising the frequency resolution
+				and dynamic range (which is commonly occurs with traditional Windowing). This processing
+				combined with phase/frequency detection, and up/down conversion and RTSPU's DDC &amp; Filtering
+				feature, allows the digitized signal show its original spectrum.</p><p><strong>Key Words</strong>- RF,
+				Mixed Signal, Incoherent, RTSPU</p></section>
+		<section class="section"><h2>Introduction</h2><p>In Analog test, measurement with CW signal is common to get
+				SNR, THD, phase noise and other parameters. Normally we will design the test with coherent
+				condition for better measurement. Coherent means that the captured points have just integer
+				cycles of tone. For FFT, the capture point number is mostly the power of 2. To prevent the
+				redundant capture of the same position in wave, the cycle number should be relative-prime with
+				point number. So for a good coherent capture, user need to design the coherent condition, which
+				sometimes not easy.</p><div class="p"><figure class="fignone">
+					<img src="120461.png" alt="Accurate Incoherent Signal Measurement with RTSPU">
+				</figure></div><p><strong>Figure 1. Incoherent Spectrum</strong></p><div class="p"><figure class="fignone">
+					<img src="120731.png" alt="Accurate Incoherent Signal Measurement with RTSPU">
+				</figure></div><p><strong>Figure 2. Window frequency solution and dynamic range</strong></p><p>In some case, we
+				may encounter problems such as a device limitation where it is hard to find the coherent
+				measurement condition, or device output frequency is not certain, i.e. different for each time
+				run. Then user must find a way to handle this. Otherwise, the spectrum leakage will probably
+				override the noise and other signal to be measure, as shown in <strong>Figure1</strong>.</p><p>One
+				traditional way to deal with incoherent case is to apply windowing. Windowing is a time domain
+				weighting to suppress the spectrum leakage. But windowing also has its limitation. There is
+				different kind of window with different features. When selecting window, users have to trade-off
+				between frequency resolution and dynamic range (leakage) as in <strong>Figure 2</strong>.</p><p>For
+				ordinary mixed signal test, the window method may be good enough. But for tough cases, such as
+				phase noise or very small spur detecting, the windowing method often will not suffice.</p><p>In
+				this paper, we would like to introduce a SW+HW DSP processing to make accurate incoherent signal
+				measurement without compromising the frequency resolution and dynamic range.</p></section>
+		<section class="section"><h2>Methodology</h2></section>
+		<section class="section"><h2>Frequency Conversion</h2><p>To idea to get a clean spectrum of an incoherent
+				tone is to shift the tone to an integer bin of FFT. If delta frequency between tone frequency
+				and the nearest integer bin's frequency is Δf, then we shift the whole capture signal's
+				frequency withΔf. This kind of moving is a down-conversion or up-conversion. Different from
+				analog mixing, this up/down conversion here is uni-directional. With this technique, the full
+				spectrum shape is kept. Mathematically, a moving in frequency domain is <strong>*e^jwt</strong> in time
+				domain, as (1)</p><p><img src="120462.png" alt="Accurate Incoherent Signal Measurement with RTSPU (2)"> Formula (1)</p><p>So the conversion equation is</p><p><img src="120463.png" alt="Accurate Incoherent Signal Measurement with RTSPU (3)"> Formula (2)</p><p>The FFT of the converted signal will be a clean spectrum because it
+				is coherent. The figure showed the spectrum before and after conversion.</p><div class="p"><figure class="fignone">
+					<img src="120464.png" alt="Accurate Incoherent Signal Measurement with RTSPU (4)">
+				</figure></div><p><strong>Figure 3. Zoomed Spectrum before and after conversion</strong></p><p>As in Figure 3,
+				the red spectrum is with original incoherent tone and the blue one is with converted
+			tone.</p></section>
+		<section class="section"><h2>Delta Frequency Identification</h2><p>If the signal frequency is know, we can
+				calculate the delta frequency to move. For example, the Fs = 1.024 Msps, Sample number is
+				N=1024, signal frequency is Ft = 210.7 Khz we can calculate the nearest integer bin is
+				int(Ft/(Fs/N)) = 211. Then, the delta frequency is +0.3 Khz.</p><p>When the signal frequency is
+				not fixed, we must find a method to know how much frequency to move. Here we use the
+				interpolation method [1]. This method can accurately estimate and incoherent tone's
+				frequency.</p><p>First, we shall get the FFT spectrum of this signal with HANNING window. With
+				the spectrum, we can calculate the delta frequency Δf as (3). In (3), R is the ratio of biggest
+				bin and the 2nd biggest bin, as shown in <strong>Figure 4</strong>.</p><p><img src="120465.png" alt="Accurate Incoherent Signal Measurement with RTSPU (5)"> Formula (3)</p><p>Now we have both the delta frequency to move and the method to
+				convert the signal. Next we will introduce how RTSPU shall help user to do this in real
+				task.</p><div class="p"><figure class="fignone">
+					<img src="120466.png" alt="Accurate Incoherent Signal Measurement with RTSPU (6)">
+				</figure></div><p><strong>Figure 4. Interpolation method</strong></p></section>
+		<section class="section"><h2>Preprocessing with RTSPU</h2><p>When with digitized signal, the signal is
+				"real". Here the "Real" is mathematical concept, in contrast to Complex. Mathematically, the
+				real signal will have symmetrical spectrum including the positive and negative band. When
+				applying the above frequency conversion method, if we put positive tone to an integer bin, then
+				the negative part will go to a non-integer bin. Its leakage will impact the positive band of
+				signal, as in <strong>Figure 5</strong></p><div class="p"><figure class="fignone">
+					<img src="120467.png" alt="Accurate Incoherent Signal Measurement with RTSPU (7)">
+				</figure></div><p><strong>Figure 5 a. Real spectrum before conversion</strong></p><div class="p"><figure class="fignone">
+					<img src="120468.png" alt="Accurate Incoherent Signal Measurement with RTSPU (8)">
+				</figure></div><p><strong>Figure 5 b. Real spectrum after conversion</strong></p><p>To solve this problem, we
+				will need to get rid of the negative band. The way to get rid of the negative band is filtering.
+				The digital filtering (convolution) can take long time with workstation. But, V93000 has what is
+				called RTSPU (Real Time Signal Process Unit) <strong>[2]</strong>, which can fulfill this task without any
+				test time penalty.</p><div class="p"><figure class="fignone">
+					<img src="120469.png" alt="Accurate Incoherent Signal Measurement with RTSPU (9)">
+				</figure></div><p><strong>Figure 6. RTSPU</strong></p><p>The RTSPU is as in <strong>Figure 6</strong>. It performs
+				digital down conversion, filtering and decimation job. Now we can take advantage of its digital
+				down conversion and filtering capability to remove the negative band. The RTSPU's signal
+				processing is shown as in <strong>Figure 7</strong></p><div class="p"><figure class="fignone">
+					<img src="120470.png" alt="Accurate Incoherent Signal Measurement with RTSPU (10)">
+				</figure></div><p><strong>Figure 7. Signal processing before Conversion</strong></p><p>After the RTSPU's
+				processing, only positive band is remained. The spectrum after frequency moving will be
+				clean.</p></section>
+		<section class="section"><h2>With Port Scale RF</h2><p>It is important is notes that when measure RF signal
+				with V93000 Port Scale RF, the captured signal is by default processed by RTSPU. So with PSRF,
+				users Do not need to manually make any setup. He just needs to calculate the delta frequency and
+				make the up/down conversion.</p></section>
+		<section class="section"><h2>Smartest Sample Code</h2><p>In smartest, to make the e<sup>jwt</sup>, we shall
+				make a complex array and take advantage of the Eula equation (4)</p><p><img src="120471.png" alt="Accurate Incoherent Signal Measurement with RTSPU (11)"> Formula (4)</p><p>So the complex array's real part is generated with <strong>cos()</strong>
+				function while its imaginary part is generated with <strong>sin() </strong>function.</p><p>The sample code
+				of delta bin estimation and down/up
+			conversion.</p><pre class="prettyprint linenums copyable">//-----------------------Freq Estimation: ------------------------
+DOUBLE  dMin=0.0, dMax=0.0, dR=0.0, dFx=0.0, dX=0.0;
+INT  iMin=0, iMax=0;
+ARRAY_COMPLEX spect_C, ejwt, Result_wave;
+ARRAY_D spect;
+
+DSP_FFT(cData,spect_C,HANNING);
+DSP_ABS_VEC(spect_C,spect);
+DSP_MINMAX(spect,&amp;dMin,&amp;dMax,&amp;iMin, &amp;iMax);
+
+if ( spect[iMax-1] &gt; spect[iMax+1] )
+    {   dR=spect[iMax-1]/spect[iMax];
+        dFx=iMax+(1.0-2.0*dR)/(1.0+dR);
+    }
+else
+    {   dR=spect[iMax+1]/spect[iMax];
+        dFx=iMax-(1.0-2.0*dR)/(1.0+dR);
+    }
+dX=dFx-iMax;             //delta freq bin      
+
+
+//---------------------Multiply with Ejwt-------------------------
+ejwt.resize(Ni);
+for(i=0; i&lt;Ni; i++)
+    {   ejwt[i].real()=cos(-2*M_PI*dX*i/N);
+        ejwt[i].imag()=sin(-2*M_PI*dX*i/N);     
+    }
+DSP_MUL_VEC(cData, ejwt, Result_wave);  
+//Down conversion</pre></section>
+		<section class="section"><h2>Conclusion</h2><p>In this paper, we introduced a hardware and software DSP
+				processing to make accurate incoherent signal measurement without compromising the frequency
+				resolution and dynamic range. This time-domain processing combining the phase/frequency detect,
+				customized up/down conversion and the RTSPU's DDC + digital-filtering feature, making the
+				digitized signal show its original spectrum. This method is also adaptive, allowing for 100%
+				accurate measurement of frequency when the exact frequency is unknown. Thus, users Do not need to
+				worry about the accuracy when coming across the incoherent or uncertain-frequency measurement
+				case.</p></section>
+		<section class="section"><h2>References</h2><p>[1] "A Method of High Precision Frequency Detection with
+				FFT," IEICE Transactions Vol. J 70-A No.5 pp798-805, May 1987</p><p>[2] V93000 User
+			Guide</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120456</span><script type="text/javascript">var ti='120456';var tt='Accurate Incoherent Signal Measurement with RTSPU'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

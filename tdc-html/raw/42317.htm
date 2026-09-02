@@ -1,0 +1,92 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This hook function is called (if activated, see Activating a Hook Function) on every PROB_HND_CALL from the application model, before the driver has performed any significant action. (The only actions of the driver before the call of the hook function are the check that the PROB_HND_CALL was valid in the position of the application model where it occurred, and the logging of the PROB_HND_CALL.)"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>phHookActionStart</title><meta name="keywords" content="ph, Hook, Action, Start"></head><body id="_42317"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42317</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">phHookActionStart</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="42318.htm">Parameters:</a></li><li><a href="42319.htm" title="User-specific code should be added in a case section for the respective driver function called by the PROB_HND_CALL of the application model.">User-Specific Code:</a></li></ol></div></nav>
+	
+	
+	<div><p>This hook function is called (if activated, see <em><a href="42332.htm" title="To tell the driver that a hook function should be called during the driver execution, the hook function must be activated. Deactivated hook function, although existent in the ph_hhook.c source file, will not be called (see also Special Functions in the Hook Source File).">Activating a Hook Function</a></em>) on every
+		PROB_HND_CALL from the application model, before the driver has performed any significant action.
+		(The only actions of the driver before the call of the hook function are the check that the
+		PROB_HND_CALL was valid in the position of the application model where it occurred, and the
+		logging of the PROB_HND_CALL.)</p>
+		<div></div><pre class="prettyprint linenums copyable">phHookError_t phHookActionStart(
+    phFrameAction_t call/* the identification of an
+        incoming call from the
+        application model */,
+    phEventResult_t *result /* the result of this hook call */,
+    char *parm_list_input /* the parameters passed over */,
+        from the application model */,
+    int parmcount/* the parameter count */,
+    char *comment_out/* the comment to be send back */
+        to the application model */,
+    int *comlen/* the length of this comment */,
+    phTcomUserReturn_t *stReturn  /* SmarTest return value, 
+        if &lt;result&gt; is set to
+        PHEVENT_RES_ABORT by this
+        hook function */
+)
+{
+    /* do checks and trace the call first */
+    CheckInitialized(&amp;hook);
+    phLogHookMessage(hook.myLogger, PHLOG_TYPE_TRACE, 
+        "phHookActionStart(0x%08lx,P%p,\"%s\",%d,\"%s\",%d,P%p)",
+        (long) call, result, 
+        parm_list_input ? parm_list_input : "(NULL)", parmcount, 
+        comment_out ? comment_out : "(NULL)", comlen, 
+        stReturn);
+
+#ifdef ACTION_START_IMPLEMENTED
+
+    /* Here is a sample implementation which prints out */
+    /* a message on each ph_device_start and ph_device_done */
+    /* call from the application model*/
+
+    switch (call)
+    {
+      case PHFRAME_ACT_DEV_START:
+
+    phLogHookMessage(hook.myLogger,
+        PHLOG_TYPE_MESSAGE_0,
+        "start of ph_device_start recognized by hook function");
+
+    /* set the result value:
+    the framework must continue with the ph_device_start
+    actions */
+    *result = PHEVENT_RES_CONTINUE;
+    break;
+
+      case PHFRAME_ACT_DEV_DONE:
+
+    phLogHookMessage(hook.myLogger,
+        PHLOG_TYPE_MESSAGE_0,
+        "start of ph_device_done recognized by hook function");
+
+    /* set the result value:
+       the framework must continue with the ph_device_done
+      actions */
+    *result = PHEVENT_RES_CONTINUE;
+    break;
+
+      default:
+
+    /* set the result value:
+       the hook function has done nothing */
+    *result = PHEVENT_RES_VOID;
+    break;
+    }
+
+    return PHHOOK_ERR_OK;
+
+#else
+
+    /*  hook was not activated */
+    return PHHOOK_ERR_NA;
+
+#endif
+}</pre><div></div>
+		<div class="note"><span class="title">Note</span> For all type definitions, see the header files corresponding to the respective
+			type. The header files are located in the directory <em>... /GenericHandler/include</em>/ and in
+				<em>... /GenericProber/include</em> For example, for the type <strong>phTcom</strong><em>UserReturn_t</em> see
+			the header file <strong>phTcom.h</strong></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42317</span><script type="text/javascript">var ti='42317';var tt='phHookActionStart'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

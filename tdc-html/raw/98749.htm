@@ -1,0 +1,820 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SQPG, SQPG? - (SeQuencer ProGramming)</title><meta name="keywords" content="SQPG_, Se, Quencer, Pro, Gramming"></head><body id="_98749"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98749</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SQPG, SQPG? - (SeQuencer ProGramming)</h1>
+	
+	
+	<div><p>The <span class="keyword">SQPG</span> command writes a sequencer instruction into an existing
+		command line of the sequencer area for the specified port. The line is referenced by its
+		command number.</p>
+		<section class="section">
+			<p><span class="keyword">SQPG</span>
+				overwrites an existing instruction. In order to insert an instruction, you must
+				first insert a dummy instruction with the <a href="98640.htm" title="The INSI (INsert Instructions) command inserts count place holder (NOP) instructions into the sequencer area before the command with the number cmd_No. You can then overwrite the NOP instructions with other instructions by using the command SQPG, SQPG? - (SeQuencer ProGramming).">INSI</a> command,
+				and then overwrite it with <span class="keyword">SQPG</span>.</p><p>Note that <span class="keyword">SQPG</span> does not modify the vector areas in any way. Thus, if you
+				insert a vector generating instruction (for example, <span class="keyword">GENV</span>) before another
+				such instruction with <span class="keyword">SQPG</span>, the active vecto????rs of the latter instruction
+				will change. In this case, you must readjust the vector areas, and possibly also increase the
+				start addresses (<span class="keyword">STVA</span> instruction) of the labels that use later segments of
+				the vector areas. For an illustration of the first problem see the example below. </p><p>Note also that both
+				of these items are taken care of automatically if you insert a
+					<span class="keyword">GENV</span> instruction with the <a href="98639.htm" title="The INGV (INsert Generate Vectors) command inserts a GENV instruction into the sequencer program of the label currently activated for editing. The parameter of the inserted GENV instruction that specifies the location of the vectors has the same value as the STVA instruction of the label. For more information on the GENV and STVA instructions see the command SQPG, SQPG? - (SeQuencer ProGramming).">INGV</a>
+				command.</p><p>The <span class="keyword">SQPG?</span> command returns the existing sequencer
+				command for the specified command number, a segment of the sequencer area, or the
+				complete sequencer area of the specified port.</p></section>
+		<div class="syntax"><h2>SQPG</h2><pre class="prettyprint copyable singleline">SQPG {cmd_No}, {instr}, [param_1], [param_2], [memory], {(port)}</pre></div><div class="syntax"><h2>SQPG?</h2><pre class="prettyprint copyable singleline">SQPG? {cmd_No|ALL|"cmd_No_A,cmd_No_B"}, {(portlist)}</pre><p>returns:</p><pre class="prettyprint copyable singleline">SQPG {cmd_No}, {instr}, [param_1], [param_2], [memory], {(port)}</pre><table class="frame-bottom"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">cmd_No</var></p></td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The command number.
+									This parameter identifies the instruction within the sequencer
+									area of the specified port. Refer to <a href="55743.htm" title="The STVA instruction determines the start address for the vectors of the label. This is explained in detail in Sequencer program and vector areas. On the older systems, the start address is always specified as param_1 of the SQPG command. On a 7.x system, where the vector areas are port specific, the following rules apply:">Address instructions</a> for
+									further details.</p>
+								<p>In the query, you can also specify <span class="keyword">ALL</span> or two
+									command numbers that are separated by a comma and included by
+									quotes. If you specify <span class="keyword">ALL</span>,
+										<span class="keyword">SQPG?</span> will return all the instructions in
+									the sequencer area of all the specified ports. If you specify
+									two numbers, all instructions in the specified range will be
+									returned. </p>
+								<p>Note that the exact meaning of this number depends on the
+									operation mode, as defined with the <a href="98726.htm" title="The SAOF (Set Alternating Operation Features) command serves to change the operation mode of the test system software for certain tasks. After performing these tasks, you should switch back to the standard editing mode (ZERO) as soon as possible; many firmware commands do not work properly in the alternative modes.">SAOF</a>command. In standard mode (<span class="keyword">SAOF
+										ZERO</span>), the command lines are counted from the
+									start of the sequencer area, but in append mode (<span class="keyword">SAOF
+										APP</span>) they are counted from the start of the
+									expansion previously defined with <a href="98566.htm" title="The DMAS command defines or extends (depending on the setting of the SAOF command) the logical memory area for the sequencer programs of the individual ports.">DMAS</a>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><var class="varname">instr</var></p></td>
+							<td class="colsep-0 rowsep-0" colspan="2"><p>The mandatory sequencer
+									instruction. It specifies the task that the sequencer
+									performs:</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">BEND</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>Marks the end of a normal or a multi-port burst
+									label.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">BRKV</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "break vector" instruction generates break
+									vectors. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must both be specified.</p>
+								<ul>
+									<li><var class="varname">param_1</var>specifies the number of break
+										vectors to be generated. If the specified number is not
+										directly divisible by 8, it will be rounded up to the next
+										multiple of 8. The admitted range is from 1 to 32760.</li>
+									<li><var class="varname">param_2</var>specifies a wait time in
+										nanoseconds. SmarTest will generate the appropriate number
+										of break vectors (always a multiple of 8) to fill that
+											interval.<p>Note that this is a lower bound; the actual
+											wait time may be longer than the specified time. The
+											admitted range is from 0 to 5592402.</p></li>
+								</ul><p>If the wait time is greater than 0, it is added to the time
+									consumed by the break vectors of
+								<var class="varname">param_1</var>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CALL</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>Calls a <span class="keyword">MAIN</span> label within a
+									normal or a multi-port burst label. <var class="varname">param_1</var>
+									must be omitted, <var class="varname">param_2</var> is required:</p>
+								<ul>
+									<li><var class="varname">param_2</var> specifies the name of the label
+										to be executed as part of the burst label. The label name
+										must be enclosed in double quotes.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CLEV</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Change LEVels" instruction allows you to
+									change the level set. <var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the level set number.
+										The new value has to be an integer in the range of 1 to the
+										maximum allowed level sets as set by the <a href="98578.htm" title="The DSCP command serves to define the maximal number of instances for the different types of so called parameter sets, and to reserve the necessary space for them in the Sequencer Memory. The space can be calculated from the number of instances because every instance of the same type has the same size. The DSCP? query returns the existing settings. This command replaces the command CNTR, CNTR? used in previous releases.">DSCP</a> command. You can also enter
+											<span class="keyword">PRM</span> which specifies the primary level
+										set.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">COGO</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "conditional go to" instruction is similar to
+									the <span class="keyword">JMPE</span> instruction. There are two
+									differences:</p>
+								<ul>
+									<li><span class="keyword">COGO</span> can only be used in
+											<span class="keyword">SVEC</span> subroutines.</li>
+									<li>When a subroutine is called with <span class="keyword">COGO</span>,
+										the called subroutine will not return to the calling
+										subroutine, but to the lowest label in the call hierarchy
+										that did not use <span class="keyword">COGO</span> for its subroutine
+										call.</li>
+								</ul><p>If, for example, the <span class="keyword">MAIN</span> label
+										<kbd class="userinput">pat1</kbd> calls the subroutine
+										<kbd class="userinput">sub1</kbd> with <span class="keyword">JSUB</span>,
+									and <kbd class="userinput">sub1</kbd> calls
+										<kbd class="userinput">sub2</kbd> with <span class="keyword">JMPE</span>,
+									then <kbd class="userinput">sub2</kbd> will return to
+										<kbd class="userinput">sub1</kbd>. But if
+										<kbd class="userinput">sub2</kbd> is called with
+										<span class="keyword">COGO</span> from <kbd class="userinput">sub1</kbd>,
+									then <kbd class="userinput">sub2</kbd> will return to<kbd class="userinput">
+										pat1</kbd>.</p>
+								<p>The reason for this is that the return address for a
+										<span class="keyword">COGO</span> call is not pushed onto the call
+									stack. Note that this can be exploited to create an infinite
+									loop by letting <kbd class="userinput">sub1</kbd> call
+										<kbd class="userinput">sub2</kbd> with <span class="keyword">COGO</span>,
+									and letting <kbd class="userinput">sub2</kbd> in turn call
+										<kbd class="userinput">sub1</kbd> also with
+										<span class="keyword">COGO</span>. By contrast, such a mutual call
+									will lead to a stack overflow when <span class="keyword">JMPE</span> is
+									used for the calls.</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the label to jump to
+										when the error flag is <strong>not</strong> set<sup> 1</sup>.</li>
+									<li><var class="varname">param_2</var> specifies the label to jump to
+										when the error flag is set<sup> 1</sup>.</li>
+								</ul><p>The label names must be enclosed with double quotes. Both
+									parameters can be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CTIM</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Change TIMing" instruction allows you to
+									change the timing set. <var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the timing set number.
+										The new value has to be an integer in the range of 1 to the
+										maximum number of allowed timing sets as set by the <a href="98578.htm" title="The DSCP command serves to define the maximal number of instances for the different types of so called parameter sets, and to reserve the necessary space for them in the Sequencer Memory. The space can be calculated from the number of instances because every instance of the same type has the same size. The DSCP? query returns the existing settings. This command replaces the command CNTR, CNTR? used in previous releases.">DSCP</a>command. You can also enter
+											<span class="keyword">PRM</span> which specifies the primary
+										timing set.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">FLQU</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "fill data queue" instruction inserts fill
+									break vectors into the data queue (see also <a href="91206.htm" title="The data queues can run empty when instruction density is very high and the length of the vector generating instructions very small. In this case, the system issues an error.">How to prevent the data queue from running empty</a>). <var class="varname">param_1</var> and <var class="varname">param_2</var>
+									must be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">GENV</span></p></td>
+							<td class="colsep-0 rowsep-1">
+								<p>The "GENerate Vectors" instruction causes parallel vectors to be
+									sent to the DUT. <var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted. Where,
+										<var class="varname">param_1</var> specifies the number of parallel
+									vectors to be generated. The maximum number of vectors is
+										(2<sup>21</sup>- 1) * 8.</p>
+								<div class="p">
+									<div class="note"><span class="title">Note</span> After inserting a <span class="keyword">GENV</span>
+										instruction you may have to readjust the vector areas, and
+										possibly also the <span class="keyword">STVA</span> addresses of the
+										labels that use later segments of the vector areas. See
+												<em><a href="96731.htm" title="The general procedure for inserting instructions into a sequencer program is straightforward. It uses the edit command INSI to insert a command line into the sequencer area and the SQPG command to overwite this dummy line with the appropriate instruction.">Inserting a sequencer instruction</a></em>.</div>
+								</div></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">JMPE</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "jump to subroutine on error" instruction lets
+									you execute a conditional jump to an <span class="keyword">SVEC</span>
+									type subroutine in dependence on an internal error flag which
+									indicates that at least one cycle has failed. You can specify
+									two subroutines, one for the case where the flag is set, and one
+									for the case where it is not set. Both specifications are
+									optional.</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the label to jump to
+										when the error flag is <strong>not</strong> set<a href="#_98749__fn1"><sup>1)</sup></a>.</li>
+									<li><var class="varname">param_2</var> specifies the label to jump to
+										when the error flag is set<a href="#_98749__fn1"><sup>1)</sup></a>.</li>
+								</ul><p>The label names must be enclosed with double quotes. Both
+									parameters can be omitted.</p>
+								<p>The error flag is reset when the subroutine of
+										<var class="varname">param_2</var> is executed.</p>
+								<p>Note that the instruction cannot be placed immediately after the
+									last of those vectors on whose result the jump is to depend.
+									Rather, an appropriate number of buffer vectors must be inserted
+									between this vector and the instruction. For more information
+									see <a href="91185.htm" title="There are three instructions that jump to a subroutine or return from a subroutine conditionally.">Calculating the buffer vectors for
+										JMPE</a>.</p>
+								<p>Note also that this instruction is not supported by the result
+									tools.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">JPPS</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "jump to per-pin subroutine" instruction jumps
+									to a pin specific subroutine. <var class="varname">param_1</var> must be
+									omitted, <var class="varname">param_2</var> is required:</p>
+								<ul>
+									<li><var class="varname">param_2</var> specifies the label to jump to.
+										The label name must be enclosed with double quotes.</li>
+								</ul><p>Note that this instruction is counted as a logical vector of
+									a pattern.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><span class="keyword">JSUB</span></td>
+							<td class="colsep-0 rowsep-1">
+								<p>The "jump sub-patterns" instruction jumps to a vector type
+									subroutine or a scan subroutine.</p>
+								<p>Note that this instruction is not allowed in scan
+									subroutines.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">JTIN</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>This instruction starts or stops jitter injection
+									on a Smart Scale port for all port pins that are included in the
+									primary jitter set. It overrules the global configuration of the
+									jitter loop (as defined by the <span class="keyword">MODE</span> property
+									of <span class="keyword">JSCF</span>), but only within the test in which
+									it is issued. If no primary jitter set exists, the instruction
+									is ignored.</p>
+								<p><var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted:</p>
+								<ul>
+									<li>The possible values for <var class="varname">param_1</var> are
+											<span class="keyword">START</span> and
+										<span class="keyword">STOP</span>.</li>
+								</ul><p>Note that this instruction is not available for the PSSL
+										<span class="keyword">FASTDIFF</span> mode.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">LBGN</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "loop begin" instruction specifies the start
+									position of either a counted or an endless loop. The software
+									uses different parameters to differentiate between the two loop
+									structures.</p>
+								<p>For an endless loop, <var class="varname">param_1</var> can be either
+									omitted or set to 0. </p>
+								<p>For a counted loop, <var class="varname">param_1</var> must be an integer
+									in the range of 1 to 33554432 (this is the restriction imposed
+									by the hardware). If this maximum is exceeded, the command fails
+									with an error message.</p>
+								<p>For both cases, <span class="keyword">param_2</span> must be omitted.</p>
+								<div class="note"><span class="title">Note</span> The only instructions that are allowed to be used
+									within a counted loop are <span class="keyword">GENV</span>,
+										<span class="keyword">SRCV</span>, <span class="keyword">RPTV</span>, and
+										<span class="keyword">NOP</span>. Other instructions will report
+									errors at the proper time. There are no changes to the existing
+									endless loop structure.</div>
+								<div class="note"><span class="title">Note</span> Whenever possible, use <span class="keyword">RPTV</span>
+									instead of a counted loop.</div></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">LEND</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Loop END" instruction specifies the end of an
+									endless loop. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">LPBK</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>This instruction starts a SmartLoop™ test.
+										<var class="varname">param_1</var> and <var class="varname">param_2</var>
+									are both optional:</p>
+								<ul>
+									<li><var class="varname">param_1</var> defines the number of cycles for
+										the SmartLoop™ test;
+										this must be a multiple of 8. The maximum is
+										2<sup>31</sup>-1.</li>
+									<li><var class="varname">param_2</var> is an optional multiplier for
+											<var class="varname">param_1</var>; the maximum is
+											2<sup>12</sup>-1. The point of this construction is to
+										increase the maximum number of cycles above the maximum
+										value of the individual parameters.</li>
+								</ul><p>If you omit both parameters, then the behavior of the SmartLoop™ test depends
+									on whether ports without loopback pins exist in the start label.
+									If so, the SmartLoop™
+									test will run until all ports without loopback pins have
+									finished their test. If all pins are loopback pins, the test
+									will start, but stop at once.</p>
+								<p>Note that a pattern that contains a <span class="keyword">LPBK</span>
+									instruction must not contain any other instruction except
+										<span class="keyword">BRKV</span>,
+										<span class="keyword">LBGN</span>/<span class="keyword">LEND</span>, and
+										<span class="keyword">TMUA</span>.</p></td>
+						</tr>
+						<tr id="_98749__r_MACT">
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MACT</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "match activate" instruction specifies the
+									start of a counted match loop.</p>
+								<p><var class="varname">param_1</var> specifies the number of loops after
+									which the whole test fails. The maximum is 2<sup>21</sup> -
+									1.</p>
+								<p>The <span class="keyword">MACT</span> instruction features a second,
+									optional parameter:</p>
+								<ul>
+									<li><span class="keyword">CONTINUE</span>: This option keeps the test going on even if the loop
+										fails. </li>
+									<li><span class="keyword">TIL_FAIL_STOP</span>: The loop is to be
+											repeated until an iteration fails. When the maximum loop
+											count is reached, the test program stops.</li>
+									<li><span class="keyword">TIL_FAIL_CONT</span>: The loop is to be
+											repeated until an iteration fails. When the maximum loop
+											count is reached, the test program continues after the
+											loop has been completely executed. This behavior is a
+											combination of both <span class="keyword">TIL_FAIL_STOP</span> and
+												<span class="keyword">CONTINUE</span>.</li>
+								</ul>
+								<div class="p">
+									<div class="note"><span class="title">Note</span> The two values <span class="keyword">TIL_FAIL_STOP</span> and
+											<span class="keyword">TIL_FAIL_CONT</span> are valid for Smart
+										Scale cards only.</div>
+								</div></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MBGN</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Match BeGiN" instruction specifies the start
+									position of a timed (old style) match loop.
+										<var class="varname">param_1</var> and <var class="varname">param_2</var>
+									must be omitted. See <em>Generating a Match Loop</em>
+								below.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MEAS</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "execute MEASurement set" instruction executes
+									a PPMU measurement set. The measurement set must have been
+									downloaded with the <a href="98657.htm" title="The MSET command defines a measurement set within a DC set of the PPMU pool. The measurement set is identified by a number. Every measurement set can be executed (with the MEAS command) independently of the other measurement sets in the same DC set. The same measurement set can contain different actions for different pins.">MSET</a> command.
+										<span class="keyword">param_1</span> and <var class="varname">param_2</var>
+									are both required.</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the number of the PPMU
+										DC set to which the measurement set belongs.</li>
+									<li><var class="varname">param_2</var> specifies the number of the
+										measurement set.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MEND</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Match END" instruction specifies the end of a
+									timed (old style) match loop. <var class="varname">param_1</var> and
+										<span class="keyword">param_2</span> must be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MJPE</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Match Jump on Error" instruction tells the
+									sequencer to jump out of a timed (old style) match loop when a
+									compare match is found. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must be omitted. </p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MRPT</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "match repeat" instruction marks the end of the
+									compare vectors and the start of the dummy vectors for a counted
+									match loop. It specifies the number of dummy vectors. It also
+									causes the sequencer to wait when an error is detected in the
+									match loop. See <em><a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a></em>.
+										<var class="varname">param_1</var> is required, <span class="keyword">param_2
+									</span>must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_1</var> is the number of vectors. The
+										maximum is (2<sup>21</sup> - 1) * 8 for
+											<span class="keyword">SM</span> memory type, and (2<sup>21</sup> -
+										1) * 7 for <span class="keyword">VM</span> memory type.</li>
+								</ul><p>Note that after inserting a <span class="keyword">MRPT</span>
+									instruction you may have to readjust the vector areas, and
+									possibly also the <span class="keyword">STVA</span> addresses of the
+									labels that use later segments of the vector areas.</p>
+								<p>Note that this instruction is counted as a logical vector of a
+									pattern.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">NOP</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "no operation" instruction performs no
+									operation on the DUT (but increases the instruction density for
+									the data queue. For more information refer to <a href="91232.htm" title="The sequencer of a pin (channel) cannot process instructions and apply a waveform to its pin at the same time. In order to supply a continuous stream of waveforms even when the sequencer is busy decoding sequencer instructions, a data queue is used. The sequencer does not apply the waveforms to the pin right away, but writes them into the data queue, and from this queue they are forwarded to the pin at the rate defined by the user period. In this way, the DUT can be fed with vectors from the queues of the individual pins while the sequencers are decoding instructions.">Managing the data queue</a>). <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must be omitted. </p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">PRBS</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>This instruction starts a PRBS test.
+										<var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> is optional:</p>
+								<ul>
+									<li><var class="varname">param_1</var> defines the number of cycles for
+										the PRBS test; the maximum is 2<sup>31</sup>-1.</li>
+									<li><var class="varname">param_2</var> is an optional multiplier for
+											<var class="varname">param_1</var>; the maximum is
+											2<sup>12</sup>-1. The point of this construction is to
+										increase the maximum number of cycles above the maximum
+										value of the individual parameters.</li>
+								</ul><p>Note that a pattern that contains a <span class="keyword">PRBS</span>
+									instruction must not contain any other instruction except
+										<span class="keyword">BRKV</span>,
+										<span class="keyword">LBGN</span>/<span class="keyword">LEND</span>, and
+										<span class="keyword">TMUA</span>.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">RETC</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "return conditionally" instruction returns from
+									an <span class="keyword">SVEC</span> type subroutine to a higher level
+										<span class="keyword">SVEC</span> subroutine or the main program in
+									dependence of an internal error flag which is set when at least
+									one cycle has failed. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> are both required.</p>
+								<ul>
+									<li><var class="varname">param_1</var> controls the dependency on the
+										error flag. If it is set to 0, the return will only be
+										executed if no error occurred so far. If it is set to 1, the
+										return will only be executed if an error occurred.</li>
+									<li><var class="varname">param_2</var> can be used to reset the error
+										flag. If the parameter is set to 0, the flag will be reset.
+										If the parameter is set to 1, the flag will left in its
+										current state.</li>
+								</ul><p>Note that this instruction is not supported by the result
+									tools.</p>
+								<div class="note"><span class="title">Note</span> If you use the LMAP error map mode, <a href="98605.htm" title="If the last test was executed with the overview Error Map in LMAP mode, which implies that the start label was a (single-port or multi-port) burst, then the FLBL? query returns information about the failing labels of the burst within a certain cycle range for a specified port. This information can include the number of the first failing cycle. If this is requested, separate cycle information is returned for every failing pin of the port.">FLBL</a>
+			ignores the <span class="keyword">RETC</span> clearing flag for failures.</div>
+								<div class="note"><span class="title">Note</span> If you use RETC to reduce test time by aborting a
+									sequencer run early after checking for a failing DUT response,
+									consider the following:</div><p>When not all sites are enabled or activated (means, they are masked), see <a href="100096.htm" title="The Site Control window shows the states of the individual site. Sites unavailable due to defect pin configuration, cannot be enabled, activated or receive result focus. You can only set the states for available sites.">The states of the sites</a>, and site match is set to ON, the masked sites will not be aware of the abort condition.
+									Instead, the overall execution time depend on the maximum pattern length. In such
+									scenarios, use the <a href="122776.htm" title="The label per site feature allows you to associate different sites with different start labels (patterns). In this way you can execute different tests on different sites in parallel. This can be useful, for example, for trimming tests, where every site may have to be given a different signature.">Pattern per site</a> feature to assign a dummy
+									label for disabled sites. This ensures that the sequencer run get stopped as soon as all
+									enabled sites have met the RETC condition.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><span class="keyword">RGOP</span></td>
+							<td class="colsep-0 rowsep-1">The "register operation" instruction performs simple arithmetic operations.
+								It can be used, for instance, to ease the branch reconstruction for a <a href="149558.htm" title="The cogo() class supports pattern‑based binary, linear, hysteresis linear searches.">Sequencer‑controlled search with cogo</a>.<p><var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted.</p><p><var class="varname">param_1</var> species the
+									action as one of the following options:</p><div class="p">
+									<ul>
+										<li><var class="varname">RESET</var> checks that the register value is 0. If not, the test fails.
+											The first instruction of a new search has to be an RGOP RESET.</li>
+										<li><var class="varname">INC</var> adds 1 to the current value of the register. The maximum count
+											is 2<sup>32-1</sup>.</li>
+										<li><var class="varname">INC_LOWER</var> is the same as INC but with a different overflow check,
+											to be used to run the first of two counts in the same sequencer run, together with
+												<var class="varname">INC_UPPER</var> (not <var class="varname">INC</var>). Must not be used after a call
+											with <var class="varname">INC_UPPER</var>. The maximum count is 2<sup>16-1</sup></li>
+										<li><var class="varname">INC_UPPER</var> is to be used as the second count (works by adding
+												2<sup>16</sup> to the current value of the register).</li>
+										<li><var class="varname">SHL</var> shifts the current value of the register one bit to the left
+											and set bit 0 of the register to 0.</li>
+									</ul>
+								</div><p>The <span class="keyword">RGOP</span> instruction cannot be used in the same sequencer run as a
+										<a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">match loop</a>, nor can you do interleaved or sequential
+										<span class="keyword">COGO</span> searches with this approach.</p><p>The result is retrieved with an
+										<span class="keyword">RGOV?</span> query.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">RPTJ</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "repeat jump" instruction repeats the next <span class="keyword">JSUB</span> instruction
+										<var class="varname">param_1</var> times. The <span class="keyword">JSUB</span> instruction must follow the
+										<span class="keyword">RPTJ</span> instruction immediately. <var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the number of times the
+										next <span class="keyword">JSUB</span> instruction is to be repeated.
+										The value has to be an integer in the range of 2 to 2<sup>19
+										</sup>- 1.</li>
+								</ul><p>Note that this instruction is counted as a logical vector of
+									a pattern.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">RPTV</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "repeat vector" instruction repeats a sequence
+									of vectors. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> are both required:</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the number of vectors
+										to be repeated. The maximum is (2<sup>21</sup>- 1) * 8.</li>
+									<li><var class="varname">param_2</var> specifies the number of
+										repetitions. The maximum value depends on whether <span class="keyword">param_1</span> exceeds the word length of 8. If it
+										does not, the maximum is 2<sup>24</sup> - 8. If it does, the
+										maximum number is 2<sup>18</sup>.</li>
+								</ul><div class="p">
+									<div class="note"><span class="title">Note</span> After inserting an <span class="keyword">RPTV</span>
+										instruction you may have to readjust the vector areas, and
+										possibly also the <span class="keyword">STVA</span> addresses of the
+										labels that use later segments of the vector areas. See
+												<em><a href="96731.htm" title="The general procedure for inserting instructions into a sequencer program is straightforward. It uses the edit command INSI to insert a command line into the sequencer area and the SQPG command to overwite this dummy line with the appropriate instruction.">Inserting a sequencer instruction</a></em>.</div>
+								</div></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">RSJP</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Return from a Subroutine Jump" instruction
+									returns from an <span class="keyword">SJMP</span> type subroutine.
+										<var class="varname">param_1</var> and <var class="varname">param_2</var>
+									must be omitted.</p>
+								<p>This instruction is allowed for downward compatibility only. It
+									should not be used in new applications.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">RSUB</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "return from a vector subroutine" instruction
+									returns from an <span class="keyword">SVEC</span> type subroutine to a
+									higher level <span class="keyword">SVEC</span> subroutine or the main
+									program. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must both be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">SRCV</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "SouRCe Vectors" instruction marks the start of
+									a source vector block. It can only be used in connection with
+									the <span class="keyword">SSRC</span> instruction. Within such a block,
+									the vectors of the source pins are read from the
+										<span class="keyword">DSCR</span> label referenced by the
+										<span class="keyword">SSRC</span> instruction. The vectors for the
+									other non-source pins are specified in the actual label.
+										<var class="varname">param_1</var> and <var class="varname">param_2</var>
+									are both required:</p>
+								<ul>
+									<li><var class="varname">param_1</var> specifies the size of the
+										parallel vector sequence to be repeated on non-source pins.
+										The range is 1 to 65535.</li>
+									<li><var class="varname">param_2</var> specifies how often the sequence
+										is to be repeated. The range is also 1 to 65535.</li>
+								</ul><p>The length of a source vector block is determined by the
+									length of the corresponding source vector section in the
+										<span class="keyword">DSCR</span> label. Accordingly,
+										<var class="varname">param_1</var><strong> *
+										</strong><var class="varname">param_2</var> must equal the length of this
+									section. Otherwise, the parameters are only relevant to the
+									non-DSM pins: they define the length of the vector block that is
+									to be executed on the non-source pins, and how often this block
+									is to be repeated.</p>
+								<p>Note that this instruction is counted as a logical vector of a
+									pattern.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">SSRC</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "Start SouRCe" instruction specifies the label
+									(of type <span class="keyword">DSRC</span>) that contains the vectors for
+									the source pins. <var class="varname">param_1</var> must be omitted,
+										<var class="varname">param_2</var> is required:</p>
+								<ul>
+									<li><var class="varname">param_2</var> must specify a valid
+											<span class="keyword">DSRC</span> label name enclosed by doubled
+										quotes.</li>
+								</ul><p>The source pins are defined by the port of the
+										<span class="keyword">DSRC</span> label. Refer to the
+										<span class="keyword">SRCV</span> instruction below.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">STOP</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "stop test" instruction programs the sequencer
+									to stop the label. This instruction must be present in each
+									label of type <span class="keyword">MAIN</span>.
+										<var class="varname">param_1</var> and <var class="varname">param_2</var>
+									must both be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">STSA</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "SeT Scan vector Address" instruction is one of
+									the two ST<span class="keyword">x</span>A instructions that form a label
+									header. It must be present in every label of type
+										<span class="keyword">MAIN</span>. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">STVA</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "SeT parallel Vector Address" instruction is
+									one of the two
+										<span class="keyword">ST</span><span class="keyword">x</span><span class="keyword">A</span>
+									instructions that form a label header. It must be present in
+									every label of types <span class="keyword">MAIN</span> and
+										<span class="keyword">SVEC</span>. <var class="varname">param_2</var> is
+									required, <var class="varname">param_1</var> must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_2</var> specifies the start address of
+										the port specific vector area segments that are associated
+										with the label. The address must be a multiple of 8.</li>
+								</ul><p>You can always use <var class="varname">param_2</var> to specify the
+									address, but SmarTest stores and displays the address in
+										<var class="varname">param_2</var> only if the vector setup file
+									contains patterns for user defined ports. In all other cases it
+									uses <var class="varname">param_1</var>.</p></td>
+						</tr>
+						
+						
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">TMUA</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>This instruction arms the TMU per pin for all pins
+									of the pattern port. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must both be omitted.</p>
+								<p>Not supported for Pin Scale 5000 cards.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">WAIT</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The <span class="keyword">WAIT</span> instruction causes the
+									sequencer to create a number of break vectors which approximates
+									as closely as possible a specified number of nano seconds.</p>
+								<p><var class="varname">param_1</var> is required,
+										<var class="varname">param_2</var> must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_1</var>specifies the required number of
+										nano seconds. The admitted range is from 0 to 5592402.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">WTER</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "WaiT on ERror" instruction programs the
+									sequencer to wait on encountering an error within a timed (old
+									style) match loop. <var class="varname">param_1</var> and
+										<var class="varname">param_2</var> must be omitted.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p></td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">XACT</span></p></td>
+							<td class="colsep-0 rowsep-1"><p>The "eXecute ACTion" instruction executes a DC
+									waveform. <var class="varname">param_2</var> is required,
+										<var class="varname">param_1</var> must be omitted:</p>
+								<ul>
+									<li><var class="varname">param_2</var> specifies the name of the DC
+										waveform to be executed. The waveform identified by this
+										name must have been defined with the <span class="keyword">DFTD</span>
+										command within a test data collection which has the same
+										name as the pattern in which <span class="keyword">XACT</span> is
+										used.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">param_1</var></p></td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The role of this
+									optional parameter depends on the instruction specified for the
+										<var class="varname">instr</var> parameter. See the descriptions of
+									the individual instructions.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">param_2</var></p></td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The role of this
+									optional parameter depends on the instruction specified for the
+										<var class="varname">instr</var> parameter. See the descriptions of
+									the individual instructions.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">memory</var></p></td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The optional parameter
+									defines the location of the vectors. Possible values are:</p>
+								<ul>
+									<li><span class="keyword">SM</span>: Sequencer memory. This is the
+										default.</li>
+									<li><span class="keyword">SHMEM</span>: With this option different sites
+										for the same pin share their vector areas, or at least
+										always use the same vector data. For more information see
+												<em><a href="114691.htm" title="Every label is associated with one of three memory types, SM, SHMEM, or HSER. SM is the standard type; the purpose of SHMEM is to allow different sites of the same pin to share their vector areas physically under certain conditions. For HSER see Defining a compliance pattern for pattern‑based SmartLoop testing.">Selecting the memory type</a></em>.</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">port</var></p></td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The mandatory
+									parameter defines the name of the port whose sequencer area is
+									to be modified. Specify <span class="keyword">@</span> for the default
+									port to which all pins belong.</p></td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Programming a Match Loop</h2><p>A timed match loop must have this
+				sequence: </p><ol>
+				<li><span class="keyword">WTER</span></li>
+				<li><span class="keyword">MBGN</span></li>
+				<li><span class="keyword">GENV</span></li>
+				<li><span class="keyword">WTER</span></li>
+				<li><span class="keyword">MJPE</span></li>
+				<li><span class="keyword">MEND</span></li>
+			</ol><p>When a <span class="keyword">MEND</span> instruction is issued, the firmware checks that
+				the other commands precede it. If not, the <span class="keyword">MBGN</span> and
+					<span class="keyword">MJPE</span> instructions function as <span class="keyword">NOP</span>s (the
+				vector setup shows them as <span class="keyword">NOP</span>s). If the match is partially
+				overwritten, the <span class="keyword">MEND</span> becomes a <span class="keyword">NOP</span>, as do
+					<span class="keyword">MBGN</span> and <span class="keyword">MJPE</span>. </p><p>A counted match loop
+				must have this sequence:</p><ol>
+				<li><span class="keyword">MACT</span></li>
+				<li><span class="keyword">GENV</span></li>
+				<li><span class="keyword">MRPT</span></li>
+			</ol><p>See also <a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a>.</p><div class="note"><span class="title">Note</span> When the <a href="150814.htm" title="Serial interfaces on many DUTs require non-deterministic handling. Normally they consist of a small number of pins (1, 2 or 4). Fast Sync enables the local synchronization of the test processor (TP). It enables up to 8 sync ports reacting independently on non-deterministic DUT responses per test processor.">Fast Sync</a> feature is configured on the Smart
+			Scale cards, smaller number of vectors are needed for error propagation. <a href="98591.htm" title="The EPRC? query serves to calculate how often a block of buffer vectors must be repeated before execution of a conditional jump (JMPE instruction). These buffer vectors are required to ensure that the internal error flag on which the jump depends is set correctly (see Calculating the buffer vectors for JMPE and RETC (and match loops)).The calculation is based on the current primary sets. In particular, the currently active timing set (as defined by SPRM) is used to determine the tester period.">EPRC? - (Error Propagation Repetition Count)</a>
+			can be used to determine the impact. Sequencer programs using <span class="keyword">COGO</span>,
+				<span class="keyword">JMPE</span>, <span class="keyword">RETC</span>, <span class="keyword">MACT</span> and
+				<span class="keyword">MRPT</span> can profit from it.</div></div><div class="syntax"><h2>Programming a counted loop</h2><p>Counted loops are described in more
+				detail in <a href="10572.htm" title="To program a counted loop use the LBGN instruction followed by the number of repetitions. Mark the end of the loop with LEND.">Counted loops</a>.</p></div><div class="syntax"><h2>Application</h2><p>Download <em>and</em> edit command in the Pattern
+				Tool.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if:</p><ul>
+				<li>The <span class="keyword">RPTV</span> repeat vector sequence does not lie between 1 and
+					14680057. </li>
+				<li>The vector address range, the number of vectors generated (or repeated) does not
+					lie in the range 1 to 16777208. </li>
+				<li><var class="varname">param_1</var> or <var class="varname">param_2</var> is out of range (see
+					above). </li>
+				<li>You attempt to jump to a non-existent label. </li>
+			</ul></div>
+		
+		
+		
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>The following is a simple example of a counted match loop:</p><pre class="prettyprint linenums copyable">SQPG 3,MACT,256,CONTINUE,,(@)
+SQPG 4,GENV,5,,,(@)
+SQPG 5,MRPT,5,,,(@)</pre><p>Note that only the <span class="keyword">GENV</span> or <span class="keyword">RPTV</span> instruction is
+			allowed immediately before the <span class="keyword">MACT</span> instruction. <span class="keyword">CONTINUE</span>,
+			which is optional, tells SmarTest to continue the surrounding test even if the match loop
+			failed.</p></div>
+		<div class="example"><h3>Example 2</h3><p>The following example shows that inserting a
+					<span class="keyword">GENV</span> instruction into a label with <span class="keyword">SQPG</span>
+				disturbs the sequencer constructs and must be accompanied by an appropriate
+				adjustment of the vector areas (see also <em><a href="96731.htm" title="The general procedure for inserting instructions into a sequencer program is straightforward. It uses the edit command INSI to insert a command line into the sequencer area and the SQPG command to overwite this dummy line with the appropriate instruction.">Inserting a sequencer instruction</a></em>).</p><p>Display the sequencer area of the default
+				port:</p><pre class="prettyprint linenums copyable">&gt; SQPG? ALL,(@)
+&lt; ...
+&lt; SQPG 4,STVA,504,,,(@)
+&lt; SQPG 5,STSA,,,,(@)
+&lt; SQPG 6,GENV,9,,,(@)
+&lt; SQPG 7,STOP,,,,(@)
+&lt; SQPG 8,STVA,520,,,(@)
+&lt; ...</pre><p>The
+				vector area segment of the label starting at command 4 comprises 2 memory words, as
+				shown by the start address of the following label (command line 8).</p><p>Now
+				display the vector area segment of pin S0_1 for the label starting at command 4, and
+				also the first memory word of the following label:
+				</p><pre class="prettyprint linenums copyable">&gt; $VECD? PARA,SM,504,24,(S0_1)
+&lt; VECD PARA,SM,504,16,(S0_1),
+ 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001
+ 0000 0001 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+ 0000 0010 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000</pre><p>The
+					<span class="keyword">GENV</span> instruction is associated with the first two memory
+				words. The last 7 bytes of the second word are padding vectors. This is shown by
+				making the first label the start label and then displaying the active vectors of
+				command 6 for pin
+				<code>S0_1</code>:</p><pre class="prettyprint linenums copyable">&gt; SQSL "test_1"
+&gt; $VCYC? 0,9,(S0_1)
+&lt; VCYC 0,9,GENV,F160,(S0_1),
+ 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001 0000 0001
+ 0000 0001</pre><p>Now
+				insert a <span class="keyword">GENV</span> instruction before command
+				6:</p><pre class="prettyprint linenums copyable">&gt; TSTL "test_1",
+&gt; INSI 6,1
+&gt; SQPG 6,GENV,1,,,(@)</pre><p>Display
+				the active vectors for the two <span class="keyword">GENV</span>
+				instructions:</p><pre class="prettyprint linenums copyable">&gt; $VCYC? 0,10,(S0_1)
+&lt; VCYC 0,1,GENV,F160,(S0_1), 0000 0001
+&lt; VCYC 1,9,GENV,F160,(S0_1), 
+ 0000 0001 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000
+ 0000 0010</pre><p>The
+				first memory word is now associated with the new instruction. The first of its
+				vectors is active, the others are inactive. The previous command 6 (now command 7)
+				is now associated with the second and the third block. Thus the third memory word is
+				illegally shared between two labels.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99880.htm" title="The vector sequencer has its own set of instructions which you use to control the execution of your test. The default instruction is GENV (GENerateVectors) for every vector, but the system does not display it and you do not have to enter it.">Sequencer instructions</a></div><div><a href="150814.htm" title="Serial interfaces on many DUTs require non-deterministic handling. Normally they consist of a small number of pins (1, 2 or 4). Fast Sync enables the local synchronization of the test processor (TP). It enables up to 8 sync ports reacting independently on non-deterministic DUT responses per test processor.">Fast Sync</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: Error message if maximum for repeating a counted loop is
+					exceeded.</li><li>SmarTest 6.5.2: The maximum number of loops for a counted match loop (MACT) has be
+					reduced to 221-1.</li><li>SmarTest 7.0.1: The instructions PRBS (for starting a PRBS test) and LPBK (for
+					starting a SmartLoop test) have been added. The vector area is now port
+					specific. A new memory type SHMEM has been introduced for vector memory sharing
+					of different sites.</li><li>SmarTest 7.0.3: Removed MTST instruction</li><li>SmarTest 7.1.4:  New MACT parameter option: CONTINUE. A new instruction JTIN for
+					starting and stopping jitter injection locally on Smart Scale systems was
+					added.</li><li>SmarTest 7.3.2:  A new instruction COGO, which is a variant of JMPE,was
+					added.</li><li>SmarTest 7.4.0:  New feature Fast Sync enables the COGO, JMPE, RETC, MACT and MRPT
+					instructions to use smaller number of vectors for error
+					propagation..</li><li>SmarTest 7.4.4: MACT supports CONTINUE as a parameter option.</li><li>SmarTest 7.5.0: MACT supports TIL_FAIL_STOP and TIL_FAIL_CONT as parameter
+					options.</li></ol></div><div class="fs"><div class="p"><a id="_98749__fn1"><sup>1)</sup></a>  The
+											sequence of the two parameters is different for the
+												<span class="keyword">SQPG</span> command and the <a href="99880.htm" title="The vector sequencer has its own set of instructions which you use to control the execution of your test. The default instruction is GENV (GENerateVectors) for every vector, but the system does not display it and you do not have to enter it.">Sequencer instructions</a> of the pattern editor: Command
+												<span class="keyword">SQPG</span> utilizes the sequence
+												"<var class="varname">param_1</var> = label if error flag is
+												<strong>not</strong> set" and "<var class="varname">param_2</var> =
+											label if error flag is set" for the two instructions
+												<span class="keyword">COGO</span> and <span class="keyword">JMPE</span>.
+											The reversed sequence
+												"<span class="keyword">&lt;pattern1&gt;</span> = error flag is
+											set" and "<span class="keyword">&lt;pattern2&gt;</span> = error
+											flag is <strong>not</strong> set" is used for the two sequencer
+											instructions <span class="keyword">COGO</span> and
+												<span class="keyword">JMPE</span> of the pattern
+											editor.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98749</span><script type="text/javascript">var ti='98749';var tt='SQPG, SQPG? - (SeQuencer ProGramming)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

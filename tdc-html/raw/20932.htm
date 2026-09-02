@@ -1,0 +1,145 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If many devices are tested such as in a production test, the data captured by analog measurement modules (digitizers and samplers) in the previous device test is kept in the waveform memory of the modules until the next device test captures then stores new data into different memory areas. If a module has not received any trigger in a device test owing to some unexpected trouble, the measurement by the module is not performed. But, the test program reads the captured data of the previous device test from the module then judges the result from the data as if the measurement is really performed."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Error Handling on Missing Trigger Input</title></head><body id="_20932"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 20932</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Error Handling on Missing Trigger Input</h1>
+	
+	
+	<div><p>If many devices are tested such as in a production test, the data captured by analog
+		measurement modules (digitizers and samplers) in the previous device test is kept in the waveform
+		memory of the modules until the next device test captures then stores new data into different
+		memory areas. If a module has not received any trigger in a device test owing to some unexpected
+		trouble, the measurement by the module is not performed. But, the test program reads the captured
+		data of the previous device test from the module then judges the result from the data as if the
+		measurement is really performed.</p>
+		<p>To avoid this problem, the following digitizers/samplers have a status to indicate whether each
+			digitizer/sampler module (or each measure unit of each MCA/MCB/MCC/MCE module) has been triggered
+			once or more times in a test (0) or not (1). This status can be read via test method API (or
+			firmware). The status of all the analog modules listed below will be initialized to "1" when the
+				<a href="29338.htm" title="This topic contains:">FLUSH</a> API or the APIs (such as <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a>) that call the FLUSH API
+			internally.</p>
+		<ul>
+			<li>MCA Audio Digitizer (ADGT) / Video Digitizer (VDGT)</li>
+			<li>MCB LF Digitizer / VHF Digitizer</li>
+			<li>MCC Sampler</li>
+			<li>MCE LF Digitizer / VHF Digitizer</li>
+		</ul>
+		<p>In the test method program, the status of all the analog modules listed above will be read by
+			the <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a> or <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a> API at the end of the execution of these
+			APIs. The following table shows when the status of the analog modules listed above is initialized
+			and read for each API.</p>
+		<table class="frame-top"><caption></caption><colgroup><col><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-1" id="_20932__entry__1"><p>API</p>
+						</th>
+						<th class="colsep-1" id="_20932__entry__2"><p>When analog module status is initialized</p>
+						</th>
+						<th class="colsep-1" id="_20932__entry__3"><p>When analog module status is read</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr class="rowsep-1">
+						<td class="colsep-1" headers="_20932__entry__1"><p>EXECUTE_TEST</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__2"><p>At the beginning of the EXECUTE_TEST API execution</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__3"><p>At the end of the EXECUTE_TEST API execution</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-1" headers="_20932__entry__1"><p>START_TEST, </p>
+							<p>DIGITAL_CAPTURE_TEST</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__2"><p>At the beginning of these APIs' execution</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__3"><p>At the end of the WAIT_TEST_DONE API execution</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-1" headers="_20932__entry__1"><p>Other APIs that start the digital sequencer</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__2"><p>At the execution of the FLUSH API that is used to activate the primary analog
+								set</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__3"><p>At the end of the WAIT_TEST_DONE API execution</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<p>The status read will be returned to the <em>mistriggered_site</em> parameter of the <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a> or <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a> API. The following shows an example program of error
+			handling using this functionality.</p>
+		<div></div><pre class="prettyprint linenums copyable">START_TEST();
+WAIT_TEST_DONE(1 sec,&amp;Time_out,&amp;Trig_state);
+if(Trig_state != 0){
+ cout &lt;&lt; "One or more digitizer/sampler has not
+ received any trigger." &lt;&lt; endl;
+ TEST("","",TM::Fail,0);
+}</pre><div></div>
+		
+		<p>The status to be returned to the <em>mistriggered_site</em> parameter of the
+				<kbd class="userinput">EXECUTE_TEST</kbd> or <kbd class="userinput">WAIT_TEST_DONE</kbd> API depends on the
+			types of analog modules and operating mode (online/offline) as in the table below:</p>
+		<table class="frame-top"><caption></caption><colgroup><col><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-1" id="_20932__entry__13"><p>Module type</p>
+						</th>
+						<th class="colsep-1" id="_20932__entry__14"><p>In online mode</p>
+						</th>
+						<th class="colsep-1" id="_20932__entry__15"><p>In offline mode</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr class="rowsep-1">
+						<td class="colsep-1" headers="_20932__entry__13"><p>MCA (ADGT/VDGT),</p>
+							<p>MCB,</p>
+							<p>MCC,</p>
+							<p>MCE</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__14"><p>Returns whether the module (or the measure unit of the MCA/MCB/MCC/MCE module) has
+								been triggered once or more times (0) or not (1)</p>
+						</td>
+						<td class="colsep-1" headers="_20932__entry__15"><p>Returns whether the trigger signal input is enabled (0) or disabled (1)</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<div class="note"><span class="title">Note</span> Analog modules (or measure units of the MCA/MCB/MCC/MCE modules) that do not
+			connect any pins to the core will not return any status.</div>
+		<section class="section"><h2>Error handling in multi-site tests</h2><p>In the multi-site test, put the <a href="29315.htm" title="This API starts the digital sequencer from the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution waits until the digital and analog sequencers stop (except AWG sequencers) or until the specified timeout time. This API can also detect whether digitizers and samplers have received one or more trigger input or not during the execution of this API. For details of this functionality, see Error Handling on Missing Trigger Input.">EXECUTE_TEST</a> or <a href="29780.htm" title="Starts the digital sequencer at the specified start label, then changes the state of the digital sequencer from &#34;BRK&#34; to &#34;RUN&#34;. Program execution goes to the next statement.">START_TEST</a> API (with <a href="29847.htm" title="This API waits for the test completion. This API also detects whether digitizers and samplers have received one or more trigger input or not from when the test is started by the START_TEST API until the execution of this API ends. For details of this functionality, see Error Handling on Missing Trigger Input.">WAIT_TEST_DONE</a>)
+				into the <kbd class="userinput">ON_FIRST_INVOCATION_BEGIN</kbd> and
+					<kbd class="userinput">ON_FIRST_INVOCATION_END</kbd>.</p><p><kbd class="userinput">EXECUTE_TEST</kbd>
+				checks whether each site has received one or more triggers (0) in a test or not (1) and
+				generates a binary number to indicate the status for each site. The order of the expression
+				corresponds to the site numbers and the lowest bit specifies the site 1. Then the binary number
+				will be returned to <kbd class="userinput">tout_site_flag</kbd> variable in decimal value as in the
+				figure below.</p><div class="p"><figure class="fignone">
+					
+					<img src="20931.png" alt="mistriggered_site Parameter">
+				</figure></div><p>To check whether the status for each site is "1" or "0" in the test method program,
+				shift the bit for the target site to the lowest bit by using the operator "&gt;&gt;" as shown in
+				the following
+				example.</p><pre class="prettyprint linenums copyable">static INT tout_site_flag, mis_trg_site, site_num;
+           :
+ON_FIRST_INVOCATION_BEGIN();
+           :
+EXECUTE_TEST(100 ms,&amp;tout_site_flag,&amp;mis_trg_site);
+           :
+ON_FIRST_INVOCATION_END()
+           :
+site_num = CURRENT_SITE_NUMBER();
+if((mis_trg_site&gt;&gt;(site_num -1))&amp;1){
+cout &lt;&lt; "Timeout error has occurred on site"
+ &lt;&lt; site_num &lt;&lt; endl;
+TEST("","",TM::Fail,0);
+}
+           :</pre><p>In
+				the above example, <kbd class="userinput">EXECUTE_TEST</kbd> checks whether each site has received one
+				or more triggers (0) in a test or not (1) and returns the status to
+					<code>mis_trg_site</code> variable.</p><p><kbd class="userinput">(mis_trg_site&gt;&gt;(site_num
+					-1))&amp;1</kbd> is a statement for checking whether the status of the query focus site
+				is "1" or not. On bit calculation, values are processed as binary number. "&gt;&gt;" is a
+				operator to shift the bit to the right for the digit specified with "site_num -1". By this bit
+				calculation, the bit for the query focus site will be shifted to the lowest bit. The lowest bit
+				will be compared to "1" by the operator
+					"&amp;1".</p><p><kbd class="userinput">TEST("","",TM::Fail,0)</kbd> is a statement for judging the
+				test as "FAIL" when the status of the <em>misstriggered_site</em> parameter for the query focus
+				site is "1".</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.2:  Support of MBAV8+.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 20932</span><script type="text/javascript">var ti='20932';var tt='Error Handling on Missing Trigger Input'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

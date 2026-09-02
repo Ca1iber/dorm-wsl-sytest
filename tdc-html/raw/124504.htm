@@ -1,0 +1,386 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to collect the hardware and software configuration with HVM API</title><meta name="keywords" content="config high voltage High Volume Manufacture"></head><body id="_124504"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 124504</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to collect the hardware and software configuration with HVM API</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>HVM API provides the functionality to collect the software and hardware configuration
+				of the test system. With HVM API you can collect the following configuration
+				information:</p><p>Software</p><ul>
+				<li>session ID of the online SmarTest session</li>
+				<li>profile information of a specified SmarTest session</li>
+				<li>version of the current SmarTest session</li>
+				<li>installed SmarTest versions</li>
+				<li>all IDs of the live SmarTest sessions</li>
+				<li>information of Linux operating system</li>
+			</ul><p>Hardware</p><ul>
+				<li>connected load board ID</li>
+				<li>connected external instrument information</li>
+				<li>connected probe card ID</li>
+				<li>ID list of all connected external instruments</li>
+				<li>test head type, DUT interface and list of DUT board ID</li>
+				<li>test board detail information like board type, slot number, module ID list, ...</li>
+				<li>test module information like module type, slot number, ...</li>
+			</ul><p>The hardware configurations that can be collected depend on the SmarTest version. New
+				boards are only supported in newer SmarTest versions.</p><p>For the execution of an HVM API
+				program, refer to <a href="95795.htm" title="This section describes how to create a client application with the HVM API and how to execute the application program.">How to create and execute the application client with HVM
+					API</a>.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 6.2 or later. The SmarTest session is running online.
+				Hardware information can only be collected when SmarTest is running in online mode.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Retrieve the software information with</span>
+				<div><ul>
+						<li><a href="95811.htm" title="This data query command gets the session ID of an online SmarTest session. Only one online session is allowable to one test system.">GetOnlineSmartestSessionID</a></li>
+						<li><a href="103782.htm" title="This is a data query command. It retrieves the profile information of the SmarTest session specified by session ID.">GetSmartestSessionProfile</a></li>
+						<li><a href="95809.htm" title="This data query command lists the current SmarTest version in use and all the SmarTest versions installed on the controller workstation.">ListInstalledSmartestVersions</a></li>
+						<li><a href="95810.htm" title="This data query command lists all the session IDs of the running SmarTest sessions. The API can tell all visible sessions. Here the term &#34;visible&#34; means that any graphical window (like sa_splash, the report window, SmarTest Work Center, and so on) is visible to you. The visible SmarTest sessions cover three kinds of situations:">ListSmartestSessionIDs</a></li>
+						<li><a href="96772.htm" title="This data query command gets the information of the controller workstation. SUCCESS is always returned by the execution of this command.">GetControllerInfo</a></li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Retrieve the hardware information with</span>
+				<div><ul>
+						<li><a href="96778.htm" title="This data query command gets the load board ID.">GetLoadboardInfo</a></li>
+						<li><a href="96774.htm" title="This data query command gets the external instrument information with specified instrument ID.">GetInstrumentInfoById</a></li>
+						<li><a href="96779.htm" title="This data query command gets the probe card information. Currently only the probe card ID is available.">GetProbeCardInfo</a></li>
+						<li><a href="96773.htm" title="This data query command gets the tester information including the IDs related to external instruments and test head.">GetTesterInfo</a></li>
+						<li><a href="96775.htm" title="This data query command gets the test head information with the test head ID. The test head ID is always &#34;1&#34;. The board ID list will be returned for all the installed test boards.">GetTestHeadInfoByID</a></li>
+						<li><a href="96776.htm" title="This data query command gets the information of the test board which is installed in V93000 test head with the specified test board ID.">GetTestBoardInfoByID</a></li>
+						<li><a href="96777.htm" title="This data query command gets the information of the test module installed in the test board with specified test module ID.">GetTestModuleInfobyID</a></li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Print out the hardware configuration of the test system.</span>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following example retrieves the online SmarTest session ID. If an online session
+				exists, it retrieves the session profile, lists all the installed SmarTest versions and
+				retrieves the information of the operating system. Then the test head information is retrieved.
+				All the detail information of test boards and test modules are retrieved and printed
+				out.</p><pre class="prettyprint linenums copyable">using namespace xoc::hvmapi;
+Status errObj;
+ParamList qrResults, Results, params;
+std::string testHeadID;
+std::vector&lt;std::string&gt; instIdList;
+std::vector&lt;std::string&gt; boardIdList;
+std::vector&lt;std::string&gt; moduleIdList;
+//----------------------Retrieve Software Information----------------
+errObj = query("GetOnlineSmartestSessionID", qrResults);
+if (errObj.isSuccess())
+{
+  session =  qrResults["SESSION_ID"];
+}
+else
+{
+  cout &lt;&lt; "!!!Unable to collect tester information because there is no online Smartest Session" &lt;&lt; endl;
+  exit(0);
+}
+cout &lt;&lt; endl;
+errObj = query("GetSmartestSessionProfile", qrResults, ParamList(), session);
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt; " Smartest Session Profile " &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+if (errObj.isSuccess())
+{
+  cout&lt;&lt;"  VERSION " &lt;&lt; qrResults["VERSION"] &lt;&lt;endl;
+  cout&lt;&lt;"  ONLINE_MODE " &lt;&lt; qrResults["ONLINE_MODE"] &lt;&lt;endl;
+  cout&lt;&lt;"  USER_MODE " &lt;&lt; qrResults["USER_MODE"] &lt;&lt;endl;
+  cout&lt;&lt;"  LOGIN_USER " &lt;&lt; qrResults["LOGIN_USER"] &lt;&lt;endl;
+  cout&lt;&lt;"  ONLINE SESSION ID " &lt;&lt; session &lt;&lt;endl;
+}
+else
+{
+  cout &lt;&lt; "ERROR - Execution of GetSmartestSessionProfile Failed" &lt;&lt; endl; 
+}
+cout &lt;&lt; endl;
+errObj = query("ListInstalledSmartestVersions", qrResults);
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt; " Installed Versions of Smartest " &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+if (errObj.isSuccess())
+{
+  cout&lt;&lt;"  CURRENT_VERSION " &lt;&lt; qrResults["CURRENT_VERSION"] &lt;&lt;endl;
+  vector&lt;string&gt; versionList = qrResults.valueArray("INSTALLED_VERSION_LIST");
+  vector&lt;string&gt;::iterator it;
+  int i = 1;
+  cout&lt;&lt;"  VERSION_LIST:" &lt;&lt; endl;
+  for ( it=versionList.begin(); it!=versionList.end(); ++it, i++)
+  {
+    cout &lt;&lt; "      version " &lt;&lt; i &lt;&lt; ": " &lt;&lt; *it &lt;&lt; endl;
+  }
+}
+else
+{
+  cout &lt;&lt; "ERROR - Execution of ListInstalledSmartestVersions Failed" &lt;&lt; endl; 
+}
+cout &lt;&lt; endl;
+errObj = query("GetControllerInfo", qrResults);
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt; " 93000 Tester Controller Information" &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+if (errObj.isSuccess())
+{
+  cout &lt;&lt; "OS Release:\t\t" &lt;&lt; qrResults["OS_RELEASE"] &lt;&lt; endl;
+  cout &lt;&lt; "OS Kernel:\t\t" &lt;&lt; qrResults["OS_KERNEL"] &lt;&lt; endl;
+  cout &lt;&lt; "Hostname:\t\t" &lt;&lt; qrResults["HOSTNAME"] &lt;&lt; endl;
+}
+else
+{
+  cout &lt;&lt; "ERROR - Execution of GetControllerInfo Failed" &lt;&lt; endl; 
+}
+cout &lt;&lt; endl;  
+//----------------------Retrieve Hardware Information----------------
+errObj = query("GetTesterInfo", qrResults, params, session);
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt; " 93000 Testhead Information" &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+if (errObj.isSuccess())
+{
+  testHeadID = qrResults["TESTHEAD_ID"];
+  cout &lt;&lt; " Testhead ID:\t\t" &lt;&lt; testHeadID &lt;&lt; endl;
+  instIdList = qrResults.valueArray("INSTRUMENT_ID_LIST");
+  for(unsigned int i=0; i &lt; instIdList.size(); i++)
+  {
+    cout &lt;&lt; " Instrument ID:\t\t"&lt;&lt; instIdList[i] &lt;&lt;  endl;
+  }
+}
+else
+{
+  cout &lt;&lt; "ERROR - Execution of GetTesterInfo Failed" &lt;&lt; endl; 
+}
+params["TESTHEAD_ID"] = testHeadID;
+errObj = query("GetTestHeadInfoByID", qrResults, params, session);
+if (errObj.isSuccess())
+{
+  cout &lt;&lt; " Test Head Type: \t\t"&lt;&lt;qrResults["TESTHEAD_TYPE"]&lt;&lt;endl;
+  cout &lt;&lt; " DUT Interface: \t\t"&lt;&lt;qrResults["DUT_INTERFACE"]&lt;&lt;endl;
+  boardIdList = qrResults.valueArray("BOARD_ID_LIST");
+  for(unsigned int i=0; i &lt; boardIdList.size(); i++)
+  {
+    cout &lt;&lt; " Board ID:\t\t"&lt;&lt; boardIdList[i] &lt;&lt;  endl;
+  }
+}
+else
+{
+  cout &lt;&lt; "ERROR - Execution of GetTestHeadInfoByID Failed" &lt;&lt; endl; 
+}
+cout &lt;&lt; endl;  
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt; " 93000 Instrument Information" &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+for(unsigned int i=0; i &lt; instIdList.size(); i++)
+{
+  params["INSTRUMENT_ID"] = instIdList[i];
+  errObj = query("GetInstrumentInfoByID", qrResults, params, session);
+  if (errObj.isSuccess())
+  {
+    cout &lt;&lt;" Instrument ID: "&lt;&lt;instIdList[i]&lt;&lt;"\tGPIB Address: "
+           &lt;&lt;qrResults["GPIB_ADDRESS"]&lt;&lt;"\tDesc: "&lt;&lt;qrResults["DESCRIPTION"]&lt;&lt;endl;
+  }
+  else
+  {
+    cout &lt;&lt;" Instrument ID: ERROR cannot read"&lt;&lt;endl;
+  }
+}
+cout &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt; " 93000 Board Information" &lt;&lt; endl;
+cout &lt;&lt; "--------------------------------------------------------------------------" &lt;&lt; endl;
+cout &lt;&lt;"\nBoard ID    Board Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+for(unsigned int i=0; i &lt; boardIdList.size(); i++)
+{
+  params["BOARD_ID"] = boardIdList[i];
+  errObj = query("GetTestBoardInfoByID", qrResults, params, session);
+  if (errObj.isSuccess())
+  {
+    cout &lt;&lt; boardIdList[i]&lt;&lt; "   ";
+    cout &lt;&lt;qrResults["BOARD_TYPE"]&lt;&lt;"   ";
+    cout &lt;&lt;qrResults["SLOT"]&lt;&lt;"   ";
+    cout &lt;&lt;qrResults["PART_NUMBER"]&lt;&lt;"   ";
+    cout &lt;&lt;qrResults["SERIAL_NUMBER"]&lt;&lt;"   ";
+    cout &lt;&lt;qrResults["VENDOR"]&lt;&lt;"  ";
+    cout &lt;&lt;qrResults["VERSION"]&lt;&lt;"   ";
+    cout &lt;&lt;endl;
+    if(qrResults["BOARD_TYPE"] == "RF_BOARD")
+    {
+      cout &lt;&lt;" HW Type: "    &lt;&lt;qrResults["HW_TYPE"]&lt;&lt; endl;
+    }
+    if(qrResults["BOARD_TYPE"] == "CHANNEL_BOARD")
+    {
+      cout &lt;&lt;" HW Type: "    &lt;&lt;qrResults["HW_TYPE"]&lt;&lt;endl;
+      cout &lt;&lt;" Max Speed: "  &lt;&lt;qrResults["MAX_SPEED"]&lt;&lt;endl;
+      moduleIdList = qrResults.valueArray("MODULE_ID_LIST");
+      if(moduleIdList.size())
+        cout &lt;&lt;"   Module ID   Module Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+      for(unsigned int j=0; j &lt; moduleIdList.size(); j++)
+      {
+        params["MODULE_ID"] = moduleIdList[j];
+        errObj = query("GetTestModuleInfoByID", qrResults, params, session);
+        if (errObj.isSuccess())
+        {
+          cout &lt;&lt;"   "&lt;&lt;moduleIdList[j] &lt;&lt; "   ";
+          cout &lt;&lt;qrResults["MODULE_TYPE"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["SLOT"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["PART_NUMBER"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["SERIAL_NUMBER"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["VENDOR"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["VERSION"]&lt;&lt;"   ";
+          cout &lt;&lt;endl;
+        }
+        else
+        {
+          cout &lt;&lt;" ERROR cannot read module info"&lt;&lt;endl;
+        }
+      }
+      if(moduleIdList.size())
+        cout &lt;&lt;"\nBoard ID    Board Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+    }
+    if(qrResults["BOARD_TYPE"] == "DPS_BOARD")
+    {
+      cout &lt;&lt;" HW Type: "&lt;&lt;qrResults["HW_TYPE"]&lt;&lt;endl;
+      moduleIdList = qrResults.valueArray("MODULE_ID_LIST");
+      if(moduleIdList.size())
+        cout &lt;&lt;"   Module ID   Module Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+      for(unsigned int j=0; j &lt; moduleIdList.size(); j++)
+      {
+        params["MODULE_ID"] = moduleIdList[j];
+        errObj = query("GetTestModuleInfoByID", qrResults, params, session);
+        if (errObj.isSuccess())
+        {
+          cout &lt;&lt;"   "&lt;&lt;moduleIdList[j] &lt;&lt; "   ";
+          cout &lt;&lt;qrResults["MODULE_TYPE"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["SLOT"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["PART_NUMBER"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["SERIAL_NUMBER"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["VENDOR"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["VERSION"]&lt;&lt;"   ";
+          cout &lt;&lt;endl;
+        }
+        else
+        {
+          cout &lt;&lt;" ERROR cannot read module info"&lt;&lt;endl;
+        }
+      }
+      if(moduleIdList.size())
+        cout &lt;&lt;"\nBoard ID    Board Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+    }
+    if(qrResults["BOARD_TYPE"] == "ANALOG_BOARD")
+    {
+      cout &lt;&lt;" HW Type: "&lt;&lt;qrResults["HW_TYPE"]&lt;&lt;endl;
+      cout &lt;&lt;" Number of Cores: "&lt;&lt;qrResults["NUMBER_OF_CORES"]&lt;&lt;endl;
+      moduleIdList = qrResults.valueArray("MODULE_ID_LIST");
+      if(moduleIdList.size())
+        cout &lt;&lt;"   Module ID   Module Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+      for(unsigned int j=0; j &lt; moduleIdList.size(); j++)
+      {
+        params["MODULE_ID"] = moduleIdList[j];
+        errObj = query("GetTestModuleInfoByID", qrResults, params, session);
+        if (errObj.isSuccess())
+        {
+          cout &lt;&lt;"   "&lt;&lt;moduleIdList[j] &lt;&lt; "   ";
+          cout &lt;&lt;qrResults["MODULE_TYPE"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["SLOT"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["PART_NUMBER"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["SERIAL_NUMBER"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["VENDOR"]&lt;&lt;"   ";
+          cout &lt;&lt;qrResults["VERSION"]&lt;&lt;"   ";
+          cout &lt;&lt;endl;
+        }
+        else
+        {
+          cout &lt;&lt;" ERROR cannot read module info"&lt;&lt;endl;
+        }
+      }
+      if(moduleIdList.size())
+        cout &lt;&lt;"   Module ID   Module Type   Slot   PN      SN   Vendor   Version"&lt;&lt;endl;
+    }
+  }
+  else
+  {
+    cout &lt;&lt;" ERROR cannot read board info"&lt;&lt;endl;
+  }
+}</pre><p>The
+				output of the example code is like the excerpt
+			below.</p><pre class="prettyprint linenums copyable">--------------------------------------------------------------------------
+ SmarTest Session Profile 
+--------------------------------------------------------------------------
+  VERSION 6.5.0
+  ONLINE_MODE ONLINE
+  USER_MODE ENGINEER
+  LOGIN_USER xrajkotw
+  ONLINE SESSION ID :3.0
+--------------------------------------------------------------------------
+ Installed Versions of SmarTest 
+--------------------------------------------------------------------------
+  CURRENT_VERSION 6.5.0
+  VERSION_LIST:
+      version 1: 6.3.4
+      version 2: 6.5.0
+      version 3: 6.5.4
+--------------------------------------------------------------------------
+ 93000 Tester Controller Information
+--------------------------------------------------------------------------
+OS Release:    Red Hat Enterprise Linux WS release 3 (Taroon Update 7)
+OS Kernel:     2.4.21-40.ELsmp
+Hostname:      xxyyzz.verigy.net
+--------------------------------------------------------------------------
+ 93000 Testhead Information
+--------------------------------------------------------------------------
+ Testhead ID:     1
+
+ Test Head Type:  512
+ DUT Interface:   SOC
+ Board ID:        BID_0
+ Board ID:        BID_1
+ Board ID:        BID_2
+ Board ID:        BID_3
+...
+
+--------------------------------------------------------------------------
+ 93000 Instrument Information
+--------------------------------------------------------------------------
+
+--------------------------------------------------------------------------
+ 93000 Board Information
+--------------------------------------------------------------------------
+
+Board ID    Board Type   Slot   PN      SN   Vendor   Version
+BID_0   CONTROL_BOARD   11   E6978-68527   14531   19024  102   
+BID_1   CONTROL_BOARD   12   E6978-68522   1073   21324  2857   
+BID_2   CLOCK_BOARD   11   E6978-68519   3543   21324  5162   
+BID_3   CLOCK_BOARD   12   E6978-68519   6586   21324  5162   
+BID_4   CONTROL_BOARD   21   E6978-68527   13076   14137  2   
+BID_5   CONTROL_BOARD   22   E6978-68525   10196   14137  100   
+BID_6   CLOCK_BOARD   21   E6978-68519   1425   14137  101   
+BID_7   CLOCK_BOARD   22   E6978-68519   1590   14137  101   
+BID_8   CHANNEL_BOARD   101   E6996-68501   12964   14137  100   
+ HW Type: P
+ Max Speed: 1000Mbps
+   Module ID   Module   Type   Slot   PN      SN   Vendor   Version
+   MID_0   CHANNEL_MODULE   1011   E6996-88543   24745   16707   3240   
+   MID_1   CHANNEL_MODULE   1012   E6996-88543   8836   21321   4902   
+   MID_2   CHANNEL_MODULE   1013   E6996-88543   12961   16707   3240   
+   MID_3   CHANNEL_MODULE   1014   E6996-88543   14064   16707   3240   
+
+...
+Board ID    Board Type   Slot   PN      SN   Vendor   Version
+BID_18   DPS_BOARD   8   E9711-68501   248   16724  109   
+ HW Type: MSDPS
+   Module ID   Module   Type   Slot   PN      SN   Vendor   Version
+   MID_40   DPS_MODULE   81   E9711-66502   401   14137   106   
+   MID_41   DPS_MODULE   82   E9711-66502   437   14137   106   
+
+Board ID    Board Type   Slot   PN      SN   Vendor   Version
+BID_21   ANALOG_BOARD   231              
+ HW Type: MCA
+ Number of Cores: 
+   Module ID   Module   Type   Slot   PN      SN   Vendor   Version
+   MID_42   ANALOG_MODULE   2311   E9714-66503   367   14137   105   
+   MID_43   ANALOG_MODULE   2312   E9714-69503   812   19024   11   
+   MID_44   ANALOG_MODULE   2313   E9714-66503   323   14137   105   
+   MID_45   ANALOG_MODULE   2314   E9714-66503   306   14137   105   
+   MID_46   ANALOG_MODULE   2315   E9714-66504   507   14137   105   
+   MID_47   ANALOG_MODULE   2316   E9714-66504   5064   19024   112   
+   MID_48   ANALOG_MODULE   2317   E9714-66504   490   14137   105   
+   MID_49   ANALOG_MODULE   2318   E9714-66504   2321   19024   110   
+...</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 124504</span><script type="text/javascript">var ti='124504';var tt='How to collect the hardware and software configuration with HVM API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

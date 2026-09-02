@@ -1,0 +1,143 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API returns the number of the current enabled sites, and stores the site numbers into the variable specified as the parameter."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GET_ENABLED_SITES()</title></head><body id="_29385"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29385</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GET_ENABLED_SITES()</h1>
+	
+	
+	<div><p>This API returns the number of the current enabled sites, and stores the site numbers
+		into the variable specified as the parameter.</p>
+		<section class="section"><p>Enabled sites mean sites that are intended for multi-site testing. Binned sites in a
+				test flow are disabled (not enabled-sites). This API returns all sites that were initially set
+				up on the Site Control window, except binned sites.</p></section>
+		<div class="syntax"><h2>Syntax
+				1</h2><pre class="prettyprint linenums copyable">INT GET_ENABLED_SITES(STRING&amp; sites);
+INT GET_ENABLED_SITES(ARRAY_I&amp; sites);</pre><p>This
+				syntax is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SiteControl.h</span>.</p><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29385__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29385__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29385__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29385__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29385__entry__2"><p>sites</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29385__entry__3"><p>The site numbers of the current enabled sites are returned to this variable as
+									follows:</p>
+								<p>If the enabled sites are 1 and 3 in four sites:</p>
+								<ul>
+									<li>STRING: "1010".</li>
+									<li>ARRAY_I: sites[0]=1 and sites [1]=3.</li>
+								</ul></td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Return value for syntax 1</h2><p>The number of enabled sites.</p></div><div class="syntax"><h2>Syntax
+				2</h2><pre class="prettyprint copyable singleline">void GET_ENABLED_SITES( TM::MS_SITE_SET&amp; sites );</pre><p>This
+				syntax is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Execute.h</span>.</p><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29385__entry__7"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29385__entry__8"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29385__entry__9"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29385__entry__7"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29385__entry__8"><p>sites</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29385__entry__9"><p>A character array. It stores the status of all configured sites. Each element
+									stores the status of one site.</p>
+								<p>sites[i] stores the status of site i. i starts from 1 to represent site 1, 2, 3, ...; 0
+									is not a valid site number.</p>
+								<ul>
+									<li>If sites[i] is not "0", site i is enabled.</li>
+									<li>If sites[i] = "0", site i is not enabled.</li>
+								</ul></td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Return value for syntax 2</h2><p>There is no return value.</p></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">//
+// Get number of configured sites
+//
+INT     numberOfConfiguredSites;
+ARRAY_I configuredSites;
+
+numberOfConfiguredSites = GET_CONFIGURED_SITES(configuredSites);
+
+//
+// Set enabled sites
+//
+TM::MS_SITE_SET enabledSitesSet;
+
+for (INT siteIndex = 1; siteIndex &lt;= numberOfConfiguredSites; siteIndex++)
+{
+    if ((siteIndex == 1) || (siteIndex == 3))
+    {
+        enabledSitesSet[siteIndex] = 0;
+    }
+    else
+    {
+        enabledSitesSet[siteIndex] = 1;
+    }
+}
+
+SET_ENABLED_SITES(enabledSitesSet);
+
+//
+// Get enabled sites, 1st syntax, string
+//
+STRING  enabledSitesString;
+INT     numberOfEnabledSites;
+
+numberOfEnabledSites = GET_ENABLED_SITES(enabledSitesString);
+
+cout &lt;&lt; "1st syntax, string,  "
+     &lt;&lt; numberOfEnabledSites &lt;&lt; " sites enabled: "
+     &lt;&lt; enabledSitesString &lt;&lt; endl;
+
+//
+// Get enabled sites, 1st syntax, ARRAY_I
+//
+ARRAY_I enabledSitesIntArray;
+
+numberOfEnabledSites = GET_ENABLED_SITES(enabledSitesIntArray);
+
+cout &lt;&lt; "1st syntax, ARRAY_I, "
+     &lt;&lt; numberOfEnabledSites &lt;&lt; " sites enabled: "
+     &lt;&lt; enabledSitesIntArray &lt;&lt; endl;
+
+//
+// Get enabled sites, 2nd syntax, TM::MS_SITE_SET
+//
+TM::MS_SITE_SET enabledSitesCharArray;
+
+GET_ENABLED_SITES(enabledSitesCharArray);
+
+cout &lt;&lt; "2nd syntax,            "
+     &lt;&lt; "enabled sites: ";
+
+for (INT siteIndex = 1; siteIndex &lt;= numberOfConfiguredSites; siteIndex++)
+{
+    cout &lt;&lt; (INT) enabledSitesCharArray[siteIndex];
+}
+
+cout &lt;&lt; endl;</pre><p>It is assumed that the eight sites (site number: 1 to 8) are configured. Sites 1 and 2
+			are disabled by API <span class="keyword">SET_ENABLED_SITES()</span>. The modified settings are read back
+			by all three syntax variants of <span class="keyword">API GET_ENABLED_SITES()</span>. The code above
+			results in the following output:</p><pre class="msgblock">1st syntax, string,  6 sites enabled: 01011111
+1st syntax, ARRAY_I, 6 sites enabled: {	2,	4,	5,	6,	7,	8,	}
+2nd syntax,            enabled sites: 01011111</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="146684.htm" title="Enables and disables sites in multisite testing and updates the test method internal cache.">SET_ENABLED_SITES()</a></div><div><a href="142846.htm" title="A defined data type. It is a character array with the length of MS_MAX_SITES + 1, used to access the status of all configured sites. Each element will contain the status of a site.">MS_SITE_SET</a></div><div><a href="29379.htm" title="This API returns the number of the current active sites, and stores the site numbers into the variable specified as the parameter.">GET_ACTIVE_SITES()</a></div><div><a href="29368.htm" title="This API returns the number of sites set up in the pin configuration, and stores the site numbers into the array variable specified as the parameter.">GET_CONFIGURED_SITES</a></div><div><a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29385</span><script type="text/javascript">var ti='29385';var tt='GET_ENABLED_SITES()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

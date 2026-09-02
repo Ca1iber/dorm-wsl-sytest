@@ -1,0 +1,86 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The d2s writeDynamic method allows to write different values to different sites."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>d2s writeDynamic</title><meta name="keywords" content="write, Dynamic, d, 2, s"></head><body id="_123969"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123969</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">d2s writeDynamic</h1>
+	
+	
+	<div><p>The d2s writeDynamic method allows to write different values to different
+		sites.</p>
+		<section class="section"><p>These values will be modified right before execution of the burst. The modifications
+				will be done by <code>VEC_LABEL_EDIT()</code>.</p><div class="note"><span class="title">Note</span> writeDynamic should only
+				be used if the write values differ per site and/or are only available at runtime for example, based on
+				a previous measurement/read action or an unique device id).</div><p>In learning mode a 'place
+				holder' pattern will be created and added to the burst. This place holder pattern will be
+				modified for each test method execution by <code>VEC_LABEL_EDIT()</code>.</p><p>In
+				production mode only the place holder pattern within the burst will be modified.</p><div class="note"><span class="title">Note</span> This method has to be called from within a
+				<code>FOR_EACH_SITE</code>-block.</div></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void writeDynamic(long long address, long long data, std::string id);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_123969__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123969__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123969__entry__3"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__2"><p><span class="keyword">address</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__3"><p>Defines the register's write address.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__2"><p><span class="keyword">data</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__3"><p>Defines the site dependent data that will be written to the register of each
+									site.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__2"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123969__entry__3"><p>Placeholder pattern that will be modified in production mode.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><p>The following excerpt illustrates how the writeDynamic method is used to write
+				different values to different sites.</p><p>In learning mode it will generate a write placeholder
+				label <code>MySiteValue</code> and add it to the burst label
+					<code>MyBurstLabelName</code>.</p><p>In production mode the <code>MySiteValue
+				</code> pattern will be modified in the vector memory prior to execution at
+					<code>d2s_LABEL_END()</code>.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+   int MAX_SITES = 2;
+   int valuePerSite[MAX_SITES];
+   valuePerSite[0] = 0xaffe;
+   valuePerSite[1] = 0xbeaf;
+
+   d2sFramework fr;
+   d2sJTAG&amp; jtag = d2sJTAG::Instance();
+
+   // Register your protocol with the framework
+   fr.registerTransactionPort(jtag);
+
+   ON_FIRST_INVOCATION_BEGIN();
+      fr.d2s_LABEL_BEGIN("MyBurstLabelName", d2sFrameWorkModeType::LearningMode);
+         FOR_EACH_SITE_BEGIN();
+            jtag.<strong>writeDynamic</strong>(0xdead, valuePerSite[CURRENT_SITE_NUMBER()-1], "MySiteValue");
+         FOR_EACH_SITE_END();
+      fr.d2s_LABEL_END();
+
+      // do your measurement here
+
+   ON_FIRST_INVOCATION_END();
+   ...
+}</pre><p>The
+				static write patterns created by the code above for a single port setup would be saved into the
+				device vector directory as:</p><p><code>d2s_jtag_AT_WD_MySiteValue</code></p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123969</span><script type="text/javascript">var ti='123969';var tt='d2s writeDynamic'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

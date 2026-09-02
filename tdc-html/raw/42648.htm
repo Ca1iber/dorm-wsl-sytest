@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section summarizes the important points on programming for multisite testing."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Important Points on Multisite Programming</title><meta name="keywords" content="multi-site"></head><body id="_42648"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42648</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Important Points on Multisite Programming</h1>
+	
+	
+	<div><p>This section summarizes the important points on programming for multisite
+		testing.</p>
+		<ul>
+			<li>Do not access any variable values assigned in the first-invocation block outside the block.
+				This is because the values assigned in the first-invocation block are never stored for
+				subsequent executions. Hence, unknown values are assigned to the variables at later executions.
+				If necessary, declare the variable outside the function scope (global scope), or declare it as
+					static.<p>The following shows an example of an incorrect program. The compiler will show the
+					error message <span class="uicontrol">"'clockFrequency' was not declared in this scope ..."</span> for
+					this
+					code:</p><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+
+    DOUBLE clockFrequency = 10 MHz;
+
+ON_FIRST_INVOCATION_END();
+
+DOUBLE clockPeriod = 1 / clockFrequency;    // <strong>This will result in a compile error</strong>
+                                            // <strong>at subsequent invocations</strong></pre><p>The
+					correct code is shown in the next example.</p>
+				
+			</li>
+			<li>On the other hand, the variable values assigned before the first-invocation block (outside of
+				the block) can be referred from the
+				block.<div></div><pre class="prettyprint linenums copyable">DOUBLE clockFrequency;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+    clockFrequency = 10 MHz;
+
+ON_FIRST_INVOCATION_END();
+
+DOUBLE clockPeriod = 1 / clockFrequency;</pre><div></div>
+			</li>
+			<li>If you want to use the values assigned before the first-invocation block as site-specific
+				setup data, you should refer them in the each site loop
+				block:<div></div><pre class="prettyprint linenums copyable">
+ARRAY_I configuredSites;
+ARRAY_D vOffsetPerSite(GET_CONFIGURED_SITES(configuredSites));
+
+vOffsetPerSite.init();
+...
+...
+//
+// Fill the array with site specific offset voltages
+//
+// Note:    Array elements that are not set in this section
+//          remain on the initialization value of 0.0.
+//
+vOffsetPerSite[0] = 0.25 V; // DC offset for site # 1
+vOffsetPerSite[1] = 0.28 V; // DC offset for site # 2
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+
+    //
+    // Apply the site specific offset
+    //
+    FOR_EACH_SITE_BEGIN();
+
+        AWG("Ain").vOffset(vOffsetPerSite[CURRENT_SITE_NUMBER() - 1]);
+
+    FOR_EACH_SITE_END();
+
+    FLUSH();
+    ...
+    ...
+ON_FIRST_INVOCATION_END();</pre><div></div>
+			</li>
+			<li>As described previously, the Result APIs store the measurement data of all sites into the
+				cache when the APIs are executed at the first execution. Therefore, do not call the Result APIs
+				conditionally in the test method program. If a certain Result API is not executed from the
+				result of a conditional branch at the first execution, the cache does not have any corresponding
+				measurement data of all sites. If the Result API is executed at subsequent executions, the
+				Result API gets unknown
+				data.<div></div><pre class="prettyprint linenums copyable">
+ARRAY_D wave1, wave2;
+
+wave1 = ANALOG(1).DGT("Aout").getWaveform();
+
+if (...)
+{
+    wave2 = ANALOG(2).DGT("Aout").getWaveform();    // <strong>Subsequent execution = unknown waveform</strong>
+}</pre></li>
+			<li>You can describe the <a href="29362.htm" title="This API allows direct access from the test method to the system hardware at firmware level.">FW_TASK</a> API enclosed by the <a href="28740.htm" title="This API declares the beginning of the block where you can access the system hardware or MCD at the firmware level.">BEGIN_EXTENSION</a> API
+					<em>with the</em>
+				<span class="keyword">site</span>
+				<em>parameter</em> and <a href="29303.htm" title="This API declares the end of the extension block that is started by BEGIN_EXTENSION. This API is used together with BEGIN_EXTENSION as a pair to declare the extension block.">END_EXTENSION</a> API in the first-invocation block for multisite
+				testing. Note that you should define the <span class="keyword">site</span> parameter for an explicit
+				definition of the sites in setup focus. for more information refer to the examples in <a href="28740.htm" title="This API declares the beginning of the block where you can access the system hardware or MCD at the firmware level.">BEGIN_EXTENSION</a>. <kbd class="userinput">BEGIN_EXTENSION</kbd> and
+					<kbd class="userinput">END_EXTENSION</kbd> should be used as a pair.</li>
+			<li>When debugging your multisite test method program, you have to execute the following APIs
+				written in your program at the first execution.<ul>
+					<li><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a> - <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></li>
+					<li><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a> - <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a> or</li>
+					<li><a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a> - <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></li>
+					<li>All Execution APIs</li>
+					<li>All Result APIs corresponding to Execution APIs<p>At subsequent executions, you have to
+							execute the following APIs.</p></li>
+					<li><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a> - <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a> or</li>
+					<li><a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a> - <a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a><p>If you skip any of them, you may
+							encounter problems (for example, the Result API returns incorrect data).</p></li>
+				</ul></li>
+		</ul>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42648</span><script type="text/javascript">var ti='42648';var tt='Important Points on Multisite Programming'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

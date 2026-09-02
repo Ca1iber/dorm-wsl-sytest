@@ -1,0 +1,102 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="FOR_EACH_TEST_BEGIN_WITH_RESET() works together with FOR_EACH_TEST_END() as a pair to declare a block for testing shared sites. It has a similar function as FOR_EACH_TEST_BEGIN(). The only difference is that FOR_EACH_TEST_BEGIN_WITH_RESET() can prevent the sites which are not under test from drawing current by setting the reset pin."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FOR_EACH_TEST_BEGIN_WITH_RESET</title></head><body id="_131743"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 131743</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FOR_EACH_TEST_BEGIN_WITH_RESET</h1>
+	
+	
+	<div><p><span class="keyword">FOR_EACH_TEST_BEGIN_WITH_RESET()</span> works together with <a href="131745.htm" title="FOR_EACH_TEST_END() works together with FOR_EACH_TEST_BEGIN() or FOR_EACH_TEST_BEGIN_WITH_RESET() as a pair to declare a block to test the shared sites.">FOR_EACH_TEST_END()</a> as a pair to declare a block for testing shared sites.
+		It has a similar function as <a href="131739.htm" title="FOR_EACH_TEST_BEGIN() works together with FOR_EACH_TEST_END() as a pair to declare a block for testing shared sites.">FOR_EACH_TEST_BEGIN()</a>. The only
+		difference is that <span class="keyword">FOR_EACH_TEST_BEGIN_WITH_RESET()</span> can prevent the sites which
+		are not under test from drawing current by setting the reset pin.</p>
+		<section class="section"><p>In this block:</p><ul>
+				<li>The shared sites under test are divided into several groups according to the utility control
+					settings of the <a href="96971.htm" title="The sharing configuration file defines the sharing structure of the load board. It is used by all sharing test methods as well as the fd_merge tool.">Sharing configuration file</a>.</li>
+				<li>These groups will be tested sequentially but the sites of a group are tested in
+					parallel.</li>
+				<li>The utility settings will be restored at the end of tests.</li>
+				<li>You can use <a href="131768.htm" title="The GET_SITES_UNDER_TEST() function lets you know which sites are requested to test or not in the current iteration of a for-each block. For sites that need to test in this iteration, &#34;1&#34; is returned. For sites do not need in this iteration, &#34;0&#34; is returned.">GET_SITES_UNDER_TEST()</a> to get the currently tested
+					sites.</li>
+			</ul><p>This API is defined in the header file
+					<span class="filepath">/opt/93000mts/mts/solution_tools/common/include/SHARED_UTIL.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">FOR_EACH_TEST_BEGIN_WITH_RESET(<span class="keyword">configFile</span>,<span class="keyword">testName</span>,<span class="keyword">resetPin</span>)</pre><table><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_131743__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_131743__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_131743__entry__1"><p><span class="keyword">configFile</span></p>
+							</td>
+							<td class="colsep-1" headers="_131743__entry__2"><p>The name of the sharing configuration file you want to use.</p>
+								<p>This file must be be in the <span class="filepath">&lt;device directory&gt;/configuration/</span>
+									directory. FOR_EACH_TEST_BEGIN_WITH_RESET will automatically use the <a href="131630.htm" title="The SHARING_CONFIGURATION class provides an API for accessing the data contained in the Sharing configuration file.">SHARING_CONFIGURATION</a> API to load the file for you.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_131743__entry__1"><p><span class="keyword">testName</span></p>
+							</td>
+							<td class="colsep-1" headers="_131743__entry__2"><p>The name of a utility control line in the utility_control section of <a href="96971.htm" title="The sharing configuration file defines the sharing structure of the load board. It is used by all sharing test methods as well as the fd_merge tool.">Sharing configuration file</a>. Multiple names are separated by commas.</p>
+								<p>The name represents all settings of a utility control line.</p>
+								<p>If there is one name, the FOR_EACH_TEST_BEGIN_WITH_RESET and FOR_EACH_TEST_END block will
+									automatically execute the represented utility control settings.</p>
+								<p>If there are more than one names, you must execute each represented utility control
+									settings manually by using <a href="131767.htm" title="GET_CURRENT_UTILITY_CONTROL() takes the name of a utility control line and returns an index for that utility control line in the utility_control block of the sharing configuration file. The index represents the location within the utility_control block. If the location is the first line of the utility_control block, the index 0 will be returned.">GET_CURRENT_UTILITY_CONTROL()</a> and
+										<a href="131650.htm" title="The utilityActionExecute() member function of SHARING_CONFIGURATION executes the settings of the specified utility control line indicated by its location in the utility_control block.">SHARING_CONFIGURATION.utilityActionExecute()</a>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_131743__entry__1"><p><span class="keyword">resetPin</span></p>
+							</td>
+							<td class="colsep-1" headers="_131743__entry__2"><p>Name of the reset pin.</p>
+								<p>If there is no pin specified for <span class="keyword">resetPin</span>, the
+									FOR_EACH_TEST__BEGIN_WITH_RESET marco works the same as <a href="131739.htm" title="FOR_EACH_TEST_BEGIN() works together with FOR_EACH_TEST_END() as a pair to declare a block for testing shared sites.">FOR_EACH_TEST_BEGIN</a>.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Example1: Execute IDD tests for each shared sites</h3><p>Assume the
+					<span class="filepath">default.cfg</span> sharing configuration file is used, which contains these
+				settings:</p><pre class="prettyprint linenums copyable">domains: 8
+4 3 2 1 ; 5 6 7 8
+12 11 10 9 ; 13 14 15 16
+utility_control:
+idd;(y&lt;1);(U3=0x222&amp;0xfff);(DEVICE_SUPPLY=VDD)
+idd;(y&gt;=1);(U3=0x111&amp;0xfff);(DEVICE_SUPPLY=VDD)
+iddq;(y&lt;1);(U3=0x777&amp;0xfff);(DEVICE_SUPPLY=VDD)
+iddq;(y&gt;=1);(U3=0xbbb&amp;0xfff);(DEVICE_SUPPLY=VDD)
+oc_reset;(U2=0x000&amp;0x400,U2=0x400&amp;0x400,U3=0x000&amp;0xfff,U2=0x000&amp;0x401)
+default;(U3=0x000&amp;0xfff,U2=0x000&amp;0x401)</pre><p>This
+				IDD test program fragment tests all
+			sites:</p><pre class="prettyprint linenums copyable">FOR_EACH_TEST_BEGIN_WITH_RESET("default.cfg", "idd", "nRESET");
+{
+  // As the utility control setting, it will test the shared sites in two steps:
+  //(4, 3, 2, 1, 12, 11, 10, 9) and (5, 6, 7, 8, 13, 14, 15, 16).
+  // Without utility control setting, it will test all the sites in one step.
+
+  // measurement of IDD of the VDD pins
+}
+FOR_EACH_TEST_END();</pre></div>
+		<div class="example"><h3>Example2: Execute IDD and IDDQ tests for each shared sites</h3><p>Assume the
+				same sharing configuration file as in the example 1 is used.</p><p>This test program fragment
+				performs IDD and IDDQ tests on all
+			sites:</p><pre class="prettyprint linenums copyable">FOR_EACH_TEST_BEGIN_WITH_RESET("default.cfg", "idd, iddq", "nRESET");
+{
+  //As the utility control setting, it will test the shared sites in two steps:
+  //(4, 3, 2, 1, 12, 11, 10, 9) and (5, 6, 7, 8, 13, 14, 15, 16).
+
+  //Since there are two testNames in FOR_EACH_TEST_BEGIN_WITH_RESET(),
+  //you have to execute the respective utilities by yourself.
+
+  int index = GET_CURRENT_UTILITY_CONTROL("idd");
+  SHARING_CONFIGURATION::getInstance().utilityActionExecute(index);
+  // measurement of IDD of VDD pins
+
+  index = GET_CURRENT_UTILITY_CONTROL("iddq");
+  SHARING_CONFIGURATION::getInstance().utilityActionExecute(index);
+  // measurement of IDDQ of VDDQ pins
+}
+FOR_EACH_TEST_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="96971.htm" title="The sharing configuration file defines the sharing structure of the load board. It is used by all sharing test methods as well as the fd_merge tool.">Sharing configuration file</a></div><div><a href="131630.htm" title="The SHARING_CONFIGURATION class provides an API for accessing the data contained in the Sharing configuration file.">SHARING_CONFIGURATION</a></div><div><a href="131739.htm" title="FOR_EACH_TEST_BEGIN() works together with FOR_EACH_TEST_END() as a pair to declare a block for testing shared sites.">FOR_EACH_TEST_BEGIN</a></div><div><a href="131745.htm" title="FOR_EACH_TEST_END() works together with FOR_EACH_TEST_BEGIN() or FOR_EACH_TEST_BEGIN_WITH_RESET() as a pair to declare a block to test the shared sites.">FOR_EACH_TEST_END</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.1.5</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 131743</span><script type="text/javascript">var ti='131743';var tt='FOR_EACH_TEST_BEGIN_WITH_RESET'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to check the incoming events in a loop</title></head><body id="_119901"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119901</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to check the incoming events in a loop</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>In the production test, the incoming events are written to the data log stream. To
+				capture the needed events from the data log stream, a loop is needed to check the incoming
+				events of the stream. You can follow the procedure below to implement the loop.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Check the incoming events of the data log stream with <a href="34716.htm">DRLEventAvailable</a>.</span>
+				<div><pre class="prettyprint linenums copyable">DRLDataStream my_stream;
+DRLEeventAvailable(&amp;my_stream);</pre></div>
+			</li><li class="stepexpand">
+				<span>Retrieve the unmasked event with <a href="34815.htm" title="A variable of this type is a pointer to a structure named _DRLNamedValueAttr. In this structure a name and its value are stored, where the value can be of various types.">DRLNextUnmaskedEvent</a> and
+					retrieve the event type with<a href="34733.htm">DRLEventGetType</a>.</span>
+				<div><pre class="prettyprint linenums copyable">DRLEventRec event_rec;
+DRLGetNextUnmaskedEvent(&amp;my_stream, &amp;event_rec);
+DRLEventGetType(&amp;event_rec);</pre></div>
+			</li><li class="stepexpand">
+				<span>Process the event according to its type. (For details, see <a href="119903.htm">How to process an event</a>)</span>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">void EventLoop(void)
+{
+  DRLEventRec
+    event_rec;
+
+  printf("Press \'Ctrl-c\' to stop the yield monitor.\n");
+  /*  Event Loop  */
+
+  while (!DRLEeventAvailable(&amp;my_stream))  
+  {
+    while (!DRLGetNextUnmaskedEvent(&amp;my_stream, &amp;event_rec))
+    {
+      switch (DRLEventGetType(&amp;event_rec)) 
+      {
+        case BinReachedEventType:
+        /* This is the only event we're interested in */ 
+        ProcessBinReachedEventAttributes(&amp;event_rec);  
+        /* Attribute Processing */
+        break;
+     }
+     /* Errors of DRLGetNextUnmaskedEvent are ignored */
+    }
+  } /* End of Event Loop */
+}</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119901</span><script type="text/javascript">var ti='119901';var tt='How to check the incoming events in a loop'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The tpt_import_from_device command for the SmarTest Program Manager (STPM) control file lets you create a test program template from an existing device directory."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>tpt_import_from_device</title></head><body id="_132700"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 132700</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">tpt_import_from_device</h1>
+	
+	
+	<div><p>The <span class="keyword">tpt_import_from_device</span> command for the SmarTest Program Manager
+		(STPM) <a href="130562.htm" title="An STPM control file contains a script that tells SmarTest Program Manager how to perform an conversion process. There are commands for adding, replacing, and removing tests as well as parameters and setup commands.">control file</a> lets you create a test program template from an
+		existing device directory.</p>
+		<section class="section"><p>When executing the command, STPM creates the files that make
+				up a test program template, filling them with appropriate data from an existing testflow and
+				device directory that you specify.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">tpt_import_from_device(
+device_test_flow = &lt;testflow_file&gt;,
+    tpt_dir = &lt;location&gt;,
+[include_groups  = &lt;include_groups&gt;, ]
+[empty_groups = &lt;empty_groups&gt;, ]
+[copy_static_content = &lt;copy_items&gt;], ]
+[allow_overwrite = &lt;overwrite_flag&gt;, ]
+[pre_proc = &lt;pre_proc&gt;, ]
+[post_proc = &lt;post_proc&gt;]
+)</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">device_test_flow</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;testflow_file&gt;</span> (string) is the path of the testflow file
+									from which the test program template is to be generated.</p>
+								<p>The path can be either absolute or relative to the current working directory.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">tpt_dir</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;location&gt;</span> (string) is the path, including the name, where
+									the new template files and directories are created.</p>
+								<p>The path can be either absolute or relative to the current working directory. </p>
+								<p>If the directory does not yet exist, STPM creates it. If the directory already exists, it
+									must either be empty or the <span class="keyword">allow_overwrite</span> parameter (see below) must
+									be set to 1.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">include_groups</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;include_groups&gt;</span> (list of strings) is a list of groups in
+									the specified testflow that are to be imported. </p>
+								<p>Each group name is a string enclosed in single or double quotes; groups are separated by
+									commas, and the list is enclosed in square brackets. </p>
+								<p>You can use the ? and * wildcard characters in the group name strings. (See empty_groups,
+									below, for details.)</p>
+								<p>This parameter is optional. If it is omitted, all groups are imported.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">empty_groups</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;empty_groups&gt;</span> (list of strings) is a list of groups that
+									are to be emptied. </p>
+								<p>An empty group is transferred to the test program template, but none of the test suites
+									it contains are transferred. Empty groups are useful to preserve the structure of the
+									testflow. They can be filled with new test suites later.</p>
+								<p>Each group name is a string enclosed in single or double quotes; groups are separated by
+									commas, and the list is enclosed in square brackets. </p>
+								<p>You can use the ? and * wildcard characters in the group name strings; ? matches any
+									single character and * matches zero or more characters. </p>
+								<p>For example, to empty all groups, you would specify <code>empty_groups = '*'</code>.
+									To empty the group temp1 and all groups with the name "test" followed by a single
+									character, you would specify <code>empty_groups = 'temp1', 'test?'</code>.</p>
+								<p>This parameter is optional. If it is omitted, no groups are emptied.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">copy_static_content</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;copy_items&gt;</span> (list of strings) is a list of names of files
+									or directories that are to be copied from the existing device directory to the TPT
+									directory.</p>
+								<p>The list may contain only names (of files or directories), not paths. The named items
+									must be located in the top level of the device directory. Each name is enclosed in quotes
+									and separated by commas.</p>
+								<p>For example: <code>copy_static_content = ['my_notes.txt','Change log']</code></p>
+								<p>If you include standard directories in this list (<span class="filepath">testflow</span>,
+										<span class="filepath">timing</span>, <span class="filepath">levels</span>,
+										<span class="filepath">configuration</span>, <span class="filepath">vectors</span>,
+										<span class="filepath">testtable</span>), STPM generates a warning and does not copy the
+									contents.</p>
+								<p>Any directories that are copied by means of this command will be included in the device
+									directory generated with <a href="132751.htm" title="The tpt_generate_device_dir command for the SmarTest Program Manager (STPM) control file lets you create a new device directory from a test program template.">tpt_generate_device_dir</a>.</p>
+								<p>This parameter is optional. If it is omitted, no additional content is copied.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">allow_overwrite</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;overwrite_flag&gt;</span> specifies whether STPM may overwrite
+									existing files in the test program template directory:</p>
+								<ul>
+									<li>0 (default): No existing files or directories in the test program template directory
+										may be overwritten. If this prevents STPM from saving a created file, it displays an error
+										and stops the conversion.</li>
+									<li>1: STPM may overwrite existing files and directories.</li>
+								</ul><p>This parameter is optional. If it is omitted, no files or directories are
+									overwritten.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">pre_proc</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;pre_proc&gt;</span> is a script that is executed before this
+			command.</p>
+								<p>The syntax of the parameter value is described in <a href="143913.htm" title="The commands in the STPM control file allow preprocessing and postprocessing scripts to be specified that are automatically run, respectively, before or after the command itself is executed. This is done via the pre_proc and post_proc parameters.">Preprocessing and postprocessing scripts</a>.</p>
+								<p>This is an optional parameter.</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">post_proc</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">&lt;post_proc&gt;</span> is a script that is executed after this
+			command.</p>
+								<p>The syntax of the parameter value is described in <a href="143913.htm" title="The commands in the STPM control file allow preprocessing and postprocessing scripts to be specified that are automatically run, respectively, before or after the command itself is executed. This is done via the pre_proc and post_proc parameters.">Preprocessing and postprocessing scripts</a>.</p>
+								<p>This is an optional parameter.</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		
+		<h2>Example</h2><div class="example"><p>This example converts the testflow "my_testflow" (located in the "testflow"
+				subdirectory of the current working directory) into a test program template in the directory
+				"new_template", which is located at the same level as the current working directory. It copies
+				all groups, empties the groups "init_group" and "final_group", copies the temp subdirectory to
+				the TPT directory, and overwrites any existing files in the TPT
+			directory.</p><pre class="prettyprint linenums copyable">tpt_import_from_device(
+    device_test_flow    = 'testflow/my_testflow',
+    tpt_dir             = '../new_template',
+    empty_groups        = ['init_group', 'final_group'],
+    copy_static_content = ['temp'],
+    allow_overwrite     = 1
+    )</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.4</li><li>SmarTest 7.2.1: Added support for wildcard characters to empty_groups.</li><li>SmarTest 7.2.1: Added the copy_static_content, allow_overwrite, and include_groups
+					parameters.</li><li>SmarTest 7.2.1: Removed the tpt_name parameter.</li><li>SmarTest 7.2.1: Renamed command to tpt_import_from_device.</li><li>SmarTest 7.2.2: Added the pre_proc and post_proc parameters.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 132700</span><script type="text/javascript">var ti='132700';var tt='tpt_import_from_device'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

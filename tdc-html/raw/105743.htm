@@ -1,0 +1,445 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Passive Equalization of DUT Loadboards for High-Speed Digital Applications</title><meta name="keywords" content="card load board DUT board"></head><body id="_105743"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105743</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Passive Equalization of DUT Loadboards for High-Speed Digital Applications</h1>
+	
+	<div>
+		<p>Jose Moreira, Verigy</p>
+		<p>Heidi Barnes, Verigy</p>
+		<p>Mike Howieson, Thin-Film Technologies</p>
+		<p>Mark Broman, Thin-Film Technologies</p>
+		<p>Paper ID: 105743</p>
+		<section class="section"><h2>Introduction</h2><p>Current state-of-the-art integrated circuits (ICs) that are
+				in volume production already contain tens of I/O cells running at speeds between 5Gb/s and
+				10Gb/s [1]. With the increased availability and quality of these high-speed I/O cells in
+				standard CMOS processes, this trend will continue with near-future devices containing hundreds
+				of these I/O cells. Device pin counts will then be above one thousand, when taking into account
+				all the pins (high-speed, power, low-speed, etc...).</p><p>The challenge for the automated test
+				equipment (ATE) industry is to be able to provide the tools for testing and characterizing these
+				I/O cells at-speeds. This means that the ATE platform must be able to measure a large number of
+				high-speed pins. This is one of the toughest challenges facing the ATE industry [2]-[3].</p><div class="p"><figure class="fignone">
+					
+					<img src="105744.jpg" alt="Test fixture docked to a V93000 ATE system.">
+				</figure></div><p>Verigy (Agilent Technologies) had already developed some years ago an option for
+				the V93000 (option XP13G-8) that allow it to test at-speed ICs at 10Gb/s with limited pin count
+				[4]. The challenge is to test multi-gigabit high pin count ICs and remain cost effective. In the
+				past, most of the devices in this speed area were intended for wired communication applications
+				for example, SONET). In the near future they will be intended for consumer markets such as desktop
+				computers, where cost-of-test is a key factor.</p><p>In an ATE system, the DUT is connected to
+				the ATE pin electronics through a printed circuit board (PCB) that is known as the test fixture,
+				device interface board, or DUT loadboard. This test fixture contains a series of signal traces
+				(microstrip or stripline) that connect the ATE pin electronics to the socket where the DUT will
+				interface with the test fixture. Figure 1 shows a test fixture docked to an Verigy V93000 ATE
+				system.</p><p>The test fixture in Figure 1 is for a graphics device with several I/O cells
+				running at speeds above 5Gb/s. For devices with hundreds of I/O cells, it might be necessary to
+				use all the resources of the ATE system. This will result in test fixture signal traces with
+				lengths of 50 cm for some of the signal traces in the V93000 ATE system. Figure 2 shows a
+				representation of this challenge by demonstrating the degradation of a 6.4 Gb/s waveform when
+				travelling though 19 cm of a test fixture trace using state-of-the-art techniques and materials
+				(19mil width on ROGERS4350).</p><div class="p"><figure class="fignone">
+					
+					<img src="105747.png" alt="Diagram showing the challenge of long test fixture traces for high-speed digital applications.">
+				</figure></div><p>The above figure clearly shows the need to develop techniques to address this issue
+				that go beyond the trace geometry or type of dielectric material used on the test fixture. The
+				reason is that even using of state-of-the-art PCB materials and manufacturing techniques, we are
+				unable to solve the issue of the signal traces loss for long trace lengths at high data
+				rates.</p><p>Another way to look at this challenge is in the frequency domain. Figure 3 shows
+				the power spectrum of a 5Gb/s PCI-Express compliance data pattern before and after a lossy
+				signal trace. It is easy to see how the signal trace changes the power spectrum of the data
+				signal by attenuating the higher frequencies more. It is easy to imagine that these changes on
+				the frequency power spectrum will be seen as jitter when looking to the time domain performance
+				of the data signal through an inverse FFT.</p><div class="p"><figure class="fignone">
+					
+					<img src="105748.png" alt="Power spectrum of a 5 Gb/s PCI-Express compliance data pattern before and after a lossy signal trace.">
+				</figure></div><p>In the next section, we will outline the loss components of a PCB signal trace
+				followed by an introduction to passive equalization. We will then present a process for choosing
+				the correct equalizer for a given application. Finally, we will present some experimental
+				results with a real application followed by some conclusions. In an appendix, we will present a
+				quick discussion of software equalization and how it is related to passive
+			equalization.</p></section>
+		<section class="section"><h2>Microstrip and Stripline Loss</h2><p>The loss of a PCB signal trace can be
+				roughly divided into three areas [5]-[6]: conductor loss, dielectric loss and radiation loss.
+				The conductor loss can be also sub-divided into more terms as shown in Figure 4.</p><p>For the
+				applications discussed in this article, we will concentrate on the skin effect and dielectric
+				loss contributions. They are the major contributors of the high-frequency loss of signals
+				traversing long signal traces.</p><p>Two types of geometries are typically used on test fixtures
+				for high-speed signals. They are stripline and microstrip. If careful attention is paid to the
+				microstrip plating process [7], the loss of a microstrip and a stripline is very similar as
+				shown in Figure 5. At high-frequencies the microstrip does have additional issues due to its
+				quasi-TEM propagation mode, but for the purposes of this article the use of a microstrip or
+				stripline is considered the same.</p><p>Several references provide approximate analytical
+				solutions for the losses in a microstrip or stripline trace [8]-[9], but current simulation
+				tools are able to compute the loss profile accurately if appropriate care is taken [10].</p><div class="p"><figure class="fignone">
+					
+					<img src="105749.png" alt="Components of a PCB transmission line (impedance mismatches in the transmission line will also add a &#34;reflection loss&#34;).">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105750.png" alt="Comparison of the modelled vs. measured loss for a microstrip and stripline in ROGERS4350.">
+				</figure></div><p>Figure 6 shows a simulation set-up using the Agilent Advanced Design Simulation
+				software package for two different stripline lengths in a ROGERS4350 type dielectric. The
+				striplines have a width of 5.5mil.</p><p>The set-up contains a model of the test fixture
+				dielectric (ROGERS4350) and of the stripline. The modeled stripline lengths are 10 inch (25.4
+				cm) and 20 inch (50.8 cm). Figure 7 presents a comparison of the simulated insertion loss for
+				both stripline lengths.</p><p>In Figure 7, it is obvious that the trace length influences the
+				signal path bandwidth significantly. In this specific case, the doubling of the trace length
+				reduced the bandwidth by more than half. Note, that although we did not account for the effects
+				of the socket, pogo connections, etc., the use of a simulation tool with simple, but appropriate
+				models, allows the test engineer to understand the effect of the test fixture design trade-offs
+				on the test application.</p><div class="p"><figure class="fignone">
+					
+					<img src="105751.png" alt="Simulation set-up in ADS.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105753.png" alt="Insertion loss comparison for two different trace lengths with the same geometry in the same dielectric material.">
+				</figure></div><p>Similar results can be obtained for the dielectric loss [13]. Figure 5 shows a
+				comparison of the insertion loss for two identical trace geometries in different dielectric
+				materials.</p><p>Although only the effect of the trace length and dielectric material is
+				presented, the reader must be aware that test fixture design decisions are not limited to only
+				the trace length or dielectric material. Other parameters are also very important for the test
+				fixture performance. For example, the trace width is an important factor since losses due to
+				skin effect are inversely proportional to the trace width. Also, the appropriate design of
+				signal vias including the ground vias to provide a reference plane for the signal via will
+				influence the signal performance [14].</p><div class="p"><figure class="fignone">
+					
+					<img src="105754.png" alt="Comparison of measured insertion loss for a 25cm 19mil stripline in two different dielectric materials (ROGERS4350 and NELCO 4000-13 SI).">
+				</figure></div><p>To understand how the frequency -dependent insertion loss of a PCB signal path
+				generates one needs to look to a digital signal in the frequency domain. The critical spectral
+				power density of the digital stimulus resides at and below the fundamental frequency which in
+				NRZ schemes is one half of the data rate in Hertz.</p><p>Since most digital signals have high
+				edge rates they resemble square wave spectrums with odd harmonics of the fundamental frequency.
+				Since the trace loss typically increases exponentially with frequency, most of these harmonics
+				are lost to the trace loss beyond equalization. The spectral power density is also limited by
+				the pattern randomness and balancing encoding at the lower frequencies. In Figure 9 a data
+				pattern consisting of two alternating symbols is sent through a lossy signal path. The spectrum
+				of this pattern shows two distinctive peaks representing each symbol. Due to the frequency
+				dependent loss of the signal path, each symbol is attenuated in a different way which results on
+				the time domain in two separate lines in the data eye diagram showing the inter-symbol
+				interference (ISI) jitter generated between these two symbols when going through a lossy signal
+				path.</p><div class="p"><figure class="fignone">
+					
+					<img src="105755.png" alt="Signal path insertion loss effect on the spectral power density and data eye for a two symbol alternating pattern 11000001000001100000100000.........">
+				</figure></div></section>
+		<section class="section"><h2>Passive Equalization</h2><p>Given the frequency dependent behaviour of the loss
+				of a PCB signal trace, a straightforward approach is to compensate this loss with a matching
+				filter. This technique is called equalization and when the filter is made of only passive
+				components it is then called passive equalization. One possible compensation technique for
+				addressing this challenge is the use of a compensation filter that flattens the frequency
+				response by attenuating the lower frequencies. The graph in Figure 10 shows the basics of this
+				technique in the frequency domain.</p><div class="p"><figure class="fignone">
+					
+					<img src="105756.png" alt="Basics of passive equalization of the frequency-dependent loss associated with a signal path.">
+				</figure></div><p>This type of equalization filter approach is not new, but the use of this technique
+				to compensate signal in the 10Gb/s range on a DUT board is new and presents different
+				challenges given the high data rates that the equalizer must address. The basics of passive
+				equalization was patented already by Bode in 1936 [11] and passive equalization has been in use
+				for ATE application for some years already although mainly to compensate for the loss on long
+				coaxial cables [12]. Figure 11 presents some pictures of the original patent application from
+				Bode and Figure 12 presents two examples of possible very simple passive equalizer circuits.</p><div class="p"><figure class="fignone">
+					
+					<img src="105757.png" alt="Equalizer patents from H. W. Bode.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105758.png" alt="Equalizer circuit diagrams (left: a simple RC high-pass filter, right: a more complex one stage equalizer).">
+				</figure></div><p>One important consideration of a passive equalizer is that it will also add a DC
+				attenuation to the signal path. However, in a test and measurement application this is easily
+				calibrated out. One needs to keep in mind that the test requirements for a given I/O cell will
+				define a maximum allowed DC loss for the equalizer that still fullfils the test requirements
+				for example, the maximum level swing needed for a given test).</p><p>In general, the amount of DC
+				attenuation induced by the passive equalizer is exchanged for the achievable bandwidth of the
+				overall signal path.</p><p>Figure 13 presents a graphic description of the trade-offs of passive
+				equalization in regards to the two variables that compose the problem. These variables are the
+				loss of the signal path to be equalized and the amount of loss on the equalizer allowed by the
+				application.</p><div class="p"><figure class="fignone">
+					
+					<img src="105759.png" alt="Passive equalization trade-off matrix.">
+				</figure></div><p>In the past, Verigy (Agilent Technologies) developed several generations of
+				equalizers in coaxial packages for compensating for the loss in the long coaxial cables used in
+				the integration of external equipment with the Verigy V93000. Figure 14 shows some of those
+				equalizers.</p><p>But for integration on a DUT board it is necessary to use a small
+				footprint equalizer. For the data-rates under discussion [5-10Gb/s], the passive equalizer
+				manufacturer Thin Film Technology has developed an equalizer on a 0603 package size. Figure 15
+				shows a photograph of the Thin-Film Technologies 0603 equalizer.</p><p>The equalizer uses a face
+				down footprint optimized to 20Ghz, low parasitics and very tight application tolerances make
+				this component ideal for compensating PCB trace loss.</p><div class="p"><figure class="fignone">
+					
+					<img src="105761.jpg" alt="Examples of passive equalizers">
+				</figure></div><p>Examples of passive equalizers developed for compensating for the loss in long
+				coaxial cables (top left: equalizer for a 3.6Gb/s application (PCT3600), top right: equalizer
+				for a 3Gb/s application (XP3G), bottom left: equalizer for a 6.4Gb/s application (XP13G-64),
+				bottom right: equalizer for a 10GB/s application (XP13G-8).</p><div class="p"><figure class="fignone">
+					
+					<img src="105762.jpg" alt="TFT Passive equalizer in a 0603 package size for assembly on a DUT board (left) and assembled on a coaxial module for bench evaluation (right).">
+				</figure></div></section>
+		<section class="section"><h2>Selecting the Appropriate Equalizer by Simulation</h2><p>This section presents
+				a methodology for selecting a test fixture equalizer by using a defined process. Figure 16
+				presents the design flow for determining which equalizer to use on a specific signal path of a
+				test fixture.</p><div class="p"><figure class="fignone">
+					
+					<img src="105763.png" alt="Design flow to select the appropriate equalizer.">
+				</figure></div><p>The test engineer needs to provide the signal trace geometry and material to be
+				used on the construction of the test fixture. With this data it is possible to construct a model
+				of the signal trace loss. In addition, the test engineer needs to decide the maximum loss
+				allowed by the I/O cell in order to determine the range of passive equalization that will work
+				for a given test application/system.</p><p>The loss of the equalizer determines to what extent
+				the frequency response of the trace can be flattened. The drawback is that this loss needs to be
+				compensated by the ATE resources. One needs to make sure that the ATE has enough margins to be
+				able to test the application with the chosen loss for the equalizer.</p><p>After the maximum
+				loss is chosen, an optimal RC equalizer can be found by simulation. This step can be very
+				complex since the definition of optimal equalizer might depend on the application. Figure 17
+				shows one possible approach that consists in simulating different RC configurations to find the
+				one with the highest bandwidth. Note that it is very important to keep the ripple of the
+				frequency response below a certain minimum value.</p><p>With the optimal equalizer found, it is
+				possible to perform a time and frequency domain simulation of the test fixture performance with
+				the optimal equalizer. This allows the test engineer to view the performance improvement that
+				can be obtained with a custom design equalizer.</p><p>However, because making a custom equalizer
+				for each application is more expensive and requires longer lead times, a better approach is to
+				select the equalizer from a matrix of available equalizers. This would significantly reduce the
+				cost and lead time.</p><div class="p"><figure class="fignone">
+					
+					<img src="105764.png" alt="Optimization procedure by testing different equalizers into the same signal path loss.">
+				</figure></div><p>This means that after determining the performance of the optimal equalizer, an
+				equalizer from the available matrix must be chosen. Figure 18 shows this procedure where the
+				optimal equalizer was found and one equalizer from the matrix must now be chosen.</p><div class="p"><figure class="fignone">
+					
+					<img src="105765.png" alt="TFT equalizer family matrix.">
+				</figure></div><p>After an equalizer is chosen, a more detailed simulation including models of the
+				ATE pin electronics (if available) and the DUT driver/receiver needs to be completed. </p><p>If
+				the simulated performance is not acceptable, additional compromises might be needed for example, allow
+				additional loss or even change the test fixture trace geometry) so that the final performance
+				meets the test engineer needs.</p><p>Another important point is the distribution of the DC loss
+				on the manufactured equalizers. As previously mentioned, this DC loss can be calibrated out of
+				the measurements. In order to do that it is important the DC loss value is known and has a tight
+				distribution. If the DC loss distribution is very large then it would be necessary to calibrate
+				each equalizer individually through a focus calibration procedure. Figure 19 shows an example of
+				the expected distribution for a real implementation of the 0603 equalizer.</p><div class="p"><figure class="fignone">
+					
+					<img src="105766.png" alt="Example of the distribution of the equalizer DC loss for four lots (left) and for one lot (right).">
+				</figure></div><p>Figure 19 shows it is difficult to keep a tight distribution across multiple lots.
+				However, this problem can be reduced by an additional laser trimming process. The best solution
+				for a given test fixture is that all the equalizers should be from the same production
+			lot.</p></section>
+		<section class="section"><h2>Experimental Results</h2><p>This section presents some results obtained by
+				applying the methodology outlined in the "selecting the appropriate equalizer" section to a real
+				application.</p></section>
+		<section class="section"><h2>Example 1</h2><p>This sub-section presents some results obtained by applying
+				the methodology outlined in the "selecting the appropriate equalizer" section to a real
+				application. Figure 20 presents a picture of a test fixture developed to teach the basics of
+				signal integrity and equalization when using the Verigy 12.8Gb/s Pin Scale HX ATE pin
+				electronics card.</p><p>In this board there exist several different test structures. They are
+				intended to provide examples of the signal integrity challenges inherent to the design of
+				high-speed digital test fixtures. One of the examples is the challenge of compensating for 45 cm
+				of a 21 mil microstrip signal trace in ROGERS4350. The surface plating (NiAu with solder mask on
+				top) is also not optimal, which increases the signal trace loss [7].</p><div class="p"><figure class="fignone">
+					
+					<img src="105767.jpg" alt="Pin Scale HX signal integrity demonstration test fixture.">
+				</figure></div><p>The Verigy V93000 Pin Scale HX pin electronics card used in these measurements
+				already includes an integrated passive equalizer [7]. This equalizer is designed to compensate
+				for approximately 10 inches of a 19 mil stripline in ROGERS4350. Figure 21 left shows a picture
+				of the pin electronics card showing the integrated equalizer on the driver and receiver blocks
+				of the ATE card. The integrated equalizer is clearly not enough for the 45 cm microstrip example
+				and additional equalization is needed in the form of a passive equalizer in the test
+				fixture.</p><div class="p"><figure class="fignone">
+					
+					<img src="105768.jpg" alt="Picture of the V93000 Pin Scale HX pin electronics showing the integrated equalizer (left) and the passive equalizers assembles on the microstrip traces of the test fixture.">
+				</figure></div><p>In this application, the DUT is an OC192 10Gb/s transceiver. Following the
+				procedure described in the previous section, an equalizer was selected to compensate for the
+				signal trace loss. Note that in this selection, one needs to take into account the equalizer
+				integrated on the ATE card. Figure 21 right shows the two equalizers for the 45 cm (17.7 inches)
+				microstrip differential pair in the test fixture. An identical microstrip trace with no
+				equalizer also exists on the test fixture for comparison.</p><p>The selection of the equalizer
+				was done primarily by evaluating the frequency and time domain response simulations. An
+				equalizer with 4dB loss was chosen for this specific application. The frequency domain
+				simulation results are presented in Figure 22.</p><p>The simulated results show an improvement
+				of more than 5GHz on the signal path bandwidth with the integrated equalizer (Figure 22) and the
+				4dB test fixture passive equalizer in regards to the signal path without equalization. Figure 23
+				show the simulation results in the time domain.</p><div class="p"><figure class="fignone">
+					
+					<img src="105769.png" alt="Frequency domain simulation results. Note that the equalizer response is shifted by 4dB for easier readability.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105770.png" alt="Time domain simulation of the data eye after the test fixture only with the integrated equalizer (left) and after the test fixture with the ATE integrated equalizer and the test fixture equalizer (right).">
+				</figure></div><p>The time domain simulation results show a clear improvement on the data eye
+				performance. The overshoot observed on the data eye is due to the fast rise time of the
+				simulated source and also to the fact that the insertion loss curve is not completely flat.
+				Experience has shown us that a slight overshoot in simulation is preferred, as the real driver
+				is typically slower and the signal path's loss is slightly higher, thus eliminating the
+				overshoot in the real application. Figure 24 presents a block diagram of the measurement set-up
+				showing the different measurement points included in this section.</p><div class="p"><figure class="fignone">
+					
+					<img src="105771.png" alt="Block diagram of the measurement set-up.">
+				</figure></div><p>Figure 25 shows the DUT output data eye at 10GB/s. This is clearly a
+				high-performance driver, delivering a very low jitter data eye with a very fast rise time. Note
+				that this data eye is taken at the output of the DUT with a small (30cm) coaxial cable as shown
+				in Figure 24.</p><p>Figure 26 shows the output data eye measured further along the signal path
+				after the 45cm of a microstrip line, with and without the test fixture equalizer. The data eye
+				on Figure 26 left shows a significant amount of ISI added by the signal trace loss, while the
+				date eye on Figure 26 right shows how the equalizer, by compensating for the frequency dependent
+				loss of the signal trace, is able to reduce the ISI significantly. Although there is an
+				amplitude decrease due to the constant loss of the equalizer, it can easily be calibrated out in
+				the measurements.</p><div class="p"><figure class="fignone">
+					
+					<img src="105772.png" alt="DUT output data eye at 10Gb/s with a PRBS7 pattern.">
+				</figure></div><div class="p"><figure class="fignone">
+					
+					<img src="105774.png" alt="Data eye at the end of the signal trace without the passive equalizer on the test fixture (right) and with the passive equalizer (left).">
+				</figure></div><p>Figure 27 presents the eye diagrams measured by the ATE pin electronics receiver
+				with and without the equalizer on the test fixture. On these measurements, a PRBS7 data pattern
+				was used and 1E9 bits were acquired at each (voltage, timing) measurement point.</p><div class="p"><figure class="fignone">
+					
+					<img src="105775.png" alt="Data eye measured by the ATE receiver with no equalization (left) and with equalization (right).">
+				</figure></div><p>The results show that the equalizer on the test fixture is able to improve the
+				measured data eye width by 15 ps.</p></section>
+		<section class="section"><h2>Example 2</h2><p>In this example we present the compensation of a different DUT
+				loadboard structure. Fig. 17 presents a picture of an experimental test fixture containing
+				several structures developed to investigate DUT board design topics. One of the structures
+				is a 50.8cm (20 inch) 9 mil stripline in ROGERS4350. As on the previous example, the expected
+				loss from this signal trace is larger than the loss for which the Verigy V93000 Pin Scale HX
+				card was designed.</p><div class="p"><figure class="fignone">
+					
+					<img src="105778.jpg" alt="Experimental DUT board used for the experiments.">
+				</figure></div><p>Figure 29 shows the measured insertion loss for the signal trace and also the
+				insertion loss when including the Pin Scale HX integrated equalizer and also when adding an
+				extra passive equalizer on the Loadboard. Of course the extra equalizer was properly chosen.
+				Note that the equalization loss was calibrated out of the measurements.</p><div class="p"><figure class="fignone">
+					
+					<img src="105779.png" alt="Measured insertion loss of the 50.6cm 9mil stripline trace in ROGERS4350 including also the Pin Scale HX equalizer and an extra DUT board passive equalizer.">
+				</figure></div><p>Figure 30 shows the results on the time domain using a PRBS31 data pattern at
+				10Gb/s with a bench set-up that does include the entire Verigy V93000 signal path (driver + Pogo
+				Assembly + DUT Loadboard). The time and level scales were kept the same on all
+				measurements.</p><p>From the results it is easy to see that without any kind of equalization the
+				signal at the end of the signal path is very degraded due to the signal path loss. If one
+				included the standard equalizer on the Pin Scale HX card it is possible to observe a significant
+				improvement on the data eye but it is still outside specification (rise-time &lt;40ps) due to
+				the HX equalizer not having been designed for such a lossy trace. Finally with an extra passive
+				equalizer in the DUT board the data eye performance gets a further significant improvement with
+				the rise-time now below 40ps. One can also note the loss effect of the equalizer by the
+				reduction of the data eye amplitude, although interestingly, by removing the level jitter
+				through equalization the eye height, in fact increases. In any case, this loss factor can be
+				easily calibrated out in the measurements.</p><div class="p"><figure class="fignone">
+					
+					<img src="105786.png" alt="Results on the time">
+				</figure></div><p>Data eye at the output of the test driver (top left), measured data eye at the end
+				of the signal path without any type of equalization (top right), with the Pin Scale HX
+				integrated equalizer (bottom left) and with the Pin Scale HX equalizer and an extra passive
+				equalizer on the DUT loadboard.</p><p>We can also look at the data eye after the driver
+				including the Pin Scale HX equalizer and the DUT board passive equalizer. Figure 31 shows
+				the data eye before the lossy signal path.</p><p>It shows the overshooting or pre-emphasis
+				effect that it is expected from the high-pass behaviour of an equalization filter.</p><div class="p"><figure class="fignone">
+					
+					<img src="105792.png" alt="Data eye at the output of a test driver with the Pin Scale HX equalizer and an extra passive equalizer without any lossy signal path (Pogo assembly and DUT loadboard).">
+				</figure></div></section>
+		<section class="section"><h2>Example 3</h2><p>In this example, we will show how equalization can have a
+				significant effect on measurements, in this case measuring the jitter histogram. Figure 32 shows
+				a jitter histogram measurement of the DUT at 10Gb/s with a PRBS7 data pattern using the Verigy
+				V93000 Pin Scale HX receiver. The figure presents three different measurement set-ups: a 45cm
+				microstrip trace without test fixture equalization, the same trace with equalization on the test
+				fixture, and a 25cm (10'') stripline trace (19mil on ROGERS4350) with no test fixture
+				equalization. Note that the Pin Scale HX pin electronics receiver used on the measurements
+				includes the integrated equalizer shown in Figure 21 left.</p><div class="p"><figure class="fignone">
+					
+					<img src="105796.png" alt="Jitter histogram measurement of the DUT at 10Gb/s with a PRBS7 data pattern.">
+				</figure></div><p>From the figure above it is possible to see that by adding the equalizer on the
+				test fixture, we are able to obtain a better jitter histogram measurement that is closer to the
+				real output from the DUT.</p><p>Another interesting result is to look into the influence of the
+				data rate on the measurements. Using a bench instrument as stimulus source we increased the data
+				rate from 5 Gb/s to 10Gb/s. The peak-peak jitter from the stimulus source is constant across the
+				different data rates. The signal was measured at the end of the 45cm signal trace with and
+				without the passive equalizer. The results are presented in Table 1. As the data rate increases,
+				the ISI effects on the jitter envelop increase as well. However, since the equalizer flattens
+				and extends the BW of the signal trace's frequency response, the ISI effects are drastically
+				reduced.</p><table><caption><span>Peak-peak jitter measurement dependency on the data rate for the 45cm signal trace with
+					and without equalization.</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_105743__entry__1"><p>DATA RATE</p>
+							</th>
+							<th class="colsep-1" id="_105743__entry__2"><p>No EQU</p>
+							</th>
+							<th class="colsep-1" id="_105743__entry__3"><p>With EQU</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105743__entry__1"><p>5Gbps</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__2"><p>17</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__3"><p>16.7</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105743__entry__1"><p>6.4Gbps</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__2"><p>19.1</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__3"><p>15.6</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105743__entry__1"><p>8Gbps</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__2"><p>21.9</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__3"><p>16.5</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_105743__entry__1"><p>10Gbps</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__2"><p>25.6</p>
+							</td>
+							<td class="colsep-1" headers="_105743__entry__3"><p>15.9</p>
+							</td>
+						</tr>
+					</tbody></table><p>The results show that after 5 Gb/s the measured peak-peak jitter on the signal trace
+				without equalization increases due to the bandwidth limitations of the test fixture that adds
+				ISI jitter to the signal. For the signal trace with equalization it is possible to observe that
+				the measured peak-peak jitter value stays constant due to the increased bandwidth of the test
+				fixture through equalization. This is a very important observation, especially when testing
+				devices with variable data rates.</p></section>
+		<section class="section"><h2>Conclusions</h2><p>This paper has demonstrated that it is possible to address
+				the challenge of the test fixture trace loss for high-speed and high pin count digital
+				interfaces in current and future ICs, by using passive equalization integrated on the test
+				fixture. A design methodology was presented to choose the correct equalizer, and results with a
+				real application were presented, showing the significant improvement that can be obtained by the
+				use of passive equalization integrated on the test fixture.</p><p>As more and more silicon
+				suppliers integrate higher numbers of I/O cells running at multi-gigabit speeds, the layout of
+				the test interfaces will require smaller trace widths and longer traces. This means that
+				unacceptable level of frequency dependent loss will be added to the signal to be measured.
+				Passive equalization is not a perfect solution to this problem, as it induces its own amplitude
+				attenuation, but it can increase significantly the bandwidth of the test interface, reducing the
+				ISI added to the signal to be measured. Careful selection of the equalizers is crucial, as it is
+				possible for an equalizer to cause an unacceptable reduction in the signal amplitude to be
+				measured. However, if properly selected the test engineer can address the test interface loss
+				issue as shown in the results with a real application presented in this article.</p></section>
+		<section class="section"><h2>Acknowledgements</h2><p>We would like to thank Bernd Laquai from Verigy for
+				initially bringing together TFT and Verigy. We would also like to thank Roger Nettles from
+				Verigy and Jonathan Kenton from Intel.</p></section>
+		<section class="section"><h2>References</h2><ol>
+				<li>M. P. Li, Design and Test for Multiple Gbps Communication Devices and Systems, IEC,
+					2005</li>
+				<li>U. Schoettmer, C. Wagner and T. Bleakley, "Device Interfacing: The Weakest Link in the Chain
+					to Break into the Giga Bit Domain?," IEEE International Test Conference, 2003.</li>
+				<li>M. Shimanouchi, "New Paradigm for Signal Paths in ATE Pin Electronics are Needed for
+					Serialcom Device Testing," IEEE International Test Conference, 2002.</li>
+				<li>Jose Moreira, Gert Hänsel and Frank Koban "Addressing the Challenge of Implementing an
+					At-Speed Production Test Solution for 10Gb/s Wafer Probing" IEC DesignCon West, 2005. </li>
+				<li>Howard Johnson and Martin Graham, High-Speed Signal Propagation. Prentice Hall 2003.</li>
+				<li>Stephen C. Thierauf, High-Speed Circuit Board Signal Integrity. Artech House 2004.</li>
+				<li>J. Moreira et al "PCB Loadboard Design Challenges for Multi-Gigabit Devices in Automated
+					Test Applications" IEC DesignCon West, 2006.</li>
+				<li>K.C. Gupta, Microstrip Lines and Slotlines. Artech House 1996.</li>
+				<li>Brian C. Wadell, Transmission Line Design Handbook. Artech House 1991.</li>
+				<li>Daniel G. Swanson and Wolfgang J.R., Microwave Circuit Modeling Using Electromagnetic Field
+					Simulation. Artech House 2003.</li>
+				<li>Hendrik W. Bode "Attenuation Equalizer" US Patent 2,096,027,027 1936.</li>
+				<li>Wolfram Humann "Compensation of Transmission Line Loss for Gbit/s Test on ATEs" IEEE
+					International Test Conference, 2002.</li>
+				<li>Jose Moreira et al. "Influence of Dielectric Material on ATE Test Fixtures for High-Speed
+					Digital Applications" Proceedings of the sixth international Kharkov symposium on physics of
+					engineering of microwave, milimeter and submilimeter waves 2007.</li>
+				<li>Heidi Barnes et al. "Development of a Pogo Pin Assembly and Via Design for Multi-Gigabit
+					Interfaces on Automated Test Equipment" Proceedings of the 2006 Asia-Pacific microwave
+					conference.</li>
+			</ol></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105743</span><script type="text/javascript">var ti='105743';var tt='Passive Equalization of DUT Loadboards for High-Speed Digital Applications'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

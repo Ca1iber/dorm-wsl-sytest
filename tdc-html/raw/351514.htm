@@ -1,0 +1,157 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This is a template of an I2C protocol class which defines the basic properties and operation logics of the protocol."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>I2C protocol class template</title><meta name="keywords" content="I, 2, C"></head><body id="_351514"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351514</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">I2C protocol class template</h1>
+	
+	
+	<div><p>This is a template of an I2C protocol class which defines the basic properties and
+		operation logics of the protocol.</p>
+		<section class="section">
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">#include "RA_protocols.h"
+
+namespace {
+
+using namespace RA;
+using namespace std;
+
+/**
+ * This is a template of an I2C protocol class which defines the basic properties
+ * and operation logics of the protocol.
+ */
+class I2CTemplate : public ProtocolI2C {
+public:
+  I2CTemplate() {}
+  virtual ~I2CTemplate() {}
+
+  const static int SLAVE_ADDRESS = 0xE8;
+
+  /**
+   * (Mandatory)
+   * Create a singleton.
+   */
+  RA_CREATE_SINGLETONE(I2CTemplate);
+
+  /**
+   * (Mandatory)
+   * Give a reasonable name as an ID to identify this protocol class.
+   * This name can be used in Test Method to switch to this protocol,
+   * e.g. RA_SWITCH_PROTOCOL("I2CTemplate");
+   */
+  virtual std::string getName() const {return "I2CTemplate";}
+
+  /**
+   * (Mandatory)
+   * Define the speed of this protocol.
+   */
+  virtual double getClockSpeed() const {return 2.5 MHz ;}
+
+protected:
+  /**
+   * (Mandatory)
+   * Define the logics of the register write operation.
+   */
+  virtual void defineWriteRegister(I2C&amp; i2c, ULONG64 address, ULONG64 data) {
+    i2c.startCondition();
+    i2c.sendByteWithAck(SLAVE_ADDRESS);
+    i2c.sendByteWithAck(address / 256);
+    i2c.sendByteWithAck(address % 256);
+    i2c.sendByteWithAck(data, "inData"); //"inData" is a named parameter
+    i2c.stopCondition();
+  }
+
+  /**
+   * (Mandatory)
+   * Define the logics of the register read operation.
+   */
+  virtual void defineReadRegister(I2C&amp; i2c, ULONG64 address, int numberOfData) {
+    i2c.startCondition();
+    i2c.sendByteWithAck(SLAVE_ADDRESS);
+    i2c.sendByteWithAck(address / 256);
+    i2c.sendByteWithAck(address % 256);
+    i2c.startCondition();
+    i2c.sendByteWithAck(SLAVE_ADDRESS + 1);
+
+  if(numberOfData &lt;= 1) {
+      // One data
+      i2c.receiveByteNoAck("outData");
+    } else {
+      // Burst read
+      i2c.loopBegin(numberOfData - 1);
+          i2c.receiveByteAckLow("outData");
+      i2c.loopEnd();
+      i2c.receiveByteNoAck("outData");
+    }
+
+    i2c.stopCondition();
+  }
+
+  /**
+   * (Mandatory)
+   * Define the logics of the register compare operation.
+   */
+  virtual void defineCompareRegister(I2C&amp; i2c, ULONG64 address, ULONG64 expectData, ULONG64 maskData) {
+    i2c.startCondition();
+    i2c.sendByteWithAck(SLAVE_ADDRESS);
+    i2c.sendByteWithAck(address / 256);
+    i2c.sendByteWithAck(address % 256);
+    i2c.startCondition();
+    i2c.sendByteWithAck(SLAVE_ADDRESS + 1);
+    i2c.compareByteNoAck(expectData, maskData);
+    i2c.stopCondition();
+    }
+
+  /**
+   * (Mandatory)
+   * Define how the data and/or the address is set into parameter(s).
+   */
+  virtual void composeRegisterWriteData(ParameterSetter&amp; param, ULONG64 address, ULONG64 data) {
+    param.setValue("inData", data);
+  }
+
+  /**
+   * (Mandatory)
+   * Define how parameters are assembled to the result of a register read operation.
+   */
+  virtual RA::ULONG64 composeRegisterReadData(ParameterGetter&amp; param) {
+    return param.getValue("outData");
+  }
+
+  /**
+   * (Mandatory)
+   * Define the pin to be used as SCL.
+   */
+  virtual std::string getPinNameSCL() const {return "I2C_SCL";}
+
+  /**
+   * (Mandatory)
+   * Define the pin to be used as SDA.
+   */
+  virtual std::string getPinNameSDA() const {return "I2C_SDA";}
+
+  /**
+   * (Optional)
+   * Define the logics of the register array-write operation.
+   */
+  virtual void defineWriteArray(I2C&amp; i2c, ULONG64 address, const vector&lt;ULONG64&gt;&amp; arrayData) {
+    i2c.startCondition();
+    i2c.sendByteWithAck(SLAVE_ADDRESS);
+    i2c.sendByteWithAck(address / 256);
+    i2c.sendByteWithAck(address % 256);
+    for(unsigned int i=0;i&lt;arrayData.size();++i) {
+        i2c.sendByteWithAck(arrayData.at(i));
+    }
+    i2c.stopCondition();
+  }
+};
+
+/**
+ * (Mandatory)
+ * Register this protocol class to the RA lib.
+ */
+REGISTER_PROTOCOL(I2CTemplate);
+}</pre><div></div>
+			</div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351514</span><script type="text/javascript">var ti='351514';var tt='I2C protocol class template'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

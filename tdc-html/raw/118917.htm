@@ -1,0 +1,84 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The main difference compared to hidden calculation is that the digital upload is also integrated into your SMC_backgroundProcessing() method."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Hidden digital upload and calculation</title></head><body id="_118917"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118917</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Hidden digital upload and calculation</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="118934.htm" title="Result areas allow independent data capture and upload.">Result areas for hidden digital upload</a></li></ol></div></nav>
+	
+	
+	<div><p>The main difference compared to hidden calculation is that the digital upload is also
+		integrated into your <code>SMC_backgroundProcessing()</code> method.</p>
+		<p>Digital capture uses a dual port memory allowing the upload of data while capturing new data.
+			However, before digital capture test is executed, the result areas need to be defined.</p>
+		<p>In summary, <code>SMC_ARM()</code> kicks off the threads.
+				<code>SMC_GET_VECTORS()</code> waits until the upload gets triggered by a SMC wrapper API
+			like <code>SMC_WAIT_TIME()</code> or <code>SMC_FUNCTIONAL_TEST()</code>. SMC controls the
+			serial data upload. The DSP threads continue with the parallel calculation immediately afterwards
+			and the test results get buffered until a <code>SMC_SYNCHRONIZE()</code> is performed.</p>
+		<div class="note"><span class="title">Note</span> If no limits are assigned to the test suite and <span class="keyword">TMLimit</span> is
+			not used, the limits assigned to <span class="keyword">SMC_SYNCHRONIZE()</span> will be used.</div><div class="p"><figure class="fignone">
+				
+				<img src="118916.png" alt="Example testflow for hidden calculation">
+			</figure></div>
+		<p>This reflects the ideal case in terms of test time reduction, because the entire upload and
+			calculation is hidden behind 'other test(s)'. The user has to take care about the memory
+			allocation for the digital data.</p>
+		<div class="note"><span class="title">Note</span> For using hidden upload, Xpress Data Mode has to be enabled, which requires a
+			license.</div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">class runSNRtestMethod: public testmethod::TestMethod
+{
+     protected:
+      virtual void initialize()
+      {
+         addLimit("test_limit");
+      }
+     virtual void run()
+     {
+          ON_FIRST_INVOCATION_BEGIN()
+               // digital capture setup for hidden upload
+               RESULT_AREA_CONFIG resConf("pin1"); //capture pin
+               resConf.appendArea("1kBitArea", 3072).activate();
+
+               // setup and execute your test as usual, but use the SMC_xxx API
+               ...
+               <strong>SMC_DIGITAL_CAPTURE_TEST</strong>("1kBitArea");
+               LIMIT lim = GET_LIMIT_OBJECT("test_limit");
+
+               FOR_EACH_SITE_BEGIN()
+                    // kick off calculation thread
+                    <strong>SMC_ARM</strong>("1kBitArea", lim);
+               FOR_EACH_SITE_END();
+          ON_FIRST_INVOCATION_END();
+     }
+
+     public:
+     void SMC_backgroundProcessing(STRING area, LIMIT lim)
+     {
+          // trigger upload when SMC wrappers indicate non-blocking action
+          // a reference to the captured data is copied here, as we
+          // do not access the data outside this function
+          // (or after SMC_SYNCHRONIZE())
+          const ARRAY_I&amp; data = <strong>SMC_GET_VECTORS</strong>("VectorVariable", area);
+
+          // do your calculation
+          DSP_SNR(data,&amp;snr,&amp;sPow,&amp;nPow, 1024, 1, 3, 0.0, 0);
+
+          // do judgment
+          <strong>SMC_TEST</strong>("pinDGT","SNR", lim, snr,,"55");
+          <strong>SMC_TEST</strong>("pinDGT","signalPow", lim, sPow,,"57");
+          <strong>SMC_TEST</strong>("pinDGT","noisePow", lim, nPow,,"59");
+     }
+     (...)
+}
+
+class runDelayedBinLog: public testmethod::TestMethod
+{
+     protected:
+     virtual void run()
+     {
+          // wait until all calculations are done
+          <strong>SMC_SYNCHRONIZE()</strong>;
+          (...)
+     }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118934.htm" title="Result areas allow independent data capture and upload.">Result areas for hidden digital upload</a></div><div><a href="118841.htm" title="As soon the Hidden upload has finished the calculation thread continues on different CPU cores in parallel hidden behind the test currently being executed.">Hidden upload and calculation</a></div><div><a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.1.0:  Added PS1600 to the list of requiring a license.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118917</span><script type="text/javascript">var ti='118917';var tt='Hidden digital upload and calculation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

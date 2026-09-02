@@ -1,0 +1,248 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SMC_BACKGROUND block in the run() function of a test method class is defined by SMC_BACKGROUND_ENABLE() and SMC_BACKGROUND_DISABLE(). The block encloses non-SMC APIs and marks a time slot where the SmartCalc framework can initiate hidden uploads. The code inside of the block is executed in parallel to hidden uploads and must not access the hardware."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SMC_BACKGROUND_ENABLE()</title><meta name="keywords" content="earthing"></head><body id="_120098"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120098</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SMC_BACKGROUND_ENABLE()</h1>
+	
+	
+	<div><p>The <span class="keyword">SMC_BACKGROUND</span> block in the <span class="keyword">run()</span>
+		function of a test method class is defined by <span class="keyword">SMC_BACKGROUND_ENABLE()</span> and
+			<span class="keyword">SMC_BACKGROUND_DISABLE()</span>. The block encloses non-SMC APIs and marks a
+		time slot where the SmartCalc framework can initiate hidden uploads. The code inside of the
+		block is executed in parallel to hidden uploads and must not access the
+		hardware.</p>
+		<section class="section">
+			<p><span class="keyword">SMC_BACKGROUND_ENABLE()</span> and <a href="120099.htm" title="The SMC_BACKGROUND block in the run() function of a test method class is defined by SMC_BACKGROUND_ENABLE() and SMC_BACKGROUND_DISABLE(). The block encloses non-SMC APIs and marks a time slot where the SmartCalc framework can initiate hidden uploads. The code inside of the block is executed in parallel to hidden uploads and must not access the hardware.">SMC_BACKGROUND_DISABLE()</a><span id="_120098__ph_Introduction"> are intended to be used in the <span class="keyword">run()</span>
+					function of a test method class and must always be implemented
+					together.</span></p>
+		</section>
+		<section class="section"><h2>Principle of operation</h2>
+			
+			<p>Creating background processes by the <a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a> may result in conflicts
+				if both the <span class="keyword">run()</span> function of a test method class and an <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> function access the tester hardware
+				at the same time.</p>
+			<p>The SmartCalc framework can therefore perform hidden uploads only if the tester
+				hardware is not accessed by another process. Identifying these time slots and using
+				them in a background process is done automatically if only SMC APIs are used in the
+					<span class="keyword">run()</span> function and in the background process.</p>
+			<div class="p">For non-SMC APIs, separate handling is required for test time consuming sections of
+				the <span class="keyword">run()</span> function and for hardware access in a background process:<ul>
+					<li>
+						<p>The <span class="keyword">SMC_BACKGROUND</span> block in the <span class="keyword">run()</span> function
+							encloses non-SMC APIs that do not access the tester hardware. This block
+							allows hidden uploads while the code in the block is executed.</p>
+					</li>
+					<li>An <a href="348095.htm" title="The SMC_HIDDEN_EXECUTION block in the SMC_backgroundProcessing() function is defined by SMC_HIDDEN_EXECUTION_BEGIN() and SMC_HIDDEN_EXECUTION_END(). The block marks a section in a background process where non-SMC APIs can access the tester hardware. The execution of the code within the block is controlled by the SmartCalc framework and triggered by SMC APIs like SMC_FUNCTIONAL_TEST(), SMC_WAIT_TIME() or the SMC_BACKGROUND block in the run() function of a test method class.">SMC_HIDDEN_EXECUTION</a> block in the background
+						process encloses non-SMC APIs that access the tester hardware. The SmartCalc
+						framework executes the code in the block only while no other process
+						accesses the tester hardware.</li>
+				</ul></div>
+			<div class="p"> The <span class="keyword">SMC_BACKGROUND</span> block thus provides a time slot that allows
+				SmartCalc performing hidden uploads in the background:<ul>
+					<li>No access to the tester hardware is allowed in the
+							<span class="keyword">SMC_BACKGROUND</span> block.</li>
+					<li>The code within the block is executed independently of and in parallel to
+						the background processes.</li>
+					<li>The execution of the <span class="keyword">run()</span> function will stop at the end
+						of the block until the currently processed part of a hidden upload has been
+						finished.</li>
+					<li>There is no fixed relationship between an <span class="keyword">SMC_BACKGROUND</span>
+						block in the <span class="keyword">run()</span> function and an SMC background
+						process. The block enables hidden uploads that previously have been placed
+						in the queue by the SmartCalc framework.</li>
+				</ul></div>
+		</section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void SMC_BACKGROUND_ENABLE();</pre><div></div>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SMART_CALC2.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">List of parameters</dt>
+					<dd>There are no parameters.</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl></div>
+		<h2>Example</h2><div class="example" id="_120098__e_SMC_BACKGROUND_ENABLE_example"><h3>SMC_BACKGROUND_ENABLE
+			example</h3>The example consists of two test suites which have to be executed in succession:<ul>
+				<li>Test method class <span class="keyword">Test_1_SMC_BACKGROUND_ENABLE</span> performs a
+					digital capture test on pins "dig1" … "dig4" using API <a href="120076.htm" title="Executes a test which contains digital capture by starting the digital sequencer and waits for the test to complete or till the specified timeout is reached (except for AWG). It allows hidden upload of data controlled by SmartCalc.">SMC_DIGITAL_CAPTURE_TEST()</a>.
+					A hidden upload of the captured data is done by <a href="120100.htm" title="Retrieves the captured data of the vector memory identified by the vector name and a result area id.">SMC_GET_VECTORS()</a>.</li>
+				<li>Test method class <span class="keyword">Test_2_SMC_BACKGROUND_ENABLE</span> performs an <a href="120090.htm" title="Executes a functional test that will pass only if all device output data matches the expected data, else this test will fail. This API allows parallel upload of data from the tester under control of SmartCalc.">SMC_FUNCTIONAL_TEST()</a> that already grants a hidden upload in the queue access to
+					the tester hardware for the time while the pattern is running. An
+						<span class="keyword">SMC_BACKGROUND</span> block outside of the
+						<span class="keyword">ON_FIRST_INVOCATION</span> block emulates processing of data and
+					allows the background processes accessing the tester hardware for some more
+					time.</li>
+			</ul>Some items to consider for the example:<ul>
+				<li>You need to set up the four pins for digital capturing and create also a <a href="116306.htm" title="Digital Capture is a technique that allows you to capture large amounts of unpredictable digital output of a device at high data rates. It is typically applied to test analog-to-digital converters, or to read out registers or memories with arbitrary content.">Digital Capture setup</a> using the vector variable
+					"cap1".</li>
+				<li>The example utilizes an optional pair of curly brackets "{" and "}" for the
+						<span class="keyword">ON_FIRST_INVOCATION</span> block and the
+						<span class="keyword">SMC_BACKGROUND</span> block. These optional curly brackets are
+					used for simplifying the correct indentation with assistance of the related
+					Eclipse tool.</li>
+				<li>The example shows only how to use the <span class="keyword">SMC_BACKGROUND</span> block
+					and contains therefore no real test code.</li>
+			</ul><p>Test method class for the first test
+				suite:</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "mapi.hpp"
+
+using namespace std;
+
+class Test_1_SMC_BACKGROUND_ENABLE: public testmethod::TestMethod {
+
+protected:
+
+    virtual void initialize()
+    {
+    }
+
+    virtual void run()
+    {
+        STRING testName;
+
+        GET_TESTSUITE_NAME(testName);
+
+        ON_FIRST_INVOCATION_BEGIN();
+        {
+            RESULT_AREA_CONFIG resultAreaConfig("dig1,dig2,dig3,dig4");
+
+            resultAreaConfig.appendArea("16KBITArea",3072).activate();
+
+            cout &lt;&lt; testName &lt;&lt; " - run(): " &lt;&lt; "SMC_DIGITAL_CAPTURE_TEST" &lt;&lt; endl;
+
+            SMC_DIGITAL_CAPTURE_TEST("16KBITArea");
+
+            ARRAY_I activeSites;
+
+            GET_ACTIVE_SITES(activeSites);
+
+            cout &lt;&lt; testName &lt;&lt; " - run(): " &lt;&lt; "Arming common SMC thread" &lt;&lt; endl;
+
+            SMC_ARM(activeSites);
+        }
+        ON_FIRST_INVOCATION_END();
+
+        return;
+
+    } // virtual void run()
+
+public:
+
+    virtual void SMC_backgroundProcessing(ARRAY_I&amp; activeSites)
+    {
+        STRING testName;
+
+        SMC_GET_TESTSUITE_NAME(testName);
+
+        cout &lt;&lt; setw(50) &lt;&lt; "" &lt;&lt; testName &lt;&lt; ": Entering common SMC thread" &lt;&lt; endl;
+
+        for (int siteIndex = 0; siteIndex &lt; activeSites.size(); ++siteIndex)
+        {
+            INT currentSite = activeSites[siteIndex];
+
+            ARRAY_I vectorArray;
+
+            vectorArray = SMC_GET_VECTORS(currentSite, "cap1", "16KBITArea");
+
+            cout &lt;&lt; setw(50) &lt;&lt; "" &lt;&lt; testName &lt;&lt; ": Vector data for site " &lt;&lt; currentSite &lt;&lt; " = " &lt;&lt; vectorArray &lt;&lt; endl;
+        }
+
+        cout &lt;&lt; setw(50) &lt;&lt; "" &lt;&lt; testName &lt;&lt; ": Leaving common SMC thread" &lt;&lt; endl;
+
+    } // virtual void SMC_backgroundProcessing(ARRAY_I&amp; activeSites)
+};
+
+REGISTER_TESTMETHOD("Test_1_SMC_BACKGROUND_ENABLE", Test_1_SMC_BACKGROUND_ENABLE);
+</pre><p>Test
+				method class for the second test
+				suite:</p><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "mapi.hpp"
+
+using namespace std;
+
+class Test_2_SMC_BACKGROUND_ENABLE: public testmethod::TestMethod {
+
+protected:
+
+    virtual void initialize()
+    {
+    }
+
+    virtual void run()
+    {
+        STRING testName;
+
+        GET_TESTSUITE_NAME(testName);
+
+        ON_FIRST_INVOCATION_BEGIN();
+        {
+            cout &lt;&lt; testName &lt;&lt; " - run(): " &lt;&lt; "SMC_FUNCTIONAL_TEST" &lt;&lt; endl;
+
+            SMC_FUNCTIONAL_TEST();
+        }
+        ON_FIRST_INVOCATION_END();
+
+        cout &lt;&lt; testName &lt;&lt; " - run(): " &lt;&lt; "SMC_BACKGROUND_ENABLE for site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl;
+
+        SMC_BACKGROUND_ENABLE();
+        {
+            //
+            // Wait time emulates time required for calculations
+            //
+            // No access to tester hardware in this block!
+            //
+            WAIT_TIME(2 ms);
+        }
+        SMC_BACKGROUND_DISABLE();
+
+        cout &lt;&lt; testName &lt;&lt; " - run(): " &lt;&lt; "SMC_BACKGROUND_DISABLE" &lt;&lt; endl;
+
+        return;
+
+    } // virtual void run()
+};
+
+REGISTER_TESTMETHOD("Test_2_SMC_BACKGROUND_ENABLE", Test_2_SMC_BACKGROUND_ENABLE);</pre><div class="note"><span class="title">Note</span> 
+				<p>The example above contains several calls of <span class="keyword">cout</span> in function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>. <span class="keyword">cout</span> is not
+					thread safe. In production test <span class="keyword">cout</span> must never be used in a
+					background process.</p>
+				<p>When using <span class="keyword">cout</span> in a background process,
+					you have to expect a mix up of the output in the
+						<span class="uicontrol">ui_report</span> window and possibly other unwanted
+					behavior. For more information, refer to <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>.</p>
+			</div><p>For a test program with
+				four configured and enabled site, the code above results in an output in the
+					<span class="uicontrol">ui_report</span> window similar to the following
+				text:</p><pre class="msgblock">Test_1 - run(): SMC_DIGITAL_CAPTURE_TEST
+Test_1 - run(): Arming common SMC thread
+                                                  Test_1: Entering common SMC thread
+Test_2 - run(): SMC_FUNCTIONAL_TEST
+                                                  Test_1: Vector data for site 1 = {    0,  }
+Test_2 - run(): SMC_BACKGROUND_ENABLE for site 1
+Test_2 - run(): SMC_BACKGROUND_DISABLE
+Test_2 - run(): SMC_BACKGROUND_ENABLE for site 2
+                                                  Test_1: Vector data for site 2 = {    0,  }
+                                                  Test_1: Vector data for site 3 = {    0,  }
+                                                  Test_1: Vector data for site 4 = {    0,  }
+                                                  Test_1: Leaving common SMC thread
+Test_2 - run(): SMC_BACKGROUND_DISABLE
+Test_2 - run(): SMC_BACKGROUND_ENABLE for site 3
+Test_2 - run(): SMC_BACKGROUND_DISABLE
+Test_2 - run(): SMC_BACKGROUND_ENABLE for site 4
+Test_2 - run(): SMC_BACKGROUND_DISABLE</pre><p>The
+				output in the <span class="uicontrol">ui_report</span> shows the following behavior of the
+				example code:</p><ul>
+				<li>The common thread for all sites is armed in the <span class="keyword">run()</span>
+					function of test suite <span class="keyword">Test_1</span>.</li>
+				<li>The background process of <span class="keyword">Test_1</span> processes the first site
+					while the <span class="keyword">SMC_FUNCTIONAL_TEST</span> is executed in
+						<span class="keyword">Test_2</span>.</li>
+				<li>The remaining sites are processed while calculations are emulated in the
+						<span class="keyword">SMC_BACKGROUND</span> block of <span class="keyword">Test_2</span>.</li>
+			</ul></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="120099.htm" title="The SMC_BACKGROUND block in the run() function of a test method class is defined by SMC_BACKGROUND_ENABLE() and SMC_BACKGROUND_DISABLE(). The block encloses non-SMC APIs and marks a time slot where the SmartCalc framework can initiate hidden uploads. The code inside of the block is executed in parallel to hidden uploads and must not access the hardware.">SMC_BACKGROUND_DISABLE()</a></div><div><a href="348095.htm" title="The SMC_HIDDEN_EXECUTION block in the SMC_backgroundProcessing() function is defined by SMC_HIDDEN_EXECUTION_BEGIN() and SMC_HIDDEN_EXECUTION_END(). The block marks a section in a background process where non-SMC APIs can access the tester hardware. The execution of the code within the block is controlled by the SmartCalc framework and triggered by SMC APIs like SMC_FUNCTIONAL_TEST(), SMC_WAIT_TIME() or the SMC_BACKGROUND block in the run() function of a test method class.">SMC_HIDDEN_EXECUTION_BEGIN()</a></div><div><a href="118911.htm" title="There are four key steps to implement SmartCalc to your test program.">Four-step SmartCalc implementation</a></div><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div><div><a href="136161.htm" title="SmartCalc automatically determines the package size of data to be uploaded to the test system controller. It performs an optimized upload behind a currently running test (sequencer execution).">Hidden upload</a></div><div><a href="120076.htm" title="Executes a test which contains digital capture by starting the digital sequencer and waits for the test to complete or till the specified timeout is reached (except for AWG). It allows hidden upload of data controlled by SmartCalc.">SMC_DIGITAL_CAPTURE_TEST()</a></div><div><a href="120100.htm" title="Retrieves the captured data of the vector memory identified by the vector name and a result area id.">SMC_GET_VECTORS()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120098</span><script type="text/javascript">var ti='120098';var tt='SMC_BACKGROUND_ENABLE()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

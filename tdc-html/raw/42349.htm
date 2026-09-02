@@ -1,0 +1,119 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This appendix contains a description of the driver execution flow when hook functions are used. The flow is mainly controlled by the return values of the hook functions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Appendix A: Hook Function Execution Flow</title></head><body id="_42349"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42349</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Appendix A: Hook Function Execution Flow</h1>
+	
+	
+	<div><p>This appendix contains a description of the driver execution flow when hook functions
+		are used. The flow is mainly controlled by the return values of the hook functions.</p>
+		<section class="section"><pre class="prettyprint linenums copyable">/* pseudo code to show how hook management works in
+    principle. ph_xxx is a placeholder for any possible ph_ call
+    coming in from the application model */
+     
+result_type ph_xxx(parameters)
+{
+    /* incoming checks */
+    check_call_xxx();
+     
+    /* in case an ACTION_START hook is installed, it is called just
+       after the correct sequence of ph_ calls has been validated */
+    if (phHookAvailable() &amp; PHHOOK_AV_ACTION_START) 
+    {
+        switch (phHookActionStart(xxx, parameters)) 
+        {
+          case HANDLED:
+          case ABORT:
+            /* set result value from hook and return */ 
+            set_results();
+            return;
+        }
+    }
+     
+    /* perform the regular operations of ph_ call */ 
+    perform_xxx_operations();
+     
+    do
+    {
+        /* wait for some results (next device, wafer, etc...) */ 
+        wait_for_xxx_results();
+     
+        /* stop waiting, if we got the results */ 
+        if (got_results)
+            break;
+     
+        /* in case a WAITING hook is installed, it is called
+           repeatetly, as long as waiting for results */
+        if (phHookAvailable() &amp; PHHOOK_AV_WAITING) 
+        {       
+            switch (phHookWaiting(elapsed_time, xxx, parameters)) 
+            {
+              case ABORT:
+                /* abort ph_ call immediately */
+                return(abort_results);
+              case HANDLED:
+                /* accept results from hook function */ 
+                set_results();
+            }
+            /* stop waiting, if we got the results */ 
+            if (got_results)
+                break;
+        }
+     
+        /* if not timed out, continue waiting loop */ 
+        if (not_timeout)
+            continue;
+     
+        /* in case a PROBLEM hook is installed, it is called in a
+           timeout situation */
+        if (phHookAvailable() &amp; PHHOOK_AV_PROBLEM) 
+        {       
+            switch (phHookProblem(TIMEOUT, xxx, parameters)) 
+            {
+              case ABORT:
+                /* abort ph_ call immediately */
+                return(abort_results);
+              case HANDLED:
+                /* accept results from hook function */ 
+                set_results();
+            }
+            /* stop waiting, if we got the results */ 
+            if (got_results)
+                break;
+        }
+     
+        /* whenever a user dialog is necessary, do..... */ 
+        if (user_dialog_needed)
+        {
+            /* in case a POPUP hook is installed, it is called to
+               present the dialog */
+            if (phHookAvailable() &amp; PHHOOK_AV_POPUP) 
+            {
+                switch (phHookPopup())
+                {
+                  case HANDLED:
+                    /* hook has performed the dialog */
+                    set_dialog_done();
+                }
+            }
+     
+            if (dialog_not_done_by_hook)
+                show_user_dialog();
+        }
+     
+        /* set the timeout results or whatever makes sense here */ 
+        set_results();
+     
+    } while (not_got_results); /* repeat until there are results */
+     
+    /* in case an ACTION_DONE hook is installed, it is called
+        before regular return to the calling function */
+    if (phHookAvailable() &amp; PHHOOK_AV_ACTION_DONE) 
+    {   
+        phHookActionDone(xxx, parameters);
+        /* the hook may change the final result */
+    }
+     
+    return(results);
+}</pre></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42349</span><script type="text/javascript">var ti='42349';var tt='Appendix A: Hook Function Execution Flow'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

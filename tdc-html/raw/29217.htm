@@ -1,0 +1,151 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API computes the signal to noise plus distortion (SND), signal power (of frequency specified by rel_freq), and sum of all other powers in decibels by using FFT operations to compute the src spectrum as follows:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_SND</title></head><body id="_29217"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29217</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_SND</h1>
+	
+	
+	<div><p>This API computes the signal to noise plus distortion (SND), signal power (of frequency
+		specified by <code>rel_freq</code>), and sum of all other powers in decibels by using FFT
+		operations to compute the <code>src</code> spectrum as follows:</p>
+		<section class="section"><p>First, <code>src</code> is transformed into COMPLEX values <code>c(j)
+				</code> as follows:</p><pre class="prettyprint copyable singleline">DSP_FFT( src, c, size, RECT); </pre><p>Then, for
+					<code>1</code>≤ j ≤ size/2 - 1, COMPLEX values <code>rtemp(j)</code> are calculated by
+				adjusting COMPLEX values <code>c(j)</code>. </p><p><code>R(j)</code> is calculated by
+				filtering (<code>filter</code>) as
+				follows:</p><pre class="prettyprint linenums copyable">rtemp(j) = c(j) × 2/size
+R(j) = |(rtemp(j))| × filter [j]</pre><p>The
+				values are then calculated as follows:</p><div class="p"><figure class="fignone">
+					<img src="30656.png" alt="formula">
+				</figure></div><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_SND(ARRAY_I&amp; src, DOUBLE *snd, 
+     DOUBLE *signal_power, DOUBLE *other_power, 
+     INT rel_freq, DOUBLE std_level, ARRAY_D&amp; filter);
+
+DSP_SND(INT *src, DOUBLE *snd, 
+     DOUBLE *signal_power, DOUBLE *other_power,
+     INT size, INT rel_freq, DOUBLE std_level, DOUBLE *filter);
+
+DSP_SND(ARRAY_D&amp; src, DOUBLE *snd, 
+     DOUBLE *signal_power, DOUBLE *other_power,
+     INT rel_freq, DOUBLE std_level, ARRAY_D&amp; filter);
+
+DSP_SND(DOUBLE *src, DOUBLE *snd, 
+     DOUBLE *signal_power, DOUBLE *other_power, 
+     INT size, INT rel_freq, DOUBLE std_level, DOUBLE *filter);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29217__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29217__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29217__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">src</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>Source array</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">snd</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>SND value within source in decibels</p>
+								<p><em>size</em> / 2 ≤ (size of result array)</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">signal_power</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>Signal power value within source in decibels</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">other_power</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>Sum of all other power values within source in decibels</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">size</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>Number of elements to be processed</p>
+								<p>8 ≤ <em>size</em> ≤ 2097152</p>
+								<p><em>size</em> ≤ (size of source array)</p>
+								<p><em>size</em> can be any integer in the above range. In the case that <em>size</em> is not
+									power of two, the Xpress data mode must be enabled in order to process the elements.</p>
+								
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">rel_freq</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>Number of measured signal periods, which is used to calculate the relative
+									frequency</p>
+								<p>1 ≤ <em>rel_freq</em> ≤ (<em>size</em> / 2) - 1</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">std_level</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>The std_level is used for scale adjustment of <code>signal_power</code> and
+										<code>other_power</code>. </p>
+								<p>In output mode "DB" this value corresponds to the 0dB level and in the output modes
+									"VOLT" and "PWR" it corresponds to the 1.0 value. If it is set to "0", the API searches for
+									the maximum power element (generally signal power) in the spectrum and set it to 0 dB or
+									1.0 respectively. </p>
+								<p>To adjust the scale to dBm at any general impedance (Z) specify std_level = sqrt(2) *
+									sqrt(Z/1000).</p>
+								<p>If <span class="keyword">output_mode</span>=<kbd class="userinput">VOLT</kbd> and
+										<span class="keyword">std_level</span>=<kbd class="userinput">1</kbd>, the resultant values are Vpeak.</p>
+								<p>If <span class="keyword">output_mode</span>=<kbd class="userinput">VOLT </kbd>and
+										<span class="keyword">std_level</span>=<kbd class="userinput">1.414</kbd>, the resultant values are
+									Vrms.</p>
+								<p>If <span class="keyword">output_mode</span>=<kbd class="userinput">DB </kbd>and
+										<span class="keyword">std_level</span>=<kbd class="userinput">1.414</kbd>, the resultant values are
+									dBV.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__2"><p><span class="keyword">filter</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29217__entry__3"><p>An array containing the filter transfer function</p>
+								<p>Each element corresponding to a result array element</p>
+								<p><em>size</em> / 2 ≤ (size of <em>filter</em>)</p>
+								<p>NULL (0): filtering is not performed.</p>
+							</td>
+						</tr>
+					</tbody></table><p>The relative frequency Fr, which is the fundamental frequency for SND calculation, is
+				defined as follows:</p><div class="p"><figure class="fignone">
+					<img src="30657.png" alt="formula">
+				</figure></div><p>where <code>Fs</code> is the sampling frequency.</p></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">double time_array[1024];
+double snd,signal,other;
+  .
+  .
+DSP_SND(time_array, &amp;snd, &amp;signal, &amp;other, 1024, 1, 0.0, NULL);</pre><p><code>DSP_SND</code>
+				performs the FFT operations and calculations, and returns the results to<em> </em><code>snd</code>,<em> </em><code>signal</code>, and<em> </em><code>other</code>.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: The size parameter is not restricted to the power of two.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29217</span><script type="text/javascript">var ti='29217';var tt='DSP_SND'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

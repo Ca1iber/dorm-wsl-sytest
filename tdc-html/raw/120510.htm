@@ -1,0 +1,279 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Optimized Embedded DRAM Test Solutions for Parallel Efficiency</title></head><body id="_120510"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120510</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Optimized Embedded DRAM Test Solutions for Parallel Efficiency</h1>
+	
+	<div>
+		<p>ChungDa Wang, Verigy</p>
+		<p>Yu Hu, Verigy</p>
+		<p>Takashi Itoh, <em>Verigy</em></p>
+		<p><em>Paper-ID: 120510 April 2010</em></p>
+		<section class="section"><h2>Abstract</h2><p>As the semiconductor technology grows more mature, embedded
+				DRAM (eDRAM) is gaining increasing popularity in the SOC design to achieve lower power
+				consumption and better system performance. Memory BIST (built-in self test) and BISR (built-in
+				self repair) technologies are usually adopted as the test solution for eDRAM. These DFT (design
+				for testability) technologies can help minimize the required number of test channels and avoid
+				deep conventional testing patterns.</p><p>The BIST/BISR tests can be implemented with functional
+				or digital capture test. Depending on the design, its test usually involves judgments on the
+				current test results to decide the consequent steps. In the high-volume manufacturing (HVM)
+				test, where a multi-site test is widely adopted to ensure the throughput, this result-dependent
+				attribute would deteriorate the parallel efficiency dramatically in some scenarios. Therefore
+				thorough consideration must be made on both the test solution creation and the design of
+				BIST/BISR engine to streamline the test flow and maximize the parallel efficiency.</p><p>This
+				paper showcases a common structure of the memory BIST/BISR engine in a SOC device and recommends
+				test solutions for V93000. A counted match-loop solution with optimized parallel efficiency is
+				explicitly presented. This solution was applied to a customer device on PinScale 400 for HVM
+				test. It has been proven with extremely satisfactory results, i.e. around 90% of parallel
+				efficiency for quad-site test.</p></section>
+		<section class="section"><h2>Introduction</h2><p>Because memory is one of the important elements that
+				influences the system performance, seeking for a better performance memory solution has never
+				stopped. Thanks to the advanced process technologies that can integrate memory and logic on the
+				same silicon, the embedded memory has become one of the options available for better
+				performance. Among the various types of embedded memory, the embedded DRAM is increasingly
+				gaining popularity over the past few years. It has been widely adopted in applications like game
+				consoles, multimedia processors, high-end networking, digital consumers, etc... In comparison
+				with the stand-alone commodity DRAM, the eDRAM has the following advantages [1].</p><ol>
+				<li>Better performance</li>
+				<li>Lower power consumption</li>
+				<li>Finer granularity for memory size and IO bus</li>
+				<li>Reduced pin count and chip number on board</li>
+			</ol><p>On the other hand, it brings penalties and challenges, for example, larger die size,
+				higher cost, more complicated design and fabrication process etc... There are also new problems
+				emerging when testing the embedded DRAM. The conventional solution cannot be applied because the
+				memory interface cannot be accessed directly at the IO pins. Memory BIST (built-in self test)
+				and BISR (built-in self repair) are usually the most effective solution to tackle this issue. In
+				this paper a customer's device with BIST/BISR design will be discussed as well as the test
+				solutions on V93000 with satisfactory parallel efficiency.</p></section>
+		<section class="section"><h2>Device and test strategy</h2></section>
+		<section class="section"><h2>Structure of embedded DRAM and DFT</h2><p>The structure of the embedded DRAM in
+				customer's SOC device is illustrated in Figure 1. The eDRAM consists of several memory macros.
+				Each of them contains an independent BIST and BISR engine, which can perform the pre-programmed
+				test and repair the memory macro. The test can be configured by writing the setup data into the
+				registers in the BIST engine. A variety of tests can be programmed such as checkerboard, march,
+				and retention [2]. A test can also be started by writing a "1" into the start-test register in
+				the BIST engine after it has been programmed. Then the test status can be queried by reading out
+				the status bit of the register to judge whether the test has finished or not. Once the test has
+				finished, the test result along with other information such as fail bit count and fail bit
+				address are available in the related registers. A similar mechanism applies to the repair
+				operations. The BIST/BISR engines in all the macros can be activated simultaneously in a
+				broadcast mode so that the parallel test can be carried out.</p><div class="p"><figure class="fignone">
+					<img src="120527.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency">
+				</figure></div><p><strong>Figure 1. Structure of embedded DRAM</strong></p><p>A JTAG port, IEEE standard 1149.1
+				[3], is used to access all the registers in the BIST/BISR engines. The JTAG port operates on 5
+				dedicated pins: TDI (test data in), TDO (test data out), TMS (test mode select), TCK (test
+				clock) and Trst (test reset), which allows the BIST/BISR to be carried out by very limited
+				tester resources. By driving the device through an appropriate sequence of states in the JTAG
+				state diagram, data can be written into the registers through TDI, or read out from the
+				registers through TDO. All the test and repair operations are performed by executing a series of
+				digital vectors. The results and fail information can be retrieved by digital capture or
+				inquiring the error map after the functional tests.</p><p>Figure 2 shows the flowchart for the
+				BIST and BISR operations. The BIST is activated first and when it fails the BISR can be
+				activated to repair the failed cells. After the BIST/BISR is activated, the status can be
+				checked. The check is repeated until the test done signal is detected or it exceeds the
+				predefined wait time. The repair capability is somewhat limited. It only fixes the first fail
+				location in the preceding test with a row redundancy. After the repair is successfully done, the
+				test is repeated. The first fail location then moves to the next and the repair is activated
+				again to repair it. It might take several iterations of BIST and BISR before the device can be
+				completely repaired. The loop carries on until it exits on two conditions: first the BIST passes
+				(either it passes without repair or it has been completely repaired) and second a repair error
+				is encountered. For the first scenario, E-fuse writing then takes place to preserve the repair
+				data in the E-fuse onboard. For the second scenario, a repair error indicates that there is no
+				more redundancy available to repair the current error. A device in this condition is then binned
+				out as un-repairable.</p><div class="p"><figure class="fignone">
+					<img src="120528.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (2)">
+				</figure></div><p><strong>Figure 2. BIST/BISR flowchart</strong></p></section>
+		<section class="section"><h2>The digital capture solution</h2><p>To fulfill the customer's need for
+				flexibility in device debugging and data collecting, a V93000 test method is introduced to
+				implement the BIST/BISR flow. In the test method, digital patterns are executed to program and
+				start the test/repair, while digital capture is used to acquire the test/repair status and to
+				retrieve test results and other data. Additionally the status inquiry can be implemented with a
+				while-loop in which the time out condition can be easily evaluated.</p><p>The flexibility of the
+				test method brings great benefits to the engineering. The BIST/BISR flow or the evaluation
+				conditions can be changed in minutes, and the retrieved data can be processed easily, which are
+				great values in the debug or characterization phases. However when it comes to the high volume
+				manufacturing test, in which the test time and parallel efficiency have become the main
+				interest, the un-optimized test method turns into a major problem. The BIST/BISR flow itself
+				makes it difficult to construct an optimized test method structure. This is because it involves
+				test/repair result judgment to decide its consequent steps. At the test/repair result evaluation
+				stages, memory macros with different results are forced to take different paths. Some might pass
+				at the first BIST execution, while others need a couple of more iterations to pass, or
+				eventually turn out to be un-repairable. It would need a complicated structure to handle the
+				results and paths taken by various memory macros and it gets even more complicated to construct
+				a multi-site test method.</p></section>
+		<section class="section"><h2>New device and the flowchart</h2><p>In order to optimize test efficiency and
+				device performance, the customer undertakes a design change based on the lesson learned from the
+				previous debugging. The new design enhances its repair capability and attempts to repair all the
+				fail locations within one single invocation. It does not need several iterations of BIST and
+				BISR before the final results can be acquired. We can tell whether a device is repairable or not
+				with one single execution of repair. In addition the BISR activation would automatically start
+				the pre-programmed BIST and then engage the repair operation once the test fails. This saves the
+				programmer's efforts to issue test start command and constantly inquiry for test status. All
+				these new features help streamline the BIST/BISR flow and smooth the solution construction. The
+				new BIST/BISR flowchart is shown in Figure 3.</p><div class="p"><figure class="fignone">
+					<img src="120529.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (3)">
+				</figure></div><p><strong>Figure 3. New BIST/BISR flowchart</strong></p></section>
+		<section class="section"><h2>Test solutions for parallel efficiency</h2></section>
+		<section class="section"><h2>The match loop solution</h2><p>With the new design, a match loop solution is
+				proposed to take the advantage of the streamlined flowchart for better parallel efficiency. The
+				new solution is also test method based and it replaces the digital capture pattern with a match
+				loop pattern to implement the wait loop and the test/repair status evaluation. The match loop
+				avoids the data uploading, which is required by digital capture, and shortens the test time.
+				However there are a few items need to be addressed. For example, there needs to be a way to tell
+				whether the test is failed by a repair error or a time out error.</p><p>An example to illustrate
+				the new test execution flow is shown in Figure 4. After the BIST/BISR initialization, the BIST
+				starts at the same time on all 4 sites, however, may end with different processing time
+				depending on the test results. After BIST is completed, site 2 finishes BIST pattern A without
+				error, therefore no BISR action is required. The remaining sites of 1, 3 and 4 then engage the
+				repair actions. Site 1 and 3 accomplish the repairs in time and their results are then
+				evaluated, while site 4 is binned out immediately after the time out limit is exceeded.
+				Therefore, from the high level point of view, the overall evaluation for the BISR action can be
+				separated into 2 parts: the BISR time out judgment and the repair pass/fail judgment.</p><div class="p"><figure class="fignone">
+					<img src="120530.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (4)">
+				</figure></div><p><strong>Figure 4. Quad-site BIST/BISR example</strong></p><p>In order to achieve high
+				parallel efficiency for multi-site testing, BISR (invoking BIST) patterns should have different
+				loop numbers to accommodate specific wait time for each pattern. The counted match loop is used
+				to implement the wait time and evaluate if a time out error has occurred. After the time out
+				judgment, "FAIL" site (time out site) will be binned out, and "PASS" sites (BISR is done in
+				time) will continue with BISR error check. The features for counted match loops are:</p><ul>
+				<li>User can specify the maximum number of repetitions. When executing if no match is found
+					after this maximum loop number is exceeded, the match loop is terminated and the test
+					fails.</li>
+				<li>User must specify the dummy vectors after the match loop explicitly. This is to create a
+					delay for the evaluation if a match is found in the match loop. The system would automatically
+					repeat the dummy vectors as often as required.</li>
+				<li>If the match loop fails in a multi-site setting, only the sites that actually fail will be
+					considered as a failure. For the others, the test will be continued.</li>
+			</ul><p>Since both the time out error and test fail error would lead to a FTST fail, the question
+				of how to distinguish these two errors for binning is brought into focus. The hardware structure
+				and the truth table in Figure 5 are explained in order to demystify the principle. In V93000,
+				different registers are used to judge the pass/fail condition and the time limit condition (i.e.
+				ax register). The result of the FTST query is determined by the logical AND combination of the
+				global P/F result and the ax register. This is the reason why prohibiting compare actions before
+				the match loop execution is an essential prerequisite. If the test fails before the match loop,
+				this failure will be stored in the global P/F, which interferes with the root cause judgment. In
+				the case of time out, the ax register will be set to zero. Then the sequencer will stop and the
+				FTST result will be set to Fail. For those functional tests that do not have the match loop, the
+				ax register is set to 1 automatically and has no influence on the overall FTST
+				results.</p><p>Figure 6 shows how the test pattern, composed of 3 subroutines, is arranged.</p><div class="p"><figure class="fignone">
+					<img src="120531.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (5)">
+				</figure></div><p><strong>Figure 5. FTST hardware structure and truth table</strong></p><ul>
+				<li>sub_A : this subroutine programs and starts BIST/BISR via setting values to device specific
+					registers.</li>
+				<li>sub_B : this subroutine checks if the test/repair is done with the counted match loop as
+					illustrated in Figure 7. The match loop exits the loop when a match is detected or the
+					predefined maximum loop number is exceeded.</li>
+				<li>sub_C : this subroutine checks if there is an error occurred in the repair action.</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="120532.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (6)">
+				</figure></div><p><strong>Figure 6. Overall test pattern structure</strong></p><p>Based on such pattern
+				structure, the result can be categorized into three different cases:</p><ul>
+				<li>When the overall FTST passes, it indicates that the BIST/BISR has finished in time without
+					any error.</li>
+				<li>When the overall FTST fails, "ERCT?" query which returns the error count, is used
+					additionally to distinguish two failure cases:<ul>
+						<li>error count&gt; 0: the repair is finished in time but with repair error</li>
+						<li>error count= 0: time out failure</li>
+					</ul></li>
+			</ul><p>Therefore in the test method the data can be acquired and evaluated to determine what the
+				overall test result is: pass, fail with a repair error, or fail with a time out error.</p><p>To
+				elaborate the relation between the wait time and the maximum loop number allowed, a breakdown on
+				the pattern execution time is required to establish the formula.</p><p>The overall execution
+				time for sub_B is composed of three parts as listed below:</p><ul>
+				<li>Preparation vector execution time t1 (i.e. v1 vectors in Figure 7, and n1 denotes the vector
+						count)<p>No compare action is allowed in these vectors to ensure the match evaluation is
+						not</p></li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="120533.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (7)">
+				</figure></div><p><strong>Figure 7. Match loop subroutine</strong></p><p>influenced. Seven buffer vectors are
+				inserted here as suggested in V93000 online document [4].</p><ul>
+				<li>Match loop execution time for BISR status check t2 (i.e. v2 vectors, and n2 denotes the
+					vector count)<ul>
+						<li>The match loop is repeated for maximum <img src="120534.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (8)"> times (100 times in Figure 7).</li>
+						<li>The match loop evaluates the value in the test/repair status register of the device. When
+							the BISR is finished, this specific bit will be set to high by the device to indicate that
+							the test/repair actions have finished.</li>
+					</ul></li>
+				<li>Propagation time for result alignment t3 (i.e. v3 vectors, and n3 denotes the vector count)<ul>
+						<li>Since each channel generates Pass/Fail result independently, some intrinsic inter-channel
+							communication time is needed here for result alignment. The time is tester system dependent
+							as well as device primary set dependent.</li>
+					</ul></li>
+			</ul><p>The propagation time, t3, can be either deterministic if enough propagation vectors are
+				inserted or non-deterministic caused by unknown repetition times by the system automatically in
+				case of inadequate number of vectors.</p><p>As it only makes sense to have a deterministic
+				number of vectors in the wait time calculation, special care must be taken to acquire the exact
+				propagation time t3. The "EPRC?" query can be performed to calculate how often a block of
+				vectors must be repeated to bridge the time span between the occurrence of an error and the
+				setting of an internal error flag. The number returned, denoted by Mpropagation, is the number
+				of vectors required for error propagation and flag setting for the match loop. The vector number
+				for v3 then can be expanded to Mpropagation to provide sufficient error propagation time. These
+				vectors would be looped for N<sub>MatchLoop_repeat</sub> times maximum therefore the overall
+				formula can be described as follows:</p><div class="p"><figure class="fignone">
+					<img src="120535.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (9)">
+				</figure></div><p>where c<sub>1</sub> = n1, c<sub>2</sub> =n<sub>2</sub> x
+					N<sub>MatchLoop_repeat</sub>, c<sub>3</sub> = Mpropagation x N<sub>MatchLoop_repeat</sub> and
+					t<sub>Period</sub> is the period of the functional patterns. Therefore we can derive from the
+				formula the maximum number for the match loop repetition times N<sub>MatchLoop_repeat</sub> to
+				implement the specific wait time t<sub>Time_out</sub>.</p></section>
+		<section class="section"><h2>Test time and parallel efficiency for the match loop solution</h2><p>After the
+				new match loop solution is completely debugged on the new device, the test time is then
+				collected. Illustrated in table 1 is the test time and parallel efficiency comparison between
+				the old solution and the new one. The parallel efficiency achieved by the new solution on the
+				quad site test program is 86.77% while only 67.75% by the old solution. The test time also
+				achieves an improvement of 48.78%. The customer is greatly impressed and satisfied. They decide
+				to adopt the match loop solution as their standard production solution for the eDRAM
+				products.</p><div class="p"><figure class="fignone">
+					<img src="120536.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (10)">
+				</figure></div><p><strong>Table 1. Test time (per touch-down) and parallel efficiency
+				comparison</strong></p><p>The parallel efficiency [5] is defined as:</p><div class="p"><figure class="fignone">
+					<img src="120537.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (11)">
+				</figure></div></section>
+		<section class="section"><h2>Further optimization with the burst-all solution</h2><p>Another test
+				methodology, the burst-all solution, can yield even better parallel efficiency, however requires
+				more efforts to implement. The self-explanatory burst-all solution integrates all the BIST/BISR
+				patterns into one large burst and uses the Jump-on-fail feature of V93000 platforms to deal with
+				the un-deterministic wait time for each BIST/BISR action. As illustrated in Figure 8, the
+				burst-all solution allows each site to execute the large burst pattern independently and avoids
+				the idle which occurs on those PASS sites that still need to wait for the FAIL sites to finish
+				the repair actions. The only unavoidable idle would be at the end of this burst pattern when the
+				numbers of failed sub-patterns disagree among the activated sites and cause the unbalanced
+				execution time. However this issue can be improved when more patterns are put into the burst. As
+				the size of the burst grows, more likely the failed sub-pattern number difference among the
+				sites could be minimized given that the failures are evenly distributed among the devices from a
+				statistical perspective. With the test time difference among the activated sites being reduced
+				and the idle being eliminated, better parallel efficiency and throughput can
+				be</p><p>achieved.</p><div class="p"><figure class="fignone">
+					<img src="120538.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (12)">
+				</figure></div><p><strong>Figure 8. Burst-all solution in a dual site scenario</strong></p><p>Similar to the
+				match loop solution, one thing that must be taken into account is that for the Jump-on-fail
+				solution each jump also introduces internal latency time for the error propagation, which is
+				test system specific and primary sets dependent and therefore should be optimized.</p><p>The
+				implementation scheme is illustrated in Figure 9. The Jump-on-fail instruction can be used to
+				return from the repair status inquiry subroutine when the "repair done" signal is detected. The
+				loop to query the repair status has to be flattened to implement the wait time, 10 iterations as
+				in our example in Figure 9. The implementation of the burst-all solution does require a lot more
+				efforts. The patterns have to be reconstructed, flattened and then integrated together. Also
+				post processing of the test results is required to determine which pattern has failed and what
+				the failure is, repair error or time out. In fact the burst-all solution has never been
+				implemented on the customer's device due to the huge efforts required. Most importantly the
+				match loop solution has already produced a satisfactory result.</p><div class="p"><figure class="fignone">
+					<img src="120539.png" alt="Optimized Embedded DRAM Test Solutions for Parallel Efficiency (13)">
+				</figure></div><p><strong>Figure 9. Burst-all solution implementation scheme</strong></p></section>
+		<section class="section"><h2>Summary</h2><p>The embedded DRAM is now extensively utilized in SOC
+				applications that demand better performance, lower power consumption and higher flexibility.
+				However, it also brings the new challenges in several aspects. The DFT technologies, BIST and
+				BISR, can effectively overcome the challenge on the testing of eDRAM. The V93000 match loop
+				solution has been proposed and validated on a customer's device successfully. The remarkable
+				enhancement on parallel efficiency and test time makes it the standard test solution for
+				production of the customer. In addition the burst-all solution has also been proposed to further
+				optimize the parallel efficiency. Nevertheless it might be rather inefficient or even
+				ineffective to improve the parallel efficiency from the testing perspective alone, especially
+				when DFT is involved. Only if the designer and the test engineer collaborate to streamline the
+				device test flow could the ultimate optimization be achieved.</p></section>
+		<section class="section"><h2>References</h2><p>[1] D.Keitel-Schulz, N.Wehn, "Issues in Embedded DRAM
+				Development and Applications"</p><p>[2] A. J. van de Goor,"Testing semiconductor memories:
+				theory and practice"</p><p>[3] IEEE Standard Test Access Port and Boundary-Scan Architecture
+				IEEE Std 1149.1-2001</p><p>[4] V93000 online documentation</p><p>[5] Joe Kelly, "Multi-Site
+				Efficiency and Throughput", Verigy 93000 Application Paper</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120510</span><script type="text/javascript">var ti='120510';var tt='Optimized Embedded DRAM Test Solutions for Parallel Efficiency'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

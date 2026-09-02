@@ -1,0 +1,136 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI has a CCTestMethod_SYNC class to achieve multiport burst-based concurrent tests in the testflow level. The class is an extension to the existing concurrent test framework (CCF) in SmarTest 7."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CCTestMethod_SYNC</title></head><body id="_343903"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343903</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CCTestMethod_SYNC</h1>
+	
+	
+	<div><p>SmartRDI has a CCTestMethod_SYNC class to achieve multiport burst-based concurrent tests
+		in the testflow level. The class is an extension to the existing concurrent test framework (CCF)
+		in SmarTest 7. </p>
+		<section class="section">
+			<p>The <span class="keyword">CCTestMethod_SYNC</span> class is defined in the header file
+					<span class="filepath">rdi.hpp</span>.</p>
+			<p>The following image illustrates the <span class="keyword">CCTestMethod_SYNC</span> class workflow.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="343902.png" alt="Burst and concurrency with multiport burst pattern">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Code template</h2>
+			
+			<p>The following code is the <span class="keyword">CCTestMethod_SYNC</span> class template: </p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">#include "rdi.hpp"
+
+class YourClassName: public CCTestMethod_SYNC {
+
+protected:
+
+  virtual void addParameters()
+  {
+  }
+
+  virtual void <span class="uicontrol">preStart()</span>
+  {
+    // Add static commands before the burst pattern execution
+  }
+
+  virtual void <span class="uicontrol">burstRun()</span>
+  {
+    // Add SmartRDI pattern‑based commands
+  }
+
+  virtual void <span class="uicontrol">postBurst()</span>
+  {  
+    // Static commands after the burst pattern execution
+  }
+  virtual void <span class="uicontrol">postProcess()</span>
+  {
+    // Result retrieval, calculation, and datalog, ...
+  }
+
+  virtual void postParameterChange(const std::string&amp; parameterIdentifier)
+  {
+  }
+
+};
+REGISTER_TESTMETHOD("YourClassName", YourClassName);</pre><div></div>
+			</div>
+		</section>
+		<section class="section"><h2>Execution mode</h2>You can use the testflow variable
+				<span class="keyword">CCF_Concurrent</span> to control the execution mode of concurrent tests. <div class="p">
+				<ul>
+					<li><span class="keyword">CCF_Concurrent = 1</span>: The concurrent mode is used. </li>
+					<li><span class="keyword">CCF_Concurrent = 0</span>: The serial mode is used.</li>
+				</ul>
+			</div><p>The following image demonstrates the serial mode and the code structure.</p><div class="p">
+				<figure class="fignone">
+					
+					<img src="344047.png" alt="Serial mode of execution">
+				</figure>
+			</div><p>The following image demonstrates the concurrent mode and the code structure.</p><div class="p">
+				<figure class="fignone">
+					
+					<img src="344048.png" alt="Concurrent mode of execution">
+				</figure>
+			</div></section>
+		<section class="section"><h2>Migration from TestMethod to CCTestMethod_SYNC </h2>
+			
+			<p>If you migrate your conventional TestMethod code to the CCTestMethod_SYNC code, you must use
+				the pattern‑based SmartRDI commands in <span class="keyword">burstRun()</span> and the result retrieval
+				and calculation code in <span class="keyword">postProcess()</span>. </p>
+			<p>The following image illustrate the code before and after the migration.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="344035.png" alt="Migration to CCTestMethod_SYNC class">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Test suite parameters</h2>
+			
+			<div class="p">To enable concurrent tests with multiport burst, you must specify the following test suit
+				parameters: <ul>
+					<li><span class="keyword">CCF_ContextType</span>: Specify this parameter to
+							<span class="keyword">Synchronized</span> for CCTestMethod_SYNC cases.</li>
+					<li><span class="keyword">CCF_FocusedPins</span>: Specify this parameter to the ports defined in
+							<span class="keyword">port()</span> and <span class="keyword">burstRun()</span>.</li>
+					<li><span class="keyword">CCF_AnalogRFSetNa</span>: Do not specify this parameter and leave it
+						empty.</li>
+				</ul></div>
+			<p>For example,</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="343913.png" alt="Test suite parameters for CCTestMethod_SYNC">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Hidden upload in CCTestMethod_SYNC </h2>
+			
+			<div class="p">If you use the hidden upload feature in your <span class="keyword">CCTestMethod_SYNC</span> code, follow
+				these rules: <ul>
+					<li>Put <span class="keyword">rdi.hiddenUpload()</span> as the first command in
+							<span class="keyword">burstRun()</span>.</li>
+					<li>Configure the hidden upload per test suite.</li>
+					<li>All result IDs in <span class="keyword">burstRun()</span> must be unique in testflow.</li>
+				</ul></div>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="344036.png" alt="hiddenUpload in CCTestMethod_SYNC">
+				</figure>
+			</div>
+			<p>To make result IDs unique in testflow, you can use the test suite as a key. </p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="344037.png" alt="Handling hiddenUpload result IDs">
+				</figure>
+			</div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144747.htm" title="SmartRDI supports the hidden upload for the measurement with digitizer, RF measurement, DC measurement, and digital capture test, error maps and TMU.">Using hidden upload with SmartRDI</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343903</span><script type="text/javascript">var ti='343903';var tt='CCTestMethod_SYNC'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to use the BADC as digitizer</title><meta name="keywords" content="DGT"></head><body id="_136310"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136310</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to use the BADC as digitizer</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The BADC of a PS1600 channel card can be controlled by a pattern to work as a voltage
+				or current digitizer to measure voltage or current waveforms. There are two ways to measure the
+				waveforms:</p><ul>
+				<li>Sequencer based measurement<p>The sequencer triggers one or multiple actions. In
+						each action, multiple samples can be taken and internal averaging is performed to
+						get the measurement value. This is typically used for linearity measurements (DNL and INL).
+						You can put the action in a repeat loop to shorten the length of the pattern.</p></li>
+				<li>Trigger based measurement<div class="p">The sequencer triggers the board ADC to measure a waveform. The board
+						ADC is clocked by a PLL which is independent from the user period of the
+						pattern. The sampling period can be adapted via a clock divider, but only in
+						multiples of 25 ns. Additionally the waveform size (number of points to be
+						measured) can be specified. This is typically used for dynamic DAC testing
+						(SND, SNR, THD).<div class="note"><span class="title">Note</span> 
+			<p>The typical time required for a BADC or PPMU measurement can be calculated as follows:</p>
+			<table class="ly"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0" colspan="2"><strong>t<sub>wait</sub>&nbsp;=&nbsp;(25&nbsp;μs&nbsp;+&nbsp;N&nbsp;*&nbsp;4&nbsp;μs)</strong></td>
+						</tr>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0">where:</td>
+							<td class="colsep-0">25&nbsp;μs is a one-time overhead</td>
+						</tr>
+						<tr>
+							<td class="colsep-0"></td>
+							<td class="colsep-0"></td>
+							<td class="colsep-0">"N" is the number of samples</td>
+						</tr>
+					</tbody></table>
+			<p>After the measurement is performed, SmarTest needs an additional time (typical) of
+				20&nbsp;μs&nbsp;*&nbsp;N, where N is the number of samples, to fetch the results. For this
+				additional duration of time, the BADC cannot be used to perform a new measurement.</p>
+			<p>In additional, an extra wait time of, at least, 60 μs must be added for the
+				first BADC measurement after switching the measurement mode on one channel for EXA Scale digital
+				cards or Smart Scale digital cards in Exa Scale compatibility mode.</p>
+		</div></div></li>
+			</ul><p>These two ways both can be used for normal voltage measurements (high impedance
+				measurements and non high impedance measurements), high voltage measurements and current
+				measurements.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>You have a DAC device, and it consists of pin configuration, level, timing and pattern
+				setup files.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2><p>Follow the steps below to use
+				BADC as digitizer.</p></section>
+		<section class="section"><h3>Step1: prepare the pin configuration file</h3><ol>
+				<li>In the <span class="uicontrol">Pin Settings</span> editor, click <span class="uicontrol">Digital Pins</span>
+					editor to define your digital pin used as digitizer.<div class="p"><figure class="fignone">
+							
+							<img src="136751.png" alt="Pins for BADC port">
+						</figure></div></li>
+				<li>In the <span class="uicontrol">Ports</span> editor, define a new port for BADC, that contains the
+					pin connected the DAC output. <div class="p"><figure class="fignone">
+							
+							<img src="136752.png" alt="BADC port">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>Step2: prepare the timing and level setup files</h3><ol>
+				<li>Refer to <a href="124926.htm" title="The PS1600 card can have eight calibrated timing tri-state edges and, hence, uses the new edge definition syntax.">PS1600 timing and vector setup</a> to set up your timing
+					configuration.</li>
+				<li>Refer to <a href="124925.htm">PS1600 level setup</a> to set up your level configuration.</li>
+			</ol></section>
+		<section class="section"><h3>Step3: prepare the patterns</h3></section>
+		<section class="section"><h3>For static analog test</h3><ol>
+				<li>In the <span class="uicontrol">Pattern Explorer</span>, create a main label for your BADC port. It
+					needs to call a sub-label. The parameter of the RPTJ instruction defines the number of points
+					to be measured.<div class="p"><figure class="fignone">
+							
+							<img src="136753.png" alt="the BADC main label">
+						</figure></div></li>
+				<li>Create a sub-label for the measurement point. Within the sub-label, it contains a
+					subroutine, which defines the BADC measurement. For every measurement point filling vectors
+					will be inserted. <div class="note"><span class="title">Note</span> As shown in the picture below, this sub-label should
+						consist of two parts:</div><ul>
+						<li>Filling vectors, which are inserted via the RPTV instruction, because digital sequence is
+							much faster than the BADC measurement.</li>
+						<li>Using the JSUB instruction to call the BADC measurement subroutine.<div class="p"><figure class="fignone">
+									
+									<img src="136754.png" alt="the BADC sub-label of measurement points">
+								</figure></div></li>
+					</ul></li>
+				<li>Create an empty label for the BADC measurement, which will be inserted via test method. <div class="p"><figure class="fignone">
+							
+							<img src="136755.png" alt="the BADC sub-label of measurement subroutine">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>For dynamic analog test</h3><ol>
+				<li>In the <span class="uicontrol">Pattern Explorer</span>, create a main label for your BADC port. In
+					the label, call the sub-routine to do the measurement.<div class="p"><figure class="fignone">
+							<img src="140887.png" alt="Pattern Editor_the BADC main label_multiple measurements">
+						</figure></div></li>
+				<li>Create an empty label for the BADC measurement, which will be inserted via test method. <div class="p"><figure class="fignone">
+							<img src="140893.png" alt="badcsub">
+						</figure></div></li>
+			</ol></section>
+		<section class="section"><h3>Step4: create test methods for using BADC as Digitizer</h3><ol>
+				<li>To add the BADC measurement into the empty sub-label created above, you can refer to the
+					following code example. <p><strong>Example of static analog
+					test</strong></p><pre class="prettyprint linenums copyable">virtual void createBadcMeasure()
+{
+  BADC_MEASURE badcMeasure;
+  badcMeasure.pin("portBadc").numberOfSamples(32);
+
+  PATTERN_CONTROLLER patternControllerBadcMeasure;
+  patternControllerBadcMeasure.label("badcSubRampMeasure","portBadc")
+                              .add(badcMeasure);
+  patternControllerBadcMeasure.setup();
+}</pre></li>
+				<li>Duration of a BADC measurement: t=25us + (numberOfSamples * 4us).<p>A pattern can run up to
+						400MHz, depending on user period. Filling vectors have to be added to keep the measurement
+						distance big enough.</p>
+					<p><strong>Example of dynamic analog
+					test</strong></p><pre class="prettyprint linenums copyable">virtual void createMiniDigitizerSetup()
+{
+  int waveformSize = 1000;
+  double samplePeriod = 1;
+  BADC_MEASURE badcMeasure;
+  badcMeasure.pin("portBadc").waveformSize(waveformSize)
+                             .waveformSamplePeriod(samplePeriod us);
+  PATTERN_CONTROLLER patternControllerBadcMeasure;
+  patternControllerBadcMeasure.label("miniDigitizerSub","portBadc")
+                              .add(badcMeasure);
+  patternControllerBadcMeasure.setup();
+}</pre></li>
+			</ol></section>
+		<section class="section"><h3>Step5: create test suites to call the UTM</h3><ol>
+				<li>Generate a testflow and insert some test suites, which will use your prepared UTM codes from
+					step 4. </li>
+				<li>After running the previous code example, you can see the sub-label for the BADC measurement
+					looks like below. The content in the sub-label is the same for measuring one value in one
+					measurement and measuring multiple values in one measurement.<div class="p"><figure class="fignone">
+							
+							<img src="136945.png" alt="the BADC sub-label of measurement subroutine after running UTM">
+						</figure></div>
+					<div class="note"><span class="title">Note</span> A BADC measurement (MEAS instruction) costs 8 vectors internally. </div>
+				</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You have defined a label containing a BADC measurement. This label can be executed for
+				example in the FUNCTIONAL_TEST() API, and the result can be uploaded via the DC_RESULT_ACCESSOR
+				API like
+			below.</p><pre class="prettyprint linenums copyable">DC_RESULT_ACCESSOR result;
+result.uploadResult("portBadc",TM::RESULT_INDEX);
+ARRAY_D waveform = result.getValues("portBadc");</pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p><a href="136311.htm" title="A PS1600 card can be used to generate analog waveforms and digitize them. You can use a digital pin as AWG and another digital pin as digitizer.">How to use PPMU as AWG and BADC as digitizer together</a></p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136264.htm" title="With the PPMU of Smart Scale PS1600 channel card, you can generate analog waveforms.">How to use PPMU as Arbitrary Waveform Generator (AWG)</a></div><div><a href="136311.htm" title="A PS1600 card can be used to generate analog waveforms and digitize them. You can use a digital pin as AWG and another digital pin as digitizer.">How to use PPMU as AWG and BADC as digitizer together</a></div><div><a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a></div><div><a href="126248.htm" title="The BADC_MEASURE class is a data container holding the contents of the task for setting up measurement operations of BADCs. This class can be used to call the BADC_PIN_MEASURE class that is a subsidiary data container to set up per pin measurement mode for BADCs. This class also contains the member functions to retrieve test results.">BADC_MEASURE</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136310</span><script type="text/javascript">var ti='136310';var tt='How to use the BADC as digitizer'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The PADDING instruction is only used in connection with the vector generating instructions RPTV and MRPT. It serves to tell the vector translation how many ASCII vectors belong to the vector generating instruction, and is required for that purpose. In the case of an RPTV or MRPT instruction, you must take care that the number of ASCII vectors between, for example, RPTV and the following PADDING instruction agrees with the number of vectors specified in the <number_of_vectors&gt; parameter of RPTV."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The PADDING Instruction</title></head><body id="_37571"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37571</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The PADDING Instruction</h1>
+	
+	
+	<div><p>The <span class="keyword">PADDING</span> instruction is only used in connection with the vector
+		generating instructions <kbd class="userinput">RPTV</kbd> and <kbd class="userinput">MRPT</kbd>. It serves to
+		tell the vector translation how many ASCII vectors belong to the vector generating instruction,
+		and is required for that purpose. In the case of an <kbd class="userinput">RPTV</kbd> or
+			<kbd class="userinput">MRPT</kbd> instruction, you must take care that the number of ASCII vectors
+		between, for example, <kbd class="userinput">RPTV</kbd> and the following <kbd class="userinput">PADDING</kbd>
+		instruction agrees with the number of vectors specified in the
+			<kbd class="userinput">&lt;number_of_vectors&gt;</kbd> parameter of
+		<kbd class="userinput">RPTV</kbd>.</p>
+		<div class="note"><span class="title">Note</span> The
+				<kbd class="userinput">&lt;</kbd><em>number_of_vectors</em><kbd class="userinput">&gt;</kbd> parameter of the
+			vector generating instructions<kbd class="userinput">RPTV </kbd>and <kbd class="userinput">MRPT </kbd>refers
+			to rows of waveform DC/DC power units, not to ASCII vectors. Therefore, it depends not only on
+				the<kbd class="userinput">&lt;</kbd><em>number_of_vectors</em><kbd class="userinput">&gt;</kbd> parameter, but
+			also on the x-mode factor how many ASCII vectors must be associated with the instruction. If
+				<kbd class="userinput">&lt;</kbd><em>number_of_vectors</em><kbd class="userinput">&gt;</kbd> has the value
+				<em>m</em> and and the x-mode factor is <em>n</em>, you must associate <em>m*n</em> ASCII vectors with
+			the instruction.</div><p>The <kbd class="userinput">PADDING </kbd>instruction is a special case of the
+				<kbd class="userinput">SQPG</kbd> command. All the other instructions following the <kbd class="userinput">SQPG
+			</kbd>keyword are transferred into the sequencer program of the binary vector file. But the
+				<kbd class="userinput">PADDING</kbd> instruction has no counterpart in the binary vector file. It only
+			supplies control information to the vector translation.</p>
+		<p>The name of the <kbd class="userinput">PADDING</kbd> instruction refers to the constraints which the
+			physical layout of the storage medium imposes on the address of the start row for the waveform
+			DC/DC power units of the vector generating instructions. The layout of the Vector Memory, where the index
+			array is usually stored, requires that the address of this start row be a multiple of 7 (the
+			array can also be stored in the Sequencer Memory, in which case the address of the start row must
+			be a multiple of 8). Therefore, if the number of ASCII vectors between the vector generating
+			instruction and its associated<kbd class="userinput">PADDING </kbd>instruction is not directly
+			divisible by 7, the vector translation will insert additional "padding" values into the download
+			commands so that the array rows corresponding to any ASCII vectors after
+				the<kbd class="userinput">PADDING</kbd> instruction start at a legitimate address. This is the only
+			purpose of these padding rows; they will be ignored when the pattern is executed.</p>
+		<p>Do not confuse this kind of padding, which only affects the index array in the Vector (or
+			Sequencer) Memory, and not the ASCII vectors, with the ASCII vector padding which occurs in
+			connection with x-mode factors &gt; 1. The former has no influence whatsoever on the waveforms
+			that are sent to the DUT, but the latter has; see <a href="37576.htm" title="When a pattern is processed with an x-mode factor &gt; 1, the number of its ASCII vectors must be a multiple of the x-mode factor. If the ASCII vector file contains sequencer instructions, the number of vectors between any two sequencer instructions must also be a multiple of the x-mode factor.">X-Mode ASCII Vector Padding</a>.</p>
+		<p>The following figure illustrates the function of the <kbd class="userinput">PADDING </kbd>instruction
+			for an x-mode factor of 1 (in contrast with the figure in <a href="37563.htm" title="The following figure illustrates the vector translation process for an ASCII vector file consisting only of the FORMAT statement and some parallel ASCII vectors.">Example 1</a>):</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46167.png" alt="Insertion of Padding Rows Caused by PADDING Instruction">
+			</figure></div>
+		<p>You can see how the insertion of the 5 padding rows ensures that the index rows for the last 3
+			ASCII vectors start at address 7, which is the start row for the vectors of the <kbd class="userinput">GENV
+			</kbd>instruction.</p>
+		<p>The vector translation checks the existence and correct location of the<kbd class="userinput">PADDING
+			</kbd>instruction. If the instruction is not present, or if the number of ASCII vectors it
+			associates with the <kbd class="userinput">RPTV</kbd> or <kbd class="userinput">MRPT</kbd> instruction does
+			not match the <kbd class="userinput">&lt;number_of_vectors&gt;</kbd> parameter, the vector translation
+			will terminate with an error message. The x-mode factor is taken into account. For example, if
+			the x-mode factor is 2, and the <kbd class="userinput">&lt;number_of_vectors&gt;</kbd> parameter is set
+			to 4, the vector translation will be canceled if the number of ASCII vectors between
+				<kbd class="userinput">RPTV </kbd>or <kbd class="userinput">MRPT</kbd> and the
+				<kbd class="userinput">PADDING</kbd> instruction is 6 instead of 8.</p>
+		<p>You can cause the vector translation to correct the
+				<kbd class="userinput">&lt;number_of_vectors&gt;</kbd> parameter according to the number of the
+			associated ASCII vectors with the <strong>v2b</strong> option <kbd class="userinput">-xa</kbd>. For an x-mode
+			factor of 2 and a <kbd class="userinput">&lt;number_of_vectors&gt;</kbd> value of 4, the option would
+			cause a correction of this value to 3 if only 6 ASCII vectors are placed between <kbd class="userinput">RPTV
+			</kbd>or <kbd class="userinput">MRPT</kbd> and the <kbd class="userinput">PADDING </kbd>instruction.
+			This option can be combined with the <kbd class="userinput">-xpi</kbd> option (for which see <a href="37576.htm" title="When a pattern is processed with an x-mode factor &gt; 1, the number of its ASCII vectors must be a multiple of the x-mode factor. If the ASCII vector file contains sequencer instructions, the number of vectors between any two sequencer instructions must also be a multiple of the x-mode factor.">X-Mode ASCII Vector Padding</a>).</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.0.3: Removed the MTST instruction</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37571</span><script type="text/javascript">var ti='37571';var tt='The PADDING Instruction'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

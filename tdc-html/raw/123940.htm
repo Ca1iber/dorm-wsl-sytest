@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The d2s read method allows to read from a register."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>d2s read</title><meta name="keywords" content="d, 2, s"></head><body id="_123940"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123940</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">d2s read</h1>
+	
+	
+	<div><p>The d2s read method allows to read from a register.</p>
+		<section class="section"><p>This is done by generating a static read pattern with the specified register
+				address.</p><p>The d2s-framework will create the corresponding static pattern and keeps track of
+				executed cycles per port.</p><p>The d2s-framework strobes for 'L' causing a read 'H' to be
+				flagged as an error in the error map.These failures are translated to register values.</p><p>The
+				error map will be evaluated at <code>d2s_LABEL_END</code> and the read values (per site) are
+				cached for access from outside the <code>ON_FIRST_INVOCATION</code> block.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">void read(long long address, std::string id);
+long long getReadValue(std::string id);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_123940__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123940__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_123940__entry__3"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123940__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123940__entry__2"><p><span class="keyword">address</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123940__entry__3"><p>Defines the register's read address.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_123940__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123940__entry__2"><p><span class="keyword">id</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_123940__entry__3"><p>Unique identifier to retrieve register results (per site) from the cache. For
+									instance, '<code>one</code>' could be a unique identifier to read the values after
+									burst execution.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><p>The following excerpt illustrates how the read method is used to created static
+				pattern to read from the corresponding address.</p><p>In learning mode it will generate the read
+				label, add it to the burst label <code>MyBurstLabelName</code> and execute the pattern at
+					<code>d2s_LABEL_END()</code>.</p><p>In production mode only the <code>MyBurstLabelName
+				</code> pattern will be executed at
+				<code>d2s_LABEL_END()</code>.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+   d2sFramework fr;
+   d2sJTAG&amp; jtag = d2sJTAG::Instance();
+
+   // Register your protocol with the framework
+   fr.registerTransactionPort(jtag);
+
+   ON_FIRST_INVOCATION_BEGIN();
+      fr.d2s_LABEL_BEGIN("MyBurstLabelName", d2sFrameWorkModeType::LearningMode);
+         jtag.write(0xdead, 0xbeaf);
+         jtag.<strong>read</strong>(0xdead, "one");
+      fr.d2s_LABEL_END();
+
+      // do your measurement here
+
+   ON_FIRST_INVOCATION_END();
+
+   cout &lt;&lt; "Result: " &lt;&lt; jtag.getReadValue("one") &lt;&lt; endl;
+}</pre><p>The
+				static pattern created by the code above for a single port setup would be saved into the device
+				vector directory as:</p><p><code>d2s_jtag_AT_W_0xdead_0xbeaf</code> and
+					<code>d2s_jtag_AT_R_0xdead</code></p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="123841.htm">Configuring read parameters</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123940</span><script type="text/javascript">var ti='123940';var tt='d2s read'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

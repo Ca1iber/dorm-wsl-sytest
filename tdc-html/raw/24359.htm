@@ -1,0 +1,47 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The sequencer cannot process instructions and send vectors to the DUT at the same time. In order to supply a continuous stream of vectors to the DUT (even when the sequencer is busy decoding sequencer instructions), a data queue is used."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Data Queue</title></head><body id="_24359"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 24359</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Data Queue</h1>
+	
+	
+	<div><p>The sequencer cannot process instructions and send vectors to the DUT at the same time.
+		In order to supply a continuous stream of vectors to the DUT (even when the sequencer is busy
+		decoding sequencer instructions), a data queue is used.</p>
+		<p>The sequencer does not send vectors to the DUT directly; instead, it places the vectors in the
+			data queue, and vectors are then forwarded to the DUT from the queue. In this way, vectors can be
+			fed continuously while the sequencer is busy processing instructions. However, while the
+			sequencer is busy, the number of vectors in the queue decreases.</p>
+		<p>When the sequencer is free again, it can refill the queue quickly, because it is able to write
+			vectors to the queue faster than vectors are read from the queue (even at maximum execution
+			speed). When the queue is full, the sequencer stops writing to it until the queue needs to be
+			filled again.</p>
+		<p>When instruction density is very high, there is a possibility that the data queue will become
+			empty before the sequencer has a chance to refill it. This is an error condition. The system will
+			notify you of the relevant label, vector and cycle numbers, and the command number.</p>
+		<section class="section"><h2>Keeping the Queue Filled</h2><p>To avoid a complete drain of the data queue,
+				observe the following guidelines:</p><ul>
+				<li>Do not nest your subroutine calls too deeply.</li>
+				<li>Try to maximize the length of your vector generating instructions.</li>
+				<li>Where the same vector is being used more than once, be sure you are using a repeat function
+					and not a generate function for the repeats.</li>
+				<li>If your data queue is emptied nonetheless, insert fill break vectors into your test.</li>
+			</ul><p>For more information on how to query the data queue, see <a href="98575.htm" title="The DQUE? query returns the lowest level of the data queue during the last pattern execution.">DQUE? - (show Data QUEue low level)</a>.</p></section>
+		<section class="section"><h2>Inserting Fill Break Vectors</h2><p>Use the <code>FLQU</code> instruction
+				to add fill break vectors to the data queue in sections of your test where instruction density
+				is very high. You should use it only for small base periods. The instruction allows the machine
+				to continue executing vectors at the programmed period, while appearing to the DUT as a kind of
+				"nop". You define the break vector with the command <a href="98497.htm" title="The BWDF (Break Waveform DeFinition) command defines the actions for the break waveform for the specified waveform set. Only drive actions are allowed. The break waveform must not contain data dependent actions. Edges with delays that are incompatible with the defined actions will be auto-corrected to fit.">BWDF, BWDF? - (Break Waveform DeFinition)</a>.</p><p>Note that
+				these break vectors are not displayed in the Error Map window.</p><p>The following figures can
+				be used to estimate the probability of such an error:</p><p>The data queue holds 512 = 64 * 8
+				vectors. It is refilled at a fixed rate of 1 vector in 3.14 ns whenever the sequencer does not
+				process instructions. Vectors are issued to the DUT at a maximum rate of 1 vector every 4 ns.
+				Thus, to refill an almost empty data queue while vectors are generated at full speed, a linear
+				vector stream of 2377 vectors would be required.</p><p>The time needed to process a sequencer
+				instruction is 24 ns for most instructions. It is considerably higher for the
+					<code>STVA</code> and the <code>RSUB</code> instructions, because these must allocate
+				the resulting address in the vector areas.</p><p>For detailed information on Pin Scale systems,
+				see <a href="91206.htm" title="The data queues can run empty when instruction density is very high and the length of the vector generating instructions very small. In this case, the system issues an error.">Data queue considerations for the Pin Scale systems</a>
+			.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="91232.htm" title="The sequencer of a pin (channel) cannot process instructions and apply a waveform to its pin at the same time. In order to supply a continuous stream of waveforms even when the sequencer is busy decoding sequencer instructions, a data queue is used. The sequencer does not apply the waveforms to the pin right away, but writes them into the data queue, and from this queue they are forwarded to the pin at the rate defined by the user period. In this way, the DUT can be fed with vectors from the queues of the individual pins while the sequencers are decoding instructions.">Managing the data queue</a></div><div><a href="98575.htm" title="The DQUE? query returns the lowest level of the data queue during the last pattern execution.">DQUE? - (show Data QUEue low level)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 24359</span><script type="text/javascript">var ti='24359';var tt='Data Queue'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

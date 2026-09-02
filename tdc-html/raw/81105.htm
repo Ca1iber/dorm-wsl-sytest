@@ -1,0 +1,87 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The Multi-Strobe test methods require a set of specification variables. Add a timing equations set for the test method as described below, to declare and use those variables."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up the timing equation</title></head><body id="_81105"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 81105</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up the timing equation</h1>
+	
+	
+	<div><p>The Multi-Strobe test methods require a set of specification variables. Add a timing
+		equations set for the test method as described below, to declare and use those
+		variables.</p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Open the timing equations<em> </em>using the timing equation editor.</span>
+			</li><li class="stepexpand">
+				<span>Scroll to the section starting with the text:</span>
+				<div><pre class="prettyprint copyable singleline">EQNSet 3 "HSM3600 MultiStrobe"</pre></div>
+			</li><li class="stepexpand">
+				<span>Add the specification variables to the SPECS section in the <code>MultiStrobe
+					</code> timing equation file, for example:</span>
+				<div><pre class="prettyprint linenums copyable">Tsweep [ns]
+TDQSQmin [ns]
+TDQSQmax [ns]</pre><p>The file may now look
+						like this:</p>
+					
+					
+					
+					
+					<div></div><pre class="prettyprint linenums copyable">EQNSET 3 "MultiStrobe"
+
+MODECONTEXT "HsmMode"
+
+SPECS # starts the declaration of the specs
+tCK   [ns] # NOTE: no checks are performed on the base of the unit
+tAS_offset [ns]
+tDS_offset [ns]
+tCS_offset [ns]
+tAC_offset [ns]
+tDQSCK_offset [ns]
+WL # write latency
+CL # column latency
+AL # additive latency note: CAS = CL + AL
+refresh_time [ms]
+tsweep [ns]
+tDQSQmax [ns]
+tDQSQmax [ns]
+
+EQUATIONS
+refresh_ns = 1000000 * refresh_time
+tIS_Addr = (tCK/4)
+...
+TIMINGSET 1 "basic"
+period=4*tCK
+maintop_time_a= refresh_ns
+# ------------------------------------------
+#                  Clock Pins
+# ------------------------------------------
+PINS Clock_Bus
+...
+# ------------------------------------------
+#   Output Data Pin and Data Strobe Pins
+# ------------------------------------------
+PINS DQ_Bus
+period_div = 8
+r1= tAC_DQ + tAC_offset + RL_tCK + tsweep + tDQSQmax
+
+PINS RDQS_Bus
+period_div = 8
+r1=  tAC_DQ + tDQSCK_offset + RL_tCK + tsweep + tDQSQmin
+# ------------------------------------------
+#                 OTHER Pin
+# ------------------------------------------
+PINS Reset_Pin Vref_Pin
+period_div = 8
+d1= 0</pre></div>
+			</li><li class="stepexpand">
+				<span>In the timing equation file, add the specification variables to the PINS DQ_Bus and PINS
+					RDQS_Bus output pin definitions. (See code example above.)</span>
+				<div><p>In this example, all pin timings are varied using the same variable. You may modify
+						this in your application by declaring a <span class="keyword">tsweep</span> variable for each byte of
+						the data bus.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>To save the modified timing equation file, choose <span class="menucascade"><span class="uicontrol">Shell</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Download</span></span>. Then close the file.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The timing equations for measuring tDQSQmin and tDQSQmax are now prepared.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p><a href="81106.htm">Set up the wavetables for multistrobe
+			testing</a></p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 81105</span><script type="text/javascript">var ti='81105';var tt='Setting up the timing equation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

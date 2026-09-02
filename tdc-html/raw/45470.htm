@@ -1,0 +1,300 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If the test shell is configured to run SmarTest in supervisor mode (instead of operator mode), it will start not only SmarTest, but also another program (run_supervisor) that will do the actual work of making the calls to the SmarTest API to test the device. Thus, the test shell issues two calls in this case, namely:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Implementation details for supervisor mode</title></head><body id="_45470"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 45470</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Implementation details for supervisor mode</h1>
+	
+	
+	<div><p>If the test shell is configured to run SmarTest in supervisor mode (instead of operator
+		mode), it will start not only SmarTest, but also another program<kbd class="userinput">
+			(run_supervisor</kbd>) that will do the actual work of making the calls to the SmarTest API
+		to test the device. Thus, the test shell issues <em>two</em> calls in this case, namely:</p>
+		<p><kbd class="userinput">/opt/hp93000/soc/prod_env/bin/HPSmarTest -S &amp;</kbd></p>
+		<p><kbd class="userinput">run_supervisor &lt;</kbd><em>device_path</em><kbd class="userinput">&gt;
+				&lt;</kbd><em>device_name</em><kbd class="userinput">&gt;
+				&lt;</kbd><em>test_program</em><kbd class="userinput">&gt;</kbd></p>
+		<p>The <kbd class="userinput">run_supervisor</kbd> program (C language) calls the most basic SmarTest
+			API functions to perform tasks (for example, change the device, load the test program, and
+			execute the test). Its three input parameters (device path, device name and test program name)
+			are extracted by the test shell from the workorder file that was specified by the user in the
+			test shell GUI.</p>
+		<p>Theoretically, it would be possible to call the SmarTest API functions directly from the test
+			shell. But it is better to keep the Test Shell application separate from the SmarTest
+			application, just in case SmarTest locks up during testing, which would cause the test shell to
+			lock up, too. The test shell locking up could cause a big problem if a customer tries to
+			integrate it into another application. </p>
+		<div class="note"><span class="title">Note</span> Some shells implement a timer to check for the ftest and mcd processes. If the
+			mcd process is present, this means that SmarTest is present in memory. If the ftest process is
+			present, it means that a test program is currently being executed.</div><p>Once the lot has been tested, and the test program ends, SmarTest will stay alive in supervisor
+			mode.</p>
+		<p>The following figure illustrates the components of the custom production test shell for running
+			SmarTest running in supervisor mode.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="45469.png" alt="Test shell Components for supervisor mode">
+			</figure></div>
+		<p>The main differences between calling SmarTest in supervisor mode and calling it in operator
+			mode are highlighted in the figure by a different line style and color.</p>
+		<section class="section"><h2>The <kbd class="userinput">run_supervisor
+					</kbd>program</h2><p><kbd class="userinput">run_supervisor</kbd> is a template. As already
+				indicated, it only calls the most basic functions, and in typical order, namely:</p><ol>
+				<li>the <kbd class="userinput">HpInit()</kbd> function (TPI), which is called to attach to a currently
+					running SmarTest session,</li>
+				<li>the <kbd class="userinput">ChangeDevice()</kbd> function (TPI), which is called to change to a new
+					device,</li>
+				<li>the <kbd class="userinput">DataManager()</kbd> function (TPI), which is called to load a test
+					program,</li>
+				<li>the <kbd class="userinput">ExecTestProgram()</kbd> function (CPI), which is called to start test
+					execution,</li>
+				<li>the <kbd class="userinput">HpTerm()</kbd> function (TPI), which is called to de-attach from the
+					SmarTest session. </li>
+			</ol><p>The code of the program appears as follows:</p><table class="ly"><caption></caption><colgroup><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><kbd class="userinput">#include &lt;stdio.h&gt;</kbd></p>
+								<p>&nbsp;</p>
+								<p><kbd class="userinput">/* List the custom header files. */</kbd></p>
+								<p><kbd class="userinput">#include "tpi_c.h"</kbd></p>
+								<p><kbd class="userinput">#include "ci_types.h"</kbd></p>
+								<p><kbd class="userinput">#include "libcicpi.h"</kbd></p>
+								<p>&nbsp;</p>
+								<p><kbd class="userinput">int main(int argc, char* argv[])</kbd></p>
+								<p><kbd class="userinput">{</kbd></p>
+								<p> <kbd class="userinput">char szSysCmd[256], szDevPath[256];</kbd></p>
+								<p> <kbd class="userinput">long lReturnValue, lDeviceState; </kbd></p>
+								<p> <kbd class="userinput">int iExitStatus; </kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">#ifndef OS_LINUX</kbd></p>
+								<p> <kbd class="userinput">_main(); </kbd></p>
+								<p> <kbd class="userinput">#endif</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">HpInit(); /* attach to SmarTest process */</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">/* Program Arguments:</kbd></p>
+								<p> <kbd class="userinput">argv[0]=="run_supervisor"</kbd></p>
+								<p> <kbd class="userinput">argv[1]=="device path"</kbd></p>
+								<p> <kbd class="userinput">argv[2]=="device name" </kbd></p>
+								<p> <kbd class="userinput">argv[3]=="program name" </kbd></p>
+								<p> <kbd class="userinput">*/</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">ChangeDevice(argv[1],argv[2],FALSE,&amp;lDeviceState); /* Change device
+										*/</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">if (lDeviceState == 1) { /* Check for an error. */</kbd></p>
+								<p> <kbd class="userinput">{</kbd></p>
+								<p> <kbd class="userinput">sprintf(szDevPath,"%s/%s",argv[1],argv[2]); /* init path */</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">/* Load test program */</kbd></p>
+								<p><kbd class="userinput">
+										DataManager(dm_testprog,dm_load,szDevPath,argv[3],0,&amp;lDeviceState);</kbd></p>
+								<p>&nbsp;</p>
+								<p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p> <kbd class="userinput">if (lDeviceState &gt;= -1) { /* Check for an error. */</kbd></p>
+								<p> <kbd class="userinput">lReturnValue = ExecTestProgram(); /* Execute test program. */</kbd></p>
+								<p> <kbd class="userinput">if (lReturnValue == 0) { /* Set exit status */</kbd></p>
+								<p> <kbd class="userinput">iExitStatus = CI_CALL_PASS;</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">} else {</kbd></p>
+								<p> <kbd class="userinput">iExitStatus = CI_CALL_ERROR;</kbd></p>
+								<p> <kbd class="userinput">}</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">} else {</kbd></p>
+								<p> <kbd class="userinput">iExitStatus = CI_CALL_ERROR; /* Error, cannot run data mngr */</kbd></p>
+								<p> <kbd class="userinput">}</kbd></p>
+								<p>&nbsp;</p>
+								<p> <kbd class="userinput">} else {</kbd></p>
+								<p> <kbd class="userinput">iExitStatus = CI_CALL_ERROR; /* Error, cannot change device.
+									*/</kbd></p>
+								<p> <kbd class="userinput">}</kbd></p>
+								<p> <kbd class="userinput">exit(iExitStatus);</kbd></p>
+								<p> <kbd class="userinput">HpTerm();</kbd></p>
+								<p><kbd class="userinput">}</kbd></p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Compiling the program for HP-UX and Linux</h2><p>You can compile this program
+				for both HP-UX and Linux as follows:</p><ol>
+				<li>Create a makefile using the <kbd class="userinput">install_cs</kbd>
+							script:<p><kbd class="userinput">/opt/hp93000/soc/prod_env/lbin/install_cs -t PROGRAM</kbd></p></li>
+				<li>Remove the default <kbd class="userinput">pg_templ.c</kbd>:<p><kbd class="userinput">$ rm
+							pg_templ.c</kbd></p></li>
+			</ol><p>Update the makefile with the new C file (<kbd class="userinput">run_supervisor.c</kbd>) and
+				call the compiler:</p><p><kbd class="userinput">$ make depend all</kbd></p><p>You can try the program
+				out without any custom production shell by running it from the command line as
+					follows:</p><p><kbd class="userinput">./run_supervisor &lt;</kbd><em>device_path</em><kbd class="userinput">&gt;
+					&lt;</kbd><em>device_name</em><kbd class="userinput">&gt;
+					&lt;</kbd><em>test_program_name</em><kbd class="userinput">&gt;</kbd></p><p>The following is an
+				example:</p><p><kbd class="userinput">./run_supervisor /devices 74ACT299
+			package_74ACT299</kbd></p></section>
+		<section class="section"><h2>Hiding specific SmarTest windows in supervisor mode</h2><p>When the custom
+				production shell calls SmarTest in supervisor mode, the SmarTest Operation Control window should
+				probably be hidden from the operator (since you will probably implement this functionality in
+				your own shell). The only SmarTest window that should be visible is the Report Window.</p><p>The
+				following example program <kbd class="userinput">show_win</kbd> shows how this can be done. It allows
+				the shell to iconify, hide or show a window by specifying the option and the window name. The
+				format is as follows:</p><p><kbd class="userinput">show_win -[hide|iconify|show]
+					"&lt;</kbd><em>window_name</em><kbd class="userinput">&gt;"</kbd></p><p>The options are
+				self-explanatory.</p><p>For example, to hide the SmarTest <kbd class="userinput">Operation
+					Control</kbd> window, call</p><p><kbd class="userinput">$ show_win -hide "Operation
+					Control"</kbd></p><p>The code of the program is as
+			follows:</p><pre class="prettyprint linenums copyable">#include &lt;X11/Xlib.h&gt;
+#include &lt;X11/Xatom.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+#define MAX_WIN_AT_LEVEL 25000
+findname(dpy,top_win,search_win_name,win_found,win_found_max,nfound) 
+Display *dpy;
+Window top_win;
+char search_win_name[];
+Window win_found[];
+int win_found_max;
+int *nfound;
+{
+ Window buf1[MAX_WIN_AT_LEVEL];
+ Window buf2[MAX_WIN_AT_LEVEL];
+ Window *parents;
+ Window *children;
+ Window *tmp;
+ int nparents;
+ int nchildren;
+ int parent;
+ int child;
+
+ Window q_root_ret;
+ Window q_parent_ret;
+ Window *q_children_ret;
+ unsigned int q_nchildren_ret;
+ int q_child;
+ int status;
+ Atom actual_type;
+ int actual_format;
+ unsigned long nitems,leftover;
+ unsigned char *data;
+
+ parents = buf1;
+ children = buf2;
+ parents[0] = top_win;
+ nparents = 1;
+ *nfound = 0;
+ while(nparents&gt;0){
+ /*check name*/
+ for(parent=0;parent&lt;nparents;parent++){
+ status=XGetWindowProperty(
+ dpy,parents[parent],XA_WM_NAME, 0L, 80L , False,
+ XA_STRING, &amp;actual_type, &amp;actual_format, &amp;nitems, &amp;leftover, &amp;data
+ );
+ if (status == Success){
+ /* printf("name: &lt;%s&gt;\n", (char *) data); */
+ if ((char *) data != NULL) {
+ if (strcmp((char *) data,search_win_name) == 0 ){
+ XFree(data);
+ win_found[*nfound]=parents[parent]; 
+ (*nfound)++;
+ if (*nfound &gt;= win_found_max){
+ goto exit_true;
+ }
+ }
+ XFree(data);
+ }
+ }else{
+ printf("XGetWindowProperty failed. aborting.\n");
+ exit(-1);
+ }
+ }
+ /*build children list*/
+ nchildren = 0;
+ for(parent=0;parent&lt;nparents;parent++){
+ XQueryTree(
+ dpy,parents[parent],
+ &amp;q_root_ret,&amp;q_parent_ret,&amp;q_children_ret,&amp;q_nchildren_ret
+ );
+ if ( (nchildren + q_nchildren_ret) &gt; MAX_WIN_AT_LEVEL){
+ printf("MAX_WIN_AT_LEVEL (%d) exceeded. aborting.\n",MAX_WIN_AT_LEVEL);
+ exit(-1);
+ }
+ for(q_child=0;q_child&lt;q_nchildren_ret;q_child++){
+ children[nchildren] = q_children_ret[q_child]; 
+ nchildren++;
+ }
+ XFree(q_children_ret);
+ }
+
+ /*swap children to parents*/
+ tmp = parents;
+ parents = children;
+ nparents = nchildren;
+ children = tmp;
+ nchildren = 0;
+ } 
+
+ if (*nfound &gt; 0) goto exit_true;
+exit_false:
+ return False;
+exit_true:
+ return True;
+}
+void show_options() 
+{
+
+ fprintf(stderr,"wrong option!\n"); 
+ fprintf(stderr,"Valid options are:\n"); 
+ fprintf(stderr," -show &lt;window name&gt;\n"); 
+ fprintf(stderr," -hide &lt;window name&gt;\n");
+ fprintf(stderr," -iconify &lt;window name&gt;\n"); 
+
+}
+int main (argc, argv)
+int argc;
+char * argv[];
+{
+ Display *dpy;
+ Window win;
+ int screen;
+ Window *found_win;
+ char *search_win_name;
+ int status;
+ int nfound;
+ int nfound_max;
+ int i;
+ char option[64];
+ if(argc&lt;=1) {
+ show_options();
+ exit(-1);
+ } 
+ if ((dpy = XOpenDisplay(0)) == 0){
+ fprintf (stderr, "cannot open X display server\n");
+ exit (1);
+ }
+ screen = DefaultScreen(dpy);
+ strcpy(option,argv[1]);
+ search_win_name = argv[2]; 
+ /* the parameter 1 is the maximum number of windows found */
+
+ found_win = (Window *) calloc(1, sizeof(Window)); 
+ if(findname(dpy,XDefaultRootWindow(dpy),search_win_name,found_win,1,&amp;nfound)!= False)
+ {
+ for(i=0;i&lt;nfound;i++){
+ if(strcmp(option,"-iconify")==0) 
+ status = XIconifyWindow(dpy, found_win[i], screen); 
+ else if(strcmp(option,"-hide")==0) 
+ status = XWithdrawWindow(dpy,found_win[i],screen); 
+ else if(strcmp(option,"-show")==0) 
+ status = XMapWindow(dpy,found_win[i]);
+ else {
+ show_options();
+ }
+ }
+ }
+ XCloseDisplay(dpy);
+ return 0;
+}</pre></section>
+		<section class="section"><h2>Compiling the program for HP-UX and Linux</h2><p>You can compile this program
+				for both HP-UX and Linux. Under HP-UX, the compiler call is</p><p><kbd class="userinput">cc -Aa
+					-D_HPUX_SOURCE -o show_win -I/usr/X11R6/include</kbd></p><p> <kbd class="userinput">-L/usr/X11R6/lib
+					-lX11 show_win.c</kbd></p><p>Under Linux, issue:</p><p><kbd class="userinput">gcc -o show_win
+					-I/usr/X11R6/include -L/usr/X11R6/lib </kbd></p><p> <kbd class="userinput">-l X11
+					show_win.c</kbd></p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 45470</span><script type="text/javascript">var ti='45470';var tt='Implementation details for supervisor mode'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

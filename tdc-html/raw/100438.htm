@@ -1,0 +1,132 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This topic shows how to use your C/C++ functions from external libraries in the test method programming."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using C/C++ functions from external libraries in universal test methods</title><meta name="keywords" content="testmethod UTM"></head><body id="_100438"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 100438</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using C/C++ functions from external libraries in universal test methods</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="351792.htm" title="Most modern libraries require a modern C++ standard. SmarTest uses the Red Hat Developer Toolset to support modern C++.">Enabling modern C++ support for SmarTest 7</a></li></ol></div></nav>
+	
+	
+	<div><p>This topic shows how to use your C/C++ functions from external libraries in the test
+		method programming.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This topic is not dealing with test method libraries. To find the related information
+				about test method libraries, refer to <a href="98950.htm" title="Using universal test methods gives you the following benefits.">Universal test method concept</a> and <a href="100352.htm" title="If your test method libraries are bug free and ready to use, you can share it with other users of the same SmarTest system. See How to install a universal test method library for system wide usage.">Managing the universal test method libraries</a>.</p><p>You call the C/C++ functions from external libraries in the
+					<kbd class="userinput">run()</kbd> method of a test method. </p><p>The external libraries can be loaded before the test method library with the preload mechanism.
+				These libraries must be named like libxxx.so, where xxx is a combination of letters, numbers or
+				"_". In this mechanism, the external test method libraries need to be put in the directory
+					<span class="filepath">device/testmethod/sh_lib-EL7-64bit/preload</span>,
+					<span class="filepath">/var/opt/hp93000/soc/testmethod/preload</span> or
+					<span class="filepath">/var/opt/hp93000/soc_common/testmethod/preload</span>.</p><ul>
+				<li>The libraries in the directory
+						<span class="filepath">device/testmethod/sh_lib-EL7-64bit/preload</span> will be loaded earlier than
+					the libraries in the directory <span class="filepath">device/testmethod/sh_lib-EL7-64bit/</span>.</li>
+				<li>The libraries in the directory <span class="filepath">/var/opt/hp93000/soc/testmethod/preload</span>
+					will be loaded earlier than the libraries in the directory
+						<span class="filepath">/var/opt/hp93000/soc/testmethod</span>. </li>
+				<li>The libraries in the directory
+						<span class="filepath">/var/opt/hp93000/soc_common/testmethod/preload</span> will be loaded earlier
+					than the libraries in the directory
+					<span class="filepath">/var/opt/hp93000/soc_common/testmethod</span>.</li>
+			</ul><p>The libraries in the preload directories will be loaded with <code>RTLD_GLOBAL</code>
+				flag enabled. (For the above three directories, the flag is enabled by default.) As a result,
+				all the symbols defined in the libraries under preload sub-directories will be made available
+				for symbol resolution of subsequently loaded libraries. (For details of
+					<code>RTLD_GLOBAL</code>, see the <code>dlopen()</code> function of Linux.)</p><p>The
+				preload mechanism supports multi-layers of dependencies among the shared libraries. In the above
+				preload directories, the libraries in the current directory are loaded earlier than the
+				libraries in its sub-directories. So you need to put the libraries in the appropriate
+				directories. (See the example below.)</p>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> <p>Most modern libraries require at least the c++11 or later c++ standard. SmarTest uses the Red Hat
+						Developer Toolset to support modern C++. For Red Hat documentation, see:</p>
+					<p><a href="https://access.redhat.com/documentation/en-us/red_hat_developer_toolset/9/html/user_guide/index" target="_blank" rel="external noopener" class="ex">User Guide - Red Hat Developer Toolset</a>.</p><p>Starting SmarTest without enabling the developer toolset, uses the older GCC 4.8 compiler, which
+						does not support C++11. To use C++11, use GCC 9. However, the GCC 9 devtoolset compiler is
+						stricter. It returns more warnings and errors about valid code. For further information about
+						compatibility of different GCC versions and modes, see: </p><p><a href="https://access.redhat.com/documentation/en-us/red_hat_developer_toolset/9/html/user_guide/chap-GCC#sect-GCC-CPP-Compatibility" target="_blank" rel="external noopener" class="ex">Red Hat Developer Toolset - GNU C++ Compiler - C++
+							Compatibility</a></p>
+					<p>To use the more modern GCC 9 (that uses C++14 by default), start SmarTest with the
+						command:</p>
+					<p><kbd class="userinput">scl enable devtoolset-9 /opt/hp93000/soc/prod_env/bin/HPSmarTest</kbd></p>
+					<p>For more information, see <a href="351792.htm" title="Most modern libraries require a modern C++ standard. SmarTest uses the Red Hat Developer Toolset to support modern C++.">Enabling modern C++ support for SmarTest 7</a>.</p></div>
+			</div></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 6.3 or later. Your external C/C++ libraries must be
+				ready to use. The test method project and the test method class must already be
+			created.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Add the related code to the test method source file:</span>
+				<ol type="a">
+					<li>
+						<span>Open the test method source file.</span>
+					</li>
+					<li>
+						<span>Include the C/C++ project header file in the test method like below.</span>
+					</li>
+				</ol>
+				<div><pre class="prettyprint copyable singleline">#include "Algorithm"</pre></div>
+				<ol type="a">
+					<li>
+						<span>Type in your code to call the C/C++ functions like below.</span>
+					</li>
+				</ol>
+				<div><pre class="prettyprint linenums copyable">Algorithm algo;
+if(mType == "FFT")
+{
+  algo.doFFT();
+} 
+else if(mType == "ARMA")
+{
+  algo.doARMA();
+}
+else if(mType == "LINFIT")
+{
+  algo.doLinearFit();
+}
+else
+{
+  cout &lt;&lt;"error: Do not support this type." &lt;&lt;endl;
+}</pre></div>
+			</li><li class="stepexpand">
+				<span>Include the header file path in the C/C++ compiler.</span>
+				<ol type="a">
+					<li class="substepexpand">
+						<span>In the C/C++ perspective, right-click the test method project and select
+								<span class="uicontrol">Properties</span> menu. The project Properties window is displayed.</span>
+					</li>
+					<li class="substepexpand">
+						<span>In the <span class="uicontrol">Properties</span> window, click the <span class="menucascade"><span class="uicontrol">C/C++ Build</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Settings</span></span> on the left side.</span>
+					</li>
+					<li class="substepexpand">
+						<span>In the Tool Settings tab, click the <span class="menucascade"><span class="uicontrol">GCC C++ Compiler</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Directories</span></span>.</span>
+					</li>
+					<li class="substepexpand">
+						<span>Add the external C/C++ project path to the Include paths list and click
+								<span class="uicontrol">OK</span>.</span>
+						<div><div class="p"><figure class="fignone">
+									
+									<img src="100443.png" alt="Add the Include paths">
+								</figure></div>
+							<div class="note"><span class="title">Note</span> The <span class="uicontrol">Restore Defaults</span> button will un-check the
+									<span class="uicontrol">Shared</span> setting of <span class="menucascade"><span class="uicontrol">GCC C++ Linker</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Shared Library Settings</span></span>. This will make the compilation of the test method fail. So if you use the
+									<span class="uicontrol">Restore Default </span>button, you need to check the setting
+									<span class="uicontrol">Shared</span> of <span class="menucascade"><span class="uicontrol">GCC C++ Linker</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Shared Library Settings</span></span> manually.</div>
+							<div class="note"><span class="title">Note</span> You can also directly copy the headers files to be included in the UTM
+								project directory. Then it is unnecessary to add the paths of the header files in the
+								project <span class="uicontrol">Properties</span>.</div>
+						</div>
+					</li>
+				</ol>
+			</li><li class="stepexpand">
+				<span>To load the external libraries before the loading the test method library, put the external
+					libraries in the directory <span class="filepath">device/testmethod/sh_lib-EL7-64bit/preload</span>,
+						<span class="filepath">/var/opt/hp93000/soc/testmethod/preload</span> or
+						<span class="filepath">/var/opt/hp93000/soc_common/testmethod/preload</span>.</span>
+			</li><li class="stepexpand">
+				<span>To build the test method project, click <span class="menucascade"><span class="uicontrol">Project</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Build All</span></span>.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>Your C/C++ functions from external libraries are successfully used in the universal
+				test method.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>If UTM library <span class="filepath">libABB.so</span> depends on
+					<span class="filepath">libDeviceGeneral.so</span> and <span class="filepath">libDeviceGeneral.so</span> depends
+				on <span class="filepath">libd2s.so</span>, they need to be placed in the directories as
+					below:</p><p><span class="filepath">Device/testmethod/sh_lib-EL7-64bit/libABB.so</span></p><p><span class="filepath">Device/testmethod/sh_lib-EL7-64bit/preload/libd2s.so</span></p><p><span class="filepath">Device/testmethod/sh_lib-EL7-64bit/preload/generalLib/libGeneralDevice.so</span></p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Create a testflow.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: Preload mechanism is supported.</li><li>SmarTest 6.5.3: Preload mechanism supports multi-layers of dependencies among
+					libraries.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 100438</span><script type="text/javascript">var ti='100438';var tt='Using C/C++ functions from external libraries in universal test methods'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

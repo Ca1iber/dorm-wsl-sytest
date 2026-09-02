@@ -1,0 +1,69 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This hook function is called repeatedly (if activated, see Activating a Hook Function) while the driver waits for actions to be performed by the equipment. For example, device insertion by the handler. The time between two calls is configured with the configuration parameter flag_check_interval."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>phHookWaiting</title><meta name="keywords" content="ph, Hook, Waiting"></head><body id="_42326"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42326</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">phHookWaiting</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="42327.htm">Parameters:</a></li><li><a href="42328.htm" title="User-specific code should be added below the line">User-Specific Code:</a></li></ol></div></nav>
+	
+	
+	<div><p>This hook function is called repeatedly (if activated, see <em><a href="42332.htm" title="To tell the driver that a hook function should be called during the driver execution, the hook function must be activated. Deactivated hook function, although existent in the ph_hhook.c source file, will not be called (see also Special Functions in the Hook Source File).">Activating a Hook Function</a></em>) while the driver waits for actions to be performed by the equipment. For example, device
+		insertion by the handler. The time between two calls is configured with the configuration
+		parameter <em>flag_check_interval</em>.</p>
+		<div class="note"><span class="title">Note</span> This hook function should NOT be used to handle timeouts while waiting for
+			parts. If a final timeout occurs, the hook function <em><a href="42323.htm" title="This hook function is called (if activated, see Activating a Hook Function) when a problem occurs during driver execution.">phHookProblem</a></em> will be
+			called.</div><p>The simple example functionality of the hook function template demonstrates how to call a CPI
+			function from a hook function.</p>
+		<p>To call CPI functions, the driver provides interface functions, which then call CPI function
+			and additionally log that call with the driver's logging capabilities.</p>
+		<p>For example, to call the CPI function <em>GetSystemFlag</em> the interface function
+				<em>ph_TcomGetSystemFlag</em> must be called.</p>
+		<p><em><a href="42350.htm" title="If you have unpacked the driver sources, as described in Unpacking the Driver and Hook Sources, man pages are available for all driver functions defined in the header files which are located in the directory">Appendix B: Man Pages for Driver Functions</a></em> describes how to get more information about the interface
+			functions to the CPI.</p>
+		<div></div><pre class="prettyprint linenums copyable">phHookError_t phHookWaiting(
+    long elapsedTimeSec /* elapsed time while waiting for this part */,
+    phEventResult_t *result   /* the result of this hook call */,
+    phTcomUserReturn_t *stReturn  /* proposed SmarTest return
+                                  value, if &lt;result&gt; is set to
+                                   PHHOOK_RES_ABORT by this hook function */
+)
+{
+#ifdef WAITING_IMPLEMENTED
+    long flag;
+#endif
+
+    /* do checks and trace the call first */
+    CheckInitialized(&amp;hook);
+    phLogHookMessage(hook.myLogger, PHLOG_TYPE_TRACE, 
+                     "phHookWaiting(%ld, P%p, P%p)", elapsedTimeSec, result,
+                      stReturn);
+
+#ifdef WAITING_IMPLEMENTED
+
+    /* Here is a sample implementation which reads SmarTest's
+        PAUSE flag and prints a message, if the flag is set */
+
+    if (phTcomGetSystemFlag(hook.myTester, PHTCOM_SF_CI_PAUSE, &amp;flag) ==
+        PHTCOM_ERR_OK)
+    {
+       if (flag)
+       {
+         phLogHookMessage(hook.myLogger, PHLOG_TYPE_MESSAGE_0,
+                         "hook function recognized pause flag set while waiting for parts");
+       }
+    }
+
+/* set the result value:the framework must continue to wait for parts */
+*result = PHEVENT_RES_CONTINUE;
+
+    return PHHOOK_ERR_OK;
+
+#else
+
+    /* hook not activated */
+    return PHHOOK_ERR_NA;
+#endif
+}</pre><div></div>
+		<div class="note"><span class="title">Note</span> For all type definitions, see the header files corresponding to the respective
+			type. The header files are located in the directory <em>... /GenericHandler/include</em>/ and in
+				<em>... /GenericProber/include</em> For example, for the type <strong>phEvent</strong><em>Result_t</em> see
+			the header file <strong>phEvent.h</strong></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42326</span><script type="text/javascript">var ti='42326';var tt='phHookWaiting'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

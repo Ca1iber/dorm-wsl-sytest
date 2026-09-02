@@ -1,0 +1,43 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In the factory automation production environment, SmarTest is usually started in the SUPERVISOR and ONLINE mode. When starting SmarTest with HVMAPI, you can catch and process the HVM API events issued during the startup."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to start SmarTest with HVMAPI</title><meta name="keywords" content="high voltage High Volume Manufacture, Smar, Test"></head><body id="_118228"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118228</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to start SmarTest with HVMAPI</h1>
+	
+	
+	<div><p>In the factory automation production environment, SmarTest is usually started in the
+		SUPERVISOR and ONLINE mode. When starting SmarTest with HVMAPI, you can catch and process the HVM
+		API events issued during the startup.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>At this time, you start SmarTest with the safe device.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>The safe device is ready to use.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li>
+				<span>Prepare the parameters to start a SmarTest, including online mode, user mode and device
+					path.</span>
+			</li><li>
+				<span>Start SmarTest with the <a href="95802.htm" title="This command triggers the startup of a new SmarTest session. When the startup procedure reaches the start point, the event SMARTEST_SESSION_STARTING will be notified. If there is no failure during the startup, the event SMARTEST_SESSION_READY will be notified and the newly created session ID will be returned. The event SMARTEST_SESSION_READY means that the SmarTest session is ready for use.">StartSmartestSession</a> API.</span>
+			</li><li>
+				<span>Report the SmarTest startup status.</span>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">string safe_device;
+opParams["ONLINE_MODE"] = "OFFLINE";
+opParams["USER_MODE"] = "SUPERVISOR";
+safe_device="/home/demo/devices/dummy";
+removeLockFile(safe_device);
+if(switchDeviceInUse(safe_device))
+{
+  cout &lt;&lt;"cannot start SmarTest and safe_device does not exist" &lt;&lt;endl;
+  return 1;     
+}
+
+::xoc::hvmapi::Status retVal = operation("StartSmartestSession", opResults, opParams);
+if(!retVal.isError())
+{
+  cout &lt;&lt;"Successful startup and the session ID is s%\n" &lt;&lt; opResults["SESSION_ID"] &lt;&lt;endl;
+}
+else
+{
+  cout &lt;&lt;"\nerror code" &lt;&lt; retVal.code() &lt;&lt;"\nerror description"&lt;&lt; retVal.text()&lt;&lt;endl;
+}</pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>After the SmarTest is started, you need to synchronize with the <a href="95805.htm" title="This asynchronous event indicates a SmarTest session is fully started and ready to accept commands operations and queries. The event is notified after starting a new SmarTest session or the successful execution of reset operation.">SMARTEST_SESSION_READY</a>
+				event and change to the target device.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118228</span><script type="text/javascript">var ti='118228';var tt='How to start SmarTest with HVMAPI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

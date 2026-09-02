@@ -1,0 +1,46 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The data queues can run empty when instruction density is very high and the length of the vector generating instructions very small. In this case, the system issues an error."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to prevent the data queue from running empty</title></head><body id="_91206"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91206</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to prevent the data queue from running empty</h1>
+	
+	
+	<div><p>The data queues can run empty when instruction density is very high and the length of
+		the vector generating instructions very small. In this case, the system issues an error. </p>
+		<p>There are some rules of thumb by which such a complete drain of the data queue can usually be
+			avoided. These are:</p>
+		<ul>
+			<li>Do not nest your subroutine calls too deep (processing of the <span class="keyword">STVA</span> and the
+					<span class="keyword">RSUB</span> instructions is particularly time consuming).</li>
+			<li>Try to maximize the length of your vector generating instructions.</li>
+			<li>Try to use <span class="keyword">RPTV</span> instead of <span class="keyword">GENV</span> whenever possible (this
+				increases the speed at which vectors are written to the queue).</li>
+			<li>Use <span class="keyword">RPTV</span> instead of a counted loop (<span class="keyword">LBGN</span>) whenever
+				possible (<span class="keyword">LBGN</span>/<span class="keyword">LEND</span> is internally treated as a subroutine,
+				and therefore just as time consuming as <span class="keyword">STVA</span> and
+				<span class="keyword">RSUB</span>).</li>
+		</ul>
+		<p>If the data queue runs empty nonetheless, you can add the <span class="keyword">FLQU</span> (FilL QUeue)
+			sequencer instruction to sections of your test where instruction density is very high.
+				<span class="keyword">FLQU</span> enters fill break vectors (as defined with <span class="keyword">brk</span> in the
+			wavetable) into the data queue. Note that these break vectors are not recorded in the Error Map.
+			Note also that you should use <span class="keyword">FLQU</span> only for small user periods. </p>
+		<p>The <a href="98575.htm" title="The DQUE? query returns the lowest level of the data queue during the last pattern execution.">DQUE?</a> firmware query can help to optimize the usage of
+				<span class="keyword">FLQU</span>. It returns the minimum level of the data queue during the last
+			sequencer run. It must be issued after the sequencer run.</p>
+		
+		
+		
+		
+		<p>The rate at which the data queue is filled and the minimum value of the user period depend on
+			the hardware specifications of the different systems.</p>
+		<section class="section"><h2>Queue behavior of the Pin Scale systems</h2><p>The size of the data queue is 832 = 104 * 8 vector instances. It is refilled with a maximum rate
+				of 1 instance in 0.625 ns whenever the sequencer does not process instructions.</p><p>Furthermore the data queue
+				is affected by occasional memory maintenance routines, during which the sequencer cannot write
+				any vectors to the data queue, and which occur asynchronously to the sequencer program. These
+				routines take about 0.5 µs, which will deplete the data queue by 200 vectors at a user period of
+				2.5 ns. To safeguard against these asynchronous interruptions, the data queue should always
+				contain enough vectors to bridge a time span of 0.5 µs.</p><p>The <span class="keyword">DQUE?</span>
+				firmware query can be used to check if this condition is satisfied. </p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="91232.htm" title="The sequencer of a pin (channel) cannot process instructions and apply a waveform to its pin at the same time. In order to supply a continuous stream of waveforms even when the sequencer is busy decoding sequencer instructions, a data queue is used. The sequencer does not apply the waveforms to the pin right away, but writes them into the data queue, and from this queue they are forwarded to the pin at the rate defined by the user period. In this way, the DUT can be fed with vectors from the queues of the individual pins while the sequencers are decoding instructions.">Managing the data queue</a></div><div><a href="24359.htm" title="The sequencer cannot process instructions and send vectors to the DUT at the same time. In order to supply a continuous stream of vectors to the DUT (even when the sequencer is busy decoding sequencer instructions), a data queue is used.">Data Queue</a></div><div><a href="98575.htm" title="The DQUE? query returns the lowest level of the data queue during the last pattern execution.">DQUE? - (show Data QUEue low level)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91206</span><script type="text/javascript">var ti='91206';var tt='How to prevent the data queue from running empty'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

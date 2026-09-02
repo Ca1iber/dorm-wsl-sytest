@@ -1,0 +1,84 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Describes how the programming with SmartRDI is structured in the test method."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Code structure with SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_142604"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 142604</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Code structure with SmartRDI</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="350191.htm" title="Some basic rules must be observed when setting up tests SmartRDI tests.">Basic rules for SmartRDI</a></li><li><a href="350190.htm" title="SmartRDI supports multi-port programming. With a multiport setup, you can take advantage of the tester's per-pin architecture.">Multiport programming with SmartRDI</a></li></ol></div></nav>
+	
+	
+	<div><p>Describes how the programming with SmartRDI is structured in the test
+		method.</p>
+		<section class="section">
+			<p>The test method programmed with SmartRDI looks like below:</p>
+			<div></div><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "rdi.hpp"
+...
+void run()
+{
+    RDI_INIT(); 
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        // Set up the test to be executed in the pattern‑based mode 
+        RDI_BEGIN();
+        {
+            rdi.class1().pin("pinA").para1().para2().execute(); // With no measurement
+            rdi.class2("idA").pin("pinB").para3().para4().execute(); // With measurement
+        }
+        RDI_END();
+
+        // Set up the test to be executed in the code‑based mode
+        rdi.class3().pin("pinC").para5().para6().execute();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    // Retrieve the test result
+    XXX(data type) result=rdi.id("idA").getXXX();
+
+    return();
+}</pre><div></div>
+		</section>
+		<section class="section">
+			<p>The code above shows the following main elements of the SmartRDI code structure:</p>
+			<dl>
+				
+					<dt class="dlterm">#include "rdi.hpp"</dt>
+					<dd>You must include the file <span class="filepath">rdi.hpp</span> for each test suites
+						that uses SmartRDI.</dd>
+				
+				
+					<dt class="dlterm" id="_142604__dle_RDI_INIT">RDI_INIT()</dt>
+					<dd>In each test method class, all code programmed with SmartRDI needs to be put
+						after <a href="141275.htm" title="Initializes an environment for SmartRDI.">RDI_INIT()</a>.</dd>
+				
+				
+					<dt class="dlterm" id="_142604__dle_RDI_block">RDI block</dt>
+					<dd>The RDI block starts with API <a href="141276.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based mode of SmartRDI.">RDI_BEGIN()</a> and is closed with <a href="141277.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based of SmartRDI.">RDI_END()</a>. The RDI block holds the RDI commands that are
+						converted as far as possible into individual pattern and are executed as
+						pattern burst if the execution mode of the block has been set to the default
+						value <span class="keyword">TA::BURST</span>.<div class="note"><span class="title">Note</span> 
+							<p>DO NOT put any code that you would like to run in EACH execution into
+								the RDI block.</p>
+							<p>The code inside the RDI block is executed only in the first run after
+								build. This is required for generating pattern content.</p>
+						</div><p>The two macros <span class="keyword">RDI_BEGIN()</span> and
+								<span class="keyword">RDI_END()</span> already contain the curly brackets
+								<code>{ … }</code> that enclose the code within the block.
+							Nevertheless, we recommend using extra brackets as shown in the example
+							above. This improves the readability of the code and simplifies correct
+							indentation using the related Eclipse tool.</p></dd>
+				
+				
+					<dt class="dlterm" id="_142604__dle_RDI_command">RDI command</dt>
+					<dd>Normal RDI commands begin with the RDI main class <span class="keyword">rdi</span>,
+						optionally define an RDI class to be used, followed by one or more member
+						function calls of the defined class and are closed by <a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a> that is a member function of all RDI classes.<p>An RDI command can be
+							divided into multiple lines using function <a href="349380.htm" title="cont() can be used to link actions of different pins or work together with insertVec() and insertSub() in the dc() class, addVecRange() in the digCap() class, and smartVec() commands such as writeData(), readData(), writeBit(), and expectData() to simplify the programming of numerous measurements.">cont()</a>.</p></dd>
+				
+			</dl>
+		</section>
+		<section class="section"><h2>Basic rules</h2>
+			<p>For basic rules to consider when implementing a SmartRDI test, refer to <a href="350191.htm" title="Some basic rules must be observed when setting up tests SmartRDI tests.">Basic rules for SmartRDI</a>.</p></section>
+		<section class="section"><h2>Multiport programming</h2><p>For information on how to set up multiport tests with SmartRDI, refer to <a href="350190.htm" title="SmartRDI supports multi-port programming. With a multiport setup, you can take advantage of the tester's per-pin architecture.">Multiport programming with SmartRDI</a>.</p>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a></div><div><a href="141838.htm" title="SmartRDI provides some general functions for setting up multiple types of tests.">SmartRDI: General topics and functions</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li><li>SmartRDI 2.4.0: Support cont() to separate command lines.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 142604</span><script type="text/javascript">var ti='142604';var tt='Code structure with SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

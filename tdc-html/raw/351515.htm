@@ -1,0 +1,141 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This is a template of a JTAG protocol class which defines the basic properties and operation logics of the protocol."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>JTAG protocol class template</title></head><body id="_351515"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351515</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">JTAG protocol class template</h1>
+	
+	
+	<div><p>This is a template of a JTAG protocol class which defines the basic properties and
+		operation logics of the protocol.</p>
+		<section class="section">
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">#include "RA_protocols.h"
+
+namespace {
+
+using namespace RA;
+using namespace std;
+
+/**
+ * This is a template of an JTAG protocol class which defines the basic properties
+ * and operation logics of the protocol.
+ */
+class JTAGTemplate : public ProtocolJTAG {
+public:
+  const static int IR_BW = 8;
+  const static ULONG64 IR_WR_ADDRESS = 0xA8;
+  const static ULONG64 IR_WR_DATA = 0xE8;
+  const static ULONG64 IR_RD_DATA = 0xE9;
+
+  JTAGTemplate() {}
+  virtual ~JTAGTemplate() {}
+
+  /**
+   * (Mandatory)
+   * Create a singleton.
+   */
+  RA_CREATE_SINGLETONE(JTAGTemplate);
+
+  /**
+   * (Mandatory)
+   * Give a reasonable name as an ID to identify this protocol class.
+   * This name can be used in Test Method to switch to this protocol,
+   * e.g. RA_SWITCH_PROTOCOL("JTAGTemplate");
+   */
+  virtual std::string getName() const { return "JTAGTemplate"; }
+
+  /**
+   * (Mandatory)
+   * Define the speed of this protocol.
+   */
+  virtual double getClockSpeed() const { return 5 MHz ; }
+
+protected:
+  /**
+   * (Mandatory)
+   * Define the logics of the register write operation.
+   */
+  virtual void defineWriteRegister(JTAG&amp; jtag, ULONG64 address, ULONG64 data) {
+    jtag.shiftIR(IR_WR_ADDRESS, 8);
+    jtag.shiftDR(address, 16 );
+    jtag.shiftIR(IR_WR_DATA, 8);
+    jtag.shiftDR(data, 8, "data_in");
+    jtag.wait(2 ms);
+  }
+
+  /**
+   * (Mandatory)
+   * Define the logics of the register read operation.
+   */
+  virtual void defineReadRegister(JTAG&amp; jtag, ULONG64 address, int numberOfData) {
+    jtag.shiftIR(IR_WR_ADDRESS, 8);
+    jtag.shiftDR(address, 16);
+    jtag.shiftIR(IR_RD_DATA, 8);
+    jtag.enterDR();
+    jtag.receiveData(0, 8, "data_out");
+    jtag.exitDR();
+  }
+
+  /**
+   * (Mandatory)
+   * Define the logics of the register compare operation.
+   */
+  virtual void defineCompareRegister(JTAG&amp; jtag, ULONG64 address, ULONG64 expectData, ULONG64 maskData) {
+    jtag.shiftIR(IR_WR_ADDRESS, 8);
+    jtag.shiftDR(address, 16);
+    jtag.shiftIR(IR_RD_DATA, 8);
+    jtag.enterDR();
+    jtag.compareData(0, 8, expectData, maskData);
+    jtag.exitDR();
+  }
+
+  /**
+   * (Mandatory)
+   * Define how the data and/or the address is set into parameter(s).
+   */
+  virtual void composeRegisterWriteData(ParameterSetter&amp; param, ULONG64 address, ULONG64 data) {
+    param.setValue("data_in", data);
+  }
+
+  /**
+   * (Mandatory)
+   * Define how parameters are assembled to the result of a register read operation.
+   */
+  virtual RA::ULONG64 composeRegisterReadData(ParameterGetter&amp; param) {
+    return param.getValue("data_out");
+  }
+
+  /**
+   * (Mandatory)
+   * Define the pin to be used as TDI.
+   */
+  virtual std::string getPinName_TDI() const { return "JTAG_TDI"; }
+
+  /**
+   * (Mandatory)
+   * Define the pin to be used as TDO.
+   */
+  virtual std::string getPinName_TDO() const { return "JTAG_TDO"; }
+
+  /**
+   * (Mandatory)
+   * Define the pin to be used as TMS.
+   */
+  virtual std::string getPinName_TMS() const { return "JTAG_TMS"; }
+
+  /**
+   * (Mandatory)
+   * Define the pin to be used as TCK.
+   */
+  virtual std::string getPinName_TCK() const { return "JTAG_TCK"; }
+};
+
+/**
+ * (Mandatory)
+ * Register this protocol class to the RA lib.
+ */
+REGISTER_PROTOCOL(JTAGTemplate);
+}</pre><div></div>
+			</div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351515</span><script type="text/javascript">var ti='351515';var tt='JTAG protocol class template'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SQSL (SeQuencer Start Label) command activates an existing label for execution with the FTST? query. A label exists if it has been defined by the SQLB command. If no start label is defined, FTST? issues an error message. The SQSL? query returns the existing start label settings."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SQSL, SQSL? - (SeQuencer Start Label)</title><meta name="keywords" content="pattern vector label, SQSL_, Se, Quencer"></head><body id="_98751"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98751</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SQSL, SQSL? - (SeQuencer Start Label)</h1>
+	
+	
+	<div><p>The <span class="keyword">SQSL</span> (SeQuencer Start Label) command <em>activates</em> an existing
+		label for execution with the <a href="98608.htm" title="The FTST? (Functional TeST) query executes a functional test and returns either a pass or a fail result. The test that is executed must have previously been defined by the SQLB, SQLB? - (SeQuencer LaBel definition) command and activated for execution by the SQSL, SQSL? - (SeQuencer Start Label) command.">FTST?</a> query. A label exists if it has
+		been <em>defined</em> by the <a href="98748.htm" title="The SQLB (SeQuencer LaBel definition) command defines a label for a port. It specifies the label name, the label type, position and length of the associated sequencer program within the sequencer area, and the base waveform set or wavetable. It also generates a rudimentary sequencer program at the specified position; for details on the sequencer instructions see the SQPG command.">SQLB</a> command. If no start label is defined,
+			<a href="98608.htm" title="The FTST? (Functional TeST) query executes a functional test and returns either a pass or a fail result. The test that is executed must have previously been defined by the SQLB, SQLB? - (SeQuencer LaBel definition) command and activated for execution by the SQSL, SQSL? - (SeQuencer Start Label) command.">FTST?</a> issues an error message. The <span class="keyword">SQSL?</span> query
+		returns the existing start label settings. </p>
+		<section class="section"><p>Only labels of the types <a href="10570.htm" title="MAIN labels are all purpose labels. There are only three restrictions applying to them:">MAIN</a>, <a href="96984.htm" title="A burst label differs from a sequence of independent MAIN labels in two respects:">BRST</a> (burst), and <a href="105164.htm" title="Multi-port burst labels serve to start the execution of bursts for different ports in parallel. They consist of one or more user port bursts. The only difference between a user port burst and a normal single-port burst is that the user port burst is associated with a port that is defined by the user and will usually contain only a proper subset of the configured pins, whereas a single-port burst is defined for the default port @.">MPBU</a> (multiport burst) can be activated
+				with <span class="keyword">SQSL</span>. For labels with type <a href="10570.htm" title="MAIN labels are all purpose labels. There are only three restrictions applying to them:">MAIN</a> this is only
+				possible if the label is associated with the default port <span class="keyword">@</span>, which contains
+				all pins.</p></section>
+		<section class="section"><h2>Site specific start labels</h2><p>Under certain conditions, different sites can
+				be associated with different start labels, that is, the start labels for the different sites are
+				independent of each other ("label per site"). These conditions are:</p><ul>
+				<li>The same port set must be used for all sites, and these ports must be grouped by the same
+					sequencing groups in the same way on all sites.</li>
+				<li>If all sites are to be started synchronously, the different labels must contain the same
+					number of <a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">CTIM</a> or <a href="10560.htm" title="The CLEV instruction allows you to change the level set during a test by specifying a new set number. It is implemented similarly to the CTIM instruction (see Changing the timing set). The overall length of a CLEV instruction equals the length of a CTIM instruction with p1 = p2.">CLEV</a>
+						instructions.<p>The synchronous or asynchronous start of different sites for the same pin is
+						controlled with the site match function. For details see the <a href="98760.htm" title="The STME command defines the state of the site match function. The site match function controls if all sites are started simultaneously (option OFF), or successively with a slight delay (option ON). The command does nothing if a single site is configured.">STME</a>
+						command.</p></li>
+				<li>Digital capture is not allowed.</li>
+				<li>Protocol-aware tests cannot be executed.<div class="note"><span class="title">Note</span> If two or more sites connect the
+						same pin to the same channel (have a "shared pin"), and these sites are not all associated
+						with the same start label, the different labels cannot be carried out simultaneously on the
+						shared pin. In this case, the default behavior of SmarTest is to execute on this pin the label
+						that is associated with the highest numbered active site. You can change this default with the
+							<span class="keyword">assignPinToCurrentSite()</span> member function of the
+							<span class="keyword">PRIMARY_STATUS</span> TM API. </div>
+				</li>
+			</ul><p>Note also that only the start label can be site specific. Different primary sets (defined
+				with <a href="98742.htm" title="The SPRM (Set PRiMary sets) command is used to define and change the primary sets in a test suite or a test that is defined in a user procedure. If, for example, your test involves repeating a functional test with varying parameters, you can use the SPRM command to define the primary sets for each test run. Unless otherwise specified, the functional test uses the parameters defined in the actual primary sets.">SPRM</a>) or different result configurations for different sites
+				are not supported by SmarTest. </p><p>The <span class="keyword">SQSL</span> command disregards the setup
+				focus (which is defined with <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC</a>): If you call it without the site
+				parameter, then the specified label will be made the start label for <em>all</em> sites,
+				regardless of any restrictions imposed with <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC</a>. </p><p>In contrast
+				to the command, the query <em>does</em> take the query focus (defined with <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC</a>) into account. If you do not explicitly request the start labels for all sites,
+					<span class="keyword">SQSL?</span> will return the start label of the site that currently has the query
+				focus. </p></section>
+		<div class="syntax"><h2>SQSL</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQSL</span>  {"<span class="keyword">label</span>"} [, <span class="keyword">site</span>|"<span class="keyword">site_string</span>"]</pre></div><div class="syntax"><h2>SQSL?</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQSL?</span></pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">SQSL</span> {"<span class="keyword">label</span>"}</pre><p>With
+				the <span class="keyword">TYPE</span>
+				option:</p><pre class="prettyprint copyable singleline"><span class="keyword">SQSL?TYPE</span></pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">SQSL</span> {"<span class="keyword">label</span>"}, {<span class="keyword">type</span>}, {(<span class="keyword">portlist</span>)}</pre><p>With
+				the <span class="keyword">ALL</span>
+				option:</p><pre class="prettyprint copyable singleline"><span class="keyword">SQSL?ALL</span></pre><p>returns:
+				</p><pre class="prettyprint copyable singleline"><span class="keyword">SQSL</span> {"<span class="keyword">label</span>"}, {"<span class="keyword">site_string</span>"}, {<span class="keyword">type</span>}, {(<span class="keyword">portlist</span>)}</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">label</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The name of a sequencer start label. In the command, you can enter an empty string
+									("") to deactivate the current start label. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">site</span>|"<span class="keyword">site_string</span>"</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>In the command, you can either specify a number to identify a single site, or a
+									string of 1's and 0's. The length of the string must correspond to the number of the
+									configured sites. The <span class="keyword">n</span><sup>th</sup> character of this string stands for
+									site <span class="keyword">n</span>. </p>
+								<p>"1" means that the specified label is to be assigned as the new start label to the
+									respective site, "0" means that the current start label is not changed. </p>
+								<p>If you omit this parameter, the specified label will be made the start label of all
+									sites.</p>
+								<p>When <span class="keyword">ALL</span> was specified in the query, a site string is returned. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">TYPE</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>If you issue <span class="keyword">SQSL?</span> without any parameter, the query will return
+									the name of the current start label for the site that has the query focus. If you add
+										<span class="keyword">TYPE</span>, not only the name, but also the type and the associated ports of
+									this label will be returned.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">ALL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>If you specify this keyword in the query, <span class="keyword">SQSL?</span> will return the
+									start labels of all sites, including their type and associated ports.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">type</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The type of the label. For an explanation of the possible types, see the
+										<span class="keyword">SQLB</span> command. </p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">portlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This can be the default port <span class="keyword">@</span> which comprises all configured
+									pins, or, in the case of a multi-port burst, the ports with which the label is
+									associated.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Runtime command.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if: </p><ul>
+				<li>The specified label has not previously been defined</li>
+				<li>A channel is shared between several sites. </li>
+			</ul></div>
+		
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example
+			1</h3><pre class="prettyprint linenums copyable">&gt; SQSL "test_1"
+&gt; SQSL? TYPE
+&lt; SQSL "test_1",MAIN,(@)</pre></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">&gt; PSFC 2
+&gt; SQSL "test_1"
+&gt; SQSL? ALL
+&lt; SQSL "test_1","11",MAIN,(@)
+&gt; SQSL "test_2", "10"
+&gt; SQSL "test_3", 2
+&gt; SQSL? ALL
+&lt; SQSL "test_2","10",MAIN,(@)
+&lt; SQSL "test_3","01",MAIN,(@)
+&gt; SQSL?
+&lt; SQSL "test_2"
+&gt; PQFC 2
+&gt; SQSL?
+&lt; SQSL "test_3"</pre><p>This
+				example illustrates the definition of different start labels for different sites. Note that the
+				restriction of the setup focus has no influence on the command, but that the setting of the
+				query focus <em>does</em> affect <span class="keyword">SQSL?</span>.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: Site specific start labels are now supported under certain conditions.
+				</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98751</span><script type="text/javascript">var ti='98751';var tt='SQSL, SQSL? - (SeQuencer Start Label)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

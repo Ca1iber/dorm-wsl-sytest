@@ -1,0 +1,88 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API returns the disconnection context, which enables you to determine whether a disconnect test suite is executed as normal test suite or in a special context."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GET_DISCONNECT_CONTEXT()</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_353891"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 353891</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GET_DISCONNECT_CONTEXT()</h1>
+	
+	
+	<div><p>This API returns the disconnection context, which enables you to determine whether a
+		disconnect test suite is executed as normal test suite or in a special context.</p>
+		<section class="section">
+			<p>Supported test suites are the <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a> or the <a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a>. Normal
+				test suites can also use this API but the API will return only the enum
+					<span class="keyword">TM::IN_FLOW</span>, which means the context of the normal testflow execution.</p>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">TM::DISCONNECT_CONTEXT GET_DISCONNECT_CONTEXT();</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">List of parameters</dt>
+					<dd>There are no parameters.</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>The disconnect context is returned as enum of type
+							<span class="keyword">TM::DISCONNECT_CONTEXT</span>:<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::IN_FLOW</span></td>
+										<td class="colsep-0 rowsep-0">
+											<p>Normal testflow execution.</p>
+											<div class="p">This value is also returned if a<ul>
+												<li>normal test suite is executed in the fail
+												branch of a Run and Branch node and</li>
+												<li>if a test method, created for a <a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a> is reused at the end of the flow
+												do disconnect the remaining sites.</li>
+												</ul></div>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::GOOD_BINNING</span></td>
+										<td class="colsep-0 rowsep-0">
+											<p>Disconnect of successful sites.</p>
+											<p>This value is returned if the <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a> disconnects the remaining sites
+												at the end of the testflow.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::FAIL_BINNING</span></td>
+										<td class="colsep-0 rowsep-0">
+											<p>Disconnect of failed sites.</p>
+											<p>This value is returned if sites are disconnected in
+												the fail branch of a Run and Branch node using the
+												<a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a> or the <a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a>.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::DEFAULT_BINNING</span></td>
+										<td class="colsep-0 rowsep-0">Disconnect of unbinned sites after testflow
+											end.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::TESTMETHOD_ERROR</span></td>
+										<td class="colsep-0 rowsep-0">Disconnect after test method error.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">TM::TESTFLOW_ABORT</span></td>
+										<td class="colsep-0 rowsep-0">Disconnect after aborting a testflow.</td>
+									</tr>
+								</tbody></table></dd>
+				
+			</dl>			
+		</div>
+		<h2>Example</h2><div class="example"><h3>GET_DISCONNECT_CONTEXT() in final disconnect</h3>
+			
+			<p>The following code shows the usage of <span class="keyword">GET_DISCONNECT_CONTEXT()</span> in the
+					<span class="keyword">run()</span> function of a test method class.</p>
+			<div></div><pre class="prettyprint linenums copyable">STRING testSuiteName;
+
+GET_TESTSUITE_NAME(testSuiteName);
+
+TM::DISCONNECT_CONTEXT disconnectContext = GET_DISCONNECT_CONTEXT();
+
+cout &lt;&lt; "Disconnect context of \"" &lt;&lt; testSuiteName &lt;&lt; "\": " &lt;&lt; disconnectContext &lt;&lt; endl;</pre><div></div>
+			<div class="p">If used in the <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a> and performed for the final disconnect of the
+				remaining sites, the code results in the following output in the SmarTest UI report
+				window:<div></div><pre class="msgblock">Disconnect context of "bin_disconnect": 1</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="353641.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a></div><div><a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.6.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 353891</span><script type="text/javascript">var ti='353891';var tt='GET_DISCONNECT_CONTEXT()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The following is a test method program example for a multi-port test using the two ports, where a digital functional test is executed at a port (&#34;port1&#34;) and a mixed signal test is executed in another port (&#34;port2&#34;)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Example of Multi-port Test in Test Method Program</title><meta name="keywords" content="multiport testmethod"></head><body id="_55364"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 55364</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Example of Multi-port Test in Test Method Program</h1>
+	
+	
+	<div><p>The following is a test method program example for a multi-port test using the two
+		ports, where a digital functional test is executed at a port ("port1") and a mixed signal test is
+		executed in another port ("port2").</p>
+		<div></div><pre class="prettyprint linenums copyable">//port1: Functional Test, port2: Mixed Signal Test
+DOUBLE Tsmpl;
+ARRAY_D Wave;
+THDtype thdRslt;
+Routing.pin(dzPin).connect(TM::SINGLE);  //port2: Connect pin to analog module
+Analog.DGT(dzPin).enable();              //port2: Enable trigger of analog module
+FLUSH();                                 //port2: Activate analog set&amp;routes
+FUNCTIONAL_TEST();                       //port1&amp;port2: Execute multi-port test
+
+Analog.DGT(dzPin).disable();             //port2: Disable trigger of analog module
+Routing.pin(dzPin).disconnect();         //port2: Disconnect from analog module
+FLUSH();                                 //port2: Activate above changes
+Wave = Analog.DGT(dzPin).getWaveform();  //port2: Retrieve measured analog wave
+Tsmpl = Analog.DGT(dzPin).getConvClock();//port2: Get current sampling frequency
+DSP_THD(Wave, &amp;thdRslt, 1, 3, DB, 0);    //port2: Calculate THD and SNR
+
+TEST("port1",TM::CONTINUE);                     //port1: Judge&amp;log functional test
+TEST(dzPin, "THD", thdRslt.thd, TM::CONTINUE);  //port2: Judge&amp;log THD result
+TEST(dzPin, "SNR", thdRslt.snr);                //port2: Judge&amp;log SNR result</pre><div></div>
+		<p>In this example, the variable <kbd class="userinput">dzPin</kbd> is a pin name where a waveform
+			digitizer is used, and is defined in the Parameter Dialog window as the input parameter of the
+				<kbd class="userinput">Func_plus_Mixed</kbd> test-method program. </p>
+		<p>The multi-port unique statement in this example is the <kbd class="userinput">TEST</kbd> API only,
+			where the port name is specified to get the digital functional test result of the specified port.
+			As this example shows, the programming of the analog pins is the same as for the non-multi-port
+			test.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 55364</span><script type="text/javascript">var ti='55364';var tt='Example of Multi-port Test in Test Method Program'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

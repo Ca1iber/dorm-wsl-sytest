@@ -1,0 +1,68 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The following figure shows a combination of an RF/MX-Signal Test and a digital test in a semi-parallel setup."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Semi-parallel execution</title></head><body id="_119982"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 119982</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Semi-parallel execution</h1>
+	
+	
+	<div><p>The following figure shows a combination of an RF/MX-Signal Test and a digital
+		test in a semi-parallel setup.</p>
+		<div class="p"><figure class="fignone" id="_119982__d899e22">
+				
+				<img src="119983.png" alt="Semi-parallel Execution Testflow">
+			</figure></div>
+		<p>An example of a typical test method for this type of setup is shown below.</p>
+		<div></div><pre class="prettyprint linenums copyable">//
+// Connect DGT to site 1
+//
+ON_FIRST_INVOCATION_BEGIN();
+
+    FOR_EACH_SITE_BEGIN();
+
+        INT site = CURRENT_SITE_NUMBER();
+
+        if ( site == 1) // connect digitzer to site 1
+        {
+            Routing.pin("Aout").connect(TM::SINGLE)
+        }
+
+    FOR_EACH_SITE_END();
+
+    FLUSH();
+
+    //
+    // Do some analog test for site 1
+    //
+    ...
+    ...
+
+    Routing.pin("Aout").disconnect(TM::SINGLE); // disconnect
+
+    FOR_EACH_SITE_BEGIN();
+
+        INT site = CURRENT_SITE_NUMBER();
+
+        if ( site == 2)
+        {
+            DGT("Aout").connect(TM::SINGLE)
+        }
+
+    FOR_EACH_SITE_END();
+
+    FLUSH();
+
+    //
+    // Do some analog test for site 2
+    //
+    ...
+    ... 
+
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		<section class="section"><h2>Using SmartCalc with result areas</h2><p id="_119982__d7115e20">A result area
+				only holds the results from one functional, capture, or DC test. The most recent test overwrites
+				all previous results.</p><p id="_119982__d7115e22">Before you re-use a result area in a testflow use <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> to upload all results. For semi-parallel execution, ensure that you allocate
+				individual result areas for each semi-parallel group execution. If you would use only a single
+				result area for all groups SmarTest will only hold the results from the last
+			group.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42638.htm" title="As in a normal setup, test methods can also be used for executing test suites in a multisite setup.">MS Test Method Programming Overview</a></div><div><a href="42595.htm" title="The following rules apply to multisite testing:">Processing test flow blocks in a multisite setup</a></div><div><a href="42597.htm" title="There are two flags you can set to determine whether testsuites are run in parallel or sequentially, namely,">Setting Flags for Parallel Execution</a></div><div><a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">Self-contained Testsuites</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 119982</span><script type="text/javascript">var ti='119982';var tt='Semi-parallel execution'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

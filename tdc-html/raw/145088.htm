@@ -1,0 +1,344 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The topic describes the binning rules and the main use cases when using the TESTSET API or the system-prepared TestSet object and their influence on the multibin."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Use of TESTSET with multibin</title><meta name="keywords" content="multi bin stdf hex"></head><body id="_145088"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 145088</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Use of TESTSET with multibin</h1>
+	
+	
+	<div><p>The topic describes the binning rules and the main use cases when using the <a href="58886.htm" title="The TESTSET class accesses a data container holding information that defines numbering procedures for results in a given test suite.">TESTSET</a> API or the system-prepared <span class="keyword">TestSet</span> object and their
+		influence on the multibin.</p>
+		<div class="p">The <span class="keyword">TESTSET</span> API can be used in three different ways:<ul>
+				<li id="_145088__li_Local_object"><strong>Local object</strong><p>A local object is created in the test class using
+						the code</p><div class="p">
+						<ul class="simple">
+							<li><code>TESTSET &lt;name&gt;;</code></li>
+						</ul>
+					</div><p>The lifetime of the local object is from the position where it has been
+						created to the end of the related code section.</p></li>
+				<li id="_145088__li_Temp_object"><strong>Temporary object</strong><p>A temporary object is created in
+						the test class using the code</p><div class="p"><ul class="simple">
+							<li><code>TESTSET.&lt;memberFunction_1&gt;.&lt;memberFunction2&gt;.…;</code></li>
+						</ul>without assigning the created object to a local variable. The lifetime
+						of the temporary object is limited to the position where it has been
+						defined.</div></li>
+				<li id="_145088__li_System-prepared_object"><strong>System-prepared object</strong><p>The system
+						prepared object is provided by SmarTest and can be utilized by the code</p><div class="p">
+						<ul class="simple">
+							<li><code><a href="58886.htm#_58886__dle_System-prepared_class_object">TestSet</a></code></li>
+						</ul>
+					</div><p>followed by the related member functions. The object is valid for the
+						complete run of a test flow.</p></li>
+			</ul>The following sections discuss the different kinds of utilizing the
+				<span class="keyword">TESTSET</span> API and the combination with <a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">multibins</a>.</div>
+		<section class="section"><h2>Overview</h2>The table gives a general overview for different
+			configurations. For more information, refer to section <a href="145088.htm#_145088__s_Detailed_description">Detailed description of the rules</a> below. For more examples, see the <a href="145088.htm#_145088__e_Example_1">Example</a> section.<table class="frame-none"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-1" id="_145088__entry__1">
+								<p>Used objects</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_145088__entry__2">
+								<p>Description</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_145088__entry__3">
+								<p>Code snippets</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_145088__entry__4">
+								<p>Logged bin</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__1"><a href="145088.htm#_145088__dle_Multiple_usage_of_the_same_object">1) Multiple usage of the same local object or system-prepared object</a></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__2">The first failing test will be logged to the multibin.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__3">
+								<div></div><pre class="no-prettify"><code>TESTSET test1;
+
+test1.cont(true).judgeAndLog (..bin2..);
+test1.cont(true).judgeAndLog (..bin3..);
+TestSet.cont(true).judgeAndLog (..bin2..);
+TestSet.cont(true).judgeAndLog (..bin3..);</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__4"><span class="keyword">bin2</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__1"><a href="145088.htm#_145088__dle_Multiple_usage_of_the_temporary_object">2) Multiple usage of the temporary object</a></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__2">The last failing test will be logged to the multibin.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__3">
+								<div></div><pre class="no-prettify"><code>TESTSET().cont(true).judgeAndLog (..bin2..);
+TESTSET().cont(true).judgeAndLog (..bin3..);</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__4"><span class="keyword">bin3</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__1"><a href="145088.htm#_145088__dle_Usage_of_different_objects">3) Usage of different local objects (including the system-prepared object)</a></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__2">The failing test of the last different object will be logged to
+								the multibin.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__3">
+								<div></div><pre class="no-prettify"><code>TESTSET test1,test2;
+
+test1.cont(true).judgeAndLog (..bin2..);
+test2.cont(true).judgeAndLog (..bin3..);</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__4"><span class="keyword">bin3</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__1"><a href="145088.htm#_145088__dle_Usage_of_the_same_and_different_objects">4) Multiple usage of different local objects (including the system-prepared object)</a></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__2">The first failing test of the first instance of the last different object will be
+								logged to the multibin<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a>.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__3">
+								<div></div><pre class="no-prettify"><code>TESTSET test1,test2;
+
+test1.cont(true).judgeAndLog (..bin2..);
+test2.cont(true).judgeAndLog (..bin3..);
+test1.cont(true).judgeAndLog (..bin4..);
+test2.cont(true).judgeAndLog (..bin5..);</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__4"><span class="keyword">bin3</span></td>
+						</tr>
+					</tbody></table></section>
+		<section class="section" id="_145088__s_Detailed_description"><h2>Detailed description of the rules</h2><dl>
+				
+					<dt class="dlterm" id="_145088__dle_Multiple_usage_of_the_same_object">1) Multiple usage of the same <a href="145088.htm#_145088__li_Local_object">local object</a> or
+							<a href="145088.htm#_145088__li_System-prepared_object">system-prepared
+							object</a></dt>
+					<dd>
+						<p>This does not include the <a href="145088.htm#_145088__li_Temp_object">temporary object</a>.</p>
+						<p>The bin of the first failing local object or system-prepared object will be logged to the
+							multibin. Subsequent failing tests using the same local object or
+							system-prepared object do not log to the multibin.</p>
+						<p>Using a local <span class="keyword">TESTSET</span> object:</p><pre class="no-prettify"><code>Virtual void run()
+{
+    TESTSET test1;
+
+    test1.cont(true).judgeAndLog (..bin2..); // Local object, bin2 will be logged
+    test1.cont(true).judgeAndLog (..bin3..); // Local object
+
+    return;
+}</code></pre><p>Using system-pepared <span class="keyword">TESTSET</span> object:</p><pre class="no-prettify"><code>Virtual void run()
+{
+    TestSet.cont(true).judgeAndLog (..bin2..); // System-prepared object, bin2 will be logged
+    TestSet.cont(true).judgeAndLog (..bin3..); // System-prepared object
+
+    return;
+}</code></pre><div></div>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_145088__dle_Multiple_usage_of_the_temporary_object">2) Multiple usage of the <a href="145088.htm#_145088__li_Temp_object">temporary object</a></dt>
+					<dd>
+						<p>This does not include the <a href="145088.htm#_145088__li_Local_object">local object</a> or the
+								<a href="145088.htm#_145088__li_System-prepared_object">system-prepared
+								object</a>, which are not temporary objects.</p>
+						<p>The bin of the last failing temporary object will be logged to the multibin. Subsequent
+							failing tests using temporary objects overwrite the bin of previously
+							used temporary objects.</p><pre class="no-prettify"><code>Virtual void run()
+{
+    TESTSET().cont(true).judgeAndLog (..bin2..); // Temporary object
+    TESTSET().cont(true).judgeAndLog (..bin3..); // Temporary object, bin3 will be logged
+
+    return;
+}</code></pre><div></div>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_145088__dle_Usage_of_different_objects">3) Usage of different <a href="145088.htm#_145088__li_Local_object">local objects</a> (including
+						the <a href="145088.htm#_145088__li_System-prepared_object">system-prepared
+							object</a>)</dt>
+					<dd>
+						<p>This does not include the <a href="145088.htm#_145088__li_Temp_object">temporary object</a>.</p>
+						<p>The result of the last different <span class="keyword">TESTSET</span> object will be logged to the
+							multibin. This means, failing tests overwrite the bin of a previously
+							used different local object or system-prepared object.</p><pre class="no-prettify"><code>Virtual void run()
+{
+    TESTSET test<strong>1</strong>, test<strong>2</strong>;
+
+    test<strong>1</strong>.cont(true).judgeAndLog (..bin2..); // Local object 1
+    test<strong>2</strong>.cont(true).judgeAndLog (..bin3..); // Local object 2, bin3 will be logged
+
+    return;
+}</code></pre></dd>
+				
+				
+					<dt class="dlterm" id="_145088__dle_Usage_of_the_same_and_different_objects">4) Multiple usage of different <a href="145088.htm#_145088__li_Local_object">local objects</a>
+						(including the <a href="145088.htm#_145088__li_System-prepared_object">system-prepared object</a>)</dt>
+					<dd><p>This does not include the <a href="145088.htm#_145088__li_Temp_object">temporary object</a>.</p>
+						<p>This rule is a mixture of the first and third rule.</p>
+						<p>The first failing test of the last used different object will be logged to the multibin.
+							This means, failing tests overwrite the bin of a previously used
+							different local object or system-prepared object.</p>
+						<p>For the following code examples the <em>bin3</em> will be logged.</p><pre class="no-prettify"><code>Virtual void run()
+{
+    TESTSET test<strong>1</strong>, test<strong>2</strong>;
+
+    test<strong>1</strong>.cont(true).judgeAndLog (..bin2..); Local object 1
+    test<strong>2</strong>.cont(true).judgeAndLog (..bin3..); Local object 2, bin3 will be logged
+    test<strong>1</strong>.cont(true).judgeAndLog (..bin4..); Local object 1
+    test<strong>2</strong>.cont(true).judgeAndLog (..bin5..); Local object 2
+
+    return;
+}</code></pre></dd>
+				
+			</dl>
+		</section>
+		<h2>Examples</h2><div class="example" id="_145088__e_Example_1"><h3>Using the same TESTSET object</h3><div class="p"><figure class="fignone">
+					
+					<img src="145109.png" alt="Use of TESTSET <name&gt;, TESTSET(), or TestSet with multibin">
+				</figure></div><ul>
+				<li>Using the temporary TESTSET() object in both test suites:<p>Within a testflow,
+						the failing test of the last test suite will be logged to the multibin. In
+						this example the test suite TESTSET_7 multibin log overwrites the one of
+						TESTSET_6.</p></li>
+				<li>Using the system-prepared TestSet object in both test suites:<p>Within a
+						testflow, the failing test of the first test suite (the first instance of
+						the same object) will be logged to the multibin. In this example the test
+						suite TESTSET_6 logs to the multibin.</p></li>
+			</ul></div>
+		<div class="example"><h3>Using the different TESTSET objects</h3><p>The following table gives
+				several examples of code snippets and the logged multibin value.</p><table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_145088__entry__21" colspan="2">Code snippet</th>
+							<th class="colsep-0 rowsep-0" id="_145088__entry__22">Logged bin</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_6</td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__22" rowspan="4"><span class="keyword">bin3</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TESTSET test1;
+
+test1.cont(true).judgeAndLog (..bin2..); // Local object
+
+TestSet.cont(true).judgeAndLog (..<strong>bin3</strong>..); // System-prepared object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_7</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TestSet.cont(true).judgeAndLog (..bin4..); // System-prepared object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__21"><span class="keyword">bin2</span> of the local object in the
+								first test suite is overwritten by <span class="keyword">bin3</span> of the
+								system-prepared object in the same test suite. As the
+								system-prepared object already has set the fail bin
+									<span class="keyword">bin2</span> it is no longer binning in the second
+								test suite.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__22"></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_6</td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__22" rowspan="4"><span class="keyword">bin3</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TESTSET test1;
+
+TestSet.cont(true).judgeAndLog (..bin2..); // System-prepared object
+
+test1.cont(true).judgeAndLog (..<strong>bin3</strong>..); // Local object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_7</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TestSet.cont(true).judgeAndLog (..bin4..); // System-prepared object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__21"><span class="keyword">bin2</span> of the first test suite is
+								overwritten by <span class="keyword">bin3</span> of the local object in the
+								same test suite. The system-prepared object has already binned in
+								the first test suite and is no longer binning in the second test
+								suite.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__22"></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_6</td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__22" rowspan="4"><span class="keyword">bin4</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TESTSET test1;
+
+TestSet.cont(true).judgeAndLog (..bin2..); // System-prepared object
+
+test1.cont(true).judgeAndLog (..bin3..); // Local object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_7</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TESTSET test2;
+
+test2.cont(true).judgeAndLog (..<strong>bin4</strong>..); // Local object
+
+TestSet.cont(true).judgeAndLog (..bin5..); // System-prepared object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__21">The local object in the second test suite overwrites
+								both <span class="keyword">bin2</span> of the system-prepared object and
+									<span class="keyword">bin3</span> of the local object in the first test
+								suite. <span class="keyword">bin5</span> in the second test suite has no
+								effect because the system-prepared object already has binned in the
+								first test suite.</td>
+							<td class="colsep-0 rowsep-1" headers="_145088__entry__22"></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_6</td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__22" rowspan="4"><span class="keyword">bin5</span></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TESTSET test1;
+
+TestSet.cont(true).judgeAndLog (..bin2..); // System-prepared object
+
+test1.cont(true).judgeAndLog (..bin3..); // Local object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21" colspan="2">Test suite TESTSET_7</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">
+								<div></div><pre class="no-prettify"><code>TESTSET test2;
+
+TESTSET().cont(true).judgeAndLog (..bin4..); // Temporary object
+
+test2.cont(true).judgeAndLog (..<strong>bin5</strong>..); // Local object</code></pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21"></td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__21">All previously set bins are overwritten by
+									<span class="keyword">bin5</span> of the last defined and used local
+								object in the second test suite.</td>
+							<td class="colsep-0 rowsep-0" headers="_145088__entry__22"></td>
+						</tr>
+					</tbody></table></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42606.htm" title="Using bins with multisite tests is basically the same as with single-site tests. You can use stop bins (good or bad bins) and otherwise bins, see Bins.">Use of bins with multisite tests</a></div><div><a href="145085.htm" title="Using the multibin you can create different hardware and software bins in a test suite, where each hardware and software bin pair is related to a TESTSET object.">Use of multibins</a></div><div><a href="145089.htm" title="The topic describes the binning rule and the main use cases using SMC_TEST() and its influence on the multibin.">Use of SMC_TEST() with multibin</a></div><div><a href="145090.htm" title="The topic describes the binning rule and the main use cases using test suites with TESTSET and test suites with SMC_TEST() and its influence on the multibin.">Use of TESTSET and SMC_TEST() test suites with multibin</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.4</li><li>SmarTest 7.3.2: Binning behavior for TESTSET() changed.</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  The first failing test of a new different
+									object overwrites the internal multibin variable. The second or
+									later instance of the same object has no influence on the
+									multibin.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 145088</span><script type="text/javascript">var ti='145088';var tt='Use of TESTSET with multibin'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

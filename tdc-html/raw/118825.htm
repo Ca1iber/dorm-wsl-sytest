@@ -1,0 +1,70 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartCalc only works properly, if the executed code is thread safe."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Thread safety</title></head><body id="_118825"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118825</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Thread safety</h1>
+	
+	
+	<div><p>SmartCalc only works properly, if the executed code is thread safe.</p>
+		<div class="p">A piece of code is thread safe, if it functions correctly
+			during simultaneous execution by multiple threads.</div>
+		<p>In particular, it must satisfy the need for multiple threads to access the same shared
+			data, and the need for a shared piece of data to be accessed by only one thread at a
+			given time. One typical root cause for issues with multithreading happens if the code
+			uses static variables. Each call may change the state of the local variables
+			differently. If a function is not thread-safe, the calculations need to be executed
+			serially. Since calculation threads can run hidden, the same test time savings can be
+			achieved.</p>
+		<p>A subroutine is thread-safe, if</p>
+		<ul>
+			<li>it only uses variables from the stack only</li>
+			<li>the execution only depends on the arguments passed in</li>
+			<li>further subroutines called have the same properties only.</li>
+		</ul>
+		<div class="note"><span class="title">Note</span> Your <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method can only
+			contain thread safe APIs like <span class="keyword">SMC_...</span> , <span class="keyword">DSP_...</span>,
+				<span class="keyword">TESTSET</span> and <span class="keyword">Wave</span> class APIs to ensure the
+			SmartCalc framework is working properly.</div>
+		<p>Since the thread safety of the APIs depends sometimes on the used parameters and how the
+			APIs are implemented in the <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> method,
+			we strongly recommend using always the <a href="118825.htm#_118825__s_Automatic_check_for_thread_safe_APIs">Automatic check for thread-safe APIs</a> as described in the next
+			section.</p>
+		<section class="section" id="_118825__s_Automatic_check_for_thread_safe_APIs"><h2>Automatic check for thread-safe APIs</h2>
+			
+			<p>SmarTest automatically checks at run-time whether
+				only thread-safe APIs are used in SMC background threads.</p>
+			<div class="p">An error message is thrown in the <span class="uicontrol">ui_report</span> window when
+				calling an API that is not
+				thread-safe:<div></div><pre class="msgblock">Exception is caught on Site ...:
+Error: 
+An illegal call from a SMC_backgroundProcessing() to a TM API has been detected.
+API called: ...
+A backtrace to identify the problematic API usage is provided below:
+*********** Begin Stack Trace ***********
+/opt/hp93000/soc/prod_com/...
+...
+...
+************ End Stack Trace ************
+The thread is terminated.
+
+Warning: Performing an exception handler: ERROR_EXIT</pre></div>
+			<div class="p">The automatic check for thread safe APIs can be enabled or disabled through
+				environment variable <span class="keyword">SMC_CONCURRENCY_CHECKING</span>. Supported values
+				for the variable are<ul>
+					<li><span class="keyword">"ErrorAndLog"</span>: An illegal call raises an exception
+						resulting in an error as shown in the example above and logs the issue
+						including the stack trace to a file named
+							<span class="filepath">SmartCalcSafeChecker.log</span> in the system log
+						directory <span class="filepath">/opt/hp93000/system/log</span>.</li>
+					<li><span class="keyword">"LogOnly"</span>: Log the issue but otherwise ignore it.</li>
+					<li><span class="keyword">"Off"</span>: Ignore all illegal calls.</li>
+				</ul></div>
+			<p>The check is enabled by default in <span class="keyword">"ErrorAndLog"</span> mode if the
+				environment variable is not defined.</p><div class="caution"><span class="title">CAUTION</span> <p>Using
+					non-thread-safe APIs in a background process can result in loss off data,
+					invalid data, or a crash of the test method.</p><p>Since the automatic check
+					does not require any significant test time, we strongly recommend keeping the
+					automatic check always enabled.</p></div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="21009.htm">API Reference</a></div><div><a href="122907.htm" title="The template class &#34;Wave&#34; provides the complete functionality for digital signal processing including:">Wave</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li><li>SmarTest 7.1.4: The Wave class has been made thread safe.</li><li>SmarTest 7.5.3: New automatic check for thread safe APIs</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118825</span><script type="text/javascript">var ti='118825';var tt='Thread safety'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

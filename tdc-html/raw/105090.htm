@@ -1,0 +1,107 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="With the data logging profile API you can create and handle data logging profile and their rules and properties. It consists of the following classes:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Data logging profile API</title><meta name="keywords" content="datalog profiler"></head><body id="_105090"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105090</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Data logging profile API</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="98296_2.htm" title="This class is the entry point to the profile subsystem. It allows you to scan the profiles of the current device, access profiles, or activate profiles. The method instance() returns a reference to the single instance of class ProfileMgr.">ProfileMgr class</a></li><li><a href="98297_2.htm" title="A profile determines the data logging behavior of SmarTest. You can easily determine this behavior by activating different profiles during test program execution.">Profile class</a></li><li><a href="98298_2.htm" title="A rule describes the assignment of a value to a property under certain conditions.">Rule class</a></li><li><a href="98299_2.htm" title="This class provides access the value of a data logging property in a test method considering the active profile and the current system context.">Property class</a></li><li><a href="98360_2.htm" title="These are some example uses of the data logging profile API.">Data logging profile API examples</a></li></ol></div></nav>
+	
+	
+	<div><p>With the <a href="98046.htm">data logging profile</a> API you can create and handle
+		data logging profile and their rules and properties. It consists of the following
+		classes:</p>
+		<ul>
+			<li><a href="98296.htm" title="This class is the entry point to the profile subsystem. It allows you to scan the profiles of the current device, access profiles, or activate profiles. The method instance() returns a reference to the single instance of class ProfileMgr.">ProfileMgr class</a></li>
+			<li><a href="98297.htm" title="A profile determines the data logging behavior of SmarTest. You can easily determine this behavior by activating different profiles during test program execution.">Profile class</a></li>
+			<li><a href="98298.htm" title="A rule describes the assignment of a value to a property under certain conditions.">Rule class</a></li>
+			<li><a href="98299.htm" title="This class provides access the value of a data logging property in a test method considering the active profile and the current system context.">Property class</a></li>
+		</ul>
+		<p>The classes model the various profile-related objects and their relationships: </p>
+		<ul>
+			<li>The ProfileMgr instance contains zero or more Profile instances. </li>
+			<li>A Profile instance contains zero or more Rule instances. </li>
+			<li>A Rule instance contains a logging definition in the form of a string, such as
+				"*leakage*.*.*.datalog_detail=2"</li>
+		</ul>
+		<section class="section"><h2>ProfileMgr class</h2><p>With the ProfileMgr (profile manager) class, you can
+				create, activate, load, save, and delete data logging profiles. There is just one ProfileMgr
+				object that serves as the repository for all profiles.</p><p>The ProfileMgr interface provides
+				an access method to obtain the singleton instance <code>getInstance()</code> which should be
+				called first:</p><pre class="prettyprint copyable singleline">ProfileMgr* mgr = ProfileMgr::getInstance();</pre><p>The
+				instance can optionally be freed at anytime with a call to
+			<code>freeInstance()</code>.</p></section>
+		<section class="section"><h2>Profile class</h2><p>The Profile class encapsulates the core functionality that
+				is associated with a data logging profile, such as creating, loading, saving, and manipulating
+				rules that are part of the
+				profile</p><p>Once the
+				ProfileMgr instance exists, you can use the Profile class to create and manage profiles. A
+				typical starting point is to create a profile via the following
+				call:</p><pre class="prettyprint copyable singleline">Profile* profile = mgr-&gt;createProfile(WildcardProfileType);</pre><p>Always
+				use the <code>WildcardProfileType</code>. The only other option,
+					<code>ProdSettingProfileType</code>, is used internally by SmarTest for compatibility with
+				the production settings feature.</p><p>Alternatively, a profile can be created and automatically
+				populated when a profile already exists on the file system as
+				follows:</p><pre class="prettyprint copyable singleline">Profile* profile = mgr-&gt;createProfile(&lt;filename&gt;);</pre><p>Once the profile exists, it needs to be populated with rules. This is usually done by simply
+				passing the rule strings directly to the <code>createRule()</code> method. For example, the
+				following three calls together create the content of the default data logging profile
+					<code>datalog_ON.prf</code>:</p><pre class="prettyprint linenums copyable">profile-&gt;createRule("*.*.*.log_events_enable=1");
+profile-&gt;createRule("*.*.*.datalog_level=3"); 
+profile-&gt;createRule("*.*.*.datalog_detail=2"); </pre></section>
+		<section class="section"><h2>Rule class</h2><p>The Rule class is an abstract interface that contains all of
+				the variables and methods necessary to store and manipulate the content of a general property
+				rule, such as the context information, the property name, and its value.</p><p>A rule is a
+				logical part of a profile. A Profile instance contains zero to many rule instances. The rule
+				string passed to the constructor is described in <em><a href="98009.htm" title="A data logging profile consists of a number of rules with the following format:">Data logging profile rule syntax</a>.</em></p><p>An empty
+				rule can be created and then populated by calling the set methods offered by the Rule class one
+				by
+				one:</p><pre class="prettyprint linenums copyable">Rule* rule = profile-&gt;createRule(); 
+rule-&gt;setTestSuite("*leakage*"); 
+rule-&gt;setTestMethod("*"); 
+rule-&gt;setTestName("*"); 
+rule-&gt;setPropName("per_pin_on_fail"); 
+rule-&gt;setPropValue(1);</pre><p>The
+				Rule class also includes corresponding get methods for the categories listed above (for example,
+					<code>getTestSuite()</code>).</p><p>At
+				this point, the profile and its rules are stored in memory, but are not yet visible to other
+				processes via the file system. To save the content of the profile to the file system, call the
+					<code>save</code>
+				method:</p><pre class="prettyprint copyable singleline">profile-&gt;save(&lt;filename&gt;);</pre><p>Ideally, the file name
+				indicates the name of the device and the profiles subdirectory to make sure the profile is
+				visible to SmarTest.</p><p>After a profile
+				has been saved, it can be activated, which means the rules in the profile apply to the next test
+				execution. This is done by calling the <code>activateProfile</code>
+				method:</p><pre class="prettyprint copyable singleline">profileMgr-&gt;activateProfile(profile);</pre><p>Alternatively, the
+				file name can be specified instead of the profile
+			instance:</p><pre class="prettyprint copyable singleline">profileMgr-&gt;activateProfile(&lt;filename&gt;);</pre></section>
+		<section class="section"><h2>Property class</h2><p>The Property class is used by the test methods to
+				determine the value of a particular data logging property within the current execution context.
+				The property instance determines its value by first obtaining the active profile and then by
+				querying the value of the property within that profile.</p><p>There are predefined system
+				properties, and you can define your own user defined properties. For a description of the
+				predefined system properties see <em><a href="98009.htm" title="A data logging profile consists of a number of rules with the following format:">Data logging profile rule syntax</a>.</em></p><p>To query the logging
+				configuration from within a test method, use the Property class. </p><p>The value of a property
+				can be obtained directly using the static <code>value()</code> convenience method of the
+				class:</p><pre class="prettyprint linenums copyable">int datalog_detail = Property::value("datalog_detail"); 
+if (datalog_detail &gt; LOG_PER_PIN_VALUES) 
+ { 
+ } </pre><p>Or
+				you can obtain the value of a property can be obtained by creating a Property object and using
+				it
+				directly:</p><pre class="prettyprint linenums copyable">Property datalog_detail("datalog_detail"); 
+if (datalog_detail &gt; LOG_PER_PIN_VALUES) 
+ { 
+ } </pre><p>Notice
+				that, in the second case, the Property's int cast operator maps to the <code>value()</code>
+				method, allowing you to treat the Property object as an
+				integer.</p><p>The individual rules
+				in a profile can be accessed using the <code>getRule()</code> method. This can also be done
+				using a <code>for</code>
+				loop:</p><pre class="prettyprint linenums copyable">for (int i=0; i&lt;profile-&gt;getRuleCount(); i++) 
+{ 
+Rule* rule = profile-&gt;getRule(i); 
+. 
+. 
+}</pre><p>The
+				rule content of a particular position can be overwritten using a call to <code>setRule(i,
+					rule)</code>;</p><p>Once the Rule object is available, the content of each rule can be
+				modified using the APIs of the <em><a href="98298.htm" title="A rule describes the assignment of a value to a property under certain conditions.">Rule class</a></em>.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98296.htm" title="This class is the entry point to the profile subsystem. It allows you to scan the profiles of the current device, access profiles, or activate profiles. The method instance() returns a reference to the single instance of class ProfileMgr.">ProfileMgr class</a></div><div><a href="98297.htm" title="A profile determines the data logging behavior of SmarTest. You can easily determine this behavior by activating different profiles during test program execution.">Profile class</a></div><div><a href="98298.htm" title="A rule describes the assignment of a value to a property under certain conditions.">Rule class</a></div><div><a href="98299.htm" title="This class provides access the value of a data logging property in a test method considering the active profile and the current system context.">Property class</a></div><div><a href="98046.htm">Data Logging Profiles</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.4.5: Removed stdf_generation flag</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105090</span><script type="text/javascript">var ti='105090';var tt='Data logging profile API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In principle, a successful match loop should leave no traces in the Error Map. But if the match loop starts or ends in the middle of an 8-cycle block, it will have an impact on the recorded results:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Match loop traces in the test results</title><meta name="keywords" content="matchloop"></head><body id="_122526"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122526</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Match loop traces in the test results</h1>
+	
+	
+	<div><p>In principle, a successful match loop should leave no traces in the Error Map. But if
+		the match loop starts or ends in the middle of an 8-cycle block, it will have an impact on the
+		recorded results:</p>
+		<ul>
+			<li>If the match loop starts in the middle of a 8-cycle block, the whole block will be part of
+				the match loop, and consequently the cycles of the surroundig test at the start of the block
+				will <em>not</em> be recorded.</li>
+			<li>If the match loop ends in the middle of a 8-cycle block, the whole block will be part of the
+				surrounding test, and consequently the last match loop cycles at the start of the block
+					<em>will</em> be recorded.</li>
+		</ul>
+		<p>The <span class="keyword">GETV?</span>, <span class="keyword">VCYC?</span>, and <span class="keyword">CYCI?</span> result
+			queries inform the user explicitly or implicitly about this. For more information see <em><a href="96934.htm" title="The sequencers pass waveform DC/DC power units to the data queue in blocks of 8. Each such block is supplemented by the information whether or not it is part of a match loop. This information applies to the block as a whole. The block with which the match loop starts is marked as a match loop block, and therefore all of the 8 cycles that are generated from it are supposed to be match loop cycles, which will not be recorded in the Error Map. The block in which the surrounding test continues after the match loop is marked as part of the surrounding test, and therefore all of its cycles will be recorded in the Error Map.">Adjusting the junctions between match loop and surrounding label</a></em>.</p>
+		<h2>Example</h2><div class="example"><p>The following example, which uses <span class="keyword">GETV?</span>, illustrates both
+				possibilities for a counted match loop. Consider the following sequencer
+				program:</p><pre class="prettyprint linenums copyable">QPG 0,STVA,0,,,(@)
+SQPG 1,STSA,,,,(@)
+SQPG 2,GENV,13,,,(@)
+SQPG 3,MACT,120,,,(@)
+SQPG 4,GENV,10,,,(@)
+SQPG 5,MRPT,8,,,(@)
+SQPG 6,GENV,2,,,(@)
+SQPG 7,STOP,,,,(@)</pre><p>When
+				you execute this program online, and a match is already obtained in the first pass of the match
+				loop, <span class="keyword">GETV?</span> will supply the following
+				answer:</p><pre class="prettyprint linenums copyable">&gt; GETV? 0,200,(CP)
+&lt; GETV 0,8,0,13,GENV,,,(CP)
+&lt; GETV 8,7,23,8,MTCH,,,(CP)
+&lt; GETV 15,2,31,2,GENV,,,(CP)
+&lt; GETV 17,7,-1,-1,BRK,,,(CP)</pre><p>The
+				first two parameters of the <span class="keyword">GETV?</span> replies specify a cycle range, the second
+				two the range of the active vectors from which these cycles have been created. The
+					5<sup>th</sup> parameter specifies the instruction with which the vectors are
+				associated.</p><p>Note that by the first reply, only 8 cycles are recorded for the first
+					<span class="keyword">GENV</span> instruction. The remaining 5 belong to the block in which the match
+				loop starts, and are therefore not recorded. </p><p>The 7 recorded cycles that are assigned to
+				the match loop (by <span class="keyword">MTCH</span>) in the second reply belong to the cycle block in
+				which the match loop ends. They are created from the <span class="keyword">MRPT</span> vectors. The
+					8<sup>th</sup> cycle of this block is the first cycle generated from the vectors of the
+				following <span class="keyword">GENV</span> instruction. Note that <span class="keyword">GETV?</span> will report
+				the impact of the <span class="keyword">MRPT</span> vectors also if the last match loop cycle is also the
+				last cycle of a block; in this case it will return 0 in the second parameter.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122526</span><script type="text/javascript">var ti='122526';var tt='Match loop traces in the test results'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="On a PS1600 system, you can systematically vary the edge positions of the currently active timing set by defining and activating a jitter set. This is done without any CTIM instruction or modification of the base (spec) variables. Different pins can have different jitter definitions within the same jitter set. Jitter injection is only allowed for drive pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Principles of jitter injection</title></head><body id="_116873"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116873</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Principles of jitter injection</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="143667.htm" title="The main component of a jitter setup is the jitter waveform. You can either specify these waveforms for a set of pins directly within the jitter set (with the JSCF command), or you can define them in separate modulation sets, which are independent of any pin.">Two ways of organizing jitter setup data</a></li></ol></div></nav>
+	
+	
+	<div><p><span>On a PS1600 system,</span> you can
+		systematically vary the edge positions of the currently active timing set by defining and
+		activating a jitter set. This is done without any <span class="keyword">CTIM</span> instruction or
+		modification of the base (spec) variables. Different pins can have different jitter definitions
+		within the same jitter set. Jitter injection is only allowed for drive pins. </p>
+		<p>The basic idea is to define a sequence of offsets from the delays that are specified in the
+			primary timing set. The hardware then successively activates each of these offsets for the same
+			period of time. </p>
+		<p>You can either define the jitter modulation waveform (the offset sequence) manually, or use a
+			predefined waveform. The distance between two offset changes, which is always the same in one
+			waveform, can either be specified explicitly by a period factor (only for user defined
+			sequences), or implicitly by defining the length of the total jitter period (mainly for
+			predefined waveforms). </p>
+		<p>For predefined waveforms, you can also define the amplitude.</p>
+		<p>Processing of the offset sequence is iterated in a loop which can be configured by the user.
+			The loop can either run continuously across functional tests, or it can be stopped after each
+			functional test and be restarted with the next test. A third, auxiliary, option is to suppress
+			execution of the jitter loop. </p>
+		
+		<p>This global loop configuration can
+			be locally overruled with the <span class="keyword">JTIN</span> sequencer instruction, which serves to
+			start and stop jitter injection from within a pattern. This allows you, for example, to inject
+			jitter selectively even when it is globally suppressed. <span class="keyword">JTIN</span> is only effective
+			in the functional test in which it is issued. At the start of the next test, the global
+			configuration will be reactivated.</p>
+		
+		
+		<p>Jitter injection is configured in a <em>jitter set</em>, which is defined with the <a href="117922.htm" title="JSDF creates a jitter set by defining a unique name for it. Up to 128 jitter sets can be stored in the hardware. If you exceed this number by selecting a jitter set that is not yet stored in the hardware, the new set will replace the set that was downloaded first.">JSDF</a> and <a href="116890.htm" title="This command serves to define and query the jitter injection for the specified pins. The specified jitter set must have been defined with JSDF. For more information see Principles of jitter injection.">JSCF</a> commands. Jitter injection is
+			activated and stopped by defining a <em>primary</em> jitter set or canceling the current primary
+			set, both with <a href="117945.htm" title="JSPR defines the primary jitter set. Note that">JSPR</a>. If no primary jitter set exists, the
+				<span class="keyword">JTIN</span> instruction is ignored.</p>
+		
+		<p>The jitter setup data can be organized in two different ways, which are not completely
+			equivalent. For more information see <a href="143667.htm" title="The main component of a jitter setup is the jitter waveform. You can either specify these waveforms for a set of pins directly within the jitter set (with the JSCF command), or you can define them in separate modulation sets, which are independent of any pin.">Two ways of organizing jitter setup data</a>. </p>
+		
+		<section class="section"><h2>Jitter injection for Smart Scale, STD and STDDIFF</h2><ul>
+				<li>Start and stop of jitter injection can be locally controlled from within the pattern with
+					the <span class="keyword">JTIN</span> instruction.</li>
+				<li>There are 4 predefined waveforms, <span class="keyword">SINUSOIDAL</span> (or <span class="keyword">SINE</span>,
+					depending on the setup format), <span class="keyword">RANDOM</span>, <span class="keyword">RECTANGLE</span>, and
+						<span class="keyword">TRIANGLE</span>.</li>
+				<li>The jitter period and period factor depend on the clock resolution of the primary timing.
+					There is a query <span class="keyword">JSWF?</span> which allows you to check this dependency.</li>
+				<li>The specified offset sequence of a user defined waveform defines the actual delays, and
+					therefore the peak-to-peak value of the waveform is in this case already determined by the
+					specified list.</li>
+			</ul><p>For details see the descriptions of the <span class="keyword">JSCF</span> command or the
+					<span class="keyword">JITTER_INJECTION_PINS</span> API.</p></section>
+		
+		<section class="section"><h2>Related Test Method APIs</h2><p>Jitter can be programmed with the following
+				APIs:</p><p><a href="143670.htm" title="The MODULATION_SET_TIMING class defines a timing modulation waveform. In order to be applicable to a set of pins, this waveform must be linked to a JITTER_INJECTION_SET object.">MODULATION_SET_TIMING</a></p><p><a href="114965.htm" title="The JITTER_INJECTION class holds the setup information of a jitter injection set. It is used to set up the jitter modulator within Smart Scale cards.">JITTER_INJECTION_SET</a></p><p><a href="114966.htm" title="The JITTER_INJECTION_PINS class holds the jitter injection properties of a list of pins. It provides methods to modify the jitter properties and query the settings. It is a sub-class of the JITTER_INJECTION_SET class. You cannot directly create an object with it.">JITTER_INJECTION_PINS</a></p></section>
+		<h2>Example</h2><div class="example"><div class="p"><figure class="fignone">
+					
+					<img src="117826.png" alt="Predefined jitter modulation waveforms">
+				</figure></div><p>These are three of the four predefined jitter modulation waveforms that are available on a Smart
+				Scale system.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99880.htm" title="The vector sequencer has its own set of instructions which you use to control the execution of your test. The default instruction is GENV (GENerateVectors) for every vector, but the system does not display it and you do not have to enter it.">Sequencer instructions</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li><li>SmarTest 7.3.1:  User defined jitter waveforms are now supported for FASTDIFF pins.
+				</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116873</span><script type="text/javascript">var ti='116873';var tt='Principles of jitter injection'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

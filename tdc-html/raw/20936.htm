@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section explains the on-occurrence error handling approach."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to handle the fatal errors on demand</title></head><body id="_20936"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 20936</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to handle the fatal errors on demand</h1>
+	
+	
+	<div><p>This section explains the on-occurrence error handling approach.</p>
+		<p>Assume that you have created your test program without prim error handling and run it, but the
+			program often aborts by a fatal error in a certain API. In a case such as this, you can use the
+			C++ exception mechanisms that uses the <kbd class="userinput">try</kbd> and
+				<kbd class="userinput">catch</kbd> conversion shown below:</p>
+		<div></div><pre class="prettyprint linenums copyable">try {
+// API(s) that an error occurs
+}
+
+catch (Error &amp; errobj){
+// Error Handler Program
+}</pre><div></div>
+		<ul>
+			<li><kbd class="userinput">try</kbd>: <p>This block contains the code monitored for API fatal errors.
+					It automatically throws the detected exception (error) to the catch block if a fatal error
+					occurs in the API. </p>
+				<p>All exceptions derived from the Test Method API always use a class object of the special
+					class <kbd class="userinput">Error</kbd>.</p></li>
+			<li><kbd class="userinput">catch</kbd>: <p>This block contains your error handler program for the API
+					to be located in the <kbd class="userinput">try</kbd> block. This block must follow immediately after
+					the <kbd class="userinput">try</kbd> block. </p>
+				<p>The parameter of the <kbd class="userinput">catch</kbd> function specifies the exception type
+					derived from APIs monitored within the <kbd class="userinput">try</kbd> block. For the parameter, set
+					an object of the special class <kbd class="userinput">Error</kbd>. </p></li>
+		</ul>
+		<p>With the <kbd class="userinput">try-catch</kbd> convention, if an API fatal error occurs in the
+				<kbd class="userinput">try</kbd> block, program execution immediately jumps to the beginning of the
+				<kbd class="userinput">catch</kbd> block. Then the error handler program in the
+				<kbd class="userinput">catch</kbd> block will be executed, and the program execution goes to the next
+			statement of the <kbd class="userinput">catch</kbd> block. Therefore, the current program execution can
+			be continued even if an error occurs in the API.</p>
+		<p>If the <kbd class="userinput">try</kbd> block has multiple APIs and program statements, some APIs and
+			program statements may be skipped depending on the location of the API where the fatal error
+			occurred. For example, if a fatal error occurs at the first API, the program execution jumps to
+			the <kbd class="userinput">catch</kbd> block, skipping the rest of the <kbd class="userinput">try</kbd>
+			block. Hence, pay attention to this when you use this error handling approach.</p>
+		<p>You can also use the <a href="29309.htm" title="This API is used mainly for error handling purposes.">ERROR_EXIT</a> API to terminate the current testflow or program
+			execution in the <kbd class="userinput">catch</kbd> block. At this time, you can select the desired
+			error handler type similar to that of the <kbd class="userinput">SET_EXCEPTION_HANDLER</kbd> API.</p>
+		<p>Further, you can use the <a href="29786.htm" title="This API pauses the current program execution, then opens a dialog box for asking whether to continue the current test method program execution or to terminate the current testflow execution immediately.">STOP_INVOCATION</a> API in the <kbd class="userinput">catch</kbd> block.
+			The <kbd class="userinput">STOP_INVOCATION</kbd> API pops up a dialog box. You can select whether to
+			continue or terminate the test method program (the testflow execution is terminated) in the
+			dialog box manually.</p>
+		<p>For details of these APIs, see the <a href="21009.htm">API Reference</a>.</p>
+		<p>The following shows a typical example of the <kbd class="userinput">try-catch</kbd> convention.</p>
+		<div></div><pre class="prettyprint linenums copyable">try 
+{
+    // Disconnect all pins manually 
+    FW_TASK("SQST OFF;CNCT OFF,(@)\n");
+    FW_TASK("CHRS OFF\n");
+    FW_TASK("ACMD \"CNCT\",\"OFF\",(@)\n");
+    FW_TASK("FLSH MUX\n");
+    FW_TASK("WSDN\n");
+    FW_TASK("PSST OFF\n");
+    FW_TASK("RLYC IDLE,OFF,(@)\n");
+}
+catch(Error &amp;error)
+{
+    cout &lt;&lt; "Error occurred in FW_TASK!" &lt;&lt; endl;
+    cout &lt;&lt; "Retry the current testsuite!" &lt;&lt; endl;
+    ERROR_EXIT(TM::RETRY);
+}</pre><div></div>
+		<p>In this example, if a fatal error occurs in the <kbd class="userinput">FW_TASK</kbd> APIs, program
+			execution will jump to the beginning of the <kbd class="userinput">catch</kbd> block. Then, two
+			messages are displayed in the report window. The <kbd class="userinput">ERROR_EXIT</kbd> API sets to
+			retry the current testsuite execution. Hence, program execution returns to the beginning of this
+			program, and this program will be executed again immediately.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 20936</span><script type="text/javascript">var ti='20936';var tt='How to handle the fatal errors on demand'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

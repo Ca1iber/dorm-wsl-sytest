@@ -1,0 +1,67 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When the test system resources are disconnected from the DUT and the tester is set to the &#34;disconnect&#34; state, a standard disconnect sequence is used within SmarTest by default."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Standard disconnect sequence</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_113093"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113093</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Standard disconnect sequence</h1>
+	
+	
+	<div><p>When the test system resources are disconnected from the DUT and the tester is set to
+		the "disconnect" state, a standard disconnect sequence is used within SmarTest by
+		default.</p>
+		<section class="section">
+			<p>By default, SmarTest executes a standard disconnect sequence, performed in the
+				following order. SmarTest always performs this sequence when starting.</p>
+			<ol>
+				<li>Setting the sequencer to high impedance state.</li>
+				<li>Disconnecting the analog modules from the pogo pins.</li>
+				<li>Powering down the device power supplies in the reverse order to that entered in
+					the level setup.</li>
+				<li>Disconnecting the digital channels from the pogo pins.</li>
+			</ol>
+			<p>When executing the fail branch of run and branch test-suites, SmarTest automatically changes
+				the active sites so that only the failing sites of the Run and Branch test suites
+				are active. For a stop bin, the standard disconnect sequence is applied only for the
+				non-shared pins if not all sites have been binned. For the final disconnect with all
+				sites binned, the standard disconnect sequence is applied for all pins and all
+				remaining passing sites.</p>
+		</section>
+		<section class="section">The standard disconnect sequence works for single-site and multi-site testing for
+			most standard devices, except the following cases:<ul>
+				<li>If the test suites within a test flow require a running clock or if the control
+					pin of a device has to be kept at a certain state.</li>
+				<li>If you need to disconnect different utility lines among the test suites within a
+					test flow.</li>
+				<li>If you need to disconnect power pins separately.</li>
+			</ul>For these exceptions, SmarTest provides a number of special methods, including
+			using the <span class="keyword">overon</span> flags (the <a href="342556.htm#_342556__row_global_overon">global_overon</a> test flow flag and the bin <a href="70340.htm" title="Setting the Overon flag to ON allows you to continue the test flow after a stop bin was reached. The Overon flag can determine how summary statistics are calculated in some of the STDF record fields. The Overon flag is a select button, accessed from either the Testflow Flags dialog or the Bin Dialog window, that switches the Overon flag on or off.">Overon flag</a>), the <a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a>, the <a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">User-defined disconnect sequence</a> and the <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a>.</section>
+		<section class="section"><h2>Using the standard disconnect sequence</h2>
+			
+			<p>The standard disconnect sequence can be called through the <a href="28770.htm" title="The DISCONNECT API disconnects the test system resources from the DUT and sets the tester to the &#34;disconnect&#34; state unless they are already disconnected. If the test resources are already disconnected, this API performs no action. This API works the same as the disconnect testmethod or Disconnect item of the main menu, and performs the following sequences:">DISCONNECT</a> API
+				in a test method, or by clicking the <a href="92447.htm" title="The connect and disconnect buttons are part of the short cut bar of the SmarTest Eclipse window. The connect and disconnect buttons appear in all predefined perspectives.">Disconnect button</a>
+				in the SmarTest Eclipse window.</p>
+			<div class="note"><span class="title">Note</span> On startup SmarTest always performs a standard disconnect.</div>
+			<p>The content of the standard disconnect sequence is shown below. For information on
+				how to inspect the sequence by the <span class="keyword">MCDLog</span> refer to <a href="10408.htm" title="The hpt utility provides a trace function that records the firmware commands issued by the user interface of SmarTest as well as the replies to these commands.">Using the Trace Function</a>.</p>
+			<div></div><pre class="prettyprint linenums copyable"><a href="98564.htm" title="The DLSO command activates level set 0 for the channels of those sites that have the setup focus (for level set 0, see Controlling the high-Z behavior of digital pins with level set 0). By default, this means that they are switched to high-impedance.">DLSO</a> (@)
+<a href="98503.htm" title="The CHRS command serves to control the behavior of SmarTest with respect to inconsistent routing requests. The CHRS? query returns the current setting.">CHRS</a> OFF
+<a href="99061.htm" title="The following commands for utility lines do not immediately set the hardware. Instead they are buffered in the MCD (Message Concentrator and Distributor).">FLSH</a> MUX
+<a href="99082.htm" title="The WSDN (Wait Setup DoNe) command waits until downloading the settings in the readiness analog set and routing settings triggered by the FLSH command are completed.">WSDN</a>
+<a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST</a> OFF
+<a href="99085.htm" title="Depending on the card type, the CNCT (CoNneCT/disCoNneCT) command connects or disconnects all output pins of the specified module.">CNCT</a> OFF,(@)
+<a href="10738.htm" title="A binding instance is a controlling object which represents a set of wireless resources and the ordered relationship between them. Runtime changes are usually made to the bindings that represent resources, and not to the resources themselves.">BCMD</a> "",ACTION,"Update",
+<a href="98710.htm" title="The PSST (Power Supply STatus) command allows you to switch the DPS on and off for selected pins. The PSST? query reads its current state.">PSST</a> OFF
+<a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> IDLE,OFF,(@)</pre><div></div>
+			<p>The "@" in the sequence means that all pins are accessed. If there are shared pins
+				between multi-sites, SmarTest is able to differentiate shared pins (using
+				"@SHARED@") and non-shared pins (using "@NONSHARED@") in the standard disconnect
+				sequence. During test flow execution, after the bad device goes into bad bin, the
+				related non-shared pins on the failing site will be disconnected, while the shared
+				pins among all the sites keep connected until the end of test flow.</p>
+		</section>
+		<h2>Example</h2><div class="example"><p>In a 2-site test flow, site 1 fails and site 2 passes. In the figure below, site
+				1 is in focus.</p><p>The <span class="keyword">MCDLog</span> file for disconnecting each site
+				after binning will look like the following:</p><div class="p"><figure class="fignone">
+					<img src="113199.png" alt="Default disconnect sequence">
+				</figure></div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="116387.htm" title="SmarTest uses the disconnect sequence to separate the test system resource from the DUT. This also sets the test system to the &#34;disconnect&#34; state independent of the previous test system state.">Comparing the disconnect methods</a></div><div><a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a></div><div><a href="113256.htm" title="The behavior of the Standard disconnect sequence can be changed by providing a user-defined disconnect sequence.">User-defined disconnect sequence</a></div><div><a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">Description and analysis of the pass or fail site dependency</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113093</span><script type="text/javascript">var ti='113093';var tt='Standard disconnect sequence'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Declares the beginning of a semi-parallel testing block which sets up and executes tests in the pattern‑based mode."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>RDI_SEMI_PARALLEL_TEST_BEGIN()</title></head><body id="_151529"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 151529</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">RDI_SEMI_PARALLEL_TEST_BEGIN()</h1>
+	
+	
+	<div><p>Declares the beginning of a semi-parallel testing block which sets up and executes tests
+		in the pattern‑based mode.</p>
+		<section class="section"><p>It must be used in pair with <a href="151530.htm" title="Declares the end of the semi-parallel testing block.">RDI_SEMI_PARALLEL_TEST_END()</a>. The semi-parallel testing block must be in
+				an RDI_BEGIN and RDI_END block.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">RDI_SEMI_PARALLEL_TEST_BEGIN(SEMI_PARALLEL_CONFIG &amp;semiParallelConfig);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_151529__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_151529__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_151529__entry__1"><p><span class="keyword">semiParallelConfig</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_151529__entry__2"><p>The semi-parallel group to be executed in the semi-parallel testing block.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">SEMI_PARALLEL_CONFIG semiparallel;
+semiparallel.group(1).add(1).add(3);
+semiparallel.group(2).add(2).add(4);
+
+RDI_INIT( );
+
+ON_FIRST_INVOCATION_BEGIN();
+    CONNECT();
+    rdi.dc().pin("PVI8").vForce(2).execute();
+
+  RDI_BEGIN();
+    rdi.func().label("TestMode_Enable").execute();
+    rdi.wait(1 ms);
+
+    RDI_SEMI_PARALLEL_TEST_BEGIN(semiparallel);
+      if (GET_CURRENT_SEMI_PARALLEL_GROUP_NUMBER() == 1)
+        rdi.pmux().pin("010102").selectOn().execute();
+    else        
+        rdi.pmux().pin("010101").selectOn().execute();
+
+    rdi.dc("semi").pin("PVI8").vMeas().execute();
+    RDI_SEMI_PARALLEL_TEST_END();
+
+    rdi.func().label("TestMode_disable").execute();
+  RDI_END();
+
+  rdi.dc().pin("PVI8").disconnect().execute();
+
+ON_FIRST_INVOCATION_END();
+rdi.id("semi").getValue();</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.4.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 151529</span><script type="text/javascript">var ti='151529';var tt='RDI_SEMI_PARALLEL_TEST_BEGIN()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

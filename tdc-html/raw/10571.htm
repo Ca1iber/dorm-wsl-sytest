@@ -1,0 +1,53 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SVEC labels cannot be called directly. However, you can call a SVEC label not only from a MAIN label, but also from another SVEC label. These calls can be nested seven levels deep."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SVEC subroutines</title></head><body id="_10571"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 10571</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SVEC subroutines</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="91185.htm" title="There are three instructions that jump to a subroutine or return from a subroutine conditionally.">Calculating the buffer cycles for JMPE and RETC (and match loops)</a></li></ol></div></nav>
+	
+	
+	<div><p><span class="keyword">SVEC</span> labels cannot be called directly. However, you can call a
+			<span class="keyword">SVEC</span> label not only from a <span class="keyword">MAIN</span> label, but also from
+		another <span class="keyword">SVEC</span> label. These calls can be nested seven levels deep.</p>
+		<p><span class="keyword">SVEC</span> labels are called with the <span class="keyword">JSUB,</span> the
+				<span class="keyword">JMPE</span> or the <span class="keyword">COGO</span> instruction. The <span class="keyword">JSUB</span>
+			instruction calls the subroutine unconditionally. The <span class="keyword">JMPE</span> and the
+				<span class="keyword">COGO</span> instructions call the subroutine in dependence on whether an internal
+			error flag is set. This flag indicates that at least one cycle has failed for at least one pin.
+			Note that the software needs a certain time to propagate a failure to the flag (see <a href="91185.htm" title="There are three instructions that jump to a subroutine or return from a subroutine conditionally.">Calculating the buffer vectors for JMPE and RETC (and match loops)</a>). This
+			is the same error flag that is also used for new style (counted) match loops, see <a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">Match loops</a>.</p>
+		<p><span class="keyword">COGO</span> is a variant of <span class="keyword">JMPE</span>. The basic difference is that
+			the return address for a <span class="keyword">COGO</span> call is not pushed onto the call stack.
+			Therefore a subroutine called with <span class="keyword">COGO</span> will not return to the calling label,
+			but to the lowest label in the call hierarchy that did not use <span class="keyword">COGO</span> for its
+			subroutine call.</p>
+		<p>Every <span class="keyword">SVEC</span> label must start with an <span class="keyword">STVA</span> instruction. The
+			end of a <span class="keyword">SVEC</span> label is marked by the <span class="keyword">RSUB</span> instruction. The
+			return to the calling label can be unconditional, or it can be made to depend on the same error
+			flag that controls the conditional subroutine call with <span class="keyword">JMPE</span>. The conditional
+			return is defined with the <span class="keyword">RETC</span> instruction. You can choose whether control is
+			returned to the calling routine if the flag is set or if it is not set. The same subroutine can
+			contain more than one <span class="keyword">RETC</span> instruction.</p>
+		<p>Note that, in contrast to <span class="keyword">MAIN</span> labels, the primary timing and level sets are
+				<em>not</em> reloaded at the start of a <span class="keyword">SVEC</span> subroutine. The subroutine takes
+			over the level and timing setup from the calling routine.</p>
+		<h2>Example</h2><div class="example"><p>The following listing shows a <span class="keyword">SVEC</span> subroutine that is called from
+				two <span class="keyword">MAIN</span>
+				labels:</p><pre class="prettyprint linenums copyable">SQPG 0,STVA,408,,,(@)
+SQPG 1,STSA,,,,(@)
+SQPG 2,GENV,6,,,(@)
+SQPG 3,JSUB,,"sub",,(@)
+SQPG 4,STOP,,,,(@)
+SQPG 5,STVA,416,,,(@)
+SQPG 6,STSA,,,,(@)
+SQPG 7,GENV,4,,,(@)
+SQPG 8,JSUB,,"sub",,(@)
+SQPG 9,STOP,,,,(@)
+SQPG 10,STVA,424,,,(@)
+SQPG 11,GENV,400,,,(@)
+SQPG 12,RSUB,,,,(@)</pre><p>The
+				definitions of the three labels are as
+			follows:</p><pre class="prettyprint linenums copyable">SQLB "test1",MAIN,0,4,"table1"
+SQLB "test2",MAIN,5,9,"table1"
+SQLB "sub",SVEC,10,12,"table1"</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="10562.htm" title="An endless loop is started with the LBGN (Loop BeGiN) instruction. The end of the loop section is marked by the LEND (Loop END) instruction.">Endless loops</a></div><div><a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">Match loops</a></div><div><a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST, SQST? - (SeQuencer STate)</a></div><div><a href="98749.htm" title="The SQPG command writes a sequencer instruction into an existing command line of the sequencer area for the specified port. The line is referenced by its command number.">SQPG, SQPG? - (SeQuencer ProGramming)</a></div><div><a href="99511.htm" title="To create a new pattern you can use the Pattern Explorer.">Creating a pattern</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 10571</span><script type="text/javascript">var ti='10571';var tt='SVEC subroutines'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

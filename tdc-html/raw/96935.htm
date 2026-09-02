@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Counted match loops differ from timed match loops in the following respects:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Counted match loops</title><meta name="keywords" content="matchloop"></head><body id="_96935"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 96935</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Counted match loops</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="96934.htm" title="The sequencers pass waveform DC/DC power units to the data queue in blocks of 8. Each such block is supplemented by the information whether or not it is part of a match loop. This information applies to the block as a whole. The block with which the match loop starts is marked as a match loop block, and therefore all of the 8 cycles that are generated from it are supposed to be match loop cycles, which will not be recorded in the Error Map. The block in which the surrounding test continues after the match loop is marked as part of the surrounding test, and therefore all of its cycles will be recorded in the Error Map.">Adjusting the junctions between match loop and surrounding label</a></li></ol></div></nav>
+	
+	
+	<div><p>Counted match loops differ from timed match loops in the following
+		respects:</p>
+		<ul>
+			<li>You can specify the maximum number of unsuccessful repetitions. If this number is
+				exceeded, the match loop is terminated, and the surrounding test fails, unless you
+				explicitly specify the test to continue.</li>
+			<li>For the evaluation of the error flag, you must specify the dummy vector(s) without compare
+				actions explicitly:<ul>
+					<li>Minimum one dummy vector must be specified.</li>
+					<li>You do not have to adjust the number of dummy vectors to the exact time
+						required for setting the error flag; the system repeats the specified dummy
+						vector(s) as often as required.</li>
+					<li>It will often suffice to specify one single dummy vector.</li>
+					<li>The number of repetitions depends on the number of defined dummy vectors,
+						the pattern cycle time, the pin configuration and other parameters.</li>
+					<li>The total number of executed dummy vectors for the required delay time is
+						typically in the range from some hundred to more than 1000 vectors.</li>
+				</ul></li>
+		</ul>
+		<p>The following figure shows the operation mode of the counted match loop:</p>
+		<div class="p"><figure class="fignone" id="_96935__d1455e22">
+				
+				<img src="10564.png" alt="Counted match loop">
+			</figure></div>
+		<p>There are two loops, the main loop and the wait loop. The body of the main loop
+			executes the compare vectors once, and then the wait loop.</p>
+		<p>A counted match loop is started with the <span class="keyword">MACT</span> instruction. This
+			instruction specifies the maximum number of unsuccessful repetitions for the main loop. The
+				<span class="keyword">CONTINUE</span> option specifies to carry on with the test even if all repetitions
+			of the match loop failed. Then the compare vectors must be specified with a
+				<span class="keyword">GENV</span> or <span class="keyword">RPTV</span> instruction (an exception is when using <a href="346553.htm" title="Match loops can be nested.">Nested match loops</a>, in which case you may insert the <span class="keyword">MACT</span> or
+				<span class="keyword">MRPT</span> instruction here). These must be followed by the <span class="keyword">MRPT</span>
+			instruction, which defines the number of dummy vectors to be repeated in the wait loop. You can
+			specify more than one dummy vector if the total number of cycles within the match loop must be a
+			multiple of a number greater than&nbsp;1.</p>
+		<p>There are two subsidiary queries that return information about the last executed match
+			loop:</p>
+		<ul>
+			<li><span class="keyword">CHFA?</span> - This query returns the result of the last match loop
+				cycle for selected pins.</li>
+			<li><span class="keyword">MCNT?</span> - This query returns the number of match loop passes that
+				were needed to satisfy the match condition.</li>
+		</ul>
+		<p>If you want the number of dummy vectors in a counted match loop to be fixed and known,
+			run the <span class="keyword">EPRC?</span> query with a block size of 1. Then the number of
+			repetitions returned is the number of dummy vectors that you must define for the wait
+			loop. For more information see <em><a href="91185.htm" title="There are three instructions that jump to a subroutine or return from a subroutine conditionally.">Calculating the buffer vectors
+					for JMPE and RETC (and match loops)</a></em>.</p>
+		<div class="note"><span class="title">Note</span> If a pattern contains more than one match loop, a full reconstruction of
+			the test results is only possible if the number of cycles created by the loops is always
+			a multiple of 8. This is required for the cycles generated within the match loop body as
+			well as for the cycles generated with <span class="keyword">MRPT</span>. For
+				<span class="keyword">MRPT</span> this can be ensured by specifying 8 vectors for this
+			instruction.</div>
+		<div class="p">For the <a href="351414.htm" title="The Pin Scale 5000 (PS5000) is the digital base card of EXA Scale. It can be used in EXA Scale test systems only.">Pin Scale 5000 card</a>, the pattern containing the match loop must
+			meet the following criteria:<ul>
+				<li>The start position of the match loop must be a multiple of 8 cycles.</li>
+				<li>The number of cycles within the match loop must be a multiple of 8.</li>
+				<li>There must not be any instructions to generate break cycles within the match loop.</li>
+				<li>There must not be a conditional branch instruction within the match loop.</li>
+			</ul>You can execute patterns that do not meet these conditions by setting <a href="49363.htm#_49363___Toc73527999">check_exa_scale_seq_restrictions</a> in the <a href="49363.htm" title="The .technology file defines the source directory for technology-related settings, some device specific system parameters and some maximum values for certain system parameters.">.technology file</a> to <span class="keyword">off</span>. However, the result for each cycle after the
+			match loop may not be acquired correctly.</div>
+		<p>Match loops are subject to certain restrictions in the following contexts:</p>
+		<ul>
+			<li>Multi-port setup: See <a href="104675.htm" title="If two ports are to be members of the same sequencing group, the pattern sequences that are associated with them in a multi-port burst must fulfill certain requirements.">Sequencing groups and pattern structure</a>.</li>
+			<li>Multi-site setup: See <a href="10665.htm" title="When you execute a multisite test in parallel, you can either start all sites simultaneously, or you can start them one after the other successively, each with a small offset. This is controlled by the setting of the Site Match test suite flag. If this flag is set to OFF, all sites are started simultaneously; if it set to ON, they are started successively.">Controlling the site match function</a>.</li>
+			<li>SmartLoop™ setup: See <a href="118400.htm" title="SmartLoop tests are a special kind of loopback tests that are provided by Smart Scale systems. In a loopback test, the received signals of one or more output pins are routed to their corresponding input pins, and are then used as drive data for these input pins. You can inject jitter into the resulting drive signals.">Executing a pattern‑based SmartLoop test</a>.</li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>The following is a simple example of a counted match loop:</p><pre class="prettyprint linenums copyable">SQPG 3,MACT,256,CONTINUE,,(@)
+SQPG 4,GENV,5,,,(@)
+SQPG 5,MRPT,5,,,(@)</pre><p>Note that only the <span class="keyword">GENV</span> or <span class="keyword">RPTV</span> instruction is
+			allowed immediately before the <span class="keyword">MACT</span> instruction. <span class="keyword">CONTINUE</span>,
+			which is optional, tells SmarTest to continue the surrounding test even if the match loop
+			failed.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="122701.htm">Inserting counted match loops</a></div><div><a href="123993.htm">X-Mode Pattern Synchronization to Free Running Bit Streams</a></div><div><a href="351234.htm" title="Multi port match loops can be set up using the EPRC delay. EPRC (Error Propagation Repetition Count) means how often a block of buffer vectors must be repeated before execution of a conditional jump. The vectors within this block are called EPRC vectors in this use case.">How to set up a multiport EPRC match loop</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.4:  Option for MACT instruction: CONTINUE</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 96935</span><script type="text/javascript">var ti='96935';var tt='Counted match loops'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

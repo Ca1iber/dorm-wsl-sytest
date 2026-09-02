@@ -1,0 +1,123 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC event example: Generating a sine wave via waveform definition</title><meta name="keywords" content="wave form waveform table"></head><body id="_117734"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 117734</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC event example: Generating a sine wave via waveform definition</h1>
+	
+	<div>
+		<div></div><pre class="prettyprint linenums copyable">class GenerateSineWave: public testmethod::TestMethod {
+
+protected:
+    string  patternName;
+    string  pinNames;
+    int     testpointVectorDistance;
+    double  startAngleRadian;
+    double  baseValue;
+    int     numberOfValues;
+    int     site;
+
+protected:
+    /**
+     *Initialize the parameter interface to the testflow.
+     *This method is called just once after a testsuite is created.
+     *
+     *Note: Test Method API should not be used in this method.
+     */
+    virtual void initialize()
+    {
+        //Add your initialization code here
+        addParameter("patternName",
+                     "string",
+                     &amp;patternName,
+                     testmethod::TM_PARAMETER_INPUT);
+        addParameter("pinNames",
+                     "PinString",
+                     &amp;pinNames,
+                     testmethod::TM_PARAMETER_INPUT);
+        addParameter("testpointVectorDistance",
+                     "int",
+                     &amp;testpointVectorDistance,
+                     testmethod::TM_PARAMETER_INPUT);
+        addParameter("startAngleRadian",
+                     "double",
+                     &amp;startAngleRadian,
+                     testmethod::TM_PARAMETER_INPUT);
+        addParameter("baseValue",
+                     "double",
+                     &amp;baseValue,
+                     testmethod::TM_PARAMETER_INPUT);
+        addParameter("numberOfValues",
+                     "int",
+                     &amp;numberOfValues,
+                     testmethod::TM_PARAMETER_INPUT);
+        addParameter("site",
+                     "int",
+                     &amp;site,
+                     testmethod::TM_PARAMETER_INPUT);
+    }
+
+    /**
+     *This test is invoked per site.
+     */
+    virtual void run()
+    {
+        //Add your test code here.
+        PATTERN_CONTROLLER patController;
+        PATTERN &amp; pattern(patController.label(patternName));
+
+        ARRAY_I oldSites;
+        GET_TEST_FOCUS(oldSites); // Get current setup-focused sites
+        SET_TEST_FOCUS(site);     // Select setup site
+
+        VEC_EVENTS &amp; events(pattern.vecEvents(pinNames));
+
+        ANALOG_WAVEFORM sineWave("sineWave");
+        sineWave.definition(TM::SINE)
+                .periods(1)
+                .phase(startAngleRadian/(M_PI*2) * 360)
+                .samples(numberOfValues)
+                .offset(baseValue)
+                .amplitude(1);
+
+        EVENT_WAVEFORM_VF sineWaveEvent("sineWave");
+        sineWaveEvent.vForce(sineWave);
+        sineWaveEvent.sampleVectorDistance(testpointVectorDistance);
+
+        events.clear()
+              .insert(testpointVectorDistance, sineWaveEvent);
+
+        // Event changes on any pattern may be immediately applied or delayed
+        // until next pattern execution. Here we do an immediate setup only
+        // of the modified pins. For downloading all defined events on all patterns
+        // use patController.setup().
+        events.setup();
+
+        SET_TEST_FOCUS(oldSites); // Restore setup sites
+
+        return;
+    }
+
+    /**
+     *This function will be invoked once the specified parameter's value is changed.
+     *@param parameterIdentifier
+     *
+     *Note: Test Method API should not be used in this method.
+     */
+    virtual void postParameterChange(const string&amp; parameterIdentifier)
+    {
+        //Add your code
+        return;
+      }
+
+    /**
+     *This function will be invoked once the Select Test Method Dialog is opened.
+     */
+    virtual const string getComment() const 
+    {
+        string comment = " please add your comment for this method.";
+        return comment;
+    }
+};
+REGISTER_TESTMETHOD("GenerateSineWave", GenerateSineWave);</pre><div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="78536.htm" title="The PATTERN class is a subsidiary data container that holds elements of individual subpatterns.">PATTERN</a></div><div><a href="71357.htm" title="The PATTERN_CONTROLLER API serves to execute DC Scale DC and PPMU BADC tests from within a pattern (for conceptual information see Executing PPMU tests from a pattern). It can be used to execute DC tests in parallel with digital test for different ports, and also to alternate (switch between) digital and DC tests in one pattern run, without the need to stop and start the sequencer before the DC test. The API:">PATTERN_CONTROLLER</a></div><div><a href="103395.htm" title="The ANALOG_WAVEFORM API accesses the data container holding the contents of the waveform object.">ANALOG_WAVEFORM</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 117734</span><script type="text/javascript">var ti='117734';var tt='DC event example: Generating a sine wave via waveform definition'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

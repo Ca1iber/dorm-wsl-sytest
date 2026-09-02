@@ -1,0 +1,166 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Some basic rules must be observed when setting up tests SmartRDI tests."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Basic rules for SmartRDI</title><meta name="keywords" content="smart rdi srdi"></head><body id="_350191"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 350191</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Basic rules for SmartRDI</h1>
+	
+	
+	<div><p>Some basic rules must be observed when setting up tests SmartRDI tests.</p>
+		<section class="section">
+			<p>The following topics are covered:</p>
+			<ul>
+				<li><a href="350191.htm#_350191__dle_Structure_of_a_SmartRDI_command">Structure of a SmartRDI command</a></li>
+				<li><a href="350191.htm#_350191__dle_Inside_the_ON_FIRST_INVOCATION_block_only">SmartRDI setup inside the ON_FIRST_INVOCATION block only</a></li>
+				<li><a href="350191.htm#_350191__dle_Pattern-based_mode_and_code-base_mode">Pattern-based mode and code-base mode</a></li>
+				<li><a href="350191.htm#_350191__dle_MAPI_commands_inside_the_ON_FIRST_INVOCATION_block">MAPI commands inside the ON_FIRST_INVOCATION block</a></li>
+				<li><a href="350191.htm#_350191__dle_Semi-parallel_test_or_serial_execution">Semi-parallel test or serial execution</a></li>
+				<li><a href="350191.htm#_350191__dle_Multiple_actions_in_one_RDI_command">Multiple actions in one RDI command</a></li>
+				<li><a href="350191.htm#_350191__dle_Do_not_divide_RDI_blocks_by_conditionals_or_loops">Do not divide RDI blocks by conditionals or loops</a></li>
+				<li><a href="350191.htm#_350191__dle_Retrieve_results_outside_of_the_ON_FIRST_INVOCATION_block">Retrieve results outside of the ON_FIRST_INVOCATION block</a></li>
+				<li><a href="350191.htm#_350191__dle_Split_an_RDI_command_into_multiple_lines">Split an RDI command into multiple lines using cont()</a></li>
+				<li><a href="350191.htm#_350191__dle_Slit_an_RDI_command_for_multiple_pins">Split an RDI command for multiple pins and related data of an array</a></li>
+			</ul>
+		</section>
+		<section class="section"><h2>Basic rules</h2>
+			
+			<dl>
+				
+					<dt class="dlterm" id="_350191__dle_Structure_of_a_SmartRDI_command">Structure of a SmartRDI command</dt>
+					<dd>
+						<p>The code setting up an <a href="142604.htm#_142604__dle_RDI_command">RDI command</a> is
+							structured as follows:</p>
+						<div></div><pre class="prettyprint copyable singleline">rdi.class().pin("pinA").para1(...).para2(...). ... execute();</pre><div></div>
+						<p>The sections of the code are defined as follows:</p>
+						<ul>
+							<li>
+								<p><code>rdi</code> is the main SmartRDI class.</p>
+							</li>
+							<li>
+								<p><code>class()</code> defines one of the child classes listed
+									in section <a href="142069.htm#_142069__s_SRDI_classes">SmartRDI classes</a> of topic <a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a>.</p>
+							</li>
+							<li>
+								<p><code>pin()</code> is used to specify the pin(s) or pin
+									groups to set up. It can be a single pin, multiple pins
+									separated with comma, a pin group or all pins (@). It can also
+									be a port name or a alias name, for example:</p>
+								<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("portDPS128").vForce(1).execute();
+rdi.dc().pin("alias::PIN1").vForce(2).execute();</pre><div></div>
+								<div class="note"><span class="title">Note</span> <p>Do not repeat a pin name in pin(), like
+										pin("p1,p1").</p>
+									<div class="p">Do also not repeat a pin name within an RDI command as
+										follows:<div></div><pre class="prettyprint linenums copyable">rdi.class().pin("p1").para1()
+           .pin("p1").para2()
+           .execute();</pre></div></div>
+							</li>
+							<li>
+								<div class="p"><code>para1(...)</code> and <code>para2(...)</code>
+									represent the functions to set up the test parameters.<div class="note"><span class="title">Note</span> 
+										<p>If on one pin, the same parameter is set for multiple
+											times in an RDI command as
+												<code>rdi.class().pin().para1(v1).para1(v2)...execute()</code>,
+											the later parameter will overwrite the previous one.</p>
+										<p>For example,
+												<code>rdi.dc().pin(A).vForce(1).vForce(2).execute()</code>,
+											the <code>vForce(2)</code> will take effect.</p>
+									</div></div>
+							</li>
+						</ul>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Inside_the_ON_FIRST_INVOCATION_block_only">SmartRDI setup inside the ON_FIRST_INVOCATION block only</dt>
+					<dd>Include the setup code in the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block.<div class="note"><span class="title">Note</span> SmartRDI setup
+							commands must be put inside the <span class="keyword">ON_FIRST_INVOCATION</span>
+							block. SmartRDI commands <strong>must not</strong> be put inside the
+								<span class="keyword">ON_LAST_INVOCATION</span> block.</div></dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Pattern-based_mode_and_code-base_mode">Pattern-based mode and code-base mode</dt>
+					<dd>In the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block, put the code
+						to be executed in the pattern‑based mode inside the <a href="142604.htm#_142604__dle_RDI_block">RDI block</a>, and the code to be executed in the
+						code‑based mode outside the RDI block.</dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_MAPI_commands_inside_the_ON_FIRST_INVOCATION_block">MAPI commands inside the ON_FIRST_INVOCATION block</dt>
+					<dd><p>When using SmartRDI, you must put the following MAPI commands' object
+							declarations inside the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a>
+							block: </p>
+						<div class="p">
+							<ul>
+								<li><span class="keyword">DPS_TASK</span></li>
+								<li><span class="keyword">DPS_AUX_TASK</span></li>
+								<li><span class="keyword">HV_DC_TASK</span></li>
+								<li><span class="keyword">PPMU_MEASURE</span></li>
+							</ul>
+						</div>
+					</dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Semi-parallel_test_or_serial_execution">Semi-parallel test or serial execution</dt>
+					<dd>Semi-parallel or serial execution of multiple sites is supported if it is
+						set with the <a href="100324.htm" title="Site control flags allow to modify the focus on one specific site or change from parallel to serial execution. The site control flags are available per test suite.">Site control flags</a>.</dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Multiple_actions_in_one_RDI_command">Multiple actions in one RDI command</dt>
+					<dd>To execute multiple actions at the same time, you can put multiple pins and
+						setups in one <a href="141807.htm" title="Executes the previous specified setups in this line of code. It means starting the analog action in analog tests.">execute()</a> like below:
+							<div></div><pre class="prettyprint linenums copyable">rdi.class().pin("p1").para1()
+           .pin("p2").para2()
+           .pin("p3").para3()
+           .execute();</pre><p>For
+							the <span class="keyword">dc()</span> class, if you use the same pin type, such as
+								<span class="keyword">sig</span>, <span class="keyword">dps</span> or
+								<span class="keyword">io</span>, and the same command in a parallel execution,
+							write the statement as follows:</p><div class="p">
+							<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("p1").para1()
+        .pin("p2").para1()
+        .pin("p3").para1()
+        .execute();</pre><div></div>
+						</div></dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Do_not_divide_RDI_blocks_by_conditionals_or_loops">Do not divide RDI blocks by conditionals or loops</dt>
+					<dd><p>Do not put <a href="141276.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based mode of SmartRDI.">RDI_BEGIN()</a> or <a href="141277.htm" title="RDI_BEGIN() and RDI_END() define and enclose an RDI block. The RDI block marks a section in a test method to set up and execute tests in the pattern‑based of SmartRDI.">RDI_END()</a> into any
+							conditionals or loops like this:</p>
+						<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+....
+    if(....)
+    {
+        RDI_END();
+        ...
+        RDI_BEGIN();
+}
+....
+RDI_END();</pre></dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Retrieve_results_outside_of_the_ON_FIRST_INVOCATION_block">Retrieve results outside of the ON_FIRST_INVOCATION block</dt>
+					<dd>Put the result retrieval code outside the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block. The code is programmed as
+							follows:<div></div><pre class="prettyprint copyable singleline">XXX(data type) result=rdi.id("idA").getXXX();</pre><p>Member
+							function <span class="keyword">id()</span> is used to specify the measurement ID
+							to retrieve. <code>getXXX()</code> represents the function to
+							retrieve the test result.</p><p>SmartRDI is designed to support up to
+							500 000 measurement result IDs at the same time.</p></dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Split_an_RDI_command_into_multiple_lines">Split an RDI command into multiple lines using cont()</dt>
+					<dd>Use function <a href="349380.htm" title="cont() can be used to link actions of different pins or work together with insertVec() and insertSub() in the dc() class, addVecRange() in the digCap() class, and smartVec() commands such as writeData(), readData(), writeBit(), and expectData() to simplify the programming of numerous measurements.">cont()</a> to separate an <a href="142604.htm#_142604__dle_RDI_command">RDI command</a> for each
+						<code>pin()</code>:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").iForce(10 mA).cont();
+rdi.dc().pin("B").iForce(100 mA).cont();
+rdi.dc().execute();</pre></dd>
+				
+				
+					<dt class="dlterm" id="_350191__dle_Slit_an_RDI_command_for_multiple_pins">Split an RDI command for multiple pins and related data of an array</dt>
+					<dd>If you have arrays to hold pins and parameters, write the code similar to
+						this
+							example:<div></div><pre class="prettyprint linenums copyable">for (i=0;i&lt;n;i++)
+{
+    rdi.dc().pin(vpin[i]).iForce(iForce[i]).cont();
+}
+
+rdi.dc().execute();</pre><div class="note"><span class="title">Note</span> All actions for a pin must be in one <a href="142604.htm#_142604__dle_RDI_command">RDI command</a>.</div></dd>
+				
+			</dl>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 350191</span><script type="text/javascript">var ti='350191';var tt='Basic rules for SmartRDI'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

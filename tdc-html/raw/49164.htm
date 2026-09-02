@@ -1,0 +1,49 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In NP applications with fast differential output pins, you can select whether the retiming clock of the test system or the DUT clock (source synchronous mode) is to be used for the decomposition of the differential output signal. This is done by adding the"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining the Clock for Fast Differential Receive Pins: ssb on/off</title></head><body id="_49164"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 49164</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining the Clock for Fast Differential Receive Pins: ssb on/off</h1>
+	
+	
+	<div><p>In NP applications with fast differential output pins, you can select whether the
+		retiming clock of the test system or the DUT clock (source synchronous mode) is to be used for the
+		decomposition of the differential output signal. This is done by adding the </p>
+		<p><kbd class="userinput">ssb (on|off)</kbd></p>
+		<p>statement to the entry for the respective output pins in the timing set. <kbd class="userinput">ssb
+				on</kbd> selects the DUT clock, <kbd class="userinput">ssb off</kbd> selects the AMC2 clock. In
+			the ASCII interface you can add these statements to any timing record for differential pins in
+			the ASCII timing file.</p>
+		<p>You <em>must </em>add <kbd class="userinput">ssb on</kbd> or <kbd class="userinput">ssb off</kbd> to a timing
+			record for differential output pins if the ASCII device cycle in question is connected to a
+			pattern with an x-mode factor of 12 or 16 in the global configuration file (NP3G-XS). In this
+			case, you must also define two shots (see <a href="46273.htm" title="A shot is an instance of a pattern which executes all drive actions associated with the state character, for every state character of the ASCII device cycle specified for the pattern, but only a subset of its compare actions. Compare actions are distributed between the different shots in such a way that every compare action is executed in exactly one shot.">Using Shots: the shots Column</a>) for the pattern if you want to
+			perform a complete functional test. Furthermore, you will usually associate such a pattern with a
+			port containing only the fast differential pins; for the single-ended pins, which are contained
+			in a separate port, another pattern will be defined; both these patterns will be run in parallel
+			in a multi-port burst. </p>
+		<div class="note"><span class="title">Note</span> Two shots are required even for x-mode factor 12, although in this case 6
+			receive edges may be sufficient. The ASCII interface will not issue an error message if you leave
+			out the shot definition in this case, but SmarTest will not accept the resulting timing setup
+			file.</div><p>The timing translation of the ASCII interface processes <kbd class="userinput">ssb on</kbd> or
+				<kbd class="userinput">ssb off</kbd> for an x-mode factor of 12 or 16 as follows:</p>
+		<ul>
+			<li>It copies the statement into the two timing sets for the two shots (this is also done for
+				x-modes ≤ 10).</li>
+			<li>It determines the edge delay for the receive pins in the second shot.<p>The delay is
+					calculated as follows:</p><ul>
+					<li><strong>For ssb on</strong><p><em>ascii_period + dvc_delay</em></p>
+						<p><kbd class="userinput">(</kbd>where <em>ascii_period</em> is the period length, and
+								<em>dvc_delay</em> is the delay specified in the ASCII timing file)</p></li>
+					<li><strong>For ssb off</strong><p><em>ascii_period * 2 + dvc_delay</em></p></li>
+				</ul></li>
+			<li>It creates the appropriate wavetable and timing map files for the respective option,
+					<kbd class="userinput">on</kbd> or <kbd class="userinput">off</kbd>.</li>
+		</ul>
+		<p>The following figure shows an example with an x-mode factor 16 and two differential receive
+			pins, one with option <kbd class="userinput">on</kbd>, and the other with option
+				<kbd class="userinput">off</kbd>:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="49166.png" alt="Equation Set and Timing Map File for X-Mode Factor 16 with both ssb on and ssb off">
+			</figure></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 49164</span><script type="text/javascript">var ti='49164';var tt='Defining the Clock for Fast Differential Receive Pins: ssb on/off'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

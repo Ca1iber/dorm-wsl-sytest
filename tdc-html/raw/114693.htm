@@ -1,0 +1,319 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This test method measures the dc output voltages of the DUT under specific current load conditions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>OutputDC</title><meta name="keywords" content="output DC"></head><body id="_114693"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114693</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">OutputDC</h1>
+	
+	
+	<div><p>This test method measures the dc output voltages of the DUT under specific current load
+		conditions.</p>
+		<section class="section"><p>During the measurement, the device is kept in a stable
+				condition. You can use this test method to measure the output low and output high voltages
+				individually, or together in a single test.</p><p>The test method can be executed:</p><ul>
+				<li>using the Pin PMU (with or without termination)</li>
+				<li>or using the programmable load and the comparator.<div class="note"><span class="title">Note</span> This test method does
+						NOT support BURST and Multiport Burst Pattern in case of PMU measurement.</div>
+				</li>
+			</ul><p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p></section>
+		<section class="sectiontitlefake"><h2>Output DC test using PMU</h2><div class="p"><figure class="fignone">
+					
+					<img src="26325.png" alt="Output DC Measurements (using Pin PMU)">
+				</figure></div><p>If not already connected, the test system is set to the <strong>CONNECTED</strong> state,
+				with the AC relays closed, the sequencer set to <strong>BREAK</strong> and the DPS set to the voltage
+				programmed in Level Setup. </p><p>Next, the sequencer label is checked. The label must specify a
+				sequencer program containing a linear vector sequence. The sequencer jumps over any match loops
+				and repeat vectors. Vectors making up an endless (unconditional) loop are executed once to the
+				end of the loop whereupon the sequencer stops. </p><p>The test method scans the expected data
+				pattern for a low or a high state (depending on the specified test) on a pin-by-pin basis. The
+				scan starts either at the vector address specified by the vector label, or at the vector address
+				specifying a range of vectors or two single vectors that you enter. For the relationship between
+				the vector label and the vector range/single vectors see the "Dependencies" section.</p><p>The
+				software looks for the first occurrence of a low or a high state on each pin and notes the
+				vector addresses where these occur. If measurement of both levels is specified, it then
+				continues the scan looking for the opposite state on each pin, again noting the vector
+				addresses. The software generates a warning if it cannot find a low or a high state for any of
+				the pins within the search range.</p><p>The test method programs the delay counter to stop the
+				sequencer at the specified vectors where the measurement should take place. All high and low
+				levels for the specified pins that can be measured at these vector addresses are measured. Then
+				the analyzer delay counter is programmed to the next specified vector and so on until all the
+				pins have been measured at the low and high state (if specified).</p><p>During the measurement,
+				the sequencer is set to the break state, and, depending on how the termination flag is set (ON
+				or OFF), the measurement is taken by closing the AC relay (termination ON) and PPMU relay, or
+				closing the PPMU relay and opening the AC relay (termination OFF).</p><p>If termination is ON for <strong>io</strong> pins, and for
+					<strong>o</strong> pins with <strong>term</strong> type termination, the following formula applies:</p><p><em>DUT
+					output current = (PMU current) + (test system driver current)</em></p><p>Because the DUT output
+				current in this case can be high enough to damage your device, the test method generates a
+				warning, reminding you to set the force current to a low value, if the specified current limit
+				is &gt; 1 µA.</p><p>The PMU is connected to the DUT pin. The PMU is now
+				working in current force mode by supplying the specified force current. The current direction is
+				specified by sign. The DUT output voltage can now be measured by the PMU.</p></section>
+		<section class="section"><h3>Dependencies</h3><ul>
+				<li>Functional test must pass. </li>
+				<li>Linear vector sequences must be used (any match loops or repeat vectors contained therein
+					are ignored). </li>
+				<li>DUT outputs must be kept <em>stable</em> until end of the voltage measurement by setting the
+					correct break vector.</li>
+				<li>Minimum scanned vector range is 2, maximum scanned vector range the end of installed vector
+					memory respectively. </li>
+				<li>Both low and high expected data states for the specified pins must be present within the
+					specified vector range. A warning message is issued if this is not the case. </li>
+				<li>If the measurement is made <em>with</em> termination (AC relay closed for measurement), the
+					primary level set must not use the programmable load because it cannot be compensated for.</li>
+			</ul></section>
+		<section class="sectiontitlefake"><h2>Output DC test using the programmable load</h2><div class="p"><figure class="fignone">
+					
+					<img src="26330.png" alt="Output DC Measurements">
+				</figure></div><p>The output dc test is executed using two functional tests if both the high and low
+				levels are to be measured. The programmable load forces the current at the device output pins.
+				</p><p>Note that a positive current flows into the device and a negative current flows out of
+				the device. The commutation voltage for the programmable load is automatically set and its value
+				depends on the pass value that you enter. </p><p>It is <em>very</em> important that the timing set
+				used for the test contains as slow a period as possible as this is a dc measurement and not an
+				ac measurement. </p><p>Prior to execution of the test, the status of the test system is checked
+				to determine if it is currently <em>connected</em> or <em>disconnected</em>. If it is
+					<em>disconnected</em>, then the CONNECT() is executed. If it is already <em>connected</em>, then
+				the output dc test method continues. </p></section>
+		<section class="section"><h3>Pass/Fail Tests</h3><p>To test for the low level pass value, the low level of
+				the comparator is set to <span class="keyword">maxPassLow</span> for the pins specified in
+					<span class="keyword">pinlist</span> and a functional test is executed. A pass is returned
+					if:</p><p><em>measured value </em>≤ <span class="keyword">maxPassLow</span></p><p>To test for the high
+				level pass value, the high level of the comparator is set to <span class="keyword">minPassHigh</span> for
+				the pins specified in <span class="keyword">pinlist</span> and a functional test is executed. A pass is
+				returned if: </p><p><em>minPassHigh</em> ≤ <em>measured value</em></p><p>In GPF mode, to achieve
+				best throughput, you need to do the following items as below:</p><ol>
+				<li>create a new level set as followed:<p>V<sub>OH</sub>= pass min voltage of high level</p>
+					<p>V<sub>OL</sub>= pass max voltage of low level</p></li>
+				<li>select the new level set as primary for test suite</li>
+				<li>modify the code example in the function <code>doMeasurementByProgramLoad()</code> in
+						<span class="filepath">OutputDCUtil.hpp</span> file according to the comments</li>
+			</ol></section>
+		<section class="section"><h3>Value Test</h3><p>The output dc test using the programmable load can also be
+				used to measure the actual high and low pass values. </p><p>To measure the maximum low pass
+				value, a binary search is performed, varying the low level of the comparator between the high
+				level defined in the primary level set and the test system low threshold limit (-2.0V).</p><p>As
+				maximum low pass value can be different for different pins, the test result reports a minimum
+				and a maximum value for the low pass value threshold. In case of per pin list evaluation the
+				minimum and maximum values are identical.</p><p>To measure minimum high level value, a binary
+				search is performed, varying the high level of the comparator between the low level defined in
+				the primary level set and the test system high threshold limit.</p><p>A minimum and a maximum
+				high pass value threshold is reported for the pins of a pin list. In case of parallel evaluation
+				and for single pins, the minimum and maximum values are identical.</p></section>
+		<section class="section"><h3>Dependencies</h3><ul>
+				<li>Functional test must pass. </li>
+				<li>Both low and high expected data states for the specified pins must be present in the
+					specified functional test.</li>
+				<li>The output DC test is not possible for devices using ECL technology. This is because for ECL
+					devices, current must always flow into the device. For the output dc measurement, the
+					commutation voltage of the programmable load is always automatically set. For current to flow
+					into the device, the commutation voltage is always set to 1 V less than the specified pass
+					value of the test. As the low threshold for the commutation voltage is -2 V, <em>maxPassLow</em>
+					must always be ≥ -1 V, which is not possible for ECL devices.</li>
+			</ul><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_114693__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_114693__entry__2"><p>Type</p>
+							</th>
+							<th class="colsep-1" id="_114693__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>PinString</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The pins to be tested. The valid pin types are output pins and I/O pins.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">mode</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3">
+								<p>The measurement mode. It can be <kbd class="userinput">PPMU</kbd>,
+									 <kbd class="userinput">PPMUTERM</kbd>, or <kbd class="userinput">PROGRAMLOAD</kbd>.</p>
+								
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">measureLevel</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The level to measure. It can be <kbd class="userinput">LOW</kbd>,
+										<kbd class="userinput">HIGH</kbd> or <kbd class="userinput">BOTH</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">forceCurrentLow</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The force current for low level test. Usually it is a positive value.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[uA]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">forceCurrentHigh</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The force current for high level test. Usually it is a negative value.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[uA]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">maxPassLow</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The maximum of the pass voltage for low level test.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[V]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">minPassLow</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The minimum of the pass voltage for low level test.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[V]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">maxPassHigh</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The maximum of the pass voltage for high level test.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[V]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">minPassHigh</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The minimum of the pass voltage for high level test.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[V]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">settingTimeLow</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The settling time for low level test.</p>
+								<p>It is specified in the format of "value[unit]". The default value is "0[ms]".</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">settlingTimeHigh</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The settling time for high level test.</p>
+								<p>FIt is specified in the format of "value[unit]". The default value is "0[ms]".</p>
+							</td>
+						</tr>
+						
+						
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">vectorRange</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The vector range to be used for low or high level output. It can be in the
+									following three formats:</p>
+								<p><kbd class="userinput">number</kbd>: The output of the first <kbd class="userinput">number</kbd> of
+									vector will be used in the test.</p>
+								<p><kbd class="userinput">number1,number2</kbd>: Only the output of vector number1 and number2
+									will be used.</p>
+								<p><kbd class="userinput">number1-number2</kbd>: The output of the vectors from
+										<kbd class="userinput">number1</kbd> to <kbd class="userinput">number2</kbd> will be used.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">testName</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>The test names to be used as limits. Default is
+									(OutputDC_LowLevel[V],OutputDC_HighLevel[V]).</p>
+								<p>If you want to use the test names defined in the test table or testflow limits, type in
+			the test names manually. Make sure the test names are in the <span class="uicontrol">Test name
+			</span>column of the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in the <span class="uicontrol">Test
+				Name</span> column of Tests page of Flow Data Editor.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_114693__entry__1"><p><span class="keyword">output</span></p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_114693__entry__3"><p>Controls how to output the per pin test result. It can be:</p>
+								<ul>
+									<li><kbd class="userinput">None</kbd>: Do not output the per pin result.</li>
+									<li><kbd class="userinput">ReportUI</kbd>: Output all the per pin result to the report
+				window.</li>
+								</ul><p><kbd class="userinput">ShowFailOnly</kbd>: Only outputs the failed pin result to the
+									report window.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Limits</h3><table><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p><span class="keyword">OutputDC_LowLevel[V]</span></p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the measured low level voltage in unit [V].</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p><span class="keyword">OutputDC_HighLevel[V]</span></p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the measured high level voltage in unit [V].</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>Implementation pseudo
+			code</h3><pre class="prettyprint linenums copyable">IF measure with programmable load THEN
+  store the sequencer status
+  IF not already connected THEN
+    connect DUT
+  ENDIF
+  FOR all measurement positions DO
+    IF low level measurement specified THEN
+      measure the low level output DC with FW
+      retrieve the test result
+    ENDIF
+    IF high level measurement specified THEN
+      measure the high level output DC with FW
+      retrieve the test result
+    ENDIF
+  restore the sequencer status
+ELSE
+  store the sequencer status
+  IF not already connected THEN
+    connect DUT
+  ENDIF
+  FOR all measurement positions DO
+    IF low level measurement specified THEN
+      measure the low level output DC with FW
+      retrieve the test result
+    ENDIF
+    IF high level measurement specified THEN
+      measure the high level output DC with FW
+      retrieve the test result
+    ENDIF
+  restore the sequencer status
+ENDIF
+datalog test results</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.0: Change parameter type of pinlist to PinString for UTM library.</li><li>SmarTest 6.5.2: Remove the "_unit" from the parameter name.</li><li>SmarTest 6.5.2: Change parameter type of forceCurrentLow, forceCurrentHigh, maxPassLow,
+					minPassLow, maxPassHigh, minPassLow, settingTimeLow, settingTimeHigh, spmuClampVoltageLow and
+					spmuClampVoltageHigh to SpecValue for UTM library.</li><li>SmarTest 7.0.3: Classic test method library is removed.</li><li>SmarTest 7.1.1:  Test table is supported in TML 2.1.1.</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is supported in
+					TML 2.1.1.</li><li>SmarTest 7.1.1:  New parameter testName is added in TML 2.1.1.</li><li>SmarTest 7.2.1:  New option ShowFailOnly for the parameter output in TML 2.2.0.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114693</span><script type="text/javascript">var ti='114693';var tt='OutputDC'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

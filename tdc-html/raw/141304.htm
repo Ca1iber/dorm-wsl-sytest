@@ -1,0 +1,72 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies a method for measuring voltage or current on the pins of PS1600 or PS5000 cards."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>valueMode()</title><meta name="keywords" content="value, Mode"></head><body id="_141304"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 141304</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">valueMode()</h1>
+	
+	
+	<div><p>Specifies a method for measuring voltage or current on the pins of PS1600<span> or PS5000</span>
+		cards.</p>
+		<section class="section"><p>If measurements are done on more than one pin sharing the same board ADC, the
+			measurements will be done serially in the pattern.</p><p>In this case, the pins setups are different between SmartRDI 2.2 and 2.3:</p><ul>
+				<li>In SmartRDI 2.2, pins that share the same board ADC must be separated in different <a href="143894.htm" title="Specifies the pin(s) for the following DC actions. It indicates the ending of the setups for the previous pin(s) and the start of the setups for the specified pin(s).">pin()</a> functions.<p>For example,
+					</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("pinA").vForce(4).iMeas().valueMode(TA::BADC).execute();
+  rdi.dc().pin("pinB").vForce(4).iMeas().valueMode(TA::BADC).execute();
+RDI_END();</pre></li>
+				<li>In SmartRDI 2.3: pins that share the same board ADC can be set in the same
+						<span class="keyword">pin()</span> function. SmartRDI automatically switches the relay for each pin and
+					adds a default wait time between two measurements if no <a href="141311.htm" title="Specifies the time to wait between the previous event and measuring the value.">measWait()</a> is
+						specified.<p>For
+					example,</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().pin("pinA, pinB").vForce(4).iMeas().measWait(100 us).valueMode(TA::BADC).execute();
+RDI_END();</pre></li>
+				<li>From SmartRDI 2.3.1, you can add an option in the RDI_Configure file to set a default value
+					mode for PPMU: <span class="keyword">PPMU_DEFAULT_VALUE_MODE = SA # BADC</span>.<p>If you do not set this
+						option in the RDI_Configure file, the default value is <span class="keyword">TA::BADC</span>.</p></li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">valueMode(TA::PinType <span class="keyword">src</span>);</pre><table class="frame-topbot"><caption><span id="_141304__title_gzm_ph1_yjb">List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_141304__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_141304__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_141304__entry__1">
+								<p><span class="keyword">src</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_141304__entry__2">
+								<p>The method used to measure a value. It can be:</p>
+								<ul>
+									<li><span class="keyword">TA::BADC</span> (default): To measure values by using the board ADC. </li>
+									<li><span class="keyword">TA::SA</span>: A successive approximation value calculated by using the
+										level comparator of the PPMU.<div class="note"><span class="title">Note</span> <span class="keyword">valueMode(TA::SA)</span> is
+											specified only for voltage measurement, not for current measurement. See <a href="126235.htm">PS1600 Voltage force and measure</a> and <a href="142025.htm" title="The sustainable total load may not exceed 1600 mA for Pin Scale 1600 (128 channels per card) and 800 mA for Pin Scale 1600-ME (64 channels per card).">PS1600 Current force and measure</a>.</div></li>
+									<li><span class="keyword">TA::PF_ONLY</span>: When you only need the burst pass/fail result of
+										dynamic DC measurements on digital pins, you can use this value. With
+											<span class="keyword">valueMode(TA::PF_ONLY)</span>, SmartRDI only adds 10 us after measurement. As
+										a result, if you do not care too much about measurement values, this setting can save some
+										test time.<p>It must work together with <a href="148662.htm" title="Adds limits for judging the pass/fail result of a dynamic DC measurement on digital pins or DC Scale pins. You must use this function within the RDI_BEGIN and RDI_END block. This function supports one-side limits only on DC Scale pins.">limit(min,max)</a>.</p></li></ul>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><pre class="prettyprint copyable singleline">rdi.dc("id3").pin("PinA").vMeas().valueMode(TA::BADC).execute(); </pre></div>
+		<div class="example">
+			<p><span class="keyword">valueMode(TA::PF_ONLY)</span> working together with <a href="148662.htm" title="Adds limits for judging the pass/fail result of a dynamic DC measurement on digital pins or DC Scale pins. You must use this function within the RDI_BEGIN and RDI_END block. This function supports one-side limits only on DC Scale pins.">limit(min,max</a>) when the burst pass/fail result of dynamic DC measurements on digital
+				pins is only required.</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.burstId("burst","pinA");
+  rdi.dc().pin("pinA").iForce(0).vMeas()
+                      .valueMode(TA::PF_ONLY)
+                      .limit(0.1,1.2).execute();
+RDI_END();</pre><div></div>
+			</div>
+		</div>
+	</div>
+	
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li><li>SmartRDI 2.2.0: Supports switching AMUX in the pattern‑based mode when measuring with board ADC
+					on PS1600.</li><li>SmartRDI 2.3.0: Supports high voltage pins.</li><li>SmartRDI 2.3.0: When pins that share the same board ADC are measured with the BADC, these pins
+					can be set in the same pin() function.</li><li>SmartRDI 2.3.1: You can add an option PPMU_DEFAULT_VALUE_MODE in the RDI_Configure file to set
+					the default value mode for PPMU.</li><li>SmartRDI 2.5.0: The default value is changed from TA::SA to TA::BADC.</li><li>SmartRDI 7.5.3: New value TA::PF_ONLY.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 141304</span><script type="text/javascript">var ti='141304';var tt='valueMode()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

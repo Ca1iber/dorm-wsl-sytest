@@ -1,0 +1,60 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Ports belonging to different sequencing groups cannot start or restart their user vectors simultaneously after a timing set change. In some situations, however, a partial synchronization is sufficient. Consider, for example, a continuous clock setup (Keep PLL alive), where the same clock pulse is repeated throughout the test. In this case the first user vector of the data port within a testsuite does not need to be synchronous with the first clock pulse at test start, it only needs to be synchronous with some clock pulse."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Phase synchronization across sequencing groups</title><meta name="keywords" content="sync"></head><body id="_55339"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 55339</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Phase synchronization across sequencing groups</h1>
+	
+	
+	<div><p>Ports belonging to different sequencing groups cannot start or restart their user
+		vectors simultaneously after a timing set change. In some situations, however, a partial
+		synchronization is sufficient. Consider, for example, a continuous clock setup (Keep PLL alive),
+		where the same clock pulse is repeated throughout the test. In this case the first user vector of
+		the data port within a testsuite does not need to be synchronous with the first clock pulse at
+		test start, it only needs to be synchronous with <em>some</em> clock pulse.</p>
+		<p>This can be ensured with <em>phase synchronization</em>. Phase synchronization is activated for a
+			port by setting the <span class="keyword">PHASE</span> flag for this port in the multi-port timing
+			specification (see <em><a href="10599.htm" title="Multi-port testing allows you to run different, and mutually independent, sequencer programs (see The sequencer program) with different timing setups for different groups of pins (called ports) in parallel.">Multi-port timing specifications</a></em>).</p>
+		<p>All the phase activated ports of a specification will be partially synchronized with each
+			other. This means that the first user vector of such a port after a timing set change is
+			synchronous with a certain user vector of every other phase activated port (except those that are
+			currently executing a CTOF sequence or a synchronization block).</p>
+		<p>The partial synchronization is achieved by calculating the SCLK period as a common multiple of
+			all periods of all phase activated ports (which is then called <em>super</em>-<em>period</em>). If
+			any period value is auto-corrected by the system, the corrected value, not the one requested by
+			the user, is used for the calculation of the super-period. The synchronization break vectors and
+			a possible fine adjustment are determined in the same way as for ports belonging to the same
+			sequencing group (see <em><a href="55334.htm" title="When different ports of a multi-port setup are executed at different speed their user vectors can be synchronized exactly in the sense that they are started simultaneously after each timing set change (CTIM instruction). This includes the internal CTIM, which is by default executed at the start of a functional test. To synchronize these ports exactly, they need to be included in the same sequencing group (see Defining sequencing groups for details).">Synchronization within sequencing groups</a></em>).</p>
+		<p>If you make use of phase synchronization, observe the following points:</p>
+		<ul>
+			<li>Setting the <span class="keyword">PHASE</span> flag for a port will usually result in an expansion of
+				the SCLK period, which will have a negative impact on the test execution time. Therefore you
+				should set the <span class="keyword">PHASE</span> flag only when it is really necessary. In particular,
+				the <span class="keyword">PHASE</span> flag is <em>not</em> needed for synchronization within one sequencing
+				group.
+			</li>
+			<li>The SCLK period is calculated from the periods of <em>all</em> timing sets that are contained
+				in the equation sets of the phase activated ports. Therefore make sure that you have no
+				superfluous timing sets in your timing setup files in order to avoid unnecessary deterioration
+				of the system performance.</li>
+			<li>If you set the <span class="keyword">PHASE</span> flag for many ports with large co-prime period
+				lengths, you may get an SCLK overflow. This will happen if the least common multiple of all the
+				periods of all phase activated ports exceeds <p>4194304 * <span class="keyword">period_resolution</span>
+					(if it is not directly divisible by 16), or </p>
+				<p>67108864 * <span class="keyword">period_resolution</span> (if it is directly divisible by 16). </p>
+				<p>In this case try to modify the periods so that their least common multiple becomes smaller,
+					or remove superfluous timing sets within the utilized equation sets.</p></li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>The following figure shows phase synchronization after the internal
+					<span class="keyword">CTIM</span> at test start for the two ports of the figure in <em><a href="55334.htm" title="When different ports of a multi-port setup are executed at different speed their user vectors can be synchronized exactly in the sense that they are started simultaneously after each timing set change (CTIM instruction). This includes the internal CTIM, which is by default executed at the start of a functional test. To synchronize these ports exactly, they need to be included in the same sequencing group (see Defining sequencing groups for details).">Synchronization within sequencing groups</a></em>, which are now supposed to belong to different sequencing groups and to
+				have the <span class="keyword">PHASE</span> flag set:</p><div class="p"><figure class="fignone">
+					
+					<img src="104693.png" alt="Phase Synchronization After Internal CTIM at Test Start">
+				</figure></div><p><em>j, k</em>, <em>m</em>, <em>n</em>, <em>x</em>, <em>y</em> are integers.</p><p>Since the
+				start of the user vectors of port A is delayed by a multiple of p<sub>B</sub>, and <em>k ×
+					</em>p<sub>A</sub> + F<sub>A</sub> + <em>m × </em>8<em> × </em>p<sub>A</sub> is also a multiple of
+					p<sub>B</sub> by</p><p><em>k × </em>p<sub>A</sub> + F<sub>A</sub> + <em>m × </em>8<em> ×
+					</em>p<sub>A</sub> = <em>k × </em>p<sub>B</sub> + <em>n × </em>8<em> × </em>p<sub>B</sub>,</p><p>the
+				first user vector of port A in the figure above is still synchronous with some user vector of
+				port
+			B.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 55339</span><script type="text/javascript">var ti='55339';var tt='Phase synchronization across sequencing groups'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

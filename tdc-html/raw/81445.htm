@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Set up the same groups as in the pin configuration to enable group based pattern programming (*.dvac)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Consistent setup between MTL and standard setup files</title><meta name="keywords" content="ALPAD ALPADC"></head><body id="_81445"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 81445</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Consistent setup between MTL and standard setup files</h1>
+	
+	
+	<div><p>Set up the same groups as in the pin configuration to enable group based pattern
+		programming (*.dvac).</p>
+		<div></div><pre class="prettyprint linenums copyable">:groups:
+{
+  :format:
+  { :name:    :size:  }
+  { "CLK"       "2"   }
+  { "DQi"      "32"   }
+  { "DQo"      "32"   }
+  { "RDQSo"     "4"   }
+  { "WDQSo"     "4"   }
+  { "DM"        "4"   }
+  { "CMD"       "5"   }
+  { "BANK"      "3"   }
+  { "ADDRESS"  "12"   }
+}</pre><div></div>
+		<p>Be aware of the LSB to MSB mapping: MTL considers the lowest (right-most) bit to be most
+			significant; SmarTest the highest (left-most).</p>
+		<p>In the pin group example below, the SmarTest pins BA0 through BA2 are mapped to the pins of
+			BANK, an MTL pin group:</p>
+		<div></div><pre class="prettyprint linenums copyable">BANK.000=BA0
+BANK.001=BA1
+BANK.002=BA2
+BANK=Banjk</pre><div></div>
+		<p>To allow you to write the LSB and MSB in the "natural" Way (LSB as the right-most bit), you
+			should define a subgroup with the same name as the base MTL group and invert the bit order:</p>
+		<div></div><pre class="prettyprint linenums copyable">:subgroups:
+{
+  :format:
+  { :baseGroup:  :context: :name:   :bits:  }
+  { "BANK"       "ALL"     "BANK"  "[2..0]"   }
+}</pre><div></div>
+		<p>For example, if the SmarTest pin group Bank (BA0, BA1, and BA2) is 0x6:</p>
+		<div></div><pre class="prettyprint linenums copyable">       Value
+(MSB)    1    BA2 - BANK.000 - BANK.ALL.BANK.2
+         1    BA1 - BANK.001 - BANK.ALL.BANK.1
+(LSB)    0    BA0 - BANK.002 - BANK.ALL.BANK.0</pre><div></div>
+		<p>Note that, to access the subgroup and so use the "natural" bit order, you must append the
+			context and subgroup name to the base group name, as in this <a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a> example:</p>
+		<div></div><pre class="prettyprint linenums copyable">:apgAccess:
+{
+  :name: "GroupAccessExample"
+  :interface:
+  { "zAddr" "xAddr" }
+  :table:
+  {
+    :format:
+    { :pin:             :states:     :data:  }
+    { "BANK.ALL.BANK"   { "0" "1" }  "zAddr" }
+    { ""                { "0" "1" }  "0x7"   }
+    { ""                { "0" "1" }  "0x7"   }
+    { ""                { "0" "1" }  "0x7"   }
+    { ""                { "0" "1" }  "0x7"   }
+    { ""                { "0" "1" }  "0x7"   }
+    { ""                { "0" "1" }  "0x7"   }
+    { ""                { "0" "1" }  "0x7"   }
+    { "ADDRESS"         { "0" "1" }  "xAddr" }
+    { ""                { "0" "1" }  "0xFFF" }
+    { ""                { "0" "1" }  "0xFFF" }
+    { ""                { "0" "1" }  "0xFFF" }
+    { ""                { "0" "1" }  "0xFFF" }
+    { ""                { "0" "1" }  "0xFFF" }
+    { ""                { "0" "1" }  "0xFFF" }
+    { ""                { "0" "1" }  "0xFFF" }
+  }
+}</pre><div></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 81445</span><script type="text/javascript">var ti='81445';var tt='Consistent setup between MTL and standard setup files'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

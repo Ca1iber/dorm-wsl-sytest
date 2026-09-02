@@ -1,0 +1,41 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="If two ports are to be members of the same sequencing group, the pattern sequences that are associated with them in a multi-port burst must fulfill certain requirements."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Sequencing groups and pattern structure</title><meta name="keywords" content="vector label"></head><body id="_104675"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 104675</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Sequencing groups and pattern structure</h1>
+	
+	
+	<div><p>If two ports are to be members of the same sequencing group, the pattern sequences that
+		are associated with them in a multi-port burst must fulfill certain requirements.</p>
+		<section class="section"><h2>Number of level and timing set changes</h2><p>The pattern sequences must
+				contain the same total number of timing and level set changes (of course, this requirement is
+				always satisfied if you use a single-port setup for the vectors). This also holds for the
+				default sequencing group.</p><p>Therefore, if the port bursts for any two ports of a multi-port
+				burst contain a different total number of timing and level set changes (this might be the case
+				if you want to keep a PLL clock running across testsuites, see <a href="79315.htm" title="The multi-port setup allows you to de-couple ports (pins), so that you can, for example, reload primary sets (CTOF sequence) to selectively change the timing of data, of control pins belonging to a particular port (or ports), while allowing the continuous execution of clocking signals in a different port and sequencing group.">Continuous Clock Setup</a>),
+				then you must put them into different sequencing groups. This also implies that such ports
+				cannot be synchronized exactly; only phase synchronization is possible, see <a href="55339.htm" title="Ports belonging to different sequencing groups cannot start or restart their user vectors simultaneously after a timing set change. In some situations, however, a partial synchronization is sufficient. Consider, for example, a continuous clock setup (Keep PLL alive), where the same clock pulse is repeated throughout the test. In this case the first user vector of the data port within a testsuite does not need to be synchronous with the first clock pulse at test start, it only needs to be synchronous with some clock pulse.">Phase synchronization across sequencing groups</a>.</p><p>It is not required that the timing or level changes start at the
+				same point in time, but only that their number is the same for all ports. The SCLK edge at which
+				the new timing becomes valid (for all ports of the sequencing group) is determined by the port
+				that was the last to start the
+			change.</p></section>
+		<section class="section"><h2>Match loops in sequencing groups with multiple ports</h2><p>If a port <strong>P</strong> within a sequencing group executes a match loop in one of its burst labels,
+				the judgment on whether a match has been obtained will be based on the compare
+				results for all pins of the sequencing group, not only the pins of port <strong>P</strong>.
+				Therefore, if the sequencing group contains more than one port, a loop can fail even
+				if all the received values of port <strong>P</strong> do match. For this reason it is
+				recommended that any port that executes a match loop should have its own sequencing
+				group, which contains no other member.</p></section>
+		<section class="section"><h2>Match loops and CTIM / CLEV instruction in sequencing groups with multiple
+				ports</h2><p>Match loops in combination with the <a href="99880.htm#_99880__row_CLEV">CLEV</a> or <a href="99880.htm#_99880__row_CTIM">CTIM</a> instructions in
+				multi-port pattern may result in an infinitely running sequencer if the match loop
+				fails and the ports are assigned to the same sequencing group. This applies not only
+				to user-defined sequencing groups but also if the ports are assigned to the <a href="55334.htm#_55334__section_Default_sequencing_group">Default sequencing group</a>.</p>The failing match loop
+			causes the sequencers from the pins of the related port to stop if the optimal parameter
+				<a href="99880.htm#_99880__row_MACT">CONTINUE</a> of a counted match loop is
+			not set. All other ports of the same sequencing group continue executing their pattern
+			until they reach the next <span class="keyword">CLEV</span> or <span class="keyword">CTIM</span> instruction
+			where they will infinitely wait for the port with the failed match loop that already has
+			been stopped.</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">Match loops</a></div><div><a href="55334.htm" title="When different ports of a multi-port setup are executed at different speed their user vectors can be synchronized exactly in the sense that they are started simultaneously after each timing set change (CTIM instruction). This includes the internal CTIM, which is by default executed at the start of a functional test. To synchronize these ports exactly, they need to be included in the same sequencing group (see Defining sequencing groups for details).">Synchronization within sequencing groups</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 104675</span><script type="text/javascript">var ti='104675';var tt='Sequencing groups and pattern structure'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

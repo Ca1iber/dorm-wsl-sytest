@@ -1,0 +1,445 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The EMAP? query returns binary data from the detailed Error Map (which contains the error information of the last test execution) in a variety of formats. It is a more powerful version of ERMP?. Note that EMAP? can only report what was actually recorded. The recording options are defined with DCRM."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>EMAP? - (Error MAP)</title><meta name="keywords" content="EMAP_"></head><body id="_98590"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98590</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">EMAP? - (Error MAP)</h1>
+	
+	
+	<div><p>The <span class="keyword">EMAP?</span> query returns binary data from the detailed Error Map
+		(which contains the error information of the last test execution) in a variety of formats. It is a
+		more powerful version of <a href="98597.htm" title="The ERMP? query returns the contents of the Error Map. It has the following functions:">ERMP?</a>. Note that <span class="keyword">EMAP?</span> can
+		only report what was actually recorded. The recording options are defined with
+			<span class="keyword">DCRM</span>.</p>
+		<section class="section"><p><span class="keyword">EMAP?</span> can report the error data in three different formats:</p><ul>
+				<li>On the cycle level (resolution mode <span class="keyword">CYCL</span>), it reports one result per
+					cycle.</li>
+				<li>On the sub-cycle level (resolution mode <span class="keyword">SCYC</span>), it reports the result
+					combinations (sub-cycles) as they were defined with <span class="keyword">DCRM</span>.</li>
+				<li>On the edge level (resolution mode <span class="keyword">EDGE</span>), it returns all 8 edges for
+					every cycle, not only those that were recorded; the unrecorded edges are returned as passed. In
+					this way you can determine the edge numbers of the failing recorded edges from their position
+					within the reply. <p>For example, if edges 2 and 7 were recorded (and only a one bit result is
+						requested), then <span class="keyword">EMAP?</span> will return 0100 0010 for a cycle in which both
+						these edges have failed. </p></li>
+			</ul><p>If you require data on the cycle or sub-cycle level, you can select whether one byte
+				shall contain the results of only one cycle, or if the results shall be returned in a packed
+				format, where they follow one another immediately. In the latter case one byte will contain the
+				results up to 8 cycles.</p><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline"><span class="keyword">EMAP?</span> {<span class="keyword">pin_res</span>},{<span class="keyword">start_cycle</span>},{<span class="keyword">no_of_cycles</span>},{<span class="keyword">resolution_mode</span>},[<span class="keyword">results_per_cycle</span>],[<span class="keyword">bits</span>],{<span class="keyword">rep_mode</span>},{<span class="keyword">results_align</span>},[<span class="keyword">byte_max</span>], [<span class="keyword">MUX</span>,] {(<span class="keyword">pinlist</span>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">EMAP</span> {<span class="keyword">pin_res</span>},{<span class="keyword">start_cycle</span>},{<span class="keyword">no_of_cycles</span>},{<span class="keyword">resolution_mode</span>},{<span class="keyword">results_per_cycle</span>},{<span class="keyword">bits</span>},{<span class="keyword">rep_mode</span>},{<span class="keyword">results_align</span>},[<span class="keyword">byte_max</span>],{(<span class="keyword">pinlist</span>)}, [<span class="keyword">MUX</span>,] {<span class="keyword">#spec(data)</span>}</pre><table class="frame-bottom"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="3"><p><span class="keyword">pin_res</span></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies the pin granularity. Possible
+									values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">PPIN</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Separate results will be reported for every pin of the pin list.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">COMB</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Only one global result will be reported for all pins of the pin
+									list.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">start_cycle</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>In the query, this is an integer that
+									defines the first test cycle to be reported. </p>
+								<p>In the reply, this is the first cycle that is returned. If the requested cycle range
+									exceeds the capacity of the Error Map, the index of the first returned cycle may be greater
+									than that of the first requested cycle.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">no_of_cycles</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This is an integer that defines the number
+									of test cycles to be reported. The range for this parameter is 0 to2<sup>48</sup> - 1. In
+									the reply, this parameter indicates the number of cycles which have been read. If a 0 is
+									returned, no data is available for the requested range.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="4"><p><span class="keyword">resolution_mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Defines how the recorded results are
+									combined. Possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CYCL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In this mode all recorded results are combined into one result per
+									cycle.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">SCYC</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In this mode the results are reported as they were recorded.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">EDGE</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>This mode requests error information for each recorded receive edge. If
+									the <span class="keyword">results_per_cycle</span> parameter is omitted, the reply will return all 8
+									edges, even if only 2 or 4 edges were recorded; the edges that were not recorded will be
+									represented as passed. In this way, the edge number of the failing recorded edges will be
+									indicated by their position within the result data stream. </p>
+								<p>The <span class="keyword">EDGE</span> option requires one of the following two sets of conditions
+									to be satisfied:</p>
+								<ul>
+									<li>The <span class="keyword">mode</span> parameter of <span class="keyword">DCRM</span> is &gt; 1.</li>
+									<li>No result combination, as specified with the <span class="keyword">sub_cycles</span> parameter of
+											<span class="keyword">DCRM</span>, contains more than 1 edge.<p>Note that this requires that result
+											combinations are specified with <span class="keyword">DCRM</span>.</p></li>
+									<li>The edges in the <span class="keyword">sub_cycles</span> string are in ascending order.</li>
+								</ul><p>or (see <a href="58782.htm" title="On the Pin Scale Digital Cards, you can record a separate result for each of the available receive edges by setting the result granularity parameter to 8 (see Result granularity). However, you can only retrieve 1 bit results (see Resolution of the error code) in this way.">Retrieving edge information by repeating the test</a>):</p>
+								<ul>
+									<li><span class="keyword">DCRM</span> is set to <span class="keyword">1,PFC</span>.</li>
+									<li><span class="keyword">CYRM</span> is set to <span class="keyword">EDGE</span>.</li>
+									<li><span class="keyword">CYRP</span> is set to <span class="keyword">MULT</span> (the default).</li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">results_per_cycle</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This parameter is only relevant for
+									resolution mode <span class="keyword">EDGE</span>. If you are only interested in an initial segment
+									of the 8 edge sequence that is returned by default, you can specify the length of this
+									segment here. In certain situations, this allows you to reduce the size of the reply. </p>
+								<p>If the <span class="keyword">MUX</span> flag is set, and one of the specified PS (Pin Scale) pins
+									is multiplexed to an HXA pin, then the edges of the PS pins that are multiplexed to this
+									HXA pin will be returned interleaved as follows:</p>
+								<p><span class="keyword">r1</span> of PS pin 1, ..., <span class="keyword">r1</span> of PS pin
+										<span class="keyword">n</span>, <span class="keyword">r2</span> of PS pin 1, ..., <span class="keyword">r2</span> of PS
+									pin <span class="keyword">n</span>,..., </p>
+								<p><span class="keyword">r8</span> of PS pin 1, ..., <span class="keyword">r8</span> of PS pin
+										<span class="keyword">n</span></p>
+								<p>Here, <span class="keyword">n</span> is 2 or 4, and the PS pins are ordered as defined in the
+										<span class="keyword">BOARDCONF</span> section of the model file.</p>
+								<p>Accordingly, if the multiplexing factor of the HXA pin is 4, and 5 edges per cycle are
+									requested, then the first edge of every PS pin plus the second edge of the first PS pin
+									will be returned. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="3"><p><span class="keyword">bits</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies how detailed the reported error
+									code is to be in case of failure. Possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">PF</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Only a 1 bit Pass/Fail result will be returned.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">PFC</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In case of failure, a more detailed two bit code will be returned.</p>
+								<p>The received data can be reconstructed from the expected data and the error code as
+									follows:</p>
+								<p>&nbsp;</p>
+								<div class="p"><figure class="fignone">
+										<img src="57171.png" alt="Parameters">
+									</figure></div>
+								<p>&nbsp;</p>
+								<p>"I" stands for "Intermediate" and "U" for "Unstable".</p>
+								<p>Note that 2 bit codes can only be reported if 2 bit codes were recorded
+										(<span class="keyword">bits</span> parameter of <a href="98524.htm" title="The DCRM command serves to configure the Error Maps. The DCRM? query returns the current settings.">DCRM</a> set to
+										<span class="keyword">PFC</span>).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="3"><p><span class="keyword">rep_mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies the reporting mode for the Error
+									Map. Possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ALL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>All cycles within the selected area are reported. If the data was
+									recorded in acquire failure mode, <span class="keyword">EMAP?</span> will expand the reply
+									accordingly.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">EOLY</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>As far as is feasible, only failed cycles are reported.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="2"><p><span class="keyword">results_align</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies how the results, as defined by
+									the <span class="keyword">resolution_mode</span>, <span class="keyword">results_per_cycle</span> and
+										<span class="keyword">bits</span> parameters, are aligned within the returned data stream. The
+									supported values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">BYTE</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>By this option, no byte will contain results of more than one cycle. If
+									the results returned per cycle do not make up exactly one or two bytes, they will be padded
+									accordingly.</p>
+								<p>Note that if two bit codes are requested for resolution mode <span class="keyword">EDGE</span>, and
+										<span class="keyword">results_per_cycle</span> is set to a value &lt; 8, the results will always be
+									padded to <em>two</em> bytes, even if <span class="keyword">results_per_cycle</span> is ≤ 4.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">PACK</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This option is mainly relevant for resolution modes <span class="keyword">CYCL</span> and
+										<span class="keyword">SCYC</span>. It will have the effect that the results are not padded, but
+									follow one another immediately. Thus, the results of 8 or 4 cycles (depending on the
+										<span class="keyword">bits</span> setting) will be packed into one byte in <span class="keyword">CYCL</span>
+									mode, and the results of 4 or 2 cycles (depending on the <span class="keyword">bits</span> setting)
+									will be packed into one byte in <span class="keyword">SCYC</span> mode.</p>
+								<p><span class="keyword">PACK</span> will have an effect on resolution mode <span class="keyword">EDGE</span>
+									only, if the initial segment defined with <span class="keyword">results_per_cycle</span> already
+									makes up a complete byte. This would be the case, for example, if two bit codes are
+									recorded for all 8 edges, and <span class="keyword">results_per_cycle</span> is set to 4.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="4"><p><span class="keyword">byte_max</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>In the query, this parameter specifies the
+									maximum number of bytes that may be returned. This option is primarily intended for the
+									reporting mode <span class="keyword">EOLY</span>, where the size of the data that will be returned
+									cannot be calculated beforehand.</p>
+								<p>In the answer, the following codes can be returned:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">EOB</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The cycle range of the query exceeds the specified maximum number of
+									bytes.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">EOF</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The cycle range of the query exceeds the cycle range to be recorded (as
+									defined with <a href="98522.htm" title="The DCGM command sets the recording mode for the detailed Error Map and specifies how the position value defined with DCRP is to be interpreted. The DCGM? query returns the current settings.">DCGM</a> and <a href="98525.htm" title="The DCRP command defines the recording position for Error Map recording. The interpretation of the recording position is defined with the DCGM command separately for both Error Maps; the position can be used as a start or a stop position, or it can be ignored.">DCRP</a>).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">EOM</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The cycle range of the query exceeds the actual content of the Error
+									Map.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">MUX</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>If this flag is set, and one of the
+									specified (Pin Scale) pins is multiplexed to an HXA pin, then the reply for this pin will
+									combine the results of <em>all</em> Pin Scale pins that are multiplexed to the respective HXA
+									pin. </p>
+								<p>In particular, if information on the edge level is requested, then the edges of all
+									multiplexed Pin Scale pins will be returned interleaved as follows:</p>
+								<p><span class="keyword">r1</span> of PS pin 1, ..., <span class="keyword">r1</span> of PS pin
+										<span class="keyword">n</span>, </p>
+								<p><span class="keyword">r2</span> of PS pin 1, ..., <span class="keyword">r2</span> of PS pin
+										<span class="keyword">n</span>,</p>
+								<p>... </p>
+								<p><span class="keyword">r8</span> of PS pin 1, ..., <span class="keyword">r8</span> of PS pin
+										<span class="keyword">n</span></p>
+								<p>Here, <span class="keyword">n</span> is 2 or 4, and the order of the PS pins is that defined in the
+										<span class="keyword">BOARDCONF</span> section of the model file.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies the pins or pin groups for which
+									information is returned. If more than one pin is to be included, the names must be
+									separated by a comma. All pins in the pin list must have type O or IO. They must also all
+									belong to the same port in the current start label.</p>
+								<p>If the MUX flag is set, then each pin in the pin list should represent a different HXA
+									pin, and all HXA pins should have the same multiplexing factor.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">#spec(data)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The binary data that are returned. The
+									general format is: </p>
+								<p><span class="keyword">Nn</span><sub>1</sub><span class="keyword">n</span><sub>2</sub>...<span class="keyword">n</span><sub>N</sub><span class="keyword">data_stream</span></p>
+								<p>where the digit <span class="keyword">N</span> defines the number of the digits
+										<em>n</em><sub>i</sub> (1 ≤ <em>i </em>≤ <em>N</em>) that specify the length of
+										<span class="keyword">data_stream</span> in bytes.</p>
+								<p>The data stream itself consists of blocks each of which contains result data for every
+									cycle (passed as well as failed) within a contiguous cycle range. Every block has a header
+									that specifies</p>
+								<ul>
+									<li>the number of the first cycle of the block (8 bytes, big-endian encoded), and</li>
+									<li>the block size in bytes (4 bytes, big-endian encoded).</li>
+								</ul><p>The result data is also big-endian encoded.</p>
+								<p>If the <span class="keyword">rep_mode</span> parameter has been set to <span class="keyword">ALL</span>, only
+									one block is returned, which contains the whole selected result range. </p>
+								<p>If <span class="keyword">rep_mode</span> has been set to <span class="keyword">EOLY</span>, then
+										<span class="keyword">EMAP?</span> will close a block after a failed cycle, and start a new block at
+									the next failed cycle, if the passed cycles in-between occupy at least as much space as a
+									block header (12 bytes). See the first example below.</p>
+								<p>If you are working with HXA pins note that the block size specifies bytes, not cycles.
+									Thus, a block of size 32 contains 4 cycles of a HXA pin with 4 multiplexed Pin Scale
+									pins.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Error Map</p></div>
+		
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">&gt; EMAP? COMB,0,42,EDGE,8,,EOLY,BYTE,,(dut_tx3)
+&lt; EMAP COMB,0,42,EDGE,8,PF,EOLY,BYTE,,(dut_tx3),#9000000038
+  \x00\x00\x00\x00\x00\x00\x00\x0F
+  \x00\x00\x00\x03
+  \x03\x00\x80
+  \x00\x00\x00\x00\x00\x00\x00\x1F
+  \x00\x00\x00\x0B
+  \x80\x00\x00\x80\xA0\x00\x80\xA0\x00\x00\x0A</pre><p>This
+				example shows the format of the binary data that is returned by <span class="keyword">EMAP?</span>. The
+				data stream has been broken up to make it more readable. Two data blocks are returned. The
+				information is to be decoded as follows:</p><table class="frame-bottom"><caption></caption><colgroup><col><col><col><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><strong>Block</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p><strong>Start cycle</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p><strong>Number of cycles</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><strong>Failing edges</strong></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><strong>Hex</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><strong>Dec</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><strong>Hex</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><strong>Dec</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>1. block</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>0F</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>15</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>3</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>3</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>edges 7,8 (03 = 00000011) in cycle 15</p>
+								<p>edge 1 (80 = 1000000) in cycle 17</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>2. block</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>1F</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>31</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>0B</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>11</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>For example: </p>
+								<p>edge 1 (80 = 10000000) in cycle 31</p>
+								<p>edges 1,3 (A0 = 10100000) in cycle 35</p>
+							</td>
+						</tr>
+					</tbody></table><p>For each cycle, all 8 edges are reported. The first block is closed because 13 passing
+				cycles (= 13 bytes) lie between the failed cycle 17 and the next failed cycle 31.</p></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">&gt; FTST?
+&lt; FTST F
+&gt; EMAP? COMB,0,50000000,EDGE,8,PF,EOLY,BYTE,3500000,(O1,O2)
+&lt; EMAP COMB,0,12000000,EDGE,8,PF,EOLY,BYTE,EOB,(O1,O2),#90003500000</pre><p>This
+				example illustrates the use of the <span class="keyword">byte_max</span> parameter. The test comprises 50
+				million cycles. The Error Map is located in the RDRAM. If the number of errors exceeds 0.5% of
+				the cycles, that is, as soon as more than 250,000 errors have been found, the device is to be
+				rejected offhand. Therefore, <span class="keyword">EMAP?</span> is called with the <span class="keyword">EOLY</span>
+				option, so that only failed cycles are returned, and the maximum length of the reply is
+				restricted to 3,500,000. This is based on the worst case assumption that every error occupies 13
+				bytes. The answer indicates that in fact more than 0.5% of the cycles have failed. Note that
+				only 7% of the 50 million test cycles have to be uploaded to the system
+			controller.</p></div>
+		<div class="example"><h3>Example 3</h3><p>The following example illustrates the difference between the
+				resolution modes <span class="keyword">EDGE</span> and <span class="keyword">SCYC</span>.
+				</p><pre class="prettyprint linenums copyable">&gt; DCRM? EMAP,(@)
+&lt; DCRM EMAP,4,PFC,"c1:1 c2:2 c3:7 c4:8",(@)
+&gt; $EMAP? PPIN,0,12,EDGE,,PF,ALL,BYTE,,(out)
+&lt; EMAP PPIN,0,12,EDGE,8,PF,ALL,BYTE,,(out),#224
+     00000000   00000000   00000000   00000000   00000000   00000000   00000000   00000000   
+     00000000   00000000   00000000   00001100   11000011   10000011   00000000   00000000   
+     00000000   00000000   00000000   00000011   00000000   00000000   00000000   00000000   
+
+&gt; $EMAP? PPIN,0,12,SCYC,,PF,ALL,BYTE,,(out)
+&lt; EMAP PPIN,0,12,SCYC,4,PF,ALL,BYTE,,(out),#224
+     00000000   00000000   00000000   00000000   00000000   00000000   00000000   00000000   
+     00000000   00000000   00000000   00001100   11110000   10110000   00000000   00000000   
+     00000000   00000000   00000000   00110000   00000000   00000000   00000000   00000000   </pre><p>The
+				first failing cycle is cycle 0 (fifth byte in the second line of the <span class="keyword">EMAP?</span>
+				reply); in this cycle, edges 1,2,7,8 have failed. In addition, cycle 1 (edges 1,3,4) and 7
+				(edges 3,4) contain errors. With the <span class="keyword">PACK</span> option, resolution mode
+					<span class="keyword">SCYC</span> compresses 12 bytes into
+				6:</p><pre class="prettyprint linenums copyable">&gt; $EMAP? PPIN,0,12,SCYC,,PF,ALL,PACK,,(out)
+&lt; EMAP PPIN,0,12,SCYC,4,PF,ALL,PACK,,(out),#218
+     00000000   00000000   00000000   00000000   00000000   00000000   00000000   00000000   
+     00000000   00000000   00000000   00000110   11111011   00000000   00000000   00000011   
+     00000000   00000000   </pre><p>But
+				the following call of <span class="keyword">EMAP?</span> will produce an error
+				message:</p><pre class="prettyprint copyable singleline">&gt; $EMAP? PPIN,0,12,EDGE,4,PF,ALL,PACK,,(out)</pre><p>The reason
+				for this is that the results per cycle are only 4 bits long.</p></div>
+		<div class="example"><h3>Example 4</h3><p>The following example shows the expanded format for 2 bit
+				error codes (2 bytes per
+				cycle):</p><pre class="prettyprint linenums copyable">&gt; DCRM? EMAP,(@)
+&lt; DCRM EMAP,4,PFC,"c1:1 c2:2 c3:3 c4:4",(@)
+&gt; $EMAP? PPIN,0,7,EDGE,,PFC,ALL,BYTE,,(out)
+&lt; EMAP PPIN,0,7,EDGE,8,PFC,ALL,BYTE,,(out),#228
+     00000000   00000000   00000000   00000000   00000000   00000000   00000000   00000000   
+     00000000   00000000   00000000   00001110   11110011   00000000   00001111   00000000   
+     00000000   00000000   00000000   00000000   00000000   00000000   00000000   00000000   
+     00001100   00000000</pre><p>In
+				cycle 0, edges 1, 2, and 4 have failed. In cycle 1, edges 3 and 4 have failed. In cycle 6, edge
+				3 has
+				failed.</p><pre class="prettyprint linenums copyable">&gt; $EMAP? PPIN,0,7,EDGE,4,PFC,ALL,PACK,,(out)
+&lt; EMAP PPIN,0,7,EDGE,4,PFC,ALL,PACK,,(out),#220
+     00000000   00000000   00000000   00000000   00000000   00000000   00000000   00000000   
+     00000000   00000000   00000000   00000111   11110011   00001111   00000000   00000000   
+     00000000   00000000   00001100</pre><p>In
+				this case, the <span class="keyword">PACK</span> option is accepted because the initial segment of 4 two
+				bit codes already makes up one byte.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98590</span><script type="text/javascript">var ti='98590';var tt='EMAP? - (Error MAP)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

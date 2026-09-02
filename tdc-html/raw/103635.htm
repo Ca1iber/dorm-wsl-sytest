@@ -1,0 +1,164 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up a maintenance operation</title></head><body id="_103635"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 103635</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up a maintenance operation</h1>
+	
+	
+	<div><p>Setting up a device maintenance operation, such as a refresh, requires modifications to
+		several of the configuration files in addition to writing the program from which the operation is
+		compiled.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>You set up a maintenance operation when your device requires periodic support
+				operations - most commonly refreshes - that have to occur too frequently to specify manually in
+				the code.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Set up timing and waveforms in SmarTest.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Specify the maintenance operation in the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>:</span>
+				<div><p>Add the <span class="keyword">:maintenanceOperation:</span> keyword and the corresponding
+						information to the file, as described in <a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">Device architecture file syntax</a>. </p>
+					<p>For
+						example:</p><pre class="prettyprint linenums copyable">:maintenanceOperation:
+{
+  :name: writeRefresh
+  :table:
+  {
+    :format:
+    {:operation:     :subroutine: :timerMode: :intervalMode:}
+    {maintop_time_a  refreshWrite  static      accumulated   }
+  }
+}</pre><p>Note
+						that if this table specifies:</p>
+					<ul>
+						<li>A single refresh maintenance operation, in this table there is only one row. And in the
+								<span class="keyword">:operation</span>: column, the keyword must be
+								<span class="keyword">maintop_time_a</span>.<p>Both the static and dynamic timer modes support the
+								single refresh maintenance operations.</p></li>
+						<li>A multiple refreshes maintenance operation, there are multiple rows. One row stands for
+							one refresh's setups.<p>In the <span class="keyword">:operation:</span> column, the keyword for each
+								row must be <span class="keyword">static_maintop_time_x</span> (x can be any given letter), where
+									<span class="keyword">x</span> is different between rows. </p>
+							<p>Only the static timer mode supports the multiple refreshes maintenance operations.</p>
+							<p>You can specify multiple maintenance operations if desired; there must be a
+									<span class="keyword">:name:</span> block for each.</p></li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Reference the newly specified maintenance operation in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>:</span>
+				<div><p>Enter the name (the one specified with the <span class="keyword">:name:</span> keyword) of the
+						desired maintenance operation after the <span class="keyword">:maintenanceOperation:</span> keyword. </p>
+					<p>For example:</p><pre class="prettyprint copyable singleline">:maintenanceOperation:  writeRefresh</pre></div>
+			</li><li class="stepexpand">
+				<span>If you have specified a static maintenance operation in step 1, add the required
+						<span class="keyword">:timing:</span> information in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> as described in <a href="102150.htm" title="The syntax of the APG pattern file, in general, follows the conventions of the MTL compiler syntax.">APG pattern file syntax</a>.</span>
+				<div><p>The static refresh maintenance operation supports both single-port and multiport
+						operation. For multiport operation, you need specify the different timing sets for different
+						ports in the <span class="keyword">:tims:</span> parameter in <span class="keyword">:timing:</span>. See the below
+						examples:</p>
+					<p>Example 1, for
+						single-port:</p><pre class="prettyprint linenums copyable">:timing:
+  {
+    :file:  "write.tim"
+    :eqns:  "write_eqn_set"
+    :tims:  "write_timing_set"
+    :spec:  "write_spec_set"
+  }</pre><p>Example
+						2, for
+					multiport:</p><pre class="prettyprint linenums copyable">:timing:
+  {
+    :file:  "write.tim"
+    :eqns:  "write_eqn_set"
+    :tims:  "timingset1@port1, timingset2@port2"
+    :spec:  "write_spec_set"
+  }</pre></div>
+			</li><li class="stepexpand">
+				<span>If you have specified a dynamic maintenance operation in step 1 and you want to run the
+					refresh in sequencer mode, specify the <span class="keyword">SEQ</span> value for the
+						<span class="keyword">interruptCtrl</span> pin attribute in the <a href="102516.htm" title="The syntax of the pin mapping file is similar to that of the Pin configuration file, although not identical to it.">pin mapping
+						file</a>.</span>
+			</li><li class="stepexpand">
+				<span>Add a subroutine for the maintenance operation to the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>:</span>
+				<div><p>The subroutine must have the name specified in the device architecture file (in the
+							<span class="keyword">:subroutine:</span> column). It follows the same conventions as all other
+						subroutines, except that no parameters can be passed to it. See <a href="68452.htm" title="Subroutines let you group related instructions and name and reuse these groups. Using subroutines can make your programs easier to write and maintain as well as easier to read. It also can improve compilation times.">Subroutines</a> for
+						details.</p>
+					<p>For
+					example:</p><pre class="prettyprint linenums copyable">refreshWrite()
+{
+  for(rowAddr=0 ; rowAddr&lt;1024; rowAddr+=1)
+  {
+    refreshRow( rowAddr );
+  }
+}</pre></div>
+			</li><li class="stepexpand">
+				<span>Specify the maintenance operation in the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>:</span>
+				<div><p>Add the <span class="keyword">period</span> and <span class="keyword">maintop_time_a</span> or
+							<span class="keyword">static_maintop_time_x</span> (x can be any given letter) keywords at the
+						beginning of a timing set (before the <span class="keyword">PINS</span> definition) and define spec
+						variables for both.</p>
+					<p>For a multiport operation supported by single or multiple static refreshes maintenance
+						operations, add the above keywords at the beginning of each timing set (before the
+							<span class="keyword">PINS</span> definition) to be used for each port.</p>
+					<ul>
+						<li>If a single refresh operation, use the <span class="keyword">maintop_time_a</span> keyword as the
+							refresh-period name.</li>
+						<li>If a multiple static refreshes operation, use the <span class="keyword">static_maintop_time_x</span>
+							(x can be any given letter) keywords as the different refresh-period names, where x must be
+							different for each refresh.<p>For example, a single-port refresh maintenance operation:</p></li>
+					</ul><pre class="prettyprint linenums copyable">SPECS
+  cycleTime    [ns]
+  refreshTime  [ns]
+TIMINGSET 1 "writeRefresh"
+  period = cycleTime
+  maintop_time_a = refreshTime
+  PINS
+  ...</pre><p>For
+						example, a multiport refresh maintenance
+						operation:</p><pre class="prettyprint linenums copyable">SPECS
+  cycleTime    [ns]
+  refreshTime  [ns]
+TIMINGSET 20 "timingset1"
+  period = cycleTime
+  maintop_time_a = refreshTime
+  PINS
+  ...
+TIMINGSET 30 "timingset2"
+  period = cycleTime*2
+  maintop_time_a = refreshTime*2
+  PINS
+  ...</pre><p>Make
+						sure to always specify a period; a failure to do so can lead to unexpected errors.</p>
+					<p>Maintenance operations can be specified only in equation-based timing sets.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>In the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>, mark non-interruptible locations using either the <a href="102609.htm" title="In addition to 'for' loops, MTL contains control structures for specifying interruptible and non-interruptible sequences.">nis{}</a><a href="102609.htm" title="In addition to 'for' loops, MTL contains control structures for specifying interruptible and non-interruptible sequences."> or </a><a href="102609.htm" title="In addition to 'for' loops, MTL contains control structures for specifying interruptible and non-interruptible sequences.">is{}</a>
+					instructions if needed.</span>
+				<div><p>If you do not use the <span class="keyword">nis{}</span> or <span class="keyword">is{}</span> instructions,
+						the default is that the program can be interrupted at any location once the refreshes are set
+						up as described in this procedure.</p>
+					<p>Note that <span class="keyword">nis{}</span> instructions are not compatible with the sequencer
+						refresh mode (see step 4).</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>If you have specified a multiple refreshes maintenance operation in step 1, you must insert
+					the <a href="118570.htm" title="Maintenance operations (refreshes) can be manually enabled and disabled under program control in the APG program file. This is optional for single refresh maintenance operations but mandatory for multiple refreshes maintenance operations.">refresh control instructions</a> in your <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a> to
+					enable and disable the refreshes.</span>
+				<div><p>Note that for multiple refreshes maintenance operations, all refreshes are disabled
+						initially after setting up as described in this procedure.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>If you have specified a single refresh maintenance operation in step 1, you can manually
+					enable or disable the refresh in the pattern by inserting the <a href="118570.htm" title="Maintenance operations (refreshes) can be manually enabled and disabled under program control in the APG program file. This is optional for single refresh maintenance operations but mandatory for multiple refreshes maintenance operations.">refresh
+						control instructions</a> in your <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>.</span>
+				<div><p>Note that for single refresh maintenance operations, refreshes are enabled initially
+						after setting up as described in this procedure.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Save all modified files.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The maintenance operation is now set up, ready to be compiled and be used in compiled
+				test patterns.</p><p>The compiler stores the specified type of interval mode (accumulated or
+				compensated) in the vector (<span class="filepath">.vec</span>) file to allow SmarTest to verify that the
+				mode is compatible with the hardware when loading it.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Compile the pattern, execute it, and view the results (if desired).</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="75895.htm" title="Maintenance operations are procedures that need to be performed regularly during the testing of a device, most commonly refreshes.">Maintenance operations</a></div><div><a href="101480.htm" title="Multiport operation allows you to test different parts of a DUT with independent timing sets or spec variables using a single memory test pattern.">Multiport operation</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: New mode for dynamic refreshes: sequencer</li><li>MTP 3.1.6: (MTP on SOC 103.3.0) Multiple static refreshes maintenance operation is
+					available</li><li>MTP 3.1.7: Multiport static refresh operations' setups are added</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 103635</span><script type="text/javascript">var ti='103635';var tt='Setting up a maintenance operation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

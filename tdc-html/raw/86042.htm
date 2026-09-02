@@ -1,0 +1,50 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The vector translation can convert a scan setup within an ASCII vector file into a binary multi-port setup where the scan vectors are generated with GENV and RPTV instructions. In this binary setup, the scan pins and the parallel pins are put into to different ports, each of which has its own sequencer program. This makes it possible to retain the advantage that the repeat vectors for the parallel pins are stored only once, since they can now be repeated with an RPTV instruction in the parallel port."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Converting an ASCII Scan Setup Into a Binary Multi-Port Setup</title><meta name="keywords" content="multiport"></head><body id="_86042"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 86042</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Converting an ASCII Scan Setup Into a Binary Multi-Port Setup</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="86196.htm" title="If the ASCII scan setup is converted into a binary multi-port setup, and the original template length TL is not a multiple of the x-mode factor n, the conversion must apply vector padding to the ASCII scan instances. This requires specifying -xpi as a v2b option if at least one scan instance is followed by another (scan or parallel) section.">Vector padding for parallel pins in the scan sections</a></li><li><a href="89794.htm" title="When converting an ASCII scan setup into a multi-port setup, you may want to keep corresponding (scan and parallel) sections in the different ports synchronized in the sense that they start simultaneously in all ports. A necessary condition for this is that all ports belong to the same sequencing group (see General Overview of Multi-Port Testing, Synchronization within sequencing groups). But this condition is sufficient only if you specify the same x-mode factor for the scan port pattern and the parallel port pattern. If the x-mode factors for the different patterns are different, the standard vector padding will usually destroy synchronicity.">Synchronizing Scan and Parallel Ports with Different X-Mode Factors</a></li><li><a href="86245.htm" title="The example displayed in Converting an ASCII Scan Setup Into a Binary Multi-Port Setup contains only one scan template. But the multi-port conversion can also handle ASCII vector files with more than one scan template, provided that no pin is associated with more than one of these. If more than one template is present, a separate pattern with a separate port must be specified in the vector configuration file for every template. The pins that do not occur in any template are put into the parallel port. Note that the restriction to non-overlapping templates is not required for normal (scan tool) scan setups.">Dealing with Complex Scan Setups</a></li></ol></div></nav>
+	
+	
+	<div><p>The vector translation can convert a scan setup within an ASCII vector file into a
+		binary multi-port setup where the scan vectors are generated with <span class="keyword">GENV</span> and
+			<span class="keyword">RPTV</span> instructions. In this binary setup, the scan pins and the parallel pins
+		are put into to different ports, each of which has its own sequencer program. This makes it
+		possible to retain the advantage that the repeat vectors for the parallel pins are stored only
+		once, since they can now be repeated with an <span class="keyword">RPTV</span> instruction in the parallel
+		port. </p>
+		<p>The ports to be used are passed to <strong>aiv</strong> in the vector configuration file (*.aiv). The
+			scan instances are translated into normal <kbd class="userinput">GENV</kbd> and
+				<kbd class="userinput">RPTV</kbd> instructions. </p>
+		<p>The main points to observe when you want to perform this conversion are the following:</p>
+		<ul>
+			<li>The definitions of the ports that are specified in the vector configuration file must
+				correspond to the distinction between parallel pins and scan pins in the ASCII vector file. </li>
+			<li>You must specify the ASCII vector file containing the scan setup in the
+					<kbd class="userinput">avc_file</kbd> column for both ports.<p>The vector translation is able to
+					extract the information required for the two port specific patterns from this single global
+					file (see <em><a href="49168.htm" title="It is possible to keep the ASCII vectors for a multi-port setup in a single file. If you specify this file as the *.avc file for a pattern that is associated with one of the ports in question, the vector translation will only process those columns of the file that belong to the specified port.">Using One ASCII Vector File for Several Ports</a></em>).</p></li>
+			<li>You must define the multi-port burst in the vector configuration file (or in the *.aic file
+				if you call <strong>ait</strong> and <strong>aiv</strong> in one run). </li>
+			<li>The actual conversion is triggered with the <strong>v2b</strong> option <kbd class="userinput">-imp</kbd> or
+					<kbd class="userinput">-impv</kbd>. <kbd class="userinput">-impv</kbd> not only converts the scan setup
+				into a multi-port setup, it also inserts an instance of the <span class="keyword">VCAT</span> command for
+				every scan instance into the binary vector file. These <span class="keyword">VCAT</span> commands inform
+				the <span class="keyword">SCAN_TEST_RESULT</span> test method API (see <a href="117961.htm" title="This class holds the result data of a scan test. SCAN_TEST_RESULT and SCAN_TEST_PIN_RESULT are used to send data to the datalog that will show up as STR (Scan Test Record). An instance of the class SCAN_TEST_RESULT can be sent to datalog by calling judgeAndLog_ScanTest() of TESTSET API.">SCAN_TEST_RESULT</a>) where the
+				scan instances start within the test. </li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>The following figure shows a basic example:</p><div class="p"><figure class="fignone">
+					
+					<img src="86163.png" alt="Converting an ASCII Scan Setup Into a Binary Multi-Port Setup">
+				</figure></div><p>In this example, the port <kbd class="userinput">scan</kbd>, as specified in the
+					<span class="filepath">*.aiv</span> file, must contain the pins <kbd class="userinput">SI</kbd> and
+					<kbd class="userinput">SO</kbd>. All other pins must belong to the port <kbd class="userinput">para</kbd>.
+				</p><p>You can generate the vector configuration file in the usual way by an <strong>ait</strong> call.
+				You only have to specify the <kbd class="userinput">-imp</kbd> option for the respective patterns in
+				the <kbd class="userinput">v2b_options</kbd> column of the global configuration file
+				(*.aic).</p><p>You can also define an x-mode, even different x-modes, for the two patterns. It
+				is even possible to synchronize the scan and parallel sections of patterns that that run with
+				different x-modes (see <em><a href="89794.htm" title="When converting an ASCII scan setup into a multi-port setup, you may want to keep corresponding (scan and parallel) sections in the different ports synchronized in the sense that they start simultaneously in all ports. A necessary condition for this is that all ports belong to the same sequencing group (see General Overview of Multi-Port Testing, Synchronization within sequencing groups). But this condition is sufficient only if you specify the same x-mode factor for the scan port pattern and the parallel port pattern. If the x-mode factors for the different patterns are different, the standard vector padding will usually destroy synchronicity.">Synchronizing Scan and Parallel Ports with Different X-Mode Factors</a></em> for details).</p><p>By default, the
+				conversion adds the template name and the instance number as comments to the vectors that act as
+				scan vectors. You can suppress these comments with the <strong>v2b</strong> option
+					<kbd class="userinput">-imc</kbd>.</p></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 86042</span><script type="text/javascript">var ti='86042';var tt='Converting an ASCII Scan Setup Into a Binary Multi-Port Setup'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

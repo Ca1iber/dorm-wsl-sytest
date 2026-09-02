@@ -1,0 +1,329 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>A Fast and Accurate Method to Perform Evaluation Board to Production Board Correlation</title><meta name="keywords" content="card"></head><body id="_109575"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 109575</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">A Fast and Accurate Method to Perform Evaluation Board to Production Board
+		Correlation</h1>
+	
+	<div>
+		<p>Michael Engelhardt, Verigy</p>
+		<p>Paper ID: 109575</p>
+		<section class="section"><h2>Abstract</h2><p><em>With the increasing number of RF parts in all kinds of
+					consumer applications as well as the ever increasing number of RF ports per device, RF test
+					engineers are forced to develop fast and robust methods to establish correlation between bench
+					evaluation boards and production load boards. Many different methods to perform correlation
+					were discussed in the past. Those methods often required significant lab experience together
+					with external RF equipment or simulation software to simulate path, socket or component loss.
+					The other extreme is to simply add linear offsets that are either guessed or roughly calculated
+					relative to a correlation unit. Many of those methods either lack simplicity, accuracy or
+					robustness. This paper investigates a fast and simple method to perform RF correlation without
+					need of external equipment or probes by using the nonlinear device characteristics to
+					accurately determine input and output loss of production boards relative to bench evaluation
+					boards. Various examples are discussed to achieve correlation for the most critical RF
+					parameters like noise figure, gain, IP3 as well as the practical implementation for load boards
+					with multiple sites and RF ports.</em></p><p><strong>Key Words:</strong> Correlation, Intermodulation,
+				Offset, Loss, HVM</p></section>
+		<section class="section"><h2>1. Introdution</h2><p>With the increasing number of RF parts in all kinds of
+				consumer applications as well as the ever increasing number of RF ports per device, RF test
+				engineers are forced to develop fast and robust methods to establish correlation between bench
+				evaluation boards and production loadboards. Many different methods to perform correlation were
+				discussed in the past. Those methods often required significant lab experience together with
+				external RF equipment or simulation software to simulate path, socket or component loss. The
+				other extreme is to simply add linear offsets that are either guessed or roughly calculated
+				relative to a correlation unit. Many of those methods either lack simplicity, accuracy or
+				robustness. This paper investigates a fast and simple method to perform RF correlation without
+				need of external equipment or probes by using the nonlinear device characteristics to accurately
+				determine input and output loss of production boards relative to bench evaluation boards.
+				Various examples are discussed to achieve correlation for the most critical RF parameters like
+				noise figure, gain, IP3 as well as the practical implementation for load boards with multiple
+				sites and RF ports.</p></section>
+		<section class="section"><h2>2. Commonly Used Correlation Methods</h2><p>Before we can talk about commonly
+				used correlation methods we have to have a look at the evaluation boards which are normally the
+				golden references that are considered to give the "real result". In some cases the test engineer
+				has access to those boards and can assist the design engineer in performing those measurements.
+				In this case the test engineer is very familiar with the measurements themselves as well as with
+				the assumptions that were made to gain those results. For instance, on basically all RF boards
+				are baluns, passive components like inductors, resistors or capacitors or mismatch effects.
+				Those mismatch effects have to be taken into account when corrections to the measured result are
+				made. For instance, if the loss of a transformer between the RF source and the device is known
+				to be 1.5 dB then we know that the actual power at the device is 1.5 dB less than the sourced RF
+				power. Similar corrections are made for instance for mismatch effects, assumed losses of
+				connectors or cables, etc. In most cases those losses are either assumed ("I think that the
+				connector has a loss of 1 dB...") or taken out of the datasheet of the component (for instance,
+				the loss of a balun could be specified as "typical 1 dB"). Very often those corrections are not
+				verified in a more scientific manner by measuring those losses in more detail. All the
+				measurement results that were obtained will simply be corrected by those assumed numbers. The
+				result of that exercise is normally a spreadsheet that contains all the RF parameters of the
+				part like gain, output power, noise figure, IP3, compression, etc. If the test engineer was part
+				of that data collection he will understand that the measurement results are in some ways
+				modified to account for losses or parasitic effects.</p><p>On the other hand, there are many
+				cases as well where the test engineer simply gets a list with measurement results. From that
+				point on it is the goal of the test engineer to duplicate those results as closely as possible.
+				The disadvantages with this form of cooperation are that the test engineer is not only
+				unfamiliar with the detailed way of performing the measurements but is also not aware of the
+				many corrections that are part of the measurement results.</p><p>As discussed earlier, the
+				evaluation board is often used as the golden standard for device correlation. Since it is normal
+				to compensate for losses or mismatch effects on the golden standard it should not come as a
+				surprise that corrections have to be made to measurement results on ATE boards as well. In many
+				cases those corrections are larger simply due to either the bigger size of a ATE load boards to
+				accommodate additional sites or components like relays or because the evaluation board does not
+				require socket.</p><p>During the process of correlation the test engineer is trying to account
+				for all the losses on the ATE load board with the expectation to match the evaluation board
+				performance after taking all known errors into account. Two of the following three correlation
+				methods follow that idea. The method of applying scalar offsets does not go to the point of
+				understanding what causes losses or mismatch effects but simply corrects for it as long as the
+				offset value is within the expected range.</p></section>
+		<section class="section"><h2>3. Measuring the Setup</h2><p>This seems to the most straightforward approach
+				to establish correlation between an evaluation board and a tester load board. For this method
+				the setup is measured between the original RF calibration plane and the point where the RF is
+				sourced to the device. This point is either the tip of the probe in case of RF wafer probing or
+				the RF pin of the device in case of packaged part testing. The method has to be performed for
+				both input and output port of the device. In the case that the measurement is performed with a
+				vector network analyzer the data can be saved and imported into the tester to do full vector
+				de-embedding. With this method all the losses between calibration plane and the device can be
+				calibrated out. The main disadvantages in doing this, however are in the fact that this requires
+				a bench setup that allows to perform this kind of a measurement but more importantly still does
+				not address correlation between boards. It certainly removes losses that might occur on the load
+				board but does not take into account that there might be design differences between evaluation
+				boards and load boards that might cause different results. Also, this method might indeed
+				overcompensate some effects. For instance, if the circuitry on the load board has a matching
+				network to match the device for high gain or low noise, then we will have some loss since a
+				matching network is built with passive components like a combination of capacitors or inductors.
+				However, without this matching network the device performance would be worse even though we
+				could avoid the loss due to the components to do the matching. Removing the loss of the matching
+				network with the above described method would remove the effect of a network that is responsible
+				for the device performance.</p></section>
+		<section class="section"><h2>4. Simulation of the Setup</h2><p>Simulation of the setup has the same goal as
+				measuring the setup, i.e. obtaining enough information about the physical environment between
+				the calibration plane and the point where the RF signals are sourced into the device or measured
+				from the device. The advantage certainly is that no measurement equipment is needed to do the
+				simulation. On the other side it heavily relies on accurate models to simulate the environment.
+				Those models might not be easy to get, especially if there are many RF components on the load
+				board or traces that go from bottom to top layer or even stay in a center layer.</p></section>
+		<section class="section"><h2>5. Scalar offsets</h2><p>Applying scalar offsets is the most commonly used
+				method to match the load board performance to the evaluation board. In this case there is one
+				single offset applied to correct for one parameter. For instance, if the evaluation board gain
+				is measured with 56 dB and the ATE load board is measured with 54 dB of gain then the gain is
+				corrected by simply adding 2 dB to the ATE measurement result so that the evaluation board
+				result matches the ATE result. There are various reasons why there might be a different
+				measurement result. In most cases the difference can be explained with longer cables, a more
+				complex routing of RF signals on the evaluation board or additional parasitic effects, for
+				instance the socket inductivities.</p></section>
+		<section class="section"><h2>6. The Need for a Simpler Correlation Method</h2><p>Even though the number of
+				pins per chip is still increasing the test engineers are not given more time to do test program
+				development and correlation to a known standard. It is much more so that test engineers have to
+				make up for lost time during earlier project stages. Also, even if there were enough time
+				available to do a more detailed correlation there is often not the required lab or software
+				available to perform measurements or simulations. That basically leaves only the method of
+				applying scalar offsets to the ATE measurement results in order to log the same measurement
+				results as on an evaluation board. An interesting observation is that even though measurements
+				are performed on the same RF pins there might be different offsets for different measurements.
+				For instance, there might be a correction for gain by 3 dB, whereas the correction for noise
+				figure is only 2 dB. More offsets could be used for other measurements on the same pin like
+				compression or IP3. This obviously is not only inefficient because the same pins have to be
+				characterized multiple times, it also points to problems in the correlation method itself. There
+				are various reasons why the method of applying scalar offset might require several offsets for
+				the same pairs of pins:</p><ul>
+				<li>Some measurements like gain require only one offset to match a bench result<p>If a gain
+						measurement is performed in the linear range of the device it is sufficient to apply only one
+						offset to correct for ATE to bench differences. In the above example, the correction is 3 dB
+						and it does not play a role if the loss is on the input side of the device or on the output
+						side of the device.</p></li>
+				<li>For some measurements the loss on the input side of the device dominates the measurement
+						result<p>For noise figure measurements, for instance, the loss on the input side goes directly
+						into the measured noise figure. Assuming that the device has a decent gain, the loss on the
+						output side has an impact on the overall measurement result that can be neglected.</p></li>
+				<li>Some measurements rely on device nonlinearities<p>A good example for a measurement that uses
+						device nonlinearities is an IP3 test. If scalar offsets are applied to an IP3 measurement to
+						correlate bench to ATE results then the measurement results can only be matched in a
+						relatively small window around the measurement conditions that were used in the lab. If for
+						some reasons the stimulus power at the ATE has be lowered or increased by more than one or two
+						dB then there's automatically the need to come up with a new correlation value.</p></li>
+			</ul><p>It can be seen with the examples above that different effects are responsible for
+				measurements that are performed on the same pins. The method of applying only one offset per
+				measurement type (i.e. one for gain, one for noise figure, etc) points to a weakness in the
+				correlation method. The reason why there might be several offsets for the same two pins is due
+				to the fact that those correlation methods Do not look into the loss at the input side of the
+				device and the loss at the output side of the device but focus only on one single offset.
+				Therefore, if a method is found that accurately characterizes the loss at the input and the loss
+				at the output of a device then there will be no more need to have multiple offsets for different
+				measurements at the same two pins.</p></section>
+		<section class="section"><h2>7. Correlation by Using Nonlinear Device Characteristics</h2><p>As mentioned
+				earlier, IP3 measurements use device nonlinearities to calculate the theoretical intercept point
+				between the fundamental tone and the intermodulated tone. Let's assume that the test engineer
+				gets a spreadsheet from the design group that specifies IP3 in the following form:</p><table class="frame-topbot"><caption><span>Table 1: Hypothetical Device IP3 Characterization Data</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_109575__entry__1"><p>Frequency [GHz]</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109575__entry__2"><p>Power In [dBm]</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109575__entry__3"><p>IIP3 [dBm]</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__1"><p>2.50E+09</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__2"><p>-40</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__3"><p>-12</p>
+							</td>
+						</tr>
+					</tbody></table><p>With that information it is possible to calculate the difference between the main tone
+				and the intermodulation tones (in case there's slightly different power between the main tones
+				or the intermodulation tones it is a good idea to confirm which ones to use for the
+				calculation). Since </p><p><em>IIP3 = Pin + Delta/2 </em> (1)</p><p>We can solve (1) for
+				Delta:</p><p><em>Delta = 2*(IIP3 - Pin)</em> (2)</p><p>The next step is to source the specified
+				input power with the ATE and observe the device output. Under the assumption that the evaluation
+				board and the ATE load board have the same physical characteristics the exact same difference
+				between main tone and intermodulation tone would be observed. However, due to the reasons that
+				were discussed in chapter 3 this is rarely the case. Instead there might be a significant
+				difference in power levels between what is observed at the evaluation board and what is observed
+				at the ATE load board. For IP3 measurements there is a 3:1 difference in the slope between the
+				intermodulation tones and the main tones. That means that for one dBm more input power the
+				intermodulation tones increase by 3 dBm whereas the main tones increase linearly by 1
+				dBm.</p><p>Under the assumption that the loss at the input of the ATE load board is 1 dB higher
+				compared to the evaluation board we would observe a 2 dB difference in the Delta between
+				evaluation board and ATE load board. This is exactly the effect that can be used to determine
+				the exact input loss of the ATE load board compared to the evaluation board: the input power
+				level at the ATE simply has to be adjusted until the observed Delta at the device output matches
+				exactly the delta that was calculated in (2).</p><p>Let's look at the following
+				example:</p><p>With (2) we can calculate the difference between the main tone and the
+				intermodulation tone at the evaluation board as</p><p><em>Delta = 56 dB</em> (3)</p><p>Under the
+				same conditions, i.e. an input power level of -40 dBm at the ATE we measure a
+					</p><p><em>Delta_ATE = 60 dB</em> (4)</p><p>Since we know that there is a 3:1 relationship
+				between intermodulation tone power and power in the main tone we have to increase the input
+				power level at the ATE by</p><p><em>(60 dB -56 dB)/(3-1) = 2 dB</em> (5)</p><p>That means that the
+				input power level at the ATE has to be increased by 2 dBm in order to see the same result at the
+				ATE as on the bench. The 2 dBm more input power that is required at the ATE means at the same
+				time that there is a 2 dB higher loss at the ATE load board relative to the bench evaluation
+				board. In other words it is possible by using the device nonlinearities to accurately determine
+				the additional loss that an ATE load board has relative to a bench evaluation board. The loss
+				that is calculated with the above method is the loss at the input side of the device. The loss
+				at the output side is not known at that point. Please note that there are cases where the number
+				that is calculated with the method above is negative. In that case the loss on the ATE load
+				board is smaller than the loss on the bench evaluation board.</p><p>In order to determine the
+				loss at the output of the device we can use a linear power measurement. Let's assume that the
+				gain of the device with the evaluation board is characterized as follows:</p><table class="frame-topbot"><caption><span>Table 2: Hypothetical Device Gain Characteristics</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_109575__entry__7"><p>Frequency [GHz]</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109575__entry__8"><p>Gain [dB]</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__7"><p> 2.5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__8"><p> 59</p>
+							</td>
+						</tr>
+					</tbody></table><p>Let's assume that we measure the following gain at the tester:</p><table class="frame-topbot"><caption><span>Table 3: Assumed Gain Measured With The ATE</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_109575__entry__11"><p>Frequency [GHz]</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109575__entry__12"><p>Gain [dB]</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__11"><p> 2.5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109575__entry__12"><p> 56</p>
+							</td>
+						</tr>
+					</tbody></table><p>Since we know that the loss at the input side of the device is 2 dB as calculated
+				in equation (5) we can calculate the loss at the output side of the device as</p><p><em>Loss
+					output = 59dB -56dB -2dB</em> (6)</p><p>Therefore the output loss is</p><p><em>Loss output = 1
+					dB</em></p><p>As can be seen with the examples above, there is a requirement to specify input
+				loss and output loss. Since loss is among other parameters a function of the frequency that is
+				applied or measured it is required that there is an input loss and output loss specified for
+				each frequency that is used to perform measurements on the device. Since most correlation so far
+				was done by applying only one single offset per frequency point this seems like additional work.
+				In reality it is the opposite since there is no more need to specify an offset for gain, another
+				offset for noise figure measurement and a third offset for intermodulation measurements, etc.
+				The only measurement result that needs some additional consideration is noise figure. Since
+				every dB of input loss automatically translates into one additional dB of noise figure it is
+				necessary to subtract the loss at the input of the device from the uncorrected noise figure
+				measurement. On the other side, the overall noise figure of a device including setup is a
+				function of the gain (or loss) and noise figure of the first stages of a device. It becomes
+				obvious that the output loss is less important and in the case of high gain devices the output
+				loss can be neglected. See appendix 1 for additional information.</p></section>
+		<section class="section"><h2>8. Implementation Results</h2><p>As mentioned in the previous paragraph, the
+				need to have one correction for the input of the device and a second correction for the output
+				of the device might seem like additional work. However, after determining those 2 numbers all
+				measurements will already be correlated between bench and tester. For instance, there will be no
+				more need to perform additional correlation for noise figure or compression testing. Table 4
+				shows the input and output correlation factors for a WiMAX transceiver for different
+				frequencies.</p><p>Table 4: Input And Output Loss For A Wimax Device</p><div class="p"><figure class="fignone">
+					
+					<img src="109358.png" alt="Table Implementation Results">
+				</figure></div><p>It can be seen that for the transmitter the input loss is significantly lower
+				than output loss. This is expected and normal. Baseband signals are sourced at the input at
+				relatively low frequencies (up to 10 MHz) whereas at the output the frequencies are in the GHz
+				range. Likewise the input loss for the receiver is significantly higher than the output loss
+				because of the higher frequencies of the input vs. output.</p><p>Table 5 shows the correlation
+				between bench and ATE for some key measurements that were performed with that part. The noise
+				figure measurement results were obtained by subtracting the input loss from the uncorrected
+				noise figure measurement.</p><p>Table 5: Correlation Results For Some Selected Measurements</p><div class="p"><figure class="fignone">
+					
+					<img src="109359.png" alt="Table Implementation Results">
+				</figure></div><p>As can be seen in table 5, there are still small discrepancies between the
+				tester and bench measurements. This can have various reasons:</p><ul>
+				<li>measurement accuracy<p>Depending on the way how the bench equipment and tester are
+						calibrated, differences in the order of 0.5 dB in power are to be expected. This is related to
+						how accurately a power meter can be calibrated during the system calibration.</p></li>
+				<li>load board differences<p>Even though it is always attempted to have small differences
+						between evaluation board and tester load board it is almost impossible to avoid them. For
+						instance, the lab evaluation board does normally have shorter traces and no socket.</p></li>
+				<li>different measurement environment<p>Many sensitive measurements are taken in a screen room.
+						A typical measurement where the setup is moved into a screen room is noise figure. Testers are
+						seldom in screen rooms simply because of the cost that comes with it due to the higher floor
+						space that is required to do so.</p></li>
+			</ul></section>
+		<section class="section"><h2>9. Practical Implementation</h2><p>After determining the correlation factors is
+				important to make this setup robust enough for production. Since more than one load board is
+				normally used in production there is more than one set of correlation parameters. For obvious
+				reasons it is important to guarantee that the correct parameters are used with the correct load
+				board. Some possibilities to implement this are:</p><ul>
+				<li>Separate test programs<p>In the case that the parameters are hard coded into the test
+						program it might make sense to have one test program per load board. This approach can make
+						sense for lower volumes where one tester and several load boards are used for production.
+						However, for larger volumes where more than one tester is used this is not a good choice
+						simply due to the requirements to sustain the software, for instance to implement changes in
+						the correlation coefficients at all systems at the same time.</p></li>
+				<li>Storing the parameters with the load board<p>This is the most elegant way of implementing
+						this method. By default, load boards that are designed for the Verigy V93000 test system have
+						an EPROM implemented on the board. Many users use the on board EPROM to assign a load board
+						number to each load board. The on board EPROM can also be used to write all the correlation
+						values into it. Similar to the way a limit file is read once at the beginning of a production
+						run the correlation values can be read from the EPROM with the "BDID?" firmware command. The
+						string that is read back can be easily manipulated in a way that global variables are
+						initialized in the test program and used as offset values. This is the preferred method since
+						the correlation values are stored with the load board. In the case that coefficients are
+						updated there is the need to update only one string of parameters. This makes this method
+						slightly more complex to implement but certainly more error prone in a production
+						environment.</p></li>
+			</ul></section>
+		<section class="section"><h2>10. Summary</h2><p>Several correlation techniques were discussed together with
+				their respective advantages and disadvantages. Furthermore it was discussed that correlation in
+				a mass production environment has to be robust on the one side as well as easy to implement on
+				the other. Most correlation techniques did not satisfy both criteria which was the reason why
+				another approach was developed. This approach uses the non-linear performance of a device and
+				compares it to bench measurements. It lets the user determine the input loss of an ATE load
+				board. Simple gain measurements let the user determine output losses. Determining the losses at
+				the input and output are required to not only correlate one measurement type like gain but to
+				correlate all commonly used measurements between bench and tester. Measurement results were
+				shown after using this technique to compare bench results with ATE measurement results for
+				commonly performed measurements like gain, noise figure or IP3. Finally, different possibilities
+				were discussed on how to implement this approach in practice were several load boards and / or
+				testers are used to produce devices.</p></section>
+		<section class="section"><h2>11. Biography</h2><p>Michael Engelhardt studied Electrical Engineering in
+				Ulm/Germany as well as Lille/France and graduated with a Masters of Science in Electrical
+				Engineering. His thesis focused on design and realization of 10 GHz low noise amplifiers. He was
+				an R&amp;D design engineer for microwave systems at Daimler - Benz Aerospace, now EADS, before
+				joining Texas Instruments as RF product and test engineer. While working for Texas Instruments
+				Michael received an MBA degree from the University of Dallas. He joined Agilent Technologies,
+				now Verigy, in 2000 where he worked with various customers on RF and mixed-signal related
+				projects as applications engineer.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 109575</span><script type="text/javascript">var ti='109575';var tt='A Fast and Accurate Method to Perform Evaluation Board to Production Board Correlation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

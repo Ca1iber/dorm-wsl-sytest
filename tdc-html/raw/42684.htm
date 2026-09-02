@@ -1,0 +1,40 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In general, testsuites should be kept self-contained whenever possible (see Self-contained Testsuites)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Porting Non Self-contained Testsuites</title></head><body id="_42684"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42684</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Porting Non Self-contained Testsuites</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="42687.htm" title="If you activate the Overon flag in the relevant bin, any failing devices are assigned bin details (bin code, bad part, bin number, and so on) but are not switched off (that is, no SQST OFF command is given) until a failing device enters a bin that does not have the Overon flag activated, later in the flow.">Delay Binning I: Overon Enable</a></li><li><a href="42689.htm" title="This strategy also ensures a failing site will stay alive through the flow; the figure below shows schematically the solution. If a device fails a testsuite, that site is assigned a variable. The testflow then continues - including as many similar constructs as necessary - until the point is reached where binning can take place. Here, if ... then constructs are used to bin the variables.">Delay Binning II: Assign Variables to Failing Parts</a></li><li><a href="42690.htm" title="One potential drawback with Solution II - Assign Variables to Failing Parts is that if the rest of your testflow contains several match loops, for example, you waste time waiting for failing sites within the match loops. The figure below offers a solution to this.">Delay Binning III - Assign Variables and Activate Overon Enable</a></li><li><a href="42692.htm" title="This solution - shown schematically in the figure below - takes the failing sites from testsuite 1 and assigns a variable to them. An if...then condition separates the failing sites which continue to Testsuite 2. Sites which pass, however, are subject to a user procedure which opens the relays for the drive pins for the duration of testsuite 2. Sites which then pass testsuite 2 together with those that passed testsuite 1 pass on to testsuite 3.">Delay Binning IV - Assigning Variables &amp; User Procedures</a></li><li><a href="42693.htm" title="As Solution IV - Assigning Variables &amp; User Procedures offers quite a complicated solution which also involves user procedures, you might consider writing one user procedure for the whole construct.">Delay Binning V - user procedure instead of test suite</a></li></ol></div></nav>
+	
+	
+	<div><p>In general, testsuites should be kept self-contained whenever possible (see <a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">Self-contained Testsuites</a>).</p>
+		<p>This can often be done without any negative effect on the test time. If you call, for example,
+			the <kbd class="userinput">CONNECT</kbd> API at the start of your test method to make the testsuite
+			independent of any previous actions, this will not prolong the test unnecessarily, since this API
+			executes the connect sequence <em>only if necessary</em>. </p>
+		<p>There may, however, be rare situations where you cannot do without a non self-contained
+			testsuite. In this case there are two main strategies for porting the testflow to a multisite
+			scenario. </p>
+		<p>Non-self-contained testsuites are testsuites that affect the way subsequent testsuites deal
+			with devices (leaving devices in certain states, for example), and as such cannot be totally
+			isolated in the testflow. Take, for example, the figure below. This shows a setup testsuite 1
+			whose purpose is to leave devices in a certain state so that testsuite 2 can test them
+			correctly.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="42685.png" alt="Testsuite 1 is a Setup Stage for Testsuite 2">
+			</figure></div>
+		<p>However, if this testflow were ported <em>as is</em> to a multisite scenario, if a failing device
+			is binned in testsuite 1, a disconnect sequence is executed. The standard disconnect sequence
+			sends a <kbd class="userinput">SQST OFF</kbd> (sequencer state off) command to <em>all</em> sites, which
+			can have the effect that the <em>passed</em> sites also lose their state. If this state is a
+			pre-requisite for testsuite 2, all sites will automatically fail testsuite 2, even though they
+			might have passed. </p>
+		<p>The first strategy exploits the fact that sites that have been binned as failed lose the setup
+			focus. The solution consists in replacing the standard disconnect sequence, which uses
+				<kbd class="userinput">SQST OFF</kbd>, by a user defined disconnect sequence which uses the firmware
+			command <kbd class="userinput">DLSO</kbd> instead. Since <kbd class="userinput">DLSO</kbd> only affects the
+			sequencers of the sites that are in setup focus, this will preserve the state of the passed
+			sites. For details on creating a user defined disconnect sequence see <a href="103977.htm">Command Reference</a>.</p>
+		<p>The second strategy tries to delay binning until such time as you can afford to do so. This
+			strategy can be implemented in several different ways, which will be discussed in the following
+			subsections.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42684</span><script type="text/javascript">var ti='42684';var tt='Porting Non Self-contained Testsuites'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

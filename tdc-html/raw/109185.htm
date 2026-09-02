@@ -1,0 +1,108 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="After all the digital setup and analog setup are finished, you need develop a test method to control the DAC test process."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Test method for DAC test</title><meta name="keywords" content="testmethod"></head><body id="_109185"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 109185</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Test method for DAC test</h1>
+	
+	
+	<div><p>After all the digital setup and analog setup are finished, you need develop a test
+		method to control the DAC test process. </p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="20837.png" alt="Test method program and related APIs">
+			</figure></div>
+		<p>Shown as the above figure, the typical testing flow in a test method program consists of the
+			following five steps.</p>
+		<section class="section"><h2>Changing existing setup data (or setting up new setup data)</h2><p>You can create new setup data
+			.</p><p>You can also change the existing setup data in case that multiple measurements are performed with
+				different conditions in a test method program. APIs for setting up the measurement conditions,
+				which are called <strong>Setup APIs</strong>.</p></section>
+		<section class="section"><h2>Executing test</h2><p>After conditioning the setup data, you can start test
+				execution by using one of <strong>Execution APIs</strong>, which correspond to the types of
+			tests.</p></section>
+		<section class="section"><h2>Retrieving raw measurement data</h2><p>After measurement, you can retrieve the
+				raw measurement data (for example, analog waveform data, single value, and so on). APIs for
+				retrieving measurement data are called <strong>Result APIs</strong>. </p><p>For DAC test, the member function <kbd class="userinput">getWaveform</kbd> is used.</p></section>
+		<section class="section"><h2>Computing data</h2><p>You can compute the measurement data to obtain the
+				desired parameters. All calculations are performed on the system controller. APIs for computing
+				data are called <strong>Computation APIs</strong>. They support dozens of computation functions.
+				</p><p>For DAC linearity test, <em><a href="29025.htm" title="This API computes the differential linearity error (DLE) and integral linearity error (ILE) for a D/A converter or A/D converter.">DSP_LINEAR</a>
+				</em>API can be used to calculate DNL and SNL.</p><p>For DAC distortion test, <em><a href="29259.htm" title="For the specified signal frequency (determined by rel_freq) in src, this API computes the total harmonic distortion (THD), power of the second harmonic (H2), power of the third harmonic (H3), signal to noise plus distortion (SND), signal-to-noise ratio (SNR), spurious free dynamic range (SFDR), and signal power in decibels or percent.">DSP_THD</a></em> API can be used to compute SNR and THD.</p></section>
+		<section class="section"><h2>Judging result to pass or fail</h2><p>Comparing the result values against the
+				limits specified, you can judge whether the obtained result has passed or failed in order to
+				determine the pass/fail of the testsuite. </p><p>APIs for judging the result are called
+					<strong>Judgment APIs</strong>, such as <em><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></em>. In addition to judgment, these
+				APIs can be used for data logging. </p></section>
+		<h2>Example</h2><div class="example"><p>The following is an example of test method for DAC linearity which include the above
+				five
+				steps.</p><pre class="prettyprint linenums copyable">        INT       Offline_flag = 0;
+        DOUBLE    tout, offset_val, DeviceLSB;
+        INT       i, num_pts, val;
+        ARRAY_D   dgtz_waveform;
+        ARRAY_D   dle_out;
+        ARRAY_D   ile_out;
+        LINEARtype    linear_result;
+     
+     
+    /* Step 1: Change existing setup data */
+      ON_FIRST_INVOCATION_BEGIN(); 
+        GET_SYSTEM_FLAG("offline", &amp;Offline_flag);
+      
+        Routing.pin(dac_pin).connect(TM::SINGLE);
+        FLUSH();
+        DGT(dac_pin).enable();
+     
+     
+    /* Step 2: execute test */
+       
+        tout=1.0;
+        START_TEST();
+        WAIT_TEST_DONE(tout);
+        ON_FIRST_INVOCATION_END();
+    /* Step 3: Retrieve raw measurement data */
+     
+      // Get Digitized Waveform Data
+             
+        dgtz_waveform = DGT(dac_pin).getWaveform();
+        num_pts=dgtz_waveform.size();
+     
+      // Disconnect
+     
+        DGT(dac_pin).disable();
+        Routing.pin(dac_pin).disconnect();
+        FLUSH();
+     
+      // Adjust offset voltage
+     
+         offset_val = DGT(dac_pin).getVOffset();
+         for(i=0;i&lt;num_pts;i++){
+            dgtz_waveform[i] = dgtz_waveform[i] + offset_val;
+            }
+     
+         PUT_DEBUG(dac_pin, "Source", dgtz_waveform);   
+     
+     
+    /* Step 4: compute data */ 
+     
+         if(calc_mthd=="END_PT") DSP_LINEAR(dgtz_waveform,
+         &amp;linear_result, dle_out, ile_out, END_PT);
+        else if(calc_mthd=="ZERO_PT") DSP_LINEAR(dgtz_waveform,
+               &amp;linear_result,dle_out, ile_out,ZERO_PT);
+        else val=DSP_LINEAR(dgtz_waveform, &amp;linear_result,
+              dle_out, ile_out, MIN_RMS);
+     
+        DeviceLSB = (dgtz_waveform[255] - dgtz_waveform[0])/(256-1);
+        for(i=0;i&lt;256;i++){
+            dle_out[i] = dle_out[i]/DeviceLSB;
+            ile_out[i] = ile_out[i]/DeviceLSB;       
+        }
+     
+        PUT_DEBUG(dac_pin, "ILE", ile_out);
+        PUT_DEBUG(dac_pin, "DLE", dle_out);
+     
+     
+    /* Step 5: judge result to pass or fail and log result */
+     
+        TEST( dac_pin, "INL", linear_result.iamax/DeviceLSB, 1 );
+        TEST( dac_pin, "DNL", linear_result.damax/DeviceLSB, 1 );</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 109185</span><script type="text/javascript">var ti='109185';var tt='Test method for DAC test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

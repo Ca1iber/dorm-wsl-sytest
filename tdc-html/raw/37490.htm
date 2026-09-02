@@ -1,0 +1,107 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Within an ASCII device cycle, more than one timing record is allowed to exist for the same pin. In this case, the default behavior of the timing translation is to process only the last of these records. However, you can cause it to merge the different timing records in such a way that a waveform is created for every state character occurring in any of these timing records. Furthermore, you can force the merge of different definitions for the same state character in the different timing records (provided the definitions are compatible). This can be used, for example, to reduce the coding effort by specifying identical data records for different pins only once, or to expand a common base definition in different ways."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Merging State Character Definitions: The OPTIONS Statement</title></head><body id="_37490"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37490</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Merging State Character Definitions: The OPTIONS Statement</h1>
+	
+	
+	<div><p>Within an ASCII device cycle, more than one timing record is allowed to exist for the
+		same pin. In this case, the default behavior of the timing translation is to process only the last
+		of these records. However, you can cause it to merge the different timing records in such a way
+		that a waveform is created for every state character occurring in any of these timing records.
+		Furthermore, you can force the merge of different definitions for the same state character in the
+		different timing records (provided the definitions are compatible). This can be used, for example,
+		to reduce the coding effort by specifying identical data records for different pins only once, or
+		to expand a common base definition in different ways. </p>
+		<p>The merge is switched on and off with the optional <kbd class="userinput">OPTIONS </kbd>statement.
+			This statement can be inserted anywhere between two ASCII device cycles . It is valid until
+				another<kbd class="userinput">OPTIONS </kbd>statement occurs, or the file ends.</p>
+		<p>The format of the <kbd class="userinput">OPTIONS </kbd>statement is as follows:</p>
+		<p><kbd class="userinput">OPTIONS (M|ML|O|S)</kbd></p>
+		<p>The meaning of the individual options is as follows:</p>
+		<ul>
+			<li><kbd class="userinput">M</kbd>: This option (for "Merge") causes the timing translation to create
+				waveforms for any state character that is defined in any timing record within the same ASCII
+				device cycle.</li>
+			<li><kbd class="userinput">ML</kbd>: This compound option has the effect that in addition, different
+				definitions of the same state character are merged even if they belong to different timing
+				records, provided that they are compatible.</li>
+			<li><kbd class="userinput">O</kbd>: This option (for "Overwrite") causes the timing translation to
+				process only the last of several timing records for the same pin within one ASCII device cycle.
+				Different definitions of the same state character within one timing record are merged if they
+				are compatible. This is the default.</li>
+			<li><kbd class="userinput">S</kbd>: This option (for "Subtract") causes the timing translation to
+				recognize a minus sign in the <kbd class="userinput">PINS </kbd>statement of the timing records as a
+				subtracting operator. This serves to exclude certain pins or pin groups from a pin group.<p>As
+					an example, consider the following timing record:</p>
+				<p><kbd class="userinput">PINS input - CP</kbd></p>
+				<p><kbd class="userinput">0 0:1.00</kbd></p>
+				<p>If <kbd class="userinput">OPTIONS </kbd>has been set to <kbd class="userinput">S</kbd>, this timing
+					record will be applied to all pins of the pin group <kbd class="userinput">input </kbd>except
+						<kbd class="userinput">CP</kbd>.</p></li>
+		</ul>
+		<p>The following simple ASCII timing file illustrates the options <kbd class="userinput">M</kbd> and
+				<kbd class="userinput">L</kbd>:</p>
+		<p><kbd class="userinput">DVC normal</kbd></p>
+		<p><kbd class="userinput">period= 12</kbd></p>
+		
+		<p><kbd class="userinput">PINS CP DS0</kbd></p>
+		<p><kbd class="userinput">0 F00:3.00</kbd></p>
+		<p><kbd class="userinput">1 F10:3.00</kbd></p>
+		
+		<p><kbd class="userinput">PINS DS0</kbd></p>
+		<p><kbd class="userinput">Z F0Z:0.00</kbd></p>
+		<p><kbd class="userinput">1 F10:0.00</kbd></p>
+		<p>If this file would be preprocessed with the options <kbd class="userinput">O</kbd>,
+				<kbd class="userinput">M</kbd>, and <kbd class="userinput">ML</kbd>, respectively, the results would be as
+			follows:</p>
+		<table class="frame-top"><caption></caption><colgroup><col><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_37490__entry__1"><p>OPTIONS O</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_37490__entry__2"><p>OPTIONS M</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_37490__entry__3"><p>OPTIONS ML</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr>
+						<td class="colsep-0 rowsep-0" headers="_37490__entry__1"><p><kbd class="userinput">DVC normal</kbd></p>
+							<p><kbd class="userinput">period = 12</kbd></p>
+							<p><kbd class="userinput">PINS CP</kbd></p>
+							<p><kbd class="userinput">0 0:3</kbd></p>
+							<p><kbd class="userinput">1 1:3</kbd></p>
+							<p><kbd class="userinput">PINS DS0</kbd></p>
+							<p><kbd class="userinput">Z F0Z:0</kbd></p>
+							<p><kbd class="userinput">1 1:0</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_37490__entry__2"><p><kbd class="userinput">DVC normal</kbd></p>
+							<p><kbd class="userinput">period = 12</kbd></p>
+							<p><kbd class="userinput">PINS CP</kbd></p>
+							<p><kbd class="userinput">0 0:3</kbd></p>
+							<p><kbd class="userinput">1 1:3</kbd></p>
+							<p><kbd class="userinput">PINS DS0</kbd></p>
+							<p><kbd class="userinput">0 0:3</kbd></p>
+							<p><kbd class="userinput">1 1:0</kbd></p>
+							<p><kbd class="userinput">Z F0Z:0</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_37490__entry__3"><p><kbd class="userinput">DVC normal</kbd></p>
+							<p><kbd class="userinput">period = 12</kbd></p>
+							<p><kbd class="userinput">PINS CP</kbd></p>
+							<p><kbd class="userinput">0 0:3</kbd></p>
+							<p><kbd class="userinput">1 1:3</kbd></p>
+							<p><kbd class="userinput">PINS DS0</kbd></p>
+							<p><kbd class="userinput">0 0:3</kbd></p>
+							<p><kbd class="userinput">1 1:0 1:3</kbd></p>
+							<p><kbd class="userinput">Z F0Z:0</kbd></p>
+						</td>
+					</tr>
+				</tbody></table>
+		<p>The timing record for pin <kbd class="userinput">DS0</kbd> contains one more data record with option
+				<kbd class="userinput">M</kbd> than with option <kbd class="userinput">O</kbd>, and the definition of state
+			character <kbd class="userinput">1</kbd> for <kbd class="userinput">DS0</kbd> contains one more event with
+			option <kbd class="userinput">ML</kbd> than with option <kbd class="userinput">M</kbd>.</p>
+		<p>You can check the results of the merge if you call the low level tool
+				<kbd class="userinput">d2w</kbd> directly with the<kbd class="userinput">-D</kbd> parameter. This will cause
+				<kbd class="userinput">d2w</kbd> to create an output ASCII timing file.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37490</span><script type="text/javascript">var ti='37490';var tt='Merging State Character Definitions: The OPTIONS Statement'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

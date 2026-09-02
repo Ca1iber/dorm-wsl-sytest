@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Batch/Lot Control</title><meta name="keywords" content="BLC"></head><body id="_103784"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 103784</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Batch/Lot Control</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="112568.htm" title="This section provides the details of programming with BLC API, how to create a BLC executable file and some example codes using BLC API.">Controlling the test logic with BLC APIs</a></li><li><a href="103794.htm" title="The BLC can be executed in the following three ways:">How to execute a BLC executable file</a></li><li><a href="103795.htm" title="BLC APIs are provided to create a C/C++ program to supersede the application model file and test program.">BLC(Batch/Lot Control) APIs</a></li></ol></div></nav>
+	
+	<div>
+		<p>Batch/Lot control provides a solution and a set of APIs, with which you can write your own
+			C/C++ program to supersede the current application model file and test program file.</p>
+		<p>You can use the APIs to perform almost all the functionalities provided by the test program and
+			application model file(See <em><a href="106459.htm">Appendix 1: The Application Model/BLC Functionality Mapping Table</a></em>).</p>
+		<div class="note"><span class="title">Note</span> BLC APIs and HVM APIs cannot be mixed in the programming.</div><p>BLC maintains the similar state control with application model.</p>
+		<ul>
+			<li>At the beginning of the BLC, an initialization API will set the SmarTest state to
+					<strong>WAITING</strong> and the operation control buttons will show up.</li>
+			<li>When downloading the testflow, the SmarTest state is changed to LOADING. Once the download is
+				finished, the state is changed back to <strong>WAITING</strong>.</li>
+			<li>When executing a testflow, the SmarTest state is set to <strong>TESTING</strong> and at the end of the
+				execution, the status is set back to <strong>WAITING</strong>.</li>
+			<li>At the end of the BLC, a termination API will reset the state to <strong>IDLE</strong> and the
+				operation control buttons will disappear.</li>
+		</ul>
+		<div class="p"><figure class="fignone">
+				
+				<img src="121793.png" alt="SmarTest state control with BLC">
+			</figure></div>
+		<p>Two new concepts, BLC executable file and BLC input file, are introduced in this solution.</p>
+		<section class="section"><h2>BLC executable file</h2><p>The BLC executable file is a binary file compiled
+				from the C/C++ program using BLC API. It can take the BLC input file as an argument in the
+				execution. But this is not mandatory. You can develop a BLC executable without the BLC input
+				file if you have your own parameter access approach (for example, via environmental
+				variables).</p></section>
+		<section class="section"><h2>BLC input file</h2><p>BLC input file contains the entries that are used by the
+				BLC executable file. The recommended BLC input file format is a plain text file, containing the
+				&lt;key, value&gt; pairs typically. The standard format of BLC file looks like
+				below:</p><pre class="prettyprint linenums copyable">PH_Driver_Location: /opt/hp93000/PH_libs/GenericHandler
+PH_Driver_Global_Config: /tmp/Global_handler_configuration
+Pre_Testflow: testflow1, testflow2
+Normal_Testflow: testflow3
+Post_Testflow: testflow4, testflow5, testflow6
+Exec_Input_Location: /tmp/execute_input/log_processing
+Wafer_Map:   wafermap1</pre><div class="note"><span class="title">Note</span> The testflows and wafer map specified in the input file must belong to the current
+				device.</div><p>The BLC input file could have arbitrary structure. If you use input files with
+				other format, you need to develop your own input file parsing function. The recommended input
+				file format can be validated and parsed correctly by the provided API <em><a href="103815.htm" title="This API validates and parses the BLC input file. The content of the input file will be returned as a map. This is a standard C++ function and can be called directly from the BLC executable file (not through synOperation or synCommand signature).">evalBLCInputFile()</a></em>. </p></section>
+		<section class="section"><h2>BLC APIs</h2><p>According to the behaviors of the APIs, they are categorized as
+				synchronous control command and data query commnad. The general usage of BLC APIs follows the
+				same rule with HVM APIs.</p><p>According to the functionalities of the APIs, they can be divided
+				into the following categories:</p><ul>
+				<li>Variable access API</li>
+				<li>Input file access API</li>
+				<li>Shared library access API</li>
+				<li>Synchronous testflow execution API</li>
+				<li>Special events handling API</li>
+				<li>EDL logging API</li>
+				<li>Wafer related API</li>
+				<li>Test result display update API</li>
+				<li>HVM execution event generation API</li>
+				<li>Level control API</li>
+				<li>Initialization and termination API</li>
+			</ul></section>
+		<section class="section"><h2>Advantages of BLC</h2><p>Comparing to application model, the advantages of
+				using BLC include:</p><ul>
+				<li>You can implement the same functionalities as the application model with high level
+					programming language.</li>
+				<li>You can organize the test logic in your own way. You can choose whether to maintain the
+					level structure or not.</li>
+				<li>You can execute multiple testflows for arbitrary times in the BLC.</li>
+				<li>It is easy to debug a C/C++ program.</li>
+				<li>The PH/EI shared libraries can be linked to BLC executable file directly.</li>
+				<li>The synchronization between the BLC execution and the external operation is easy.</li>
+				<li>BLC is independent of devices. This makes BLC a "generic" approach.</li>
+			</ul></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li><li>SmarTest 7.1.0:  GDF logging API's are obsolete.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 103784</span><script type="text/javascript">var ti='103784';var tt='Batch/Lot Control'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

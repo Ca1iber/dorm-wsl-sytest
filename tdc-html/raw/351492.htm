@@ -1,0 +1,55 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Register write is to write data to a register or dynamically write data to registers."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Register write</title></head><body id="_351492"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351492</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Register write</h1>
+	
+	
+	<div><p>Register write is to write data to a register or dynamically write data to
+		registers.</p>
+		<section class="section">
+			<p>Bit field write is applicable only when <a href="351643.htm" title="Register structure is based on a CMSIS-SVD XML hierarchy. A CMSIS-SVD XML file normally contains the structure description of a single device. The file must be converted to a C++ structure before the register structure can be used in test methods.">register definitions</a>
+				(SVD) are available and converted. When bit field write is used, <code>RA_MODE (RA::LEARNING |
+					RA::PRODUCTION)</code> must be configured and <a href="351489.htm#_351489__prod_mode">Check mode</a> is optional.</p>
+		</section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			
+			<p>Register write</p>
+			<div></div><pre class="prettyprint linenums copyable">RA_SET_MODE(RA::LEARNING);
+
+ON_FIRST_INVOCATION_BEGIN();
+RDI_BEGIN();
+  // Entire Register Write
+  reg.PERIPHERAL0().REGISTER0().setValue(0x55).write();
+  // Bit Field Write, RMW
+  reg.PERIPHERAL0().REGISTER1().setField_HiClm(1).write();
+  
+  // Use this command when register structure is unknown.
+  // RA_WRITE(0x1234, 0x55);
+
+RDI_END();
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<div class="p">Write runtime data (write
+				dynamic)<div></div><pre class="prettyprint linenums copyable">MultiSite&lt;ULONG64&gt; dynData;
+
+FOR_EACH_SITE_BEGIN();
+  int siteIndex = CURRENT_SITE_NUMBER() - 1;
+  dynData[siteIndex] = rand() % 256;
+FOR_EACH_SITE_END();
+
+// Set dynamic data
+RA_SET_DYNAMIC_DATA("DYN_ID",dynData,[RA::VECD|RA::VTT]); // Patch mode; VECD by default
+
+RDI_BEGIN();
+  // Use the same ID to address to dynamic data
+  reg.PERIPHERAL0().REGISTER0().writeDynamic("DYN_ID");
+  
+  // or 
+  // RA_WRITE_DYNAMIC("DYN_ID", 0x1234);
+
+RDI_END();</pre></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351492</span><script type="text/javascript">var ti='351492';var tt='Register write'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DCRP command defines the recording position for Error Map recording. The interpretation of the recording position is defined with the DCGM command separately for both Error Maps; the position can be used as a start or a stop position, or it can be ignored."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DCRP, DCRP? - (Digital Compare Result Positioning)</title><meta name="keywords" content="DCRP_"></head><body id="_98525"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98525</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DCRP, DCRP? - (Digital Compare Result Positioning)</h1>
+	
+	
+	<div><p>The <span class="keyword">DCRP</span> command defines the recording position for Error Map
+		recording. The interpretation of the recording position is defined with the
+			<span class="keyword">DCGM</span> command separately for both Error Maps; the position can be used as a
+		start or a stop position, or it can be ignored.</p>
+		<section class="section"><p>The <span class="keyword">DCRP?</span> query returns the current settings. It interprets the
+				position value according to the current <span class="keyword">DCGM</span> settings.</p><p>To specify a
+				start or stop position for the Error Map does not make sense if the current sequencer mode is
+					<span class="keyword">EL</span>, <span class="keyword">SE</span>, or <span class="keyword">SEEL</span> (as set with
+					<span class="keyword">SQGB</span>). As for sequencer modes <span class="keyword">STSQ</span> and
+					<span class="keyword">STSV</span>, recording is always stopped by stopping the sequencer. Therefore, a
+				definition of the Error Map position with <span class="keyword">DCRP</span> is ignored (and a warning will
+				be issued), if any non-standard sequencer mode is active. The definition is stored, however, and
+				can be (re)activated by changing the sequencer mode to <span class="keyword">STRD</span> with
+					<span class="keyword">SQGB</span>.</p></section>
+		<div class="syntax"><h2>DCRP</h2><pre class="prettyprint copyable singleline"><span class="keyword">DCRP</span> {<span class="keyword">error_map_pos</span>},{(<span class="keyword">ref_port</span>)}</pre></div><div class="syntax"><h2>DCRP?</h2><pre class="prettyprint copyable singleline"><span class="keyword">DCRP?</span> [<span class="keyword">answer_type</span>,]{(<span class="keyword">port_list</span>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">DCRP</span> {<span class="keyword">error_map_pos</span>},{(<span class="keyword">port</span>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">error_map_pos</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Specifies the start or stop position for
+									Error Map recording. The interpretation of the value is determined by
+										<span class="keyword">DCGM</span> independently for both error maps:</p>
+								<ul>
+									<li>If the current interpretation mode is <span class="keyword">STRT</span>, the value specifies the
+										first cycle to be recorded. This applies only to the detailed Error Map.</li>
+									<li>If the current interpretation mode is <span class="keyword">HALT</span>, the value specifies the
+										first cycle that will not be recorded any more.</li>
+									<li>If the current interpretation mode is <span class="keyword">NONE</span>, the value can also be
+										specified, but it is ignored until the interpretation mode is changed.</li>
+								</ul><p>The range of the value must be between 0 and 2<sup>48</sup> - 1</p>
+								<p>If the value is interpreted as a start (stop) value, recording will start (stop) at the
+									largest multiple of 8 smaller than <span class="keyword">error_map_pos</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ref_port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This parameter specifies the single port
+									which is used for counting the cycles specified with the
+									<span class="keyword">error_map_pos</span> parameter. When this reference port has completed the
+									specified number of cycles, cycle recording will be started or stopped for <em>all</em>
+									ports. Note that the reference port must belong to the start label. In particular, you must
+									specify the default <span class="keyword">@</span> for single port start labels.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">port_list</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>In the query, you can specify a port list.
+									For the ports that are not used as the reference port, the reply will return the calculated
+									Error Map positions. These are derived from the Error Map position of the reference port
+									and the ratio between the period lengths of the reference port and the other port in the
+									primary timing setup. If you specify <span class="keyword">@@, DCRM?</span> will return the settings
+									for all ports of the current start label.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">answer_type</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This query parameter specifies whether the
+									current configuration or the configuration of the last executed test is to be returned.
+									Possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CONF</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The current configuration is returned. This is the default.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">EXEC</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>The configuration of the last executed test is returned.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Error Map.</p></div>
+		
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">&gt; PCLK? "mu_burst",1,(@@)
+&lt; PCLK "mu_burst",1,20,(P1)
+&lt; PCLK "mu_burst",1,10,(P2)
+&gt; DCGM ALL,STRT,NONE
+&gt; DCRP 20,(P2)
+&gt; DCRP? (@@)
+&lt; DCRP 10,(P1)
+&lt; DCRP 20,(P2)</pre><p>This
+				example illustrates the calculation of the cycle numbers for the ports that are not used as the
+				reference port. For interpretation mode <span class="keyword">STRT</span>, recording will start for the
+				reference port <code>P2</code> with cycle 16 (largest multiple of 8 smaller than 20). Since
+				the period length for <code>P1</code> is twice the period length of <code>P2</code>,
+				recording for <code>P1</code> will start with cycle 8 (largest multiple of 8 smaller than
+				10).</p></div>
+		<div class="example"><h3>Example
+				2</h3><pre class="prettyprint linenums copyable">&gt; SQGB STSQ,14,(P2)
+&gt; DCGM ALL,HALT,NONE
+&gt; DCRP 20,(P2)
+&gt; DCRP? (@@)
+&lt; DCRP 7,(P1)
+&lt; DCRP 14,(P2)
+&gt; SQGB STRD,
+&gt; DCRP? (@@)
+&lt; DCRP 10,(P1)
+&lt; DCRP 20,(P2)</pre><p>This
+				example shows that a definition of the Error Map position with <span class="keyword">DCRP</span> is
+				ignored when the sequencer mode is <span class="keyword">STSQ</span>, but that it can subsequently be
+				activated. Note that the <span class="keyword">DCGM</span> command only serves to make the initial
+				ineffectiveness of the definition visible. It is <em>not</em> possible to execute a functional
+				test with these settings when the sequencer mode is <span class="keyword">STSQ</span>.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98525</span><script type="text/javascript">var ti='98525';var tt='DCRP, DCRP? - (Digital Compare Result Positioning)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

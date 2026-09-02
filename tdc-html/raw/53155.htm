@@ -1,0 +1,191 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The High Current DPS serves as a power source for devices requiring low voltages but drawing high currents or having large current swings. Each High Current DPS provides up to 100 A. Two High Current DPSs, for example, can be used in parallel (ganged) to provide up to 200 A."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>High Current DPS (HC-DPS)</title><meta name="keywords" content="HCDPS"></head><body id="_53155"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 53155</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">High Current DPS (HC-DPS)</h1>
+	
+	
+	<div><p>The High Current DPS serves as a power source for devices requiring low voltages but
+		drawing high currents or having large current swings. Each High Current DPS provides up to
+		100 A. Two High Current DPSs, for example, can be used in parallel (ganged) to provide up to
+		200 A. </p>
+		<section class="section"><table class="frame-all table--pgwide-1"><caption></caption><colgroup><col></colgroup><tbody>
+						<tr>
+							<td class="bg_grey rowsep-0">
+								<span><a href="247023.htm" title="Advantest is committed to providing high quality interfacing solutions for the V93000 test systems. These interfacing solutions include DUT boards, wafer prober interface boards, and wafer probe cards which can be obtained directly from Advantest or from other manufacturers that specialize in dedicated interfacing components.">Supported&nbsp;V93000&nbsp;systems</a> :</span>
+								<span>Smart&nbsp;Scale&nbsp;(SmarTest&nbsp;7)</span>,
+								<span>Pin&nbsp;Scale</span>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Safety Circuits</h2>
+			
+			<p>The following safety precautions are built-in to the High Current DPS:</p>
+			<ul>
+				<li>Isolation<p>The 100 A low impedance cable to the DUT board includes three signal
+						pins (SGND, +5 V DUT and Safety_Line) that are isolated from the High
+						Current DPS via optocouplers and are floating.</p></li>
+				<li>Shutdown<p>The +5V DUT line must have +5 V (relative to SGND) applied to it for
+						the High Current DPS to operate. The Safety_Line is connected to the +5V DUT
+						line via an internal pull-up resistor. The High Current DPS monitors this
+						line: If high, the High Current DPS operates correctly; if pulled down, the
+						High Current DPS is switched to tri-state. This safety line is
+						bidirectional: When the High Current DPS detects an internal failure, it
+						pulls down this line. You can also use the safety line to shut down
+						different supplies synchronously in the event of a failure.</p></li>
+				<li>Overtemperature protection<p>It is possible to add a heat or smoke sensor to
+						the DUT board in such a way that the safety line will be pulled down and
+						will shut down all High Current DPS units simultaneously.</p></li>
+				<li>Overvoltage protection<p>There are three levels of protection:</p><ul>
+						<li>Programmable protection: This is set with the firmware command <!--a href="smartest<98705.htm"-->PSOP<!--/a--> and
+							can be made active (at four different overvoltages) or inactive. The
+							default is inactive (overvoltage protection off). The protection
+							switches the High Current DPS to tri-state in order to protect the DUT.
+							This is the standard protection level during testing, as it will not be
+							triggered under normal operating conditions.</li>
+						<li>If the voltage at the output of the High Current DPS is more than 1.8 V
+							above the programmed value, three diodes, connected in series between
+							the output and the regulator, begin to conduct and regulate the voltage
+							down.</li>
+						<li>If the voltage at the output of the High Current DPS rises to more than
+							4.8 V, a crowbar circuit short-circuits the 12 V supply voltage of the
+							High Current DPS itself.</li>
+					</ul></li>
+				<li>Overcurrent protection<p>There are two modes of protection:</p><ul>
+						<li>Constant current mode: When the current limit is reached, the High
+							Current DPS operates as a constant current source.</li>
+						<li>Clamp mode: When the current limit is reached, the High Current DPS switches to tri-state.
+							Three different delay times (2 ms, 6 ms, and 8 ms) can be programmed
+							using the firmware command <!--a href="smartest<98635.htm"-->HSCM<!--/a-->. See the <em><a href="103977.htm">Command
+									Reference</a></em> manual for more information.<div class="note"><span class="title">Note</span> When the High Current DPS switches to tri-state because
+								it has reached the current limit, it does not pull down the safety
+								line.</div>
+							<div class="note"><span class="title">Note</span> When the High Current DPS is disconnected using the
+								off_state 'act' (for example, in the blue legacy Level Setup Window)
+								there will still be at least 200 mV present at the force+ line. The
+								DPS cannot be programmed to 0 V!</div></li>
+					</ul></li>
+			</ul>
+			<p>Advantest recommends connecting a 100 Ohm resistor in parallel to the capacitors and
+				the DUT. This resistor will discharge the capacitors when the board is disconnected
+				or the DPS is switched to HiZ and prevent damage to the device. It will also reduce
+				the need to use the act current mode which has the above mentioned residual output
+				voltage.</p>
+			<ul>
+				<li>Balancing circuits<p>The 12 phase stepdown-converter is organized by six pairs,
+						phase-shifted by 180° each. Each pair has its own shunt resistor to measure
+						its output current. All six current measurements will be summed up to
+						calculate a mean value. Regulators compare the mean value with each of the
+						six single currents and balance them to be equal.</p><p>When the current of
+						one stage rises so much that balancing becomes impossible, a failure signal
+						is generated which:</p><ul>
+						<li>switches the HC-DPS to tri-state</li>
+						<li>creates a flag to be read by the software</li>
+						<li>switches all High Current DPSs which are connected to the same safety
+							line to tri-state.</li>
+					</ul></li>
+			</ul></section>
+		<section class="section"><h2>Power Connections at DUT Board</h2>
+			
+			<p>Advantest recommends the use of power planes inside the DUT board to achieve the low
+				resistance and low inductance that is needed for proper operation. Use at least four
+				planes in the following order: Out, Return, Out, Return, to keep inductance and
+				magnetic stray fields to a minimum.</p>
+			<p>All power planes need to have the same shape and should be positioned directly above
+				one another without other planes in-between. Each plane should have a minimum
+				thickness of 200 nm.</p>
+			<p>All sense lines should be connected as close to the DUT as possible. If two HC-DPSs
+				are connected in parallel (ganged), connect the sense lines of both High Current DPS
+				boards at exactly the same point.</p>
+			<p>Low-ESR bypass- or bulk capacitors of at least 5 mF are required for stability.</p>
+			<p>Route sense lines close together to avoid creating loops which receive the magnetic
+				field of the DUT board and cause instability in the DPSs.</p>
+		</section>
+		<section class="section"><h2>Special Mounting Considerations</h2>
+			
+			<p>The footprint recommended for the high current DPS connector is shown below. The
+				angular pads are required for the side of the DUT board that mounts to the DUT
+				interface. The pads are designed to allow good heat transmission from the soldering
+				iron to the pad (the flange of the pins has a diameter of 4.6 mm). </p>
+			<p>This additional area for soldering is not required on the other side of the board,
+				therefore it is also possible to use round pads with a diameter of about 5 mm on the
+				top surface of the DUT board.</p>
+			<p>The pins and a fixture that must be used to mount the pins correctly are included in
+				the pin kit E7002-60120.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="55570.png" alt="High Current DPS Pogo Block">
+				</figure>
+			</div>
+		</section>
+		<section class="section"><h2>Soldering Procedure</h2>
+			
+			<p>The following procedure requires two people.</p>
+			<p>Required Tools:</p>
+			<ul>
+				<li>2 soldering irons with a tip diameter between 2 and 2.5mm.<p>(Advantest
+						recommends METCAL MX soldering stations, or equivalent.)</p></li>
+				<li>Fixture for DPS pins (included in the E7002-60120 kit)</li>
+			</ul>
+			<p>Required Materials:</p>
+			<ul>
+				<li>DUT board (PCB)</li>
+				<li>8 DPS pins (included in the E7002-60120 kit)</li>
+				<li>Flux core wire solder</li>
+				<li>Soldering flux (in addition to the flux in the solder)</li>
+			</ul>
+			<p>Procedure:</p>
+			<ol>
+				<li>Insert all 8 pins into the fixture.<div class="note"><span class="title">Note</span>  At the PCB side, the
+						distance from the flange to the end of the pin is 5 mm. If the thickness of
+						the PCB is less than that and if it is not acceptable to let the ends stick
+						out, the pins have to be shortened.</div>
+				</li>
+				<li>Apply some flux to the shanks of the pins and insert them into the PCB.</li>
+				<li>Press the fixture to the PCB and check for correct alignment. The pins should be
+					inserted from the side of the DUT board that will be connected to the DUT
+					interface.</li>
+				<li>Make sure all pins and the fixture are in an upright position, with no air gap
+					between the pins and the PCB.</li>
+				<li>Rotate the DUT board so that it is in a horizontal position with the fixture on
+					the bottom side.</li>
+				<li>Apply some flux to the holes.</li>
+				<li>Insert a soldering iron in the hole (from the top surface of the board) and add
+					some solder. <div class="note"><span class="title">Note</span> Move the tip of the soldering iron slightly
+						during the soldering process to enhance solder flow and to allow the escape
+						of air-bubbles</div>
+				</li>
+				<li>Use the other soldering iron to heat the pad on the bottom surface of the board.
+					The tip of the soldering iron must have contact with the pad as well as the pin
+					itself. <div class="note"><span class="title">Note</span> The fixture has cut-outs so that good heat
+						transmission from the soldering iron to the pad can be achieved.</div>
+				</li>
+				<li>Add some solder to the bottom side, then complete the connection by soldering
+					simultaneously from both sides of the board.</li>
+				<li>Check the solder connection on both sides and ensure that it fills all
+					gaps.</li>
+				<li>Repeat the soldering procedure for the other 7 pins.</li>
+				<li>Remove fixture when the pins have cooled.<div class="note"><span class="title">Note</span> To ensure correct
+						alignment of the pins, it is essential to do all soldering using the fixture
+						from the E7002-60120 kit. Failure to do so can result in damage to the pins
+						and the DPS-connector when the DUT board is mounted to the DUT
+						interface.</div>
+				</li>
+			</ol></section>
+		<section class="section"><h2>"Keying" the DUT Board Stiffener for the High Current DPS</h2>
+			
+			<p>A coding plug in the DUT board stiffener must be moved from the top to the bottom of
+				the stiffener (as shown below) to indicate the position of a HC-DPS pogo block. This
+				is to avoid the possibility of placing a HC-DPS DUT board onto a test head that does
+				not have the HC-DPS pogo block. Doing so could damage both the board and interface.
+				See <a href="20423.htm" title="The hole plug (also known as coding plug) is a commercial part (part number 6960-0041) that is used for keying the device power supply position for the High Current Device Power Supply (HC-DPS). The black plastic hole plug (one per DPS location) is moved from the top side to bottom side of the stiffener to indicate a HC-DPS pogo block at that location. The hole plug prevents the user from docking a HC-DPS DUT board to a test head that does not have an HC-DPS pogo block installed, thereby damaging both the DUT board and the DUT interface.">Hole Plug</a> for more information.</p>
+			<div class="p">
+				<figure class="fignone">
+					
+					<img src="55571.png" alt="Stiffener Keying for High Current DPS">
+				</figure>
+			</div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><!--a href="service<74842.htm"-->HC-DPS installation - STH<!--/a--></div><div><!--a href="service<74767.htm"-->HC-DPS installation - LTH<!--/a--></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 53155</span><script type="text/javascript">var ti='53155';var tt='High Current DPS (HC-DPS)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

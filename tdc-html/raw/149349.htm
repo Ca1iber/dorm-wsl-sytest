@@ -1,0 +1,107 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Sets the load capacitance in Farad (F)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>loadCap()</title><meta name="keywords" content="load, Cap"></head><body id="_149349"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149349</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">loadCap()</h1>
+	
+	
+	<div><p>Sets the load capacitance in Farad (F).</p>
+		<section class="section"><p>The load capacitance of the DUT or on the DUT board has an effect on the
+				dynamic behavior of a DPS channel. The function is used to adapt the dynamic
+				behavior of the channel to the load capacitance.</p>
+			<div class="p">Some rules must be respected when changing the load
+			capacitance. The rules are different for the supported DC Scale cards: <ul>
+				
+				<li>DPS128 / DPS64:<div class="p">
+						<ul>
+							<li>
+								<p>DPS128 allows for cap-less operation that is defined as working
+									with some bypass capacitor network&nbsp;≤&nbsp;10&nbsp;nF.</p>
+							</li>
+							<li>The cap-less mode is enabled if the load capacitance is set
+								to&nbsp;0.0&nbsp;μF by this API.</li>
+							<li>The cap-less mode is disabled and up to 470&nbsp;μF per channel are
+								supported if the load capacitance is set to any value &gt; 0.0 μF<a href="#_149349__d2708e1305"><sup>1)</sup></a>.</li>
+							<li>The reset value for the load capacitance is&nbsp;1.0&nbsp;μF: The
+								cap-less mode is disabled and a load capacitance of up
+								to&nbsp;470&nbsp;μF per channel is supported.</li>
+							<li>Default value if this API is omitted: The last programmed value is
+								kept until it is (in disconnected state) explicitly programmed or
+								the system is reset. This applies also if another setup is applied
+								or the channel is disconnected and reconnected again.</li>
+							<li>The pin must be disconnected to set the load capacitance.</li>
+							<li>The function can be used only in the code‑based mode.</li>
+							<li>Function <span class="keyword">loadCap()</span> can be used in combination
+								with other functions that connect the channel.</li>
+							<li>The set load capacitance must be maintained in all following
+								code‑based commands until the pin is disconnected. With
+								cap-less mode already enabled by setting the load capacitance once
+								to&nbsp;0.0&nbsp;μF, you can omit this API for the following
+								setups.</li>
+							<li>Pattern‑based commands do not change the connection state.
+								Therefore, connection state changes are supported with the load
+								capacitance set in the code‑based mode.<p>For further
+									details, refer to <a href="148133.htm" title="For the DPS128/DPS64, SmarTest automatically sets the performance range considering the value of the load capacitor(s) connected to the DUT power pin on the DUT board.">Load capacitance connected to the DC Scale DPS128/DPS64</a>.</p></li>
+						</ul>
+					</div></li>
+				
+				<li>XPS256:<ul>
+						<li>The programmed analog load capacitance value is used to adapt the
+							dynamic behavior of a pin to the load capacitance.</li>
+						<li>The default value for the load capacitance is&nbsp;0.0&nbsp;μF.</li>
+						<li>The load capacitance can be set with connected or disconnected pin.</li>
+						<li>The function can be used in code‑based mode and in
+							pattern‑based mode.</li>
+						<li>Function <span class="keyword">loadCap()</span> can be used in combination with
+							all other functions.</li>
+					</ul></li>
+			</ul></div>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">dcBase&amp; loadCap(double cap)</pre><div></div>
+			<table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149349__entry__1">
+								<p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149349__entry__2">
+								<p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149349__entry__1">
+								<p><var class="varname">cap</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149349__entry__2">
+								<p>The value of the load capacitor(s) in F (Farad).</p>
+								<div class="p">Card-specific default value and range:<ul>
+					
+					<li>DPS128 / 64:<ul>
+							<li>Range:<ul>
+									<li>0.0 μF: Enables the cap-less mode</li>
+									<li>&gt; 0.0 μF: Enables the standard mode that supports a load capacitance of up to 470 μF
+										per channel<a href="#_149349__d2708e1305"><sup>1)</sup></a>.</li>
+								</ul></li>
+							<li>Default value after reset: 1.0 μF - standard mode with load
+								capacitance.</li>
+							<li>Default value if not programmed: The last programmed value or the
+								reset value of 1 μF</li>
+						</ul></li>
+					
+					<li>XPS256: Refer to section <a href="354305.htm#_354305__s_Dynamic_behavior">Dynamic behavior</a> in <a href="354305.htm" title="Each channel of an XPS256 card features two combined force, clamp, and measure voltage ranges.">XPS256 programming - Force and clamp voltages</a>.</li>
+				</ul></div>
+							</td>
+						</tr>
+					</tbody></table>
+		</div><div class="syntax"><h2>Return Value</h2><p>A reference to the <span class="keyword">dcBase</span>
+				object.</p></div>
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint copyable singleline">rdi.dc().pin("DPS128_SIG").vForce(1).clamp(1 mA).loadCap(10e-6).execute();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="141515.htm" title="SmartRDI supports both static and dynamic DC tests with DC Scale cards. Both the PMU (SIG) operating mode and the DPS operating mode are supported.">Setting up DC Scale pins with SmartRDI</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.1</li><li>SmartRDI 2.4.2: DC Scale AVI64 card added.</li><li>SmartRDI 2.4.5: Minimum load capacity allowed changes from 1 uF to 1 nF, for better
+					support of pattern‑based mode for AVI64.</li><li>SmarTest 7.5.0: DC Scale FVI16 card added. Pattern‑based programming added
+					for AVI64 and FVI16.</li><li>SmarTest 7.10.1: DC Scale XPS256 card added.</li></ol></div><div class="fs"><div class="p"><a id="_149349__d2708e1305"><sup>1)</sup></a>  Since the cap-less mode of DPS128/64
+									can be enabled or disabled only, we recommend, programming a
+									value ≥&nbsp;1.0&nbsp;μF to avoid any issue with the accuracy of
+									internal calculations.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149349</span><script type="text/javascript">var ti='149349';var tt='loadCap()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

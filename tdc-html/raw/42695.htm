@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A match-loop is a sequence of vectors executed in a continuous loop, used to put a DUT without a reset pin into a state required for a particular test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Considerations for Match Loops</title><meta name="keywords" content="matchloop"></head><body id="_42695"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42695</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Considerations for Match Loops</h1>
+	
+	
+	<div><p>A match-loop is a sequence of vectors executed in a continuous loop, used to put a DUT
+		without a reset pin into a state required for a particular test. The general principle is to
+		specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the
+		DUT successively into each of its possible states. After each repetition, it is checked if the
+		desired state has been reached. If so, the loop is terminated. If not, it is repeated.</p>
+		<p>There are two basic scenarios that determine how to best set up a multisite test flow using
+			match loops.</p>
+		<p>1. Your DUTs are not concerned with being fed with vectors from additional match loop passes.
+			In other words, their final state is not affected by receiving superfluous patterns after
+			receiving the match loop pattern, or their final state is no longer important.</p>
+		<p>A typical application here could be where a DUT needs to settle to a certain state which is not
+			affected by further patterns, for example, locking a phase locked loop.</p>
+		<p>2. Your DUTs are sensitive to being fed with vectors from additional match loop passes. In
+			other words their final state <strong>is </strong>affected by receiving superfluous patterns after
+			receiving the match loop pattern and you wish to continue testing the DUT without re-setting
+			it.</p>
+		<p>A typical application could be setting up the final state of a shift register where the final
+			state is affected by further patterns.</p>
+		<p>The following figure shows these two cases.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="119890.png" alt="Using Match Loops for Different DUT Behavior">
+			</figure></div>
+		<p>If your DUT is not sensitive to receiving superfluous vectors, as in case 1, you can set the
+			Site Match flag to <strong>OFF</strong> which will allow you to start all sites simultaneously (see <a href="119897.htm" title="If you do not enable the site match (match flag OFF), you cannot evaluate the result for each site individually, but exact triggering with shared pins is possible because the match loops are started simultaneously for each site.">Site Match Disabled with Shared Resources</a>).</p>
+		<p>However, if the site match flag is set to <strong>OFF</strong>, then the judgment on whether a match has
+			been obtained will be based on the compare results of <strong>all </strong>active sites, so that if the
+			match loop fails on one single site, the test will be canceled for all sites even if a match is
+			found for all the remaining sites.</p>
+		<p>If your DUT is sensitive to superfluous patterns, as in case 2, you will need to set the Site
+			Match flag to <strong>ON</strong>. This will allow you to evaluate the match loop for each site
+			independently (see <a href="119896.htm" title="If you enable the site match (match flag ON), you can evaluate the result for each site individually, but exact triggering with shared pins is not possible because the match loops are started successively for each site (starting with the site having the highest number) so that the trigger will not be exact depending on the site.">Site Match Enabled with Shared Resources</a>).</p>
+		<p>However, if the site match flag is set to <strong>ON</strong>, then each site will be started with a
+			small offset which can cause problems if you wish to use a digital channel, for example, to
+			trigger analog devices on different sites at a specific instant of time ( see <a href="42666.htm" title="When you execute a multisite test in parallel, you can either start all sites simultaneously, or you can start them one after the other successively, each with a small offset. This is controlled by the setting of the Site Match test suite flag. If this flag is set to OFF, all sites are started simultaneously; if it set to ON, they are started successively.">Controlling Site Synchronization</a>).</p>
+		<div class="note"><span class="title">Note</span> When you use site synchronization (site match flag ON) for independent
+			evaluation of match loops for each site, you must be aware that the number of sites times the
+			number of synchronization groups must not exceed 127. If you do need to exceed 127
+			synchronization groups, then the section <a href="42697.htm" title="The figure below shows schematically a workaround that lets you perform match loops - in parallel in non-self-contained test suites and maintain the state of each of the sites.">Parallel Execution - Not Self-Contained</a> shows a possible method to do
+			this.</div><p>If a test flow contains both match loops and shared pins, but <strong>not within the same test
+				suite</strong>, you can configure site synchronization individually <strong>for each test suite</strong> with
+			the Site Match test suite flag. </p>
+		<p>Setting the flag to:</p>
+		<ul>
+			<li><strong>ON </strong>will cause all sites to be started not simultaneously, but allows you to evaluate
+				sites independently.</li>
+			<li><strong>OFF </strong>will cause the sites to start simultaneously, but all sites will be evaluated
+				together.</li>
+		</ul>
+		<p>If match loops are to be combined with shared pins <strong>in the same test suite</strong> of a multisite
+			test flow, you need to switch the Site Match test suite flag to <strong>OFF</strong>. This has the effect
+			that match loops can no longer be evaluated independently by site. </p>
+		<p>The figure below shows schematically how a match loop is executed for two sites in this case. </p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="47571.png" alt="Match Loop Behavior for Site Match Flag ON or OFF">
+			</figure></div>
+		<p>If the currently active pattern does not match on all sites, a timeout of the digital sequencer
+			will occur. As such a timeout is a global state, it will also stop all other currently active
+			sites. In addition to this undesirable effect, any form of timeout is a waste of test time. </p>
+		<p>To avoid this happening, it is recommended to set up your test to use "<a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a>"
+			which avoids this behavior.</p>
+		<div class="note"><span class="title">Note</span> When using the "Counted Match Loop" setup, the <a href="98645.htm" title="The MCNT? query returns the number of the pass in a counted match loop (MACT instruction) after which the match condition was met. Note that if more than one match loop is executed within one test the returned number is the sum of all match loops up to the match.">MCNT? - (Match loop CouNT)</a> firmware
+			command can be used to return the number of the pass in a counted match loop (MACT
+			instruction) after which the match condition was met.</div><p>The following sections give some solutions to specific situations that you may encounter when
+			using match loops in multisite test flows.</p>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="13933.htm" title="A Match Loop is identified in the Timing Diagram by a vertical line headed by MTCH. Note that if the pattern contains more than one Match Loop, the timing diagram can reconstruct the results only until the start of the first Match Loop.">How Match Loops are represented</a></div><div><a href="99880.htm" title="The vector sequencer has its own set of instructions which you use to control the execution of your test. The default instruction is GENV (GENerateVectors) for every vector, but the system does not display it and you do not have to enter it.">Sequencer instructions</a></div><div><a href="96935.htm" title="Counted match loops differ from timed match loops in the following respects:">Counted match loops</a></div><div><a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">Match loops</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42695</span><script type="text/javascript">var ti='42695';var tt='Considerations for Match Loops'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SEQUENCER_STATUS API accesses the data container holding the digital sequencer status. You can access the sequencers using the member functions. Note the following restrictions:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SEQUENCER_STATUS - (Sequencer)</title></head><body id="_29701"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29701</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SEQUENCER_STATUS - (Sequencer)</h1>
+	
+	
+	<div><p>The <kbd class="userinput">SEQUENCER_STATUS</kbd> API accesses the data container holding the
+		digital sequencer status. You can access the sequencers using the member functions. Note the
+		following restrictions:</p>
+		<section class="section"><ul>
+				<li>You have to use the system-prepared class object <kbd class="userinput">Sequencer</kbd> when using
+					the member functions. You cannot create any class object of the
+						<kbd class="userinput">SEQUENCER_STATUS</kbd> API.</li>
+				<li>The <kbd class="userinput">SEQUENCER_STATUS</kbd> API does not affect the analog sequencers. </li>
+				<li>The <kbd class="userinput">SEQUENCER_STATUS</kbd> API does not support execution contexts (for
+					which see <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a>). You can only start a global sequencer run (executing the
+					current start label) with the member function <span class="keyword">run()</span>, and only abort globally
+					all active sequencer runs with the member function <span class="keyword">abort()</span>.<p>Note also that
+							<span class="keyword">run()</span> will start a global sequencer run only if no sequencer is already
+						running (for example, in an endless loop). If there is, you must stop all the active runs with
+							<span class="keyword">abort()</span> before you can start the new one.</p></li>
+			</ul><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SequencerStat.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Class definition</h2></section>
+		<section class="section"><h3>Member
+			Functions</h3><pre class="prettyprint linenums copyable">SEQUENCER_STATUS&amp; stopCycle(int num);
+SEQUENCER_STATUS&amp; stopCycle(int num, const STRING&amp; portName);
+SEQUENCER_STATUS&amp; stopVector(int num);
+SEQUENCER_STATUS&amp; reset();
+run(TM::RUN_STATUS status = TM::NORMAL);
+abort();
+Boolean isRunning();
+const STRING getSequencerStatus() const;</pre></section>
+		<section class="sectiontitlefake"><h2>Syntax</h2><p>For running the sequencers until
+				the specified cycle</p><p><kbd class="userinput">Sequencer.stopCycle(num).run(mode);</kbd></p><p>For
+				running the sequencers until the specified
+					vector</p><p><kbd class="userinput">Sequencer.stopVector(num).run(mode);</kbd></p><p>For other
+				operations of the sequencers</p><p><kbd class="userinput">Sequencer.member_func;</kbd></p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">num</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Tester cycle number or vector number</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Execution mode of the sequencers. You can also set the <code>run</code> member
+									function separately as shown below:</p>
+								<p>Sequencer.run(<em>mode</em>)</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">member_func</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Member function of the <code>SEQUENCER_STATUS</code> API</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>stopCycle()</h3><pre class="prettyprint linenums copyable">SEQUENCER_STATUS&amp; stopCycle(int <span class="keyword">num</span>);
+SEQUENCER_STATUS&amp; stopCycle(int <span class="keyword">num</span>, const STRING&amp; <span class="keyword">portName</span>);</pre><p>This
+				member function specifies a tester cycle after which the sequencers will stop (the specified
+				cycle is the last cycle that is executed, see Example section) in the global sequencer run
+				subsequently started with <span class="keyword">run()</span>. If the current start label is a multiport
+				burst, you must also specify the port to which this cycle number refers.</p><p>The setting of
+				this function affects not only the <code>run()</code> member function but also the
+					<kbd class="userinput">EXECUTE_TEST</kbd>, <kbd class="userinput">START_TEST</kbd>,
+					<kbd class="userinput">FUNCTIONAL_TEST</kbd>, <kbd class="userinput">DIGITAL_CAPTURE_TEST</kbd>,
+					<kbd class="userinput">NB_DIGITAL_CAPTURE_START</kbd> API, and pre-action of the DC APIs.</p><p>This
+				function is provided to change the behavior of the sequencer execution temporarily. However the
+				setting of this function is effective until all settings are reset by the
+					<span class="keyword">reset()</span> member function of this API. Therefore you should reset the setting
+				by using the <kbd class="userinput">reset()</kbd> member function at the end of the test suite or
+				before starting the sequencer for the other test.</p><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">num</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Tester cycle number where the sequencer stops</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">portName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The port to which to apply the stop cycle.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>stopVector()</h3><pre class="prettyprint copyable singleline">SEQUENCER_STATUS&amp; stopVector(int <span class="keyword">num</span>);</pre><p>After
+				the sequencer is started by the run member function or others, the <code>stopVector()</code>
+				member function specifies a vector number after which the sequencer stops (the specified vector
+				is the last vector in this execution, see Example section).</p><p>Notices for using this
+				function are the same as the <kbd class="userinput">stopCycle</kbd> member function.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">num</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Vector number where the sequencer stops</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>reset()</h3><pre class="prettyprint copyable singleline">SEQUENCER_STATUS&amp; reset();</pre><p>This member
+				function clears the setting of the <kbd class="userinput">stopCycle</kbd> and
+					<kbd class="userinput">stopVector</kbd> member function. Use this member function to perform a
+				standard functional test after using the <kbd class="userinput">stopCycle</kbd> and
+					<kbd class="userinput">stopVector</kbd> member function, else the sequencer stops at the point
+				specified with the <kbd class="userinput">stopCycle</kbd> and <kbd class="userinput">stopVector</kbd> member
+				function.</p><p>Note that Sequencer.reset() will clear the settings done by stopCycle() and
+				stopVector() but this will only take effect (that is, it will only be flushed, that is,
+				downloaded) before the next sequencer run initiated through the test methods APIs listed above
+				under the stopCycle() member function. If the reset is to take effect earlier,
+					<span class="keyword">FLUSH</span> must be called explicitly.</p><p>Note also that
+					<span class="keyword">reset()</span> does not affect the current sequencer status. If you want to stop
+				the sequencers, you must call <span class="keyword">Sequencer.abort()</span>.</p><div class="note"><span class="title">Note</span> In an
+				AC test, you need to clear the sequencer settings before the measurement.</div></section>
+		<section class="section"><h3>run()</h3><pre class="prettyprint copyable singleline">run(TM::RUN_STATUS status = TM::NORMAL);</pre><p>This
+				member function starts a global sequencer run. The sequencers pause after the tester cycle or
+				vector that is specified with the <code>stopCycle</code> or <code>stopVector</code>
+				member function. Note that the sequencers will only be started if no sequencer run is already
+				active. In this latter case you must stop all active runs with the <span class="keyword">abort()</span>
+				member function before you can call <span class="keyword">run()</span> successfully.</p><p>Note that the
+				DPS128/DPS64, when starting the sequencer with the <span class="keyword">run()</span> member function or
+				with the <a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST RUN</a> firmware command, cannot execute dynamic and
+				static DC actions in parallel. Use <a href="136105.htm" title="Profiling (DC profiling) allows you to measure and display current and voltage waveforms during pattern execution. The tool is also known as DC Profiler and is available in the Hardware perspective.">profiling</a> for measurements in
+				parallel to a dynamic pattern.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">status</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Sequencer running mode. The following modes are available:</p>
+								<p><kbd class="userinput">TM::NORMAL</kbd> (Default) The sequencer executes the pattern.</p>
+								<p><kbd class="userinput">TM::ENDLESS_LOOP</kbd> The sequencer repeats the complete test,
+									including primary activation and multiport synchronization, in an endless loop and can only
+									be stopped by a break action. See also the EL mode in <a href="98746.htm" title="The command serves two purposes simultaneously. On the one hand, it controls the termination of the sequencers. By default, the complete test is executed once, but the test can also be repeated in an endless loop or stopped before it is completed.">SQGB, SQGB? - (SeQuencer GloBal)</a>.</p>
+								<p><kbd class="userinput">TM::ENDLESS_PATTERN_LOOP</kbd> The sequencer repeats only the user
+									sequencer program defined in the pattern. This avoids critical holds during measurement
+									for example, for IDD operating currents).</p>
+								<p>In case of multiport testing, ports may run with different frequencies. Using the ELPT
+									mode in this case, can lead to the situation, that for loop counts &gt;1 the
+									synchronization is no longer executed. See also the ELPT mode in <a href="98746.htm" title="The command serves two purposes simultaneously. On the one hand, it controls the termination of the sequencers. By default, the complete test is executed once, but the test can also be repeated in an endless loop or stopped before it is completed.">SQGB, SQGB? - (SeQuencer GloBal)</a></p>
+								<p><kbd class="userinput">TM::STOPONERROR</kbd> The sequencer stops when an error occurs in the
+									execution.</p>
+								<p><kbd class="userinput">TM::STOPONERROR_LOOP </kbd>The sequencer stops when an error occurs in
+									an endless loop.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>abort()</h3><pre class="prettyprint copyable singleline">abort();</pre><p>This member function sets all
+				active sequencer runs into the break state. It can be used, for example, to stop an endless loop
+				started with <code>Sequencer.run(TM::ENDLESS_PATTERN_LOOP)</code>, and must be called in
+				this situation before a new sequencer run can be started.</p><p>There are no parameters in this
+				member function.</p></section>
+		<section class="section"><h3>isRunning()</h3><pre class="prettyprint copyable singleline">Boolean isRunning();</pre><p>This member
+				function returns whether the digital sequencers are running or not. You can also use the <a href="29490.htm" title="Returns TRUE if any analog or digital sequencer is running, else FALSE is returned.">IS_TEST_RUNNING</a> API that returns whether either the analog or digital
+				sequencer is running.</p><p>There are no parameters in this member function.</p></section>
+		<section class="section"><h3>getSequencerStatus()</h3><pre class="prettyprint copyable singleline">const STRING getSequencerStatus() const;</pre><p>This
+				member function returns the current sequencer status. It can be OFF, RUN, HALT or
+			BRK.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3><p>Given the following pattern, the member functions
+					<code>stopVector</code> and <code>stopCycle</code> behave as follows.</p><div class="p"><figure class="fignone">
+					<img src="144837.png" alt="Pattern tool_SEQUENCER_STATUS">
+				</figure></div><ul>
+				<li><code>Sequencer.stopCycle(13).run();</code><p>The sequencer stops after executing cycle
+						number 13 (p1 set to 1)</p></li>
+				<li><code>Sequencer.stopCycle(14).run();</code><p>The sequencer stops after executing cycle
+						number 14 (p1 set to 0)</p></li>
+				<li><code>Sequencer.stopVector(9).run();</code><p>The sequencer stops after executing vector
+						number 9 (p1 set to 1)</p></li>
+				<li><code>Sequencer.stopVector(10).run();</code><p>The sequencer stops after executing
+						vector number 10 (p1 set to 0)</p></li>
+			</ul></div>
+		<div class="example"><h3>Example 2</h3><p>The following example will perform a DC measurement using
+				FlexDC. First, it prepares the needed flex dc settings, then it starts the sequencer and pauses
+				on tester cycle 15 to perform the DC measurement at pin
+			"pin1".</p><pre class="prettyprint linenums copyable">virtual void run()
+ {
+    PPMU_SETTING setting1;
+    TASK_LIST tasks;
+    PPMU_RELAY relay_on, relay_off;
+    PPMU_MEASURE ppmu_meas;
+    PPMU_CLAMP clamp_on, clamp_off;
+
+    double VMeas_seq1;
+ON_FIRST_INVOCATION_BEGIN();
+    setting1.pin("pin1").vForce(2.1 mV);
+    setting1.pin("pin1").iRange("10uA");
+    setting1.pin("pin1").min(0.1 uA).max(25.0 uA);
+
+    relay_on.pin("pin1").status("PPMU_ON");
+    relay_on.wait(1.3 ms);
+    relay_off.pin("pin1").status("AC_ON");
+
+    clamp_on.pin("pin1").status("CLAMP_ON").low(2.6 V).high(2.9 V);
+    clamp_off.pin("pin1").status("CLAMP_OFF");
+
+    ppmu_meas.pin("pin1"). execMode(TM::PVAL);
+
+    tasks.add(setting1).add(clamp_on).add(relay_on).add(clamp_off). add(ppmu_meas).add(relay_off);
+    Sequencer.stopCycle(15).run();
+    tasks.execute();
+    ON_FIRST_INVOCATION_END();
+    VMeas_seq1 = ppmu_meas.getValue("pin1");
+Sequencer.reset();
+
+    return;
+  }</pre></div>
+		<div class="example"><h3>Example
+				3</h3><pre class="prettyprint linenums copyable">Sequencer.run(TM::ENDLESS_PATTERN_LOOP);
+DPS_VFIM("@").execute();
+Sequencer.abort();</pre><p>This
+				example achieves an operating current test of the DPS with the test method. First, it starts the
+				sequencer in an endless pattern loop. Then it performs a current measurement at a random device
+				cycle. Then it aborts the
+			sequencer.</p></div>
+		<div class="example"><h3>Example
+				4</h3><pre class="prettyprint linenums copyable">Sequencer.reset();
+PMU_IFVM("@").preAction("FTST").execute();</pre><p>This
+				example resets the sequencer before performing a functional test that is a pre-action of the DC
+				test. However, It is recommended to use FLEX DC instead of PMU_IFVM and use
+					<span class="keyword">SEQUENCER_STATUS</span> APIs to execute a functional pattern as pre action if
+				required as shown in above example 1.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: New parameter option TM::STOPONERROR and TM::STOPONERROR_LOOP for the member
+					function run().</li><li>SmarTest 6.5.2: New member function getSequencerStatus().</li><li>SmarTest 6.5.2:  New parameter portName for the member function stopCycle().</li><li>SmarTest 6.5.4:  New TM::ENDLESS_PATTERN_LOOPparameter option for the run() member
+					function.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29701</span><script type="text/javascript">var ti='29701';var tt='SEQUENCER_STATUS - (Sequencer)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

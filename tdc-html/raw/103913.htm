@@ -1,0 +1,104 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Dynamic bus inversion (DBI) is used to invert the bus signals under specified conditions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up dynamic bus inversion</title></head><body id="_103913"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 103913</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up dynamic bus inversion</h1>
+	
+	
+	<div><p>Dynamic bus inversion (DBI) is used to invert the bus signals under specified
+		conditions.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Set up DBI if you require bus signals to be sometimes inverted, but not
+			always.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure that the <a href="102016.htm" title="A pin configuration file specifies which pins are available on the DUT.">pin configuration</a> and <a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">pin mapping files</a> are properly set up.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Define the DBI settings in the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>.</span>
+				<ol type="a">
+					<li class="substepexpand">
+						<span>Add a <span class="keyword">:dbi:</span> block and name it.</span>
+					</li>
+					<li class="substepexpand">
+						<span>Add a <span class="keyword">:configuration:</span> block for each combination of a set of pins to
+							apply inversion to and a condition governing when the inversion is applied.</span>
+						<div><p>The details of both blocks are described in <a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">Device architecture file syntax</a>. </p>
+							<p>Repeat steps a and b for each additional group of DBI settings that you want to
+								create.</p>
+						</div>
+					</li>
+				</ol>
+			</li><li class="stepexpand">
+				<span>Specify the desired DBI setting in the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> by adding the
+						<span class="keyword">:dbi:</span> keyword and the name of the desired DBI setting (from step 1a) to the
+					file.</span>
+			</li><li class="stepexpand">
+				<span>Apply the <span class="keyword">dbi</span> macro in the <span class="keyword">:operation:</span> column of
+					every device access where you want to use it. More information on this is available in <a href="124658.htm" title="MTL includes some predefined functions and macros that you can use in the :data: and :operation: columns in device access files.">Macros and functions in device accesses</a>.</span>
+				<div><p>Note that any device access containing the <span class="keyword">dbi</span> macro cannot be used
+						in padding routines. </p>
+					<p>Also note that any device access containing the <span class="keyword">dbi</span> macro must always
+						access all pins that belong to the bus defined in the DBI configuration used. The device
+						access may not leave out some of the bits that have been specified as belonging to the DBI bus
+						used in the access. </p>
+				</div>
+			</li><li class="stepexpand">
+				<span>When compiling the pattern, specify binary reconstruction information:</span>
+				<div><ul>
+						<li>When you use the GUI, check the <span class="uicontrol">Generate Reconstruction File</span> option
+							and set the slider to <span class="uicontrol">r1</span> or <span class="uicontrol">r2</span>.</li>
+						<li>When you use the command line, specify the <code>-r1</code> or <code>-r2</code>
+							command line option.<p>Dynamic bus inversion does not work with the <code>-r0</code>
+								option.</p></li>
+					</ul></div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>Whenever the defined condition is reached, the signals on the specified bus are
+				inverted before they reach the DUT.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>In the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+:dbi:  GDDR5_dbi
+<span class="keyword">...</span></pre><p>In
+				the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+:dbi:
+{
+  :name: GDDR5_dbi
+  :configuration: 
+  {
+    :name: writeDBI
+    :condition: bitCount(e[],0)&gt;bitControl 
+    :table:
+    {
+      :format:
+      { :bus:       :flag: }
+      { DQi[0..7]   dbi[0] } 
+      { DQi[8..15]  dbi[1] } 
+      { DQi[16..23] dbi[2] } 
+      { DQi[24..31] dbi[3] } 
+    }
+  }
+  :configuration:
+  {
+    :name: readDBI
+    :condition: "bitCount(e[],0)&gt; bitControl"
+    :table:
+    {
+      :format:
+      { :bus:       :flag: }
+      { DQI[0..31]  dbi[0] } 
+    }
+  }
+}
+
+<span class="keyword">...</span></pre><p>In
+				the <a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+:apgAccess:
+{
+  :name:  Write
+  :table:
+  {
+    :format:
+    {:pin:  :states:  :data:          :operation:    }
+    { DQi   {0 1}     data(dw, x, y)  dbi(writeDBI)  }
+    { dbi   {0 1}     0               dbi(writeDBI)  }
+  }
+}
+<span class="keyword">...</span></pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="68438.htm" title="The null data value is the value that the DUT interprets as a data word containing a logical zero.">Null data</a></div><div><a href="102776.htm" title="Data scrambling is the conversion of data bits to account for inverse logic and different arrangements of the bits in a data word.">Data scrambling</a></div><div><a href="102775.htm" title="Address scrambling is the conversion of addresses to account for differences between the logical arrangement of memory cells and their physical arrangement. It is required, for example, to test for effects based on the physical proximity of cells.">Address scrambling</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 2.4.0</li><li>MTP 3.0.3:  (MTP on SOC 103.0.0) Dynamic bus inversion is now available in both MTP on HSM
+					and MTP on SOC</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 103913</span><script type="text/javascript">var ti='103913';var tt='Setting up dynamic bus inversion'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

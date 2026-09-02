@@ -1,0 +1,100 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Creating device accesses</title></head><body id="_91393"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91393</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Creating device accesses</h1>
+	
+	
+	<div><p>The device access file describes which bitstreams need to be sent to device pins to
+		execute specific operations on the device, translating logical calls to concrete waveforms. The
+		device access defined in the device access file are called from the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a>.</p>
+		
+		<p>The device access file has the <span class="filepath" id="_91393__d7033e28">.dvac</span> file name
+			extension. It is referenced from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> with the
+				<span class="keyword">:deviceAccess:</span> keyword.</p>
+		
+		<p>The device access file also declares parameters from the device architecture
+			files that are to be used in device access specifications and define constants, also to be used
+			in device access specifications.</p>
+		<p>Some hints on creating a device access file:</p>
+		<ul>
+			<li>Create files in the default directory
+					<span class="keyword">&lt;device&gt;</span><span class="filepath">/mts/device_defs/access_defs/</span>.</li>
+			<li>Use the device datasheet to identify any setup and maintenance operations.</li>
+			<li>You must use data and address macros in read accesses to enable the creation of <a href="103883.htm" title="Due to the per-pin architecture (as opposed to a bus-centric architecture) of the V93000 system, results are linked to tester cycles instead of memory addresses. To link results to addresses, which is frequently more useful for debugging, the SmarTest result evaluation tools require so-called reconstruction information.">reconstruction data</a>.</li>
+			<li>Recommendation: Create separate access functions for address and data pins.</li>
+			<li>Recommendation: Follow the <a href="73015.htm" title="When creating names for variables, parameters, or functions in MTL, you must follow certain rules. There are also recommendations for names access from subroutines, although these are not mandatory.">naming conventions</a> from the
+				documentation.</li>
+			<li>Do not use a blank space to separate two parameters in the <span class="keyword">data</span> macro, for
+				example, use <code>data(dataw,xAddr,yAddr)</code>, but not <code>data(dataw, xAddr,
+					yAddr)</code>. Otherwise, you may get errors from the compiling.</li>
+		</ul>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">:deviceAccess:
+{
+  :version: 1.0
+  :deviceParam:
+  {  xBits  yBits  dBits  }
+  :groups:
+  {
+    :format:
+    {  :name:     :size:  }
+    {  x_address  10      }
+    {  y_address  8       }
+    {  data       16      }
+  }
+
+  :apgAccess:
+  {
+    :name: write_access
+    :interface:
+    {  xAddr  yAddr  dataw  }
+    :table:
+    {
+      :format:
+      {  :pin:      :states:  :data:                     }
+      {  CS_        {0 1}     0                          }
+      {  OE_        {0 1}     1                          }
+      {  WE_        {0 1}     0                          }
+      {  BHE_       {0 1}     0                          }
+      {  BLE_       {0 1}     0                          }
+      {  x_address  (0 1}     xaddr(xAddr,yAddr)         }
+      {  y_address  {0 1}     yaddr(xAddr,yAddr)         }
+      {  data       {L H}     data(dataw,xAddr,yAddr)    }
+    }
+  }
+
+  :apgAccess:
+  {
+    :name:  read_access
+    :interface:
+    {  xAddr    yAddr    dataw  }
+    :table:
+    {
+      :format:
+      {  :pin:      :states:  :data:                     }
+      {  CS_        {0 1}     0                          }
+      {  OE_        {0 1}     0                          }
+      {  WE_        {0 1}     1                          }
+      {  BHE_       {0 1}     0                          }
+      {  BLE_       {0 1}     0                          }
+      {  x_address  {0 1}     xaddr(xAddr,yAddr)         }
+      {  y_address  {0 1}     yaddr(xAddr,yAddr)         }
+      {  data       {L H}     data(dataw,xAddr,yAddr)    }    
+    }
+  }
+
+  :apgAccess: 
+  {
+    :name: "NMT_Rx6"
+    :interface: { <span class="keyword">...</span> }
+    :table:
+    {
+      :format:
+      { :pin:    :states:  :data:   :operation:            } 
+      { Rx6.000  {0 1}      0       ~                      }
+      { ~        {0 1}      0       crc(NMT_Rx6_crc,6)[0]  }
+      { ~        {0 1}      0       crc(NMT_Rx6_crc,5)[0]  }
+    }
+  }
+}</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91393</span><script type="text/javascript">var ti='91393';var tt='Creating device accesses'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

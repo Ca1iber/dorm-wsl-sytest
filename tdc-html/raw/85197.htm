@@ -1,0 +1,70 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Source synchronous testing is rather time consuming. First, it requires multiple executions of the same functional test. Second, the results of each execution (shot) must be combined with the already existing global results for the previous shots. Finally, if this result accumulation is executed on the workstation, the results must be uploaded after each shot."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Exploiting hardware resources for performance enhancement</title></head><body id="_85197"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 85197</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Exploiting hardware resources for performance enhancement</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="85281.htm" title="Result accumulation in the hardware is only possible if the channels involved in the data transfer satisfy the following requirements:">Hardware restrictions for result accumulation</a></li></ol></div></nav>
+	
+	
+	<div><p>Source synchronous testing is rather time consuming. First, it requires multiple
+		executions of the same functional test. Second, the results of each execution (shot) must be
+		combined with the already existing global results for the previous shots. Finally, if this result
+		accumulation is executed on the workstation, the results must be uploaded after each shot. </p>
+		<p>However, SmarTest provides a set of firmware commands by which the performance can be
+			considerably enhanced on the Pin Scale cards. With the help of these commands:</p>
+		<ul>
+			<li id="_85197__d7094e26">Result data is already accumulated in the hardware.</li>
+			<li id="_85197__d7094e29">The result processing for every shot except the last can be partially performed in
+				parallel with the execution of the next shot. </li>
+		</ul>
+		<p>Note that these firmware commands are not supported on the EXA Scale test
+				systems.</p>
+		<p>The feature works as follows:</p>
+		<ol>
+			<li id="_85197__d7094e38">You define three input channels (which as such do not belong to any synchronization
+				group) as buffer channels for source synchronous testing. One of these (called <em>source
+					buffer</em>) serves to hold the cycle or edge results (over all pins) of the last shot. The
+				other two (called <em>global buffers</em>) alternately contain the global results for all shots
+				executed so far. This configuration is defined with the <span class="keyword">SSAC</span> command.<p>The
+					results of all pins taking part in the source synchronous testing are stored within the error
+					map area of the RDRAM. Accordingly the detailed Error Map for these channels must have been
+					defined in RDRAM with the <span class="keyword">DRCT</span> firmware command. You must also take care
+					that the selected channels provide enough space for the requested buffer size. Furthermore, the
+					recording mode for the detailed Error Map must have been set to <span class="keyword">ALL</span> with
+						<span class="keyword">DCGM</span>. </p></li>
+			<li id="_85197__d7094e61">After each shot, its combined cycle/edge results are transferred to the source
+				buffer with the <span class="keyword">SSCT</span> command. This step must occur before the next shot is
+				started. </li>
+			<li id="_85197__d7094e67">Subsequently, the results of the source buffer are combined with those of the global
+				buffer that currently holds the global results. The result is written to the other global
+				buffer, which in its turn will provide the global input data for the next accumulation step
+				(after the next shot). This is also done with the <span class="keyword">SSCT</span> command. <p>In
+					contrast to the first step, this second step need not be terminated before the start of the
+					next shot. It can be executed in parallel with the next test execution, and indeed
+						<span class="keyword">SSCT</span> can be instructed to wait until the next call of
+						<span class="keyword">FTST?</span> before it starts the accumulation.</p></li>
+			<li id="_85197__d7094e81">After termination of the last shot, the final result can be uploaded to the 
+				workstation with the <span class="keyword">SSTR?</span> query.</li>
+		</ol>
+		<p>The hardware represents PASS by 1 and FAIL by 0, and it can combine data only
+			conjunctively (by AND). But the results of the current shot must be combined with the current
+			global results disjunctively (by OR), that is, the new global result for a cycle must already be
+			PASS if only one of the two input buffers contains PASS for this cycle. In order to achieve this,
+				<span class="keyword">SSCT</span> inverts the data of the source buffer before it combines them with the
+			current global results, and also stores the new global results in inverted form, so that in the
+			global buffers, 0 represents PASS and 1 represents FAIL. With this inversion, <em id="_85197__d7094e94">A</em>
+			AND <em id="_85197__d7094e97">B</em> in fact equals PASS (= 0) if at least one of <em id="_85197__d7094e100">A</em>, <em id="_85197__d7094e103">B</em> equals PASS (= 0).</p>
+		<p>For the upload of the final results to the workstation, this inversion must be
+			canceled by another inversion which is performed by <span class="keyword">SSTR?</span>.</p>
+		<p>The following figure illustrates the principles:</p>
+		<div class="p"><figure class="fignone" id="_85197__d7094e117">
+				
+				<img src="85198.png" alt="Processing source-synchronous data">
+			</figure></div>
+		<p>There are three output data pins, D1 through D3, and one output clock pin CL. The
+			pattern comprises 4 cycles (C1 through C4) and is repeated three times. SB is the source buffer,
+			and G1 and G2 are the two global buffers.</p>
+		<p>It is possible to define different sets of buffers for different synchronization
+			groups and to test these in parallel.</p>
+		<p>This feature, which is called <em id="_85197__d7094e138">Rapid Source Sync</em> (RSS), requires no
+			license.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 6.5.3:  RSS no longer requires license</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 85197</span><script type="text/javascript">var ti='85197';var tt='Exploiting hardware resources for performance enhancement'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

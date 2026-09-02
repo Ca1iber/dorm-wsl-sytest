@@ -1,0 +1,169 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The FFCI? query retrieves information on the first n failed cycles for all configured O and IO pins in the current mode context. If a port is specified, SmarTest returns only the pins from that port. The port should correspond to one of the pattern ports used in the last functional test execution."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FFCI? - (First Failed Cycle Information)</title><meta name="keywords" content="FFCI_"></head><body id="_98603"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98603</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FFCI? - (First Failed Cycle Information)</h1>
+	
+	
+	<div><p>The <span class="keyword">FFCI?</span> query retrieves information on the first <em>n</em> failed
+		cycles for all configured <span class="keyword">O</span> and <span class="keyword">IO</span> pins in the current
+		mode context. If a port is specified, SmarTest returns only the pins from that port. The
+		port should correspond to one of the pattern ports used in the last functional test
+		execution.</p>
+		<section class="section"><p><span class="keyword">FFCI?</span> is a speed-optimized command that delivers only the
+				error cycles sorted in order, starting from the acquisition start cycle.</p><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">FFCI? {(no_ffcyc)} [,(port)]</pre><p>returns:
+			</p><pre class="prettyprint copyable singleline">FFCI {(no_ffcyc)}, {no_pins}, {#spec(data)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">no_ffcyc</var></td>
+							<td class="colsep-0 rowsep-1">Number of first failed cycles to be reported.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">port</var></td>
+							<td class="colsep-0 rowsep-1">Specifies the port for the pins for which information is to be
+								returned. If you omit this parameter information will be returned
+								for the default port @ to which all configured pins belong.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">no_pins</var></td>
+							<td class="colsep-0 rowsep-1">The number of <span class="keyword">O</span> and <span class="keyword">IO</span>
+								pins.</td>
+						</tr>
+						<tr id="_98603__r_specData">
+							<td class="colsep-0 rowsep-1"><var class="varname">#spec(data)</var></td>
+							<td class="colsep-0 rowsep-1"><p>Prefix and pin error data in binary format:</p>
+								<ul>
+									<li>The prefix is defined as follows:<ol>
+											<li>The number sign <span class="keyword">#</span> marks the start
+												of the data block.</li>
+											<li>One digit follows, indicating how many digits make
+												up the following data length specifier.</li>
+											<li>A number of digits indicating the length (in bytes)
+												of the data to follow.</li>
+										</ol></li>
+									<li>Binary data are available per reported cycle. The data for
+										each cycle consists of two parts, the number of the failing
+										cycle and the pin data, which indicates the failing pins of
+										that cycle:<ol>
+											<li>Cycle number:<p>The length of the cycle number is
+												always 8 bytes.</p></li>
+											<li>Pin data:<p>The pin data consists of one byte per
+												eight pins that belong to the specified port:</p><ul>
+												<li>Each pin is represented by one bit.</li>
+												<li>An error on a particular pin is denoted by a
+												1, an error free pin by a 0.</li>
+												<li>Bits of the pin data are filled starting from
+												the <strong>left</strong> (MSB) side.</li>
+												<li>If the number of configured channels of the
+												specified port is not divisible by 8, the last
+												byte of pin data contains unused bits on the
+												<strong>right</strong> (LSB) side.</li>
+												</ul></li>
+										</ol></li>
+								</ul>
+								<p>Mapping of the bits in the pin data block to the individual
+									pins:</p>
+								<ul>
+									<li>The <span class="keyword">I</span> / <span class="keyword">IO</span> pins are
+										sorted based on their pogo number defined for the first
+										site.</li>
+									<li>The sorted pins are mapped starting on the <strong>left</strong> (MSB)
+										side of the first byte of the pin data block.</li>
+									<li>The information how the pins are mapped can be read by
+										command <a href="144138.htm" title="The FFPM? query retrieves information on the order of the pins of a FFCI? query.">FFPM? (First Failing cycle information Pin Mapping)</a>.</li>
+								</ul></td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p><a href="55750.htm" title="The error map is the basis for analyzing the test results. SmarTest uses the error map to record information about failing test cycles.">Error Map</a></p></div>
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1: Firmware
+				view</h3><pre class="prettyprint linenums copyable">$FFCI? 2
+FFCI 2,7,#218
+  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000011
+  01100000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  00010000 00010000</pre><p>This
+				example for <a href="111031.htm" title="You can directly enter firmware command in the Task text box, or select firmware command from the task history, which includes all the previously-entered commands. The task history is opened as depicted below.">Firmware view</a> queries the first two cycles where failures have
+				occurred on an output pin of the default port, that is, on any configured output
+				pin. Note: For the query, you must use the prefix <span class="keyword">$</span> so that the
+				binary data are represented by ASCII 1 or 0.</p>
+			<p>The answer is to be interpreted as follows:</p><div class="p">
+				<ul>
+					<li><code>FFCI 2,7</code> means that 2 cycles are reported and 7 output pins
+						are configured. Since this entails that one byte is sufficient for the pin
+						data, the binary data needs only one byte for the pin data consists of 2 * 9
+						bytes.</li>
+					<li><code>#218</code> defines the size of the following binary data: 2
+						digits for the length specifier followed by the length specifier itself that
+						indicates a length of 18 for the binary data.</li>
+					<li>The Firmware view displays the cycle numbers and pin data as groups of eight
+						bytes that must be evaluated as follows:<ol>
+							<li>Failed cycle # 3:<ol type="a">
+									<li>The cycle number 3 is defined by the first eight address
+										bytes <code>0000000</code> …
+										<code>00000011</code>.</li>
+									<li>The 9th byte <code>01100000</code> shows failures on the
+										2nd and 3rd pin: Value 0 of the MSB on the left represents
+										the passing 1st pin.</li>
+								</ol></li>
+							<li>Failed cycle # 16:<ol type="a">
+									<li>The next eight bytes 10 … 17 (<code>00000000</code> …
+											<code>00010000</code>) define the cycle number
+										16.</li>
+									<li>The last byte 18 (<code>00010000</code>) shows that the
+										fourth pin failed.</li>
+								</ol><p>For the assignment from bits of the pin data bytes to the
+									configured pins, refer to <a href="98603.htm#_98603__r_specData">#spec(data)</a>, the <a href="98603.htm#_98603__d_Example_2">following example</a> and to firmware command <a href="144138.htm" title="The FFPM? query retrieves information on the order of the pins of a FFCI? query.">FFPM? (First Failing cycle information Pin Mapping)</a>.</p></li>
+						</ol></li>
+				</ul>
+			</div>
+			<p>The <span class="keyword">FFCI?</span> command can also be executed using API <a href="29362.htm" title="This API allows direct access from the test method to the system hardware at firmware level.">FW_TASK</a>. You must use the syntax <code>FWTASK_STATUS FW_TASK(const
+					STRING&amp; command, FW_ResultData &amp; resultdata);</code> to retrieve the
+				binary data.</p></div>
+		<div class="example"><h3>Example 2: Sort order of pins</h3><div id="_98603__d_Example_2">
+				
+				<p>The pogo numbers of the following example setup are assigned in descending order
+					to emphasize that the order of the pogo numbers and not the order of the
+					definition by <a href="98550.htm" title="The DFPN command allocates a pin name to a digital or DC Scale channel. The DC Scale channel will be in PMU mode by this allocation. The pin name is the name by which the software identifies the pin. The DFPN? query returns a list of channels and their assigned pin names.">DFPN</a> matters.</p><pre class="prettyprint linenums copyable">DFPN 11105,"",(pinA)
+DFPN 11104,"",(pinB)
+DFPN 11103,"",(pinC)
+DFPN 11102,"",(pinD)
+DFPN 11101,"",(pinE)
+CONF IO,F160,(pinA)
+CONF I,F160,(pinB,pinC)
+CONF O,F160,(pinD,pinE)</pre><div></div>
+				<p>The <span class="keyword">FFCI?</span> command will sort <span class="keyword">I</span> /
+						<span class="keyword">IO</span> pins based on their pogo number defined for the first
+					site resulting in the pin list <span class="keyword">pinE</span>, <span class="keyword">pinD</span>,
+						<span class="keyword">pinA</span>. The two pins <span class="keyword">pinB</span> and
+						<span class="keyword">pinC</span> have no output capability and, therefore, will not
+					be included in the FFCI? answer.</p><p>Assuming a test has been executed where
+						<span class="keyword">pinA</span> passes, but <span class="keyword">pinD</span> and
+						<span class="keyword">pinE</span> fail for every cycle, the <span class="keyword">FFCI?</span>
+					answer for the first two failing cycles now would look like this:</p><pre class="prettyprint linenums copyable">FFCI? 2
+FFCI 2,3,#218
+  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  11000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  00000001 11000000</pre><div></div>
+				<div class="p">The binary data of the answer is to be interpreted as follows:<ul>
+						<li>Byte 1 … 8: Address of the first cycle (<code>00000000</code> …
+								<code>00000000</code> = 0)</li>
+						<li>Byte 9: Pin data <code>11000000</code></li>
+						<li>Byte 10 … 17: Address of the second cycle (<code>00000000</code> …
+								<code>00000001</code> = 1)</li>
+						<li>Byte 18: Pin data <code>11000000</code></li>
+					</ul></div>
+				<p>Byte 9 and 18 show that the first two pins on the left side (MSB) are failing.
+					According to the sorting scheme that is defined in the <span class="keyword">FFCI</span>
+					parameter description for <a href="98603.htm#_98603__r_specData">#spec(data)</a>,
+					the failed pins are <span class="keyword">pinE</span> (Channel 11101 and
+						<span class="keyword">pinD</span> (Channel 11102).</p></div>
+			<p>The <a href="144138.htm" title="The FFPM? query retrieves information on the order of the pins of a FFCI? query.">FFPM?</a> firmware command will return <code>FFPM
+					3,(pinE,pinD,pinA)</code> as <span class="keyword">pinE</span>, <span class="keyword">pinD</span>
+				and <span class="keyword">pinA</span> are configured for the <span class="keyword">I</span> /
+					<span class="keyword">IO</span> mode. The pin list is sorted by the pogo number defined
+				for the first site.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144138.htm" title="The FFPM? query retrieves information on the order of the pins of a FFCI? query.">FFPM? (First Failing cycle information Pin Mapping)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.2: FFPM introduced</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98603</span><script type="text/javascript">var ti='98603';var tt='FFCI? - (First Failed Cycle Information)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

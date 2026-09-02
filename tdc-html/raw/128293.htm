@@ -1,0 +1,214 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This example demonstrates how to transfer a device independent protocol definition to SmarTest and how to link it to the device dependent details."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Example: Defining a MDIO protocol</title></head><body id="_128293"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 128293</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Example: Defining a MDIO protocol</h1>
+	
+	
+	<div><p>This example demonstrates how to transfer a device independent protocol definition to
+		SmarTest and how to link it to the device dependent details.</p>
+		<section class="section"><h2>Initial details</h2></section>
+		<section class="section"><h2>Device details</h2><p>It is presumed that the device setup, like pin
+				configuration along with timing and level setup is completed as follows:</p><ul>
+				<li>The device's protocol pins MD1a and MD1b are connect to the HW pins 10101 and 10103.</li>
+				<li>10101 gets the pin name pMDclk and 10103 is named pMDdata.</li>
+				<li>Both are members of the port poMD.</li>
+				<li>Only x1 mode is used for protocol pins.</li>
+				<li>Create a multiport burst label "<span class="keyword">MPB_NonProtPort</span>" that includes all
+					ports/pins except the protocol port <span class="keyword">poMD</span>.</li>
+			</ul><p>With this setup ready, the device dependent part has been completed.</p></section>
+		<section class="section"><h2>Protocol details</h2><p>The two-wire MDIO protocol, has two signals:</p><ul>
+				<li>MDC, which is an alternating signal representing a clock</li>
+				<li>MDIO, which consists of write/read transactions of the following format (field order):</li>
+			</ul><div class="p"><figure class="fignone">
+					
+					<img src="125495.png" alt="One transaction or frame">
+				</figure></div><div class="note"><span class="title">Note</span> An up to 32 bit preamble may occur before the start bit
+				(ST).</div><p>The binary values of the OP field shall be coded into symbols for aiding
+				readability.</p><p>As the content of PHAYADR, REGADR and DATA may change, parameters have to be
+				used to allow variable values to be used.</p></section>
+		<section class="section"><h2>Defining device independent protocol definition</h2><div class="note"><span class="title">Note</span> This
+				procedure will only point out individual tasks allowing you to define a protocol along the
+				description of <a href="124648.htm" title="Protocol definitions can either be created from scratch or be imported from an existing protocol definition.">Setting up the protocol definition</a>.</div><ol>
+				<li>Create a new protocol definition named MDIO.</li>
+				<li>Create pin roles MDC and MDIO.</li>
+				<li>Create a write transactions with a length of 64 bits.</li>
+				<li>Enter parameters as follows:</li>
+			</ol><table class="frame-topbot"><caption><span>Transaction parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_128293__entry__1"><p>Parameter name</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_128293__entry__2"><p>Direction</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_128293__entry__3"><p>Length</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__1"><p><span class="keyword">phyaddr</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__2"><p>in</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__3"><p>5</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__1"><p><span class="keyword">regaddr</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__2"><p>in</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__3"><p>5</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__1"><p><span class="keyword">data</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__2"><p>in or out</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__3"><p>16</p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> The direction is from the DUT's perspective, thus out refers to the
+				read transaction.</div><ol>
+				<li>Create the pin roles MDC and MDIO.</li>
+				<li>For the MDC pin role create a field of 64 bit length. Enter the encode function
+						<code>repeat("1",64)</code> to let the signal toggling 64 times during the
+					transaction.</li>
+				<li>Create fields for the MDIO pin role in the order as shown in the table below.</li>
+			</ol><table class="frame-topbot"><caption><span>Encode functions of the MDIO pin role for write transaction</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_128293__entry__13"><p>Field</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_128293__entry__14"><p>Encode function</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_128293__entry__15"><p>Remark</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>PRE</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><code>repeat("1",32)</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>ST</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><code>"01"</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>OP</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><span class="keyword">WRITE</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>This field uses symbols.</p>
+								<p>They can be defined in the symbol section of the field details.</p>
+								<p>Define the following symbols:</p>
+								<p><span class="keyword">READ</span> - 0b01</p>
+								<p><span class="keyword">WRITE</span> - 0b10</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>PHYADR</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><span class="keyword">phyaddr[4..0]</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>The field PHYADR uses the parameter <span class="keyword">phyaddr</span> with bit 4 being the
+									MSB.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>REGADR</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><span class="keyword">regaddr[4..0]</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>The field REGADR uses the parameter <span class="keyword">regaddr</span> with bit 4 being the
+									MSB.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>TA</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><code>"0Z"</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__13"><p>DATA</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__14"><p><span class="keyword">data[15..0]</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__15"><p>The field DATA uses the parameter <span class="keyword">data</span> with bit 15 being the
+									MSB.</p>
+							</td>
+						</tr>
+					</tbody></table><ol>
+				<li>Copy the write transaction and paste it as read transaction.<div class="note"><span class="title">Note</span> You have to
+						change the direction of the parameter <span class="keyword">data</span> in the read transaction to
+						'out'!</div>
+				</li>
+				<li>Enter level and timing segment definitions if applicable. Use pin roles only to keep the
+					protocol definition device independent.</li>
+				<li>Enter wavetable details for pin roles only. Map the reserved state character "R" to a single
+					low edge action.</li>
+				<li>After saving the MDIO protocol you have completed the device independent part.</li>
+			</ol></section>
+		<section class="section"><h2>Assigning device independent protocol definition to device</h2><div class="note"><span class="title">Note</span> This procedure will only point out individual tasks allowing you to do the protocol
+				assignments along the description of <a href="126105.htm">Assigning pin roles and protocols</a>.</div><ol>
+				<li>Assign the <span class="keyword">MDIO</span> protocol to the <span class="keyword">poMD</span> port.</li>
+				<li>Map the port member <span class="keyword">pMDclk</span> to the pin role <span class="keyword">MDC</span> and
+						<span class="keyword">pMDdata</span> to the pin role <span class="keyword">MDIO</span>.</li>
+				<li>After saving the pin configuration you have assigned device independent protocol information
+					to the device resources.</li>
+			</ol></section>
+		<section class="section"><h2>Validate the protocol's definition</h2><p>Perform the task: <a href="130389.htm" title="Once a protocol has been defined from scratch or an existing one has been modified its definition should be checked for formal errors.">Validating a protocol definition</a>.</p></section>
+		<section class="section"><h2>Advanced information</h2><p>In order to have SmarTest determine the value of a
+				parameter and to display it in the pattern editor one has to use the decode
+				function.</p><p>In
+				this case SmarTest tries to match vectors to transactions and pin roles. This is useful in
+				particular, when modifying parameter values of transactions in the pattern editor or if reading
+				simulated vectors with the objective to display matching transactions.</p><p>Enter the following
+				decode functions to the corresponding parameter of your transaction:</p><table class="frame-topbot"><caption><span>Transaction's parameters decode functions</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_128293__entry__37"><p>Parameter name</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_128293__entry__38"><p>Decode function</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_128293__entry__39"><p>Remark</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__37"><p>phyaddr</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__38"><p>@MDIO.@PHYAD[4..0]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__39"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__37"><p>regaddr</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__38"><p>@MDIO.@REGAD[4..0]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__39"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__37"><p>data</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__38"><p>@MDIO.@DATA[15..0]</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_128293__entry__39"><p>&nbsp;</p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> You first have to execute a protocol test to generate protocol related
+				pattern in order to view them in the pattern editor!</div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125629.htm" title="The protocol editor is the graphical user interface used to set up and edit protocols as well es protocol specific levels, timing and wavetable.">Protocol editor</a></div><div><a href="126096.htm" title="The protocol assignments editor allows you to assign:">Protocol assignments</a></div><div><a href="125258.htm" title="Encoding and decoding are part of the protocol specification.">Encode/Decode functions</a></div><div><a href="126495.htm" title="Patterns generated by protocol transactions during the execution of your test flow will be shown in the Pattern Explorer just like any other pattern.">Protocol pattern specifics of the Pattern Explorer</a></div><div><a href="126496.htm" title="The pattern editor has been enhanced to view protocol transactions.">Protocol pattern specifics of the Pattern Editor</a></div><div><a href="130406.htm" title="Once a protocol has been defined from scratch or an existing one has been modified its definition should be checked for formal errors.">Build feature of the protocol editor and test program explorer</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.2</li><li>SmarTest 7.1.3:  Added validation of protocol definition</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 128293</span><script type="text/javascript">var ti='128293';var tt='Example: Defining a MDIO protocol'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

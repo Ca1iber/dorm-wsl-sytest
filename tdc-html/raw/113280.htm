@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="CCT, or concurrent test, is the V93000 test system's capability to test in parallel different groups of pins, called ports. This multiport feature makes test programming easier and more DUT oriented. Using multiport testing, it is possible to program each port separately, just like the DUT ports may operate independently of each other."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using concurrent (multiport) testing</title><meta name="keywords" content="multi-port"></head><body id="_113280"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113280</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using concurrent (multiport) testing</h1>
+	
+	
+	<div><p>CCT, or concurrent test, is the V93000 test system's capability to test in parallel
+		different groups of pins, called ports. This multiport feature makes test programming easier and
+		more DUT oriented. Using multiport testing, it is possible to program each port separately, just
+		like the DUT ports may operate independently of each other.</p>
+		<p>STIL Reader supports the multiport capability as follows: </p>
+		<ul>
+			<li>Using <span class="keyword">NameMaps</span> definitions in the STIL
+						file:<p><span class="keyword">&lt;signal_name&gt;</span><code>
+						"port=</code><span class="keyword">&lt;port_name&gt;</span><code>,
+						sync_group=</code><span class="keyword">&lt;sync_group&gt;</span><code>,
+						master_clock=</code><span class="keyword">&lt;clock_domain&gt;</span><code>,
+						xfact=</code><span class="keyword">&lt;x_factor&gt;</span><code>,
+						type=</code><span class="keyword">&lt;port_type&gt;</span><code>, specs_scope=</code><span class="keyword">
+						&lt;specs_scope&gt;</span><code>,
+						keep_spec_variables=</code><span class="keyword">&lt;keep_spec_variables&gt;</span><code>,
+						phase_sync=</code><span class="keyword">&lt;phase_sync&gt;</span><code>,
+						scan_repeat_compression=</code><span class="keyword">&lt;scan_repeat_compression&gt;</span><code>,
+						pattern_comments=</code><span class="keyword">&lt;pattern_comments&gt;</span><code>,
+						extra_pattern_comment=</code><span class="keyword">&lt;extra_comment&gt;</span><code>,
+						card=</code><span class="keyword">&lt;card&gt;</span>"</p>
+				<p>The individual options have the following meanings:</p><ul>
+					<li><span class="keyword">port</span>: The port name.</li>
+					<li><span class="keyword">sync_group</span>: The synchronization group.</li>
+					<li><span class="keyword">master_clock</span>: The clock domain. This is relevant only if the
+							<span class="keyword">generate_clksets</span> setup parameter is set to 1.<p>For SmarTest 7.10x, the master clock is fixed.</p></li>
+					<li><span class="keyword">xfact</span>: The x-mode to use. This parameter overrides the
+							<span class="keyword">xmode_factor</span> setup parameter.</li>
+					<li><span class="keyword">type</span>: The high-speed channel handling. This parameter can be left empty,
+						set to <span class="keyword">hx</span>, or set to <span class="keyword">fast</span>.</li>
+					<li><span class="keyword">specs_scope</span>: Can be set to <span class="keyword">global</span> or to
+							<span class="keyword">local</span>, to create global (for all ports) or local (per-port) specs tables,
+						respectively.</li>
+					<li><span class="keyword">keep_spec_variables</span>: Can be set to 0 or 1. If the parameter is set to 1,
+						unused spec variables will be kept; if it is set to 0, they will be dropped. This parameter
+						overrides the <span class="keyword">keep_spec_variables</span> setup parameter.</li>
+					<li><span class="keyword">phase_sync</span>: Can be set to <span class="keyword">on</span> or
+							<span class="keyword">off</span> to (respectively) enable or disable phase synchronization. The default
+						is <span class="keyword">on</span>.</li>
+					<li><span class="keyword">scan_repeat_compression</span>: Can be set to 0 or 1 to (respectively) enable
+						or disable the compression of certain vectors. See the description of the <a href="118727.htm" title="The test-processing options in a STIL Reader setup file let you configure the output of the translation process."><span class="parmname">repeat_compression</span></a> parameter for details. The
+						default is 0.</li>
+					<li><span class="keyword">pattern_comments</span>: Can be set to <span class="keyword">on</span> or
+							<span class="keyword">off</span> to (respectively) enable or disable the preservation of any comments
+						contained in the STIL pattern. The default is <span class="keyword">on</span>.</li>
+					<li><span class="keyword">extra_pattern_comment</span>: An optional text that is a comment just for this
+						port. The text is appended as a comment to the first vector for the port.<p>The default is no
+							comment.</p></li>
+					<li><span class="keyword">card</span>: The specific test system for which this translation is intended.
+							<span>Currently, the only supported option is PS1600.</span><p>Example
+							signal specification:</p></li>
+				</ul><pre class="prettyprint copyable singleline">Sig1 "port=Clock,sync_group=SyncGroup1,master_clock=1,xfact=1,specs_scope=global,keep_spec_variables=1,phase_sync=off";</pre></li>
+			<li>Using the <span class="keyword">ParallelPatList</span> STIL construct in a pattern burst. When
+					<span class="keyword">ParallelPatList</span> is used in a pattern burst, the STIL Reader creates a
+				multiport setup.</li>
+		</ul>
+		<section class="section"><h2>Position-based syntax</h2><p>Instead of specifying the desired options with
+				named settings, as described above, you can also use a position-based syntax. In this case, you
+				simply specify the desired parameters in the order given above, separated by commas, but omit
+				the keywords. If you want to omit a setting, you simply leave the space between the two commas
+				empty (but must include the commas).</p><p>In this syntax, the example given above would be:
+				</p><pre class="prettyprint copyable singleline">Sig1 "Clock,SyncGroup1,1,1,,global,1,off,,,,";</pre><p>Because this syntax
+				is more difficult to read and error-prone, we recommend that you use the named parameters
+				described above.</p></section>
+		<section class="section"><h2>Port names </h2><p>When you are define the ports using
+					<span class="keyword">NameMaps</span>, you are defining the port name explicitly. </p><p>When you are
+				using <span class="keyword">ParallelPatList</span>, port names are created automatically using the pattern
+				port1, port2, and so on, based on the order of patterns defined in the
+					<span class="keyword">ParallelPatList</span> object.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.1: Added port type fast.</li><li>SmarTest 7.2.1: Added phase-sync parameter.</li><li>SmarTest 7.2.2: Added scan_repeat_compression, pattern_comments, and card
+					parameters.</li><li>SmarTest 7.2.3: Added extra_pattern_comment parameter.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113280</span><script type="text/javascript">var ti='113280';var tt='Using concurrent (multiport) testing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

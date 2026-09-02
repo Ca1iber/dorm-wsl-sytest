@@ -1,0 +1,50 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Suppose that"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Reusing Search Conditions</title></head><body id="_70778"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 70778</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Reusing Search Conditions</h1>
+	
+	
+	<div><p>Suppose that </p>
+		<ul>
+			<li>a number of devices of the same type is tested with the same testflow in a loop, </li>
+			<li>the testflow contains one or more parallel searches, and</li>
+			<li>the search conditions are the same for every loop repetition (which is not always the case,
+				see <a href="70897.htm" title="Search conditions can be defined by using variables. If a testflow containing such a variable dependent parallel search is repeated in a loop, then the values of the variables may be different for each execution of the search. In this case a new search set would be created with each testflow execution, and the testflow would fall back on using only one search set after 126 loop repetitions.">Managing Search Conditions with Variables</a>). </li>
+		</ul>
+		<p>Since downloading the search conditions is rather time consuming, the throughput of such a test
+			would be considerably improved if the conditions could be downloaded only once, at the first
+			execution of the testflow, and then be reused for the following executions. To achieve this, the
+				<kbd class="userinput">SEARCH_FUNC_TASK</kbd> API stores the search conditions persistently in
+			so-called <em>search sets</em>. The search sets are created at the first testflow execution and
+			reused for the following loop repetitions. If the testflow contains several parallel searches
+			with different conditions, then these different conditions are stored in different search sets
+			(for an exception, see <a href="70897.htm" title="Search conditions can be defined by using variables. If a testflow containing such a variable dependent parallel search is repeated in a loop, then the values of the variables may be different for each execution of the search. In this case a new search set would be created with each testflow execution, and the testflow would fall back on using only one search set after 126 loop repetitions.">Managing Search Conditions with Variables</a>).</p>
+		<p>The following figure illustrates the principle and also indicates the throughput improvement
+			for the second test execution:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="78618.png" alt="Reusing Search Sets for Testflow Loops">
+			</figure></div>
+		<p>The maximum number of search sets that can be created is 128. Search sets 1 and 2 are not used
+			by the API, but are reserved for emergency situations. Thus, the API can create at most 126
+			search sets. When this number is exceeded, the API will use search set 1 for all additional
+			parallel searches. All search conditions that are written into this reserved set will have to be
+			downloaded at every testflow execution, which will impair the throughput optimization.</p>
+		<p>The <kbd class="userinput">SEARCH_FUNC_TASK</kbd> API therefore tries to minimize the number of
+			required search sets by applying the following principles:</p>
+		<ul>
+			<li>A new search set is only created for a collection of search conditions if no existing search
+				set contains exactly these conditions. If such a search set already exists, this set is reused.
+					<p>This principle also serves to reduce the test time by avoiding unnecessary downloads, as
+					described above. </p></li>
+			<li>A new search set is only created for the <em>first</em> collection of search conditions that is
+				downloaded by a <kbd class="userinput">SEARCH_FUNC_TASK</kbd> class object. If two different
+				collections are downloaded within the same class object, the conditions of the second collection
+				will be written into the same search set as those of the first one. However, these modifications
+				are regarded as temporary. After termination of the test method, the conditions of the first
+				definition will be restored.</li>
+		</ul>
+		<p>The second principle has been introduced for search conditions that contain variables. This
+			will be explained in the following subsection. </p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 70778</span><script type="text/javascript">var ti='70778';var tt='Reusing Search Conditions'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

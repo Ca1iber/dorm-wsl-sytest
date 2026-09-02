@@ -1,0 +1,117 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The UNGANG mode allows to set a lower current clamp value for a gang of DPS channels than allowed in the normal connect state. It is supported by all DC Scale DPS cards."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using the UNGANG connect state with DC Scale DPS cards</title><meta name="keywords" content="board"></head><body id="_130681"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 130681</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using the UNGANG connect state with DC Scale DPS cards</h1>
+	
+	
+	<div><p>The <span class="keyword">UNGANG</span> mode allows to set a lower current clamp value for a gang
+		of DPS channels than allowed in the normal connect state. It is supported by all DC Scale DPS
+		cards.</p>
+		
+		<p>For example, ganged DPS128 channels must be in the 1.0 A current clamp range. That is, the
+			maximum clamp current is 1.0 A and the minimum clamp current is 200 mA per channel. The minimum
+			clamp current for <em>N</em> ganged channels is therefore </p>
+		<div></div><pre class="prettyprint copyable singleline"><span class="keyword">N</span> <code>* 200 mA</code></pre><div></div>
+		<p>If you want to set a lower clamp current in a test suite, then you can use the
+				<span class="keyword">UNGANG</span> connect state. In this state, the test system detaches as many
+			channels as possible from the gang - and leaves only as many active channels in the gang as are
+			necessary to achieve the required clamp current.</p>
+		<p>You can set the <span class="keyword">UNGANG</span> mode with the <span class="keyword">connect_state</span>
+			parameter of an equation based level setup or with the <span class="keyword">PSLR</span> firmware
+			command:</p>
+		<ul>
+			<li><strong>Equation</strong>:<div></div><pre class="prettyprint linenums copyable">DPSPINS <span class="keyword">&lt;pinlist&gt;</span>
+    connect_state  = UNGANG
+    vout_frc_rng   = <span class="keyword">&lt;vout_frc_rng&gt;</span>
+    iout_clamp_rng = <span class="keyword">&lt;iout_clamp_rng&gt;</span></pre></li>
+			<li><strong>Firmware
+				Command</strong>:<div></div><pre class="prettyprint copyable singleline">PSLR {dps_No|dps_set_id},[vout_frc_rng],[iout_clamp_rng],[const_curr_check],UNGANG,(pinlist)</pre></li>
+		</ul>
+		<p>The connect state <span class="keyword">UNGANG</span> can be combined with an unganged current
+			measurement (the <span class="keyword">MEASURE_CURRENT_UNGANGED</span> parameter in the <a href="55665.htm#_55665__dle_measurementMode">measurementMode()</a> member function of the <a href="55665.htm" title="The DPS_PIN_TASK class is a subsidiary data container of the DPS_TASK class, holding the current limits for pass/fail judgments for device power supplies (DPS).">DPS_PIN_TASK</a>
+			API, or the template parameter <span class="keyword">"3"</span> of the <a href="98572.htm" title="The DPSE (DeFine Power Supply External trigger measurement) command defines an external or internal trigger measurement. (For historical reasons, the name of the command refers only to external trigger measurements.)">DPSE</a> firmware command).</p>
+		<p>During an unganged current measurement, you temporarily can ungang even more channels to
+			measure very low currents with the best possible accuracy.</p>
+		<p>Note that on <span>DPS128/64 and XPS256</span> you cannot execute a current
+				compare on a ganged group of channels in unganged mode. Already activated
+				comparators are silently disabled in unganged mode. A user notification (Error or
+				warning) is omitted in this case, to avoid any interrupt in the testflow. The
+				previous state of the comparators is automatically restored after the ganged group
+				has been restored.</p>
+		<p>Note that for the <a href="106867.htm">DC Scale UHC4T card</a> the setup <span class="keyword">connect_state = UNGANG</span>
+			features a double role. This connect state will not only remove channels from a ganged group but
+			also switch a single channel from the High-power mode to the Precision mode. For more information
+			refer to <a href="107323.htm" title="The DC Scale UHC4T supports two power modes that define the maximum current capability and the current measurement accuracy.">UHC4T power modes</a>.</p>
+		<div class="note"><span class="title">Note</span> <a href="136105.htm" title="Profiling (DC profiling) allows you to measure and display current and voltage waveforms during pattern execution. The tool is also known as DC Profiler and is available in the Hardware perspective.">DC profiling</a> of the current is not supported if a
+			pin is in <span class="keyword">UNGANG</span> mode.</div>
+		<section class="section"><h2>vout_frc_rng and iout_clamp_rng</h2><p>The <span class="keyword">vout_frc_rng</span> and
+					<span class="keyword">iout_clamp_rng</span> parameters are used to determine the minimum number of
+				required channels. You need to specify the maximum voltage and current values that are required
+				for a DPS set with these parameters. </p><p>In connect state <span class="keyword">NORM</span> (default),
+				the <span class="keyword">vout_frc_rng</span> value is rounded up to the next available voltage force
+				range and the <span class="keyword">iout_clamp_rng</span> value is divided by the number of ganged
+				channels. This value is also rounded up to the next available current clamp range of one
+				channel. </p><p>In connect state <span class="keyword">UNGANG</span>, the unrounded
+					<span class="keyword">vout_frc_rng</span> value is used to determine the maximum allowed current of one
+				DPS channel at this voltage. The unrounded <span class="keyword">iout_clamp_rng</span> value is then
+				divided by this value. The result is the number of required channels. </p><p>The actual maximum
+				clamp current per channel is <span class="keyword">iout_clamp_rng</span> divided by the number of required
+				channels. The <span class="keyword">vout_frc_rng</span> and the maximum clamp current per channel are then
+				rounded up to get the actual voltage force and current clamp ranges for each active channel. The
+				number of channels, which are not required, are detached from the gang.</p><p>The actual force
+				voltage and clamp current values must not exceed the <span class="keyword">vout_frc_rng</span> and
+					<span class="keyword">iout_clamp_rng</span> values, otherwise a range overflow may occur.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Description</h3><p>Here are three examples applying different voltage and ampere values for 32 ganged DPS128
+				channels and <code>connect_state = UNGANG</code></p></div>
+		<div class="example"><h3>Example 1: 2.5 V, 5 A</h3><pre class="prettyprint copyable singleline">vout_frc_rng = 2.5V, iout_clamp_rng = 5A</pre><div class="p">At 2.5 V, each channel can source or sink 1.0 A.<table class="ly"><caption></caption><colgroup><col style="width:7.6923076923076925%"><col style="width:23.076923076923077%"><col style="width:69.23076923076923%"></colgroup><tbody>
+							<tr class="rowsep-0">
+								<td class="colsep-0 rowsep-0"></td>
+								<td class="colsep-0 rowsep-0">Number of channels</td>
+								<td class="colsep-0 rowsep-0">= ceil(5A / 1.0A) = 5</td>
+							</tr>
+							<tr class="rowsep-0">
+								<td class="colsep-0 rowsep-0"></td>
+								<td class="colsep-0 rowsep-0">Current per channel</td>
+								<td class="colsep-0 rowsep-0">= 5A / 5 = 1.0A</td>
+							</tr>
+						</tbody></table></div><p>Five channels will be set to the 1.0 A clamp range, 27 channels will be detached.</p></div>
+		<div class="example"><h3>Example 2: 7 V, 5
+				A</h3><pre class="prettyprint copyable singleline">vout_frc_rng = 7V, iout_clamp_rng = 5A</pre><p>At 7 V, each channel
+				can source or sink 0.5
+				A.</p>
+			<table class="ly"><caption></caption><colgroup><col style="width:7.6923076923076925%"><col style="width:23.076923076923077%"><col style="width:69.23076923076923%"></colgroup><tbody>
+						<tr class="rowsep-0">
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-0">Number of channels</td>
+							<td class="colsep-0 rowsep-0">= ceil(5A / 0.5A) = 10</td>
+						</tr>
+						<tr class="rowsep-0">
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-0">Current per channel</td>
+							<td class="colsep-0 rowsep-0">= 5A / 10 = 0.5A</td>
+						</tr>
+					</tbody></table><p>Ten
+				channels will be set to the 1.5A clamp range, 22 channels will be detached.</p></div>
+		<div class="example"><h3>Example 3: 7 V, 100
+				µA</h3><pre class="prettyprint copyable singleline">vout_frc_rng = 7V, iout_clamp_rng = 100µA</pre><p>At 7 V, each
+				channel can source or sink 0.5
+				A.</p>
+			<table class="ly"><caption></caption><colgroup><col style="width:7.6923076923076925%"><col style="width:23.076923076923077%"><col style="width:69.23076923076923%"></colgroup><tbody>
+						<tr class="rowsep-0">
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-0">Number of channels</td>
+							<td class="colsep-0 rowsep-0">= ceil(100µA / 0.5A) = 1</td>
+						</tr>
+						<tr class="rowsep-0">
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-0">Current per channel</td>
+							<td class="colsep-0 rowsep-0">= 100µA / 1 = 100µA</td>
+						</tr>
+					</tbody></table><p>One
+				channel will be set to the 100 µA clamp range, 31 channels will be detached.</p><p>The 100 µA
+				current clamp range is allowed, because only one channel remains active so this is effectively a
+				single channel and no longer a gang.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98701.htm" title="The PSLR command allows you to make DPS settings for DC Scale channels previously configured with the DFPS command in DPS mode. The PSLR? query returns the existing settings.">PSLR, PSLR? - (Power Supply Level Ranges)</a></div><div><a href="16886.htm" title="Each DPS pin definition is introduced by the DPSPINS keyword and has the following global syntax:">DPSPINS</a></div><div><a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 6.5.4:  Extended support of UNGANG "connect_state" with 6.5.4.10 and SmarTest
+					7.1.4.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 130681</span><script type="text/javascript">var ti='130681';var tt='Using the UNGANG connect state with DC Scale DPS cards'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

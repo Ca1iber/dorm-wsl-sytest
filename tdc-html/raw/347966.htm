@@ -1,0 +1,186 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A common SMC thread requires the implementation of SMC_ARM() inside of the ON_FIRST_INVOCATION block. The thread is created once for all sites. Site handling within the thread requires the transfer of an array that holds all active sites."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmartCalc common thread example</title><meta name="keywords" content="smart calc smartcal, Smart, Calc"></head><body id="_347966"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 347966</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmartCalc common thread example</h1>
+	
+	
+	<div><p>A common SMC thread requires the implementation of <span class="keyword">SMC_ARM()</span> inside
+		of the <span class="keyword">ON_FIRST_INVOCATION</span> block. The thread is created once for all
+		sites. Site handling within the thread requires the transfer of an array that holds all
+		active sites.</p>
+		<p>The following example shows how a common thread is created: Function <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> is
+			called <strong>inside</strong> of the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block.
+			Function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a> is therefore started only
+			once in a separate thread.</p>
+		<div class="p">Some items to consider for the example:<ul>
+				<li>Data are transferred to the <span class="keyword">SMC_backgroundProcessing()</span> function by member
+					variables <var class="varname">mTestData</var> and <var class="varname">mActiveSitesArray</var>.
+					This is the recommend solution for large amount of data to minimize the test
+					time. If only a few data are to be transferred, you can transfer the data as
+					parameter of <span class="keyword">SMC_ARM()</span> as shown in the <a href="347965.htm" title="An SMC thread per site requires the implementation of SMC_ARM() outside of the ON_FIRST_INVOCATION block. A separate thread is created for each active site. The processed site is defined by the site that is in focus when the thread is created and can be read by SMC_SITE_NUMBER().">SmartCalc thread per site example</a>. You can also implement a combination of both methods.</li>
+				<li>The example shows only how to create common thread and contains therefore no
+					real test code.</li>
+				<li>Some dummy data are created using the <span class="keyword">std::rand()</span> function.
+					These data are for demonstration only and need not to be created or processed in
+					a real test method.</li>
+				<li>There are also some dummy wait times created using the
+						<span class="keyword">std::rand()</span> function. These wait times should emulate the
+					time for processing data, are for demonstration only and need not to be
+					implemented in a real test method.</li>
+			</ul></div>
+		<div></div><pre class="prettyprint linenums copyable">#include "testmethod.hpp"
+#include "mapi.hpp"
+
+using namespace std;
+
+class commonThread: public testmethod::TestMethod {
+
+protected:
+
+    ARRAY_D mTestData;
+    ARRAY_I mActiveSitesArray;
+
+    virtual void initialize()
+    {
+    }
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+        {
+            //
+            // Initialize an array of dummy data
+            //
+            ARRAY_I configuredSitesArray;
+
+            mTestData.resize    (GET_CONFIGURED_SITES(configuredSitesArray));
+            mTestData.init      (-1.0);
+
+            //
+            // Start your test in on all active sites
+            //
+            // ...
+            // ...
+
+            //
+            // Set the dummy data to be transferred to the background process
+            //
+            FOR_EACH_SITE_BEGIN()
+            {
+                mTestData[CURRENT_SITE_NUMBER()-1] =  1.0 * std::rand()/RAND_MAX;
+            }
+            FOR_EACH_SITE_END();
+
+            //
+            // Show the dummy data
+            //
+            cout &lt;&lt; "Testsuite: run() - Data array:";
+
+            for (int index = 0; index &lt; mTestData.size(); index++)
+            {
+                cout &lt;&lt; "  " &lt;&lt; mTestData[index];
+            }
+
+            cout &lt;&lt; endl;
+
+            //
+            // Get and show active sites
+            //
+            GET_ACTIVE_SITES(mActiveSitesArray);
+
+            cout &lt;&lt; "Testsuite: run() - Active sites:";
+
+            for (int index = 0; index &lt; mActiveSitesArray.size(); index++)
+            {
+                cout &lt;&lt; " " &lt;&lt; mActiveSitesArray[index];
+            }
+
+            cout &lt;&lt; endl;
+
+            //
+            // Arm the SMC_backgroundProcessing() method
+            //
+            // Note: Data are transferred by member variables mTestData[] and mActiveSitesArray[].
+            //
+            SMC_ARM();
+        }
+        ON_FIRST_INVOCATION_END();
+
+        return;
+
+    } // virtual void run()
+
+public:
+
+    void SMC_backgroundProcessing()
+    {
+        //
+        // Process the test data array for all active sites
+        //
+        for (int index = 0; index &lt; mActiveSitesArray.size(); index++)
+        {
+            //
+            // Wait time emulates time for processing
+            //
+            WAIT_TIME (50.0 ms * std::rand()/RAND_MAX);
+
+            //
+            // Show processed site and data
+            //
+            double result = mTestData[mActiveSitesArray[index] - 1];
+
+            cout &lt;&lt; setw(45) &lt;&lt; "" &lt;&lt; "Common thread, site " &lt;&lt; mActiveSitesArray[index] &lt;&lt; " - Result = " &lt;&lt; result &lt;&lt; endl;
+        }
+
+    } // void SMC_backgroundProcessing ...
+
+}; // class commonThread
+
+REGISTER_TESTMETHOD("commonThread", commonThread);</pre><div></div>
+		<div class="p"><div class="note"><span class="title">Note</span> 
+				<p>The example above contains a call of <span class="keyword">cout</span> in function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>. <span class="keyword">cout</span> is not
+					thread safe. In production test <span class="keyword">cout</span> must never be used in a
+					background process.</p>
+				<p id="_347966__d5627e36">When using <span class="keyword">cout</span> in a background process,
+					you have to expect a mix up of the output in the
+						<span class="uicontrol">ui_report</span> window and possibly other unwanted
+					behavior. For more information, refer to <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>.</p>
+			</div>For a test program with eight configured sites and site 4 and 7 disabled, the code
+			above results in an output in the <span class="uicontrol">ui_report</span> window similar to the
+			following text:</div>
+		<div></div><pre class="msgblock">Testsuite: run() - Data array:  0.619596  0.281059  0.786002  -1  0.307458  0.447034  -1  0.226107
+Testsuite: run() - Active sites: 1 2 3 5 6 8
+Testsuite: Common_thread PASSED on site 1
+                                             Common thread, site 1 - Result = 0.619596
+Testsuite: Common_thread PASSED on site 2
+Testsuite: Common_thread PASSED on site 3
+Testsuite: Common_thread PASSED on site 5
+                                             Common thread, site 2 - Result = 0.281059
+Testsuite: Common_thread PASSED on site 6
+Testsuite: Common_thread PASSED on site 8
+                                             Common thread, site 3 - Result = 0.786002
+                                             Common thread, site 5 - Result = 0.307458
+                                             Common thread, site 6 - Result = 0.447034
+                                             Common thread, site 8 - Result = 0.226107</pre><div></div>
+		<p>The output in the <span class="uicontrol">ui_report</span> shows the following behavior of the example
+			code:</p>
+		<ul>
+			<li>The result array is defined for all configured sites with the values of currently deactivated
+				sites set to -1. The transferred array of active sites enables the
+					<span class="keyword">SMC_backgroundProcessing()</span> function of the common thread to
+				process only the active sites: Only valid dummy data (&gt; 0.0) are processed and shown
+				in the thread.</li>
+			<li>The common thread runs independently from the further execution of the
+					<span class="keyword">run()</span> function: Due to the (emulated and variable) time for
+				processing, sites 1 and 2 are processed while <span class="keyword">run()</span> is invoked
+				for site 1 … 5. The remaining sites are processed after the test method already has
+				been finished.</li>
+			<li>The thread may need some more time for processing after the test method as been
+				finished. This demonstrates the principle of saving test time by SmartCalc but
+				requires also some more actions: <a href="120088.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM(). After all threads have finished their upload and calculation task the queued SMC_TEST() statements will be executed to perform the data logging and binning.">SMC_SYNCHRONIZE()</a> or <a href="151642.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM().">SMC_SYNCHRONIZE_WITHOUT_BINNING()</a>
+				are to be called in a subsequent test suite to wait for the end of the execution of
+				all threads.</li>
+		</ul>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="347965.htm" title="An SMC thread per site requires the implementation of SMC_ARM() outside of the ON_FIRST_INVOCATION block. A separate thread is created for each active site. The processed site is defined by the site that is in focus when the thread is created and can be read by SMC_SITE_NUMBER().">SmartCalc thread per site example</a></div><div><a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 347966</span><script type="text/javascript">var ti='347966';var tt='SmartCalc common thread example'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

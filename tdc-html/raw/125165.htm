@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="With synchronized protocol tests, the test method API provides means to attach a sequence of transactions to a synchronization point. Synchronization points (markers) can be set up in a user vector of a concurrently running port."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Vector based synchronization</title><meta name="keywords" content="sync"></head><body id="_125165"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125165</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Vector based synchronization</h1>
+	
+	
+	<div><p>With synchronized protocol tests, the test method API provides means to attach a
+		sequence of transactions to a synchronization point. Synchronization points (markers) can be set
+		up in a user vector of a concurrently running port.</p>
+		<p>A synchronized test may contain multiple synchronized transaction sequences, each referencing
+			its own synchronization point and port. When the test is translated to a pattern, first all ports
+			to be synchronized are collected and the protocol port on which to execute the synchronized test
+			is added to the synchronization group of these ports.</p>
+		<p>If the referenced ports are part of different synchronization groups, an error is
+			generated.</p>
+		<p>Synchronized tests can be synchronized to simulated vector patterns of other ports. For this
+			the multiport burst pattern must provide a matching synchronization group setup to be
+			predefined.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="125189.png" alt="Transactions started by markers">
+			</figure></div>
+		<section class="section"><h2>Conditions and restrictions of using synchronization points</h2><ul>
+				<li>Definition of synchronization points is limited to ports running simulation-based
+					pattern.</li>
+				<li>Synchronization points are represented by a unique string.</li>
+				<li>Synchronization points must not be placed behind or within match loops.</li>
+				<li>Synchronization point must not be placed within a loop.</li>
+				<li>The same synchronization point can be used as a reference from different synchronized
+					protocol tests. This way two synchronized protocol tests can be executed synchronous to each
+					other.</li>
+				<li>Ports of synchronized protocol tests started by multiple simulation-based pattern must be
+					part of the same synchronization group.</li>
+				<li>Protocol tests without any synchronization point automatically will be synchronized to the
+					first vector and run in the default timing synchronization group.</li>
+				<li>Multiple synchronization points cannot be attached to logical vectors if mapped to the same
+					physical vector.</li>
+			</ul><p>The start label and all its descendants may contain ambiguous markers, i.e. within the
+				executed call hierarchy the marker occurs more than once. In this case synchronization always
+				will be done to the first occurrence of the marker on the referenced port.</p><p>The length of
+				each transaction sequence is checked against the distance of synchronization points. If a
+				transaction sequence needs more time to execute than the distance from its own marker to the one
+				of the succeeding transaction sequence, an error will be generated.</p><p>The actual
+				synchronization and wait time is based on vector granularity. The accuracy of synchronization is
+				determined by the hardware capabilities for generating vectors, the user periods and x-modes of
+				both ports and the idle sequence length. The idle or wait time between transaction sequences is
+				filled with a user defined idle sequence which is repeated until the synchronization point or
+				wait time has been reached.</p><p>The synchronization will align to the next possible location
+				after the marker or delay time. The marker is therefore assumed to be attached to the start of a
+				user vector.</p><div class="p"><figure class="fignone">
+					
+					<img src="125197.png" alt="Relation between synchronization point and start of transaction">
+				</figure></div><p>In case of using x-modes with the protocol port, a transaction sequence itself may
+				not exactly end on a tester vector boundary (x). In this case, the remaining (n , for n &lt; x)
+				state character sequence is filled with the user-defined idle sequence beginning at the last
+				state character of the transaction.</p><p>If that idle sequence is shorter than n, it will be
+				filled in starting from the far vector boundary and repeated backwards to fill the gap with
+				whole idle sequences till it reaches the transaction's last state character. If the gap can not
+				be filled with full idle sequences only, a fraction of the idle sequence will be fitted to match
+				the exact length of the gap.</p><div class="note"><span class="title">Note</span> Only the gap between transaction and vector
+				boundary is filled in backwards as described.</div><div class="note"><span class="title">Note</span> Wait time and idle
+				sequences are always filled forward and if necessary truncated at the vector
+				boundary.</div><p>Synchronization information can be combined with delays for a single
+				transaction sequence.</p><p>However the combination of synchronization and delays follow these
+				rules:</p><ul>
+				<li>First the synchronization is applied by filling in idle vectors to the point of
+					synchronization.</li>
+				<li>The delay is inserted after the synchronization.</li>
+				<li>The minimum length of a idle sequence is one state character.</li>
+				<li>Idle sequences should match the x-mode used or be a integer fraction of it.</li>
+			</ul><p>Thus the first transaction of the sequence will start the given delay after the
+				synchronization point earliest.</p></section>
+		<h2>Example</h2><div class="example"><p>The following example shows an idle sequence of 01 which is attached backward to the
+				end of the transaction.</p><p>It also shows that the wait sequence following the transaction is
+				filled forward with the given idle sequence.</p><div class="p"><figure class="fignone">
+					
+					<img src="125198.png" alt="Protocol port using x-mode">
+				</figure></div></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125165</span><script type="text/javascript">var ti='125165';var tt='Vector based synchronization'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Every Smart Scale channel has its own PLL, and the period of this local PLL defines its clock resolution. Every Smart Scale channel can therefore have a different clock resolution, and consequently also a different period resolution."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Period resolution for a multi-port setup (Smart Scale)</title><meta name="keywords" content="multiport SmartScale"></head><body id="_118028"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118028</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Period resolution for a multi-port setup (Smart Scale)</h1>
+	
+	
+	<div><p>Every Smart Scale channel has its own PLL, and the period of this local PLL defines its
+		clock resolution. Every Smart Scale channel can therefore have a different clock resolution, and
+		consequently also a different period resolution.</p>
+		<section class="section"><p>The period resolution of Smart Scale ports is independent of all the other ports within the
+				specification:</p><ul>
+				<li>If a Smart Scale port P is associated with an equation set containing a
+						<span class="keyword">period_res</span> statement, then this period resolution will be used, even if P
+					is not the first port within the specification that supplies a <span class="keyword">period_res</span>
+					statement. </li>
+				<li>If the associated equation set contains no <span class="keyword">period_res</span> statement, the
+					period resolution of a Smart Scale port will be calculated from the period in timing set 1 of
+					this equation set, even if some other port within the specification supplies a
+						<span class="keyword">period_res</span> statement.</li>
+			</ul><p>If the period resolution is calculated by the system, its upper limit is <em>not</em> 10 ns, as in
+				the single-port case, but equals the maximum clock resolution of the respective system, that is
+				≤ 3.52 ns on a PS1600 system. </p>
+			</section>
+		
+		
+		
+		
+		<h2>Example</h2><div class="example"><p>In the following example, the ports <kbd class="userinput">PortA</kbd> and <kbd class="userinput">PortB</kbd>
+				are Smart Scale ports. The relevant parts of the timing setup are as follows: </p>
+			<div></div><pre class="prettyprint linenums copyable">EQNSET 1 "equation set 1"
+DEFINES  PortA
+
+period_res = 4
+
+TIMINGSET 1 "eq 1 ts 1"
+period = 10
+. . .
+
+EQNSET 2 "equation set 2"
+DEFINES  PortB
+
+TIMINGSET 1 "eq 2 ts 1"
+period = 10
+. . .
+
+SPECIFICATION "mu_burst"
+{
+
+CHECK all
+
+EQNSET 1 "equation set 1"
+WAVETBL "wavetable 1"
+PORT PortA
+. . .
+
+EQNSET 2 "equation set 2"
+WAVETBL "wavetable 2"
+PORT PortB
+. . .</pre><div></div>
+			<p>If you query the period resolution of the 4 ports, the result will be as follows:</p>
+			<div></div><pre class="prettyprint linenums copyable">&gt; CLKR? "mu_burst",(@@)
+&lt; CLKR "mu_burst",20,4,(PortA)
+&lt; CLKR "mu_burst",10,1.25,(PortB)</pre><p>The
+							period resolution is returned in the third parameter.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98412.htm" title="From the period resolution, SmarTest derives two other time spans which it needs internally. These are the clock resolution and the master clock period. Both of them are usually of interest only for debugging purposes.">Period resolution, clock resolution, and master clock period</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li><li>SmarTest 7.0.1: This feature is now also available for MTP on SOC</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118028</span><script type="text/javascript">var ti='118028';var tt='Period resolution for a multi-port setup (Smart Scale)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

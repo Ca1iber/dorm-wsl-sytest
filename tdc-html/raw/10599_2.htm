@@ -1,0 +1,93 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Multi-port testing allows you to run different, and mutually independent, sequencer programs (see The sequencer program) with different timing setups for different groups of pins (called ports) in parallel."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multiport timing specifications</title><meta name="keywords" content="multi-port spec specsheet data sheet datasheet"></head><body id="_10599"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 10599</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multiport timing specifications</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="58766_2.htm" title="Base variables for the individual ports of a multi-port timing specification can have the same name. This is the case, for example, if the same equation set is associated with more than one port. When you want to change the value of such a variable for one port (for example, with the SVLR command), you may want to restrict the change to that port. In this case the scope of the requested change can be said to be local. In certain situations, however, it can be desirable to propagate the change to some or all of the other ports where the variable occurs. If this is done, the scope of the change is (more or less) global.">Global and local scope of base variables</a></li></ol></div></nav>
+	
+	
+	<div><p>Multi-port testing allows you to run different, and mutually independent, sequencer
+		programs (see <em><a href="96571.htm" title="Sequencer programs are coded in a simple language that provides">The sequencer program</a></em>) with different timing setups for different groups of
+		pins (called <em>ports</em>) in parallel.</p>
+		<p>A <em>multiport timing specification</em> is the multiport counterpart of an ordinary single-port
+			timing specification. It defines complete equation based timings for a non-overlapping set of
+			ports This port set cover all configured pins. </p>
+		<div class="note"><span class="title">Note</span> If the multiport timing specification does not contain all configured pins, the
+			system may crash.</div><p>In contrast to a single-port setup, a multiport timing specification is identified by a name,
+			not a pair of numbers. The name can consist of up to 40 characters. If it contains spaces, it
+			must be enclosed by double quotes; it must not contain a semicolon.</p>
+		<p>A multiport timing specification contains the following items for each member of a port set
+			that partitions the configured pins:</p>
+		<ul>
+			<li>pointers to an equation set and to a wavetable, </li>
+			<li>values for the base variables of the respective equation set,</li>
+			<li>control information about consistency checks,</li>
+			<li>control information about port synchronization.</li>
+		</ul>
+		<p>The first three elements are those of a single-port specification. The control information
+			about port synchronization is multi-port multiport specific: you can specify a sequencing group
+			for the port and/or set the <span class="keyword">PHASE</span> flag for it. For details on both options see
+					<em><a href="104317.htm" title="In a multi-port setup, the patterns of different ports can be run in parallel at different speed (with different period lengths). In this case corrective actions must be taken if the user vectors of these ports are to be (re)started simultaneously or at least coordinated in some way. SmarTest supplies two such correction methods of different strength.">Synchronizing vectors in a multiport setup</a></em>. </p>
+		<p>The values for the base variables of these equation sets are specified per port: If you
+			associate the same equation set with two ports within one specification, you can assign different
+			values to the same spec variable for the two ports (for more details see <em><a href="58766.htm" title="Base variables for the individual ports of a multi-port timing specification can have the same name. This is the case, for example, if the same equation set is associated with more than one port. When you want to change the value of such a variable for one port (for example, with the SVLR command), you may want to restrict the change to that port. In this case the scope of the requested change can be said to be local. In certain situations, however, it can be desirable to propagate the change to some or all of the other ports where the variable occurs. If this is done, the scope of the change is (more or less) global.">Global and local scope of base variables</a></em>).</p>
+		<p>Note however, that the set of spec values for the individual ports does not exist independently
+			of the multiport specification. When you want to include one port with the same equation set, the
+			same wavetable, and exactly the same specification values in two multiport specifications, you
+			must define the complete value set in both multiport specifications.</p>
+		<p>The following figure displays the structure of multiport specifications by the schematic
+			example specification "MultSpec":</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="10598.png" alt="A Multi-Port Specification">
+			</figure></div>
+		<h2>Example</h2><div class="example"><p>The following multiport timing specification corresponds to the schema
+				above:</p><pre class="prettyprint linenums copyable">SPECIFICATION "MultSpec"
+{
+  CHECK all
+   
+  EQNSET 1 "equation set 1"
+  WAVETBL "wavetable A"
+  PORT Port1
+  SYNC
+  {
+    PHASE
+    SEQUENCE "gr1"
+  }
+  var 8
+
+  EQNSET 1 "equation set 1"
+  WAVETBL "wavetable B"
+  PORT Port2
+  SYNC
+  {
+    PHASE
+    SEQUENCE "gr2"
+  }
+  var 12
+
+  EQNSET 2 "equation set 2"
+  WAVETBL "wavetable B"
+  PORT Port3
+  SYNC
+  {
+    PHASE
+    SEQUENCE "gr2"
+  }
+  var 10
+}</pre><p>Note
+				the following points in this example:</p><ul>
+				<li>The <span class="keyword">PHASE</span> flag is set for all three ports; the first port belongs to
+					sequencing group <code>gr1</code>, the other two to sequencing group <code>gr2.</code> For the implications of this see <em><a href="104317.htm" title="In a multi-port setup, the patterns of different ports can be run in parallel at different speed (with different period lengths). In this case corrective actions must be taken if the user vectors of these ports are to be (re)started simultaneously or at least coordinated in some way. SmarTest supplies two such correction methods of different strength.">Synchronizing vectors in a
+							multiport setup</a></em><em>.</em>
+					<p>A third possible option for the <span class="keyword">SYNC</span> block is <span class="keyword">CLOCK</span>
+							&lt;<span class="keyword">clock_group</span>&gt;. For details see <a href="124792.htm" title="A second option to avoid rounding problems is to put pure Smart Scale ports into different clock groups. Clock groups can only be used in a setup that contains pure Smart Scale ports.">Avoiding rounding problems with different clock groups</a>.</p></li>
+				<li><code>Port1</code> and <code>Port2</code> use the same equation set, but assign
+					different values to the base (spec) variable <code>var</code>. </li>
+				<li>The <code>CHECK all</code> statement is placed before the first port block to indicate
+					that it is to be applied to all three ports.</li>
+				<li>If the variable <code>var</code> is used to define the period length in timing set 1 of
+					equation set 1 and 2, then the common period resolution of all ports will be calculated as 4
+					ns, and the period for <code>port3</code> will be auto-corrected from 10 ns to 12 ns.</li>
+			</ul><p><em><a href="105164.htm" title="Multi-port burst labels serve to start the execution of bursts for different ports in parallel. They consist of one or more user port bursts. The only difference between a user port burst and a normal single-port burst is that the user port burst is associated with a port that is defined by the user and will usually contain only a proper subset of the configured pins, whereas a single-port burst is defined for the default port @.">Multi-port burst labels</a></em> shows how this multiport timing specification can be
+				combined with a multiport vector setup. </p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 10599</span><script type="text/javascript">var ti='10599';var tt='Multiport timing specifications'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

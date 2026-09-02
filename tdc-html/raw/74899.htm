@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This class is a data container holding the settings of utility lines specified with the utility purposes."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FLEX_UTILITY_PURPOSE_RELAY</title></head><body id="_74899"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 74899</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FLEX_UTILITY_PURPOSE_RELAY</h1>
+	
+	
+	<div><p>This class is a data container holding the settings of utility lines specified with
+		the utility purposes.</p>
+		<section class="section">
+			<p>In one task of <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a>, if you make different settings for a utility
+				line by using the member function of <span class="keyword">FLEX_UTILITY_PURPOSE</span>
+				multiple times, only the latest setting is downloaded to the hardware when the task
+				is executed.</p>
+			<p>When you control utility lines, note that the settling time specified in the Pin
+				Configuration window (for the defined utility line names and utility purposes) are
+				not used in the <span class="keyword">FLEX_RELAY</span> API when the task is executed. Specify
+				a necessary wait time by using the <a href="74892.htm#_74892__dle_wait">wait()</a> member function
+				of <span class="keyword">FLEX_RELAY</span>.</p>
+		</section>
+		<div class="syntax">
+			<h2>Class definition</h2>
+			<p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/FlexUtilPurposeRelay.h</span>.</p>
+			<dl>
+				
+					<dt class="dlterm">Constructor</dt>
+					<dd>This class is always called as the subsidiary data container of the <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a>,
+						API. Therefore, the <span class="keyword">FLEX_UTILITY_PURPOSE_RELAY</span> class does
+						not have a public constructor.</dd>
+				
+				
+					<dt class="dlterm">Member functions</dt>
+					<dd>In this class, the following public member functions are defined:<ul>
+							<li><a href="74899.htm#_74899__dle_set">set()</a></li>
+						</ul></dd>
+				
+			</dl>
+		</div><div class="syntax">
+			<h2>Member function</h2>
+			<dl>
+				
+					<dt class="dlterm" id="_74899__dle_set">set()</dt>
+					<dd><pre class="prettyprint copyable singleline">FLEX_UTILITY_PURPOSE_RELAY&amp; set();</pre><p>This member
+							function specifies the utility line settings with the utility
+							purposes.</p>
+						<dl>
+							
+					<dt class="dlterm">List of parameters</dt>
+					<dd>There are no parameters.</dd>
+				
+							
+								<dt class="dlterm">Return value</dt>
+								<dd>A reference to the <span class="keyword">FLEX_UTILITY_PURPOSE_RELAY</span>
+									class object.</dd>
+							
+						</dl>
+					</dd>
+				
+			</dl>
+		</div>
+		
+		<section class="section"><h2>Behavior when different settings are specified for a utility line by using
+				both utility line name and utility purpose in FLEX_RELAY</h2><p>In one task of the <a href="74892.htm" title="The FLEX_RELAY class is a data container holding the contents of the task for setting up relay connections. You can control the relays for the digital channel pins and the user relays that are controlled by the utility lines.">FLEX_RELAY</a> API, if you make different settings for a utility line
+				by using both the <a href="74892.htm#_74892__dle_util">util()</a> and the <a href="74892.htm#_74892__dle_util_purpose">util_purpose()</a> member functions, the setting specified by
+					<span class="keyword">util()</span> is selected and is downloaded to the hardware when the
+				task is executed.</p><p>This order of priority is same as when both of <span class="keyword">Routing.util()</span> and
+					<span class="keyword">Routing.util_purpose()</span> APIs are used.</p><p>If you describe the <span class="keyword">util()</span> statements in conjunction with the
+					<span class="keyword">util_purpose()</span> statements, the setting of whole utility lines
+				is decided by the following order.</p><ol>
+				<li>Settings specified with utility purposes (<span class="keyword">util_purpose()</span>) are
+					sequentially interpreted by the <span class="keyword">FLEX_RELAY</span> class object. </li>
+				<li>Then, settings specified with the utility line names (<span class="keyword">util()</span>) are
+					sequentially interpreted by the <span class="keyword">FLEX_RELAY</span> class object. </li>
+				<li>If different settings are specified for a utility line by multiple statements in step 1 and
+					step 2, the setting of the utility line is overwritten by the later
+					setting.</li>
+				<li>Finally, the whole settings of the utility lines are downloaded to the
+					hardware.</li>
+			</ol><p>The following example assumes the utility line "UTI101" is controlled by both
+				the lines "B" and "C". </p><pre class="prettyprint linenums copyable">FLEX_RELAY relay;
+relay.util_purpose("group1").set(); // (A) UTI103:OFF, UTI104:OFF
+relay.util("relay1").off();         // (B) UTI101:OFF
+relay.util_purpose("group2").set(); // (C) UTI101:ON,  UTI102:ON
+relay.util("relay2").on();          // (D) UTI105:ON
+relay.execute();                    // Download to the hardware</pre><p>The
+				settings of the statements in the above example are interpreted by FLEX_RELAY class
+				object in the following order: </p><ol>
+				<li>A (utility purpose "group1"). <kbd class="userinput">UTI103:OFF, UTI104:OFF</kbd></li>
+				<li>C (utility purpose "group2"). <kbd class="userinput">UTI101:ON, UTI102:ON</kbd></li>
+				<li>B (utility name "relay1"). <kbd class="userinput">UTI101:OFF</kbd></li>
+				<li>D (utility name "relay2"). <kbd class="userinput">UTI105:ON</kbd></li>
+			</ol><p>In this case, the utility purpose setting data of line "C" for "UTI101" is
+				overwritten by the utility line setting data of line "B". Therefore, the following
+				settings are downloaded to the
+			hardware.</p><pre class="prettyprint copyable singleline">UTI101:OFF    UTI102:ON    UTI103:OFF    UTI104:OFF    UTI105:ON</pre><div></div>
+		</section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 74899</span><script type="text/javascript">var ti='74899';var tt='FLEX_UTILITY_PURPOSE_RELAY'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

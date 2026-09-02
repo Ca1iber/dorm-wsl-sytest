@@ -1,0 +1,70 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>APG pattern file</title><meta name="keywords" content="vector label"></head><body id="_68403"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 68403</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">APG pattern file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="102150.htm" title="The syntax of the APG pattern file, in general, follows the conventions of the MTL compiler syntax.">APG pattern file syntax</a></li><li><a href="102801.htm" title="MTL supports a range of standard preprocessor statements that allow modularizing and parameterizing the compilation process.">Preprocessor statements</a></li></ol></div></nav>
+	
+	
+	<div><p>The APG pattern file is the "master" file for the compiler. It contains the
+		locations of all the other files needed as well as (optionally) program parameters and the mode
+		context.</p>
+		<div class="p"><figure class="fignone">
+				<img src="102175.png" alt="Miniature scheme of file dependencies with .apg file highlighted">
+			</figure></div>
+		<p>The pattern file has the <span class="filepath" id="_68403__d2318e23">.apg</span> file name extension. </p>
+		<p>In detail, the APG pattern file contains:</p>
+		<ul>
+			<li id="_68403__d2318e32">The names and locations of the files and other information required for compiling
+				the test pattern:<ul id="_68403__d2318e34">
+					<li id="_68403__d2318e36"><a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file</a> (<span class="keyword">:apgProgram:</span>)</li>
+					<li id="_68403__d2318e43"><a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a> (<span class="keyword">:deviceAccess:</span>)</li>
+					<li id="_68403__d2318e50"><a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a> (<span class="keyword">:deviceArchitecture:</span>)</li>
+					<li id="_68403__d2318e57">Optionally, a <a href="99152.htm" title="The DC event file is an optional configuration file that is needed for actively driving the voltage, current, or measurements on DC Scale cards. The file is needed only if such active control is required during the test. (If no DC event file is used, the DC Scale pins act as a standard passive power supply.)">DC event file</a><em> </em>(<span class="keyword">:dcTest:</span>, required
+						only for using DC events)</li>
+					<li id="_68403__d2318e67"><a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a> (<span class="keyword">:pinMap:</span>)</li>
+					<li id="_68403__d2318e75"><a href="67573.htm" title="Waveform mapping refers to the process by which patterns of logical zeros and ones created by the APG program are converted to physical waveforms that are sent to the tester pins.">Waveform mapping</a> information (<span class="keyword">:waveformMap:</span>), referencing
+						either a timing file or a waveform mapping file which references a timing file in turn</li>
+				</ul></li>
+			<li id="_68403__d2318e83">Optionally, a reference to a <a href="75895.htm" title="Maintenance operations are procedures that need to be performed regularly during the testing of a device, most commonly refreshes.">memory device maintenance
+					operation</a> (<span class="keyword">:maintenanceOperation:</span>).</li>
+			<li id="_68403__d2318e92">Optionally, a reference to a match loop padding setup
+					(<span class="keyword">:countedMatchPad:</span>).</li>
+			<li id="_68403__d2318e98">Optionally, references to scrambling, null data, CRC, bus inversion, and similar
+				settings.</li>
+			<li id="_68403__d2318e101">Optionally, specifications of program parameters used in the APG program code
+					(<span class="keyword">:programParams:</span>).</li>
+		</ul>
+		<p>The APG pattern file's syntax and keywords are described in <a href="102150.htm" title="The syntax of the APG pattern file, in general, follows the conventions of the MTL compiler syntax.">APG pattern file syntax</a>.</p>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">:apgPattern:
+{
+   :apgProgram:            "refresh_routines.prog"
+   :deviceAccess:          "../../device_defs/access_defs/ddr3_64Mx8_x4.dvac"
+   :deviceArchitecture:    "../../device_defs/arch_defs/ddr3_64Mx8.dvar"
+ 
+   :pinMap:                "../../device_defs/pin_maps/ddr3_64Mx8.pmap"
+   :waveformMap:           "../../device_defs/waveform_maps/ddr3_x4.wmap:PreDefined"
+
+   :nullData:              0
+   :scramble:              ""
+   :dataScramble:          ""
+   :bitInversion:          ""
+   :bitOrdering:           ""
+
+   :maintenanceOperation: "allcore_refresh"
+
+   :programParam:
+   {
+      :format:
+      { :name:         :value: }
+
+# tCK based Device timing parameters 
+# - based on 1066: tCK period 1.875ns.
+# - based on 64Mx8 = 512Mb --&gt; tRFC=90ns
+
+      { tRFC      48 }
+
+   }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="101915.htm">MTL Configuration Files</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 2.6.6: :countedMatchPadding: keyword added</li><li>MTP 3.0.3: (MTP on SOC 103.0.0) :countedMatchPadding: keyword changed to
+					:countedMatchPad:</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 68403</span><script type="text/javascript">var ti='68403';var tt='APG pattern file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

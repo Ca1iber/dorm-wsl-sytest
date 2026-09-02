@@ -1,0 +1,104 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC event example: Setup per site</title></head><body id="_345918"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 345918</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC event example: Setup per site</h1>
+	
+	
+	<div><p></p>
+		<h2>Example</h2><div class="example"><h3>DC Scale per site programming with SmarTest MAPI</h3>
+			
+			<p>The following example shows how to program an setup per site by DC events. The
+				example can be copied into the <span class="keyword">run()</span> method of a test method
+				class.</p>
+			<p>Minimum one DC Scale pin that is named "DC_Scale_pin" and a pattern "Test_1_pattern"
+				with about 100 dummy vectors are required. The example will run in offline mode.</p>
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    double              commonValue;
+    map &lt;int,double&gt;    valuePerSite;
+    PATTERN_CONTROLLER  patternController;
+    PATTERN             &amp; pattern           = patternController.label("Test_1_pattern");
+    static bool         firstRun            = true;
+    EVENT_VF            event_VF            ("VF_runtime");
+    
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        //
+        // Set the common value and the values per site
+        //
+        commonValue = 1.0 V;
+    
+        FOR_EACH_SITE_BEGIN();
+        {
+            valuePerSite[CURRENT_SITE_NUMBER()] = 0.7 + 0.1 V * CURRENT_SITE_NUMBER();
+    
+            cout &lt;&lt; "Voltage for site " &lt;&lt; CURRENT_SITE_NUMBER()
+                 &lt;&lt; " set to " &lt;&lt; valuePerSite[CURRENT_SITE_NUMBER()] &lt;&lt; " V" &lt;&lt; endl;
+        }
+        FOR_EACH_SITE_END();
+    
+        //
+        // First time setup
+        //
+        if (firstRun)
+        {
+            //
+            // Set the common event data
+            //
+            event_VF.vForce(commonValue);
+    
+            cout &lt;&lt; "First run: EVENT_VF defined" &lt;&lt; endl;
+    
+            //
+            // Insert the event into the pattern
+            //
+            pattern.vecEvents("DC_Scale_pin")
+                    .clearAll   ()
+                    .insert     (50, event_VF)
+                    .setup      ();
+    
+            cout &lt;&lt; "First run: EVENT_VF_1 inserted" &lt;&lt; endl;
+    
+            firstRun = false;
+    
+        } // if (firstRun)
+    
+        //
+        // Update to different values per site
+        //
+        event_VF.vForce(commonValue);
+    
+        pattern.vecEvents("DC_Scale_pin").update(event_VF);
+    
+        cout &lt;&lt; "EVENT_VF set to the common value" &lt;&lt; endl;
+    
+        FOR_EACH_SITE_BEGIN();
+        {
+            if (valuePerSite.find(CURRENT_SITE_NUMBER())!= valuePerSite.end())
+            {
+                event_VF.vForce(valuePerSite.at(CURRENT_SITE_NUMBER()));
+    
+                pattern.vecEvents("DC_Scale_pin").update(event_VF);
+    
+                cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER()
+                     &lt;&lt; " set to " &lt;&lt; valuePerSite.at(CURRENT_SITE_NUMBER()) &lt;&lt; " V" &lt;&lt; endl;
+            }
+        }
+        FOR_EACH_SITE_END();
+    
+        pattern.vecEvents("DC_Scale_pin").setup();
+    }
+    ON_FIRST_INVOCATION_END();
+
+    return;
+}</pre><div></div>
+			<p>After the related test suite has been startet, you may inspect the modified pattern
+				in the <a href="99157.htm" title="With the Pattern Editor you can:">Pattern Editor</a>. Follow the instructions in <a href="99710.htm" title="A layout defines which signals (equivalent to pins, pin aliases, and pin groups) are displayed and in which format they are displayed.">Configuring the layout of the editor</a> if
+				required to ensure that the <span class="uicontrol">Signal (TP)</span> track of the
+				"DC_Scale_pin" is shown.</p>
+			<p>Select vector 50 and check the settings of the DC event in the <a href="114627.htm" title="For the pattern editor, the properties view shows the vector parameters, that is the properties of">Pattern editor properties view</a>. Use the <a href="100118.htm" title="To debug a multi-site testflow, you need to identify passing and failing sites and view the results of individual site in the result tools.">Site Control Window</a> to select the site in focus: Beginning with 800
+				mV on site 1, all sites should show different values for the <span class="uicontrol">Force
+					Value</span> of the DC event.</p>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 345918</span><script type="text/javascript">var ti='345918';var tt='DC event example: Setup per site'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

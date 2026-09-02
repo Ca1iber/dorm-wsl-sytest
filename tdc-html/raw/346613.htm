@@ -1,0 +1,166 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="SmartRDI 7.5.1 supports parallel waveform and sampling actions with multiple pin()."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Forcing waveform and sampling in parallel on multiple pins</title><meta name="keywords" content="wave form waveform table"></head><body id="_346613"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 346613</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Forcing waveform and sampling in parallel on multiple pins</h1>
+	
+	
+	<div><p>SmartRDI 7.5.1 supports parallel waveform and sampling actions with multiple
+		pin().</p>
+		<section class="section">
+			<p>Before RDI 7.5.1, parallel waveform and sampling for different DC Scale pins in one SmartRDI
+				command is NOT supported with <span class="keyword">.pin()...pin()</span>. If you intend to do parallel
+				waveform for different pins, you have to use a <a href="143875.htm" title="Specifies a port to set up.">multiport command</a>.
+				For example, </p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().port("pt1").pin("A1").vForce().waveform(sine1).sampleCycle(1000).execute();
+  rdi.dc().port("pt2").pin("A2").iForce().waveform(sine2).sampleCycle(1000).execute();
+RDI_END();</pre><div></div>
+			</div>
+			<p>Starting from 7.5.1, SmartRDI supports parallel waveform and sampling actions with multiple
+					<span class="keyword">pin()</span>.</p>
+		</section>
+		<section class="section"><h2>Parallel DC actions on DC Scale pins</h2><p>For DC Scale pins, SmartRDI
+				supports the following scenarios of parallel waveform and sampling: </p><div class="p">
+				<ul>
+					<li>Parallel waveform sourcing on two
+						pins:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vForce().waveform(sine1).FS(10e3).
+        .pin("B").iForce().waveform(sine2).FS(10e3).execute();</pre></li>
+					<li>Parallel sampling on two pins<div class="p"><pre class="prettyprint linenums copyable"><span>rdi.dc().pin("A").iMeas().samples(1024).FS(10e3)
+        .pin("B").vMeas().samples(1024).FS(10e3).execute();</span>
+</pre></div></li>
+					<li>Parallel waveform sourcing on a pin while sampling on another pin:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vForce().waveform(wav).FS(10 kHz)
+        .pin("B").|vMeas()|iMeas()|.samples(100).FS(10 kHz).execute();</pre><figure class="fignone">
+							
+							<img src="353981.png" alt="Parallel_waveform_aPin_sampling_anoPin">
+						</figure></li>
+					<li>Parallel waveform sourcing and sampling on a pin while sampling on another pin:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vForce().waveform(wave).<span>iMeas()</span>.FS(10 kHz)
+        .pin("B").vMeas().samples(100).FS(10 kHz)
+        .execute();</pre><figure class="fignone">
+							
+							<img src="353980.png" alt="Parallel_waveform_sampling_aPin_sampling_anoPin">
+						</figure></li>
+				</ul>
+				<ul>
+					<li>Parallel waveform sourcing and sampling on a pin while waveform sourcing on another pin:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vForce().waveform(wave1).<span>iMeas()</span>.FS(10 kHz)
+        .pin("B").iForce().waveform(wave2).FS(10 kHz)
+        .execute();</pre><figure class="fignone">
+							
+							<img src="353979.png" alt="Parallel_waveform_sampling_onPin_waveform_on_anPin">
+						</figure></li>
+					<li>Parallel waveform sourcing on a pin, sampling on a pin, and waveform sourcing and sampling
+						on a pin:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vForce().waveform(wave1).FS(10 kHz)
+        .pin("B").vMeas().samples(100).FS(10 kHz)
+        .pin("C").iForce().waveform(wave2).<span>vMeas()</span>.FS(10 kHz)
+        .execute();</pre><figure class="fignone">
+							
+							<img src="353978.png" alt="Parallel_waveform_sampling_waveform_sampling_on_DCSpins">
+						</figure></li>
+				</ul>
+			</div>You must follow these rules when using parallel waveform and sampling on multiple pins with
+				<span class="keyword">pin()....pin()....execute()</span>:<div class="p">
+				<ul>
+					<li>The following setups can be different for different pins. <ul>
+							<li>Waveform in content and size</li>
+							<li>Voltage or current force type: <a href="143895.htm" title="Specifies a voltage to force.">vForce()</a>, <a href="143892.htm" title="Specifies a current to force.">iForce()</a>, and <a href="149341.htm" title="Specifies the high and low clamp current for DC Scale pins.">iClamp()</a></li>
+							<li>Voltage or current measurement type: <a href="143891.htm" title="Specifies a voltage measurement.">vMeas()</a>, <a href="143893.htm" title="Creates a current measurement.">iMeas()</a></li>
+						</ul></li>
+					<li>The following commands and parameter must have the same value for different pins.<ul>
+							<li><span class="keyword">FS()</span></li>
+							<li><span class="keyword">samplePeriod()</span></li>
+							<li><span class="keyword">sampleCycle()</span></li>
+							<li>Sampling size</li>
+							<li><span class="keyword">measWait()</span></li>
+						</ul></li>
+					<li>DO NOT use the <a href="149318.htm" title="Create the whole pattern in a RPTV loop. This helps to save vector memory in some cases.">repeat()</a> command in parallel waveform and
+						sampling.</li>
+				</ul>
+			</div></section>
+		<section class="section"><h2>Parallel sampling on digital channels</h2>
+			
+			<p>For digital channels, SmartRDI 7.5.1 supports parallel sampling only and does not support
+				parallel waveform. For example, </p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  //VEC mode
+  rdi.dc().pin("PPMU1").iMeas().samples(1024).capMode(TA::VEC).FS(10 KHz)
+          .pin("PPMU2").vMeas().samples(1024).capMode(TA::VEC).FS(10 KHz).execute(); 
+
+  //TRIG mode
+  rdi.dc().pin("PPMU1").vMeas().samples(1024).capMode(TA::TRIG).FS(10 KHz)
+          .pin("PPMU2").iMeas().samples(1024).capMode(TA::TRIG).FS(10 KHz).execute();
+RDI_END();</pre><div></div>
+			</div>
+			<div class="p">
+				<div class="note"><span class="title">Note</span> 
+					<ul>
+						<li><span class="keyword">capMode()</span> must have the same value for all the specified pins. </li>
+						<li>Do not do parallel sampling for pure BADC and PPMU actions. </li>
+					</ul>
+				</div>
+			</div>
+			<div class="p">In <span>7.10.0</span>, parallel PPUM/BADC sampling
+				can be performed in the same <span class="keyword">execute()</span>. Based on the
+					<span class="keyword">capMode()</span> sampling modes, parallel PPMU/BADC sampling scenarios are as follows:<ul>
+					<li>TRIG
+						capMode:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vMeas().samples(10).FS(10 kHz).capMode(TA::TRIG)
+        .pin("B",TA::BADC).vMeas().samples(10).FS(10 kHz).capMode(TA::TRIG)
+        .execute();</pre><div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A",TA::BADC).vMeas().samples(10).FS(10 kHz).capMode(TA::TRIG)
+        .pin("B",TA::BADC).vMeas().samples(10).FS(10 kHz).capMode(TA::TRIG)
+        .execute();</pre><div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vMeas().samples(10).FS(10 kHz).capMode(TA::TRIG)
+        .pin("B").vMeas().samples(10).FS(10 kHz).capMode(TA::TRIG)
+        .execute();</pre></li>
+					<li>VEC capMode:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vMeas().samples(100).FS(10 kHz).capMode(TA::VEC).valueMode(TA::BADC)
+        .pin("B").iMeas().samples(100).FS(10 kHz).capMode(TA::VEC).valueMode(TA::BADC)
+        .execute();</pre><div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A",TA::BADC).vMeas().samples(100).FS(10 kHz).capMode(TA::VEC)
+        .pin("B",TA::BADC).iMeas().samples(100).FS(10 kHz).capMode(TA::VEC)
+        .execute();</pre><div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").vMeas().samples(100).FS(10 kHz).capMode(TA::VEC).valueMode(TA::SA)
+        .pin("B").iMeas().samples(100).FS(10 kHz).capMode(TA::VEC).valueMode(TA::SA)
+        .execute();</pre><figure class="fignone">
+							
+							<img src="353977.png" alt="Parallel_sampling_on_dcChannel_VEC">
+						</figure></li>
+				</ul><div class="note"><span class="title">Note</span> In the VEC mode, pin A and pin B must use the same DC
+				resource.</div></div>
+			<p>Follow these rules when using parallel PPMU/BADC sampling: </p>
+			<div class="p">
+				<ul>
+					<li>The <span class="keyword">capMode()</span> values for different pins must be the same:
+							<span class="keyword">TA::TRIG</span> or <span class="keyword">TA::VEC</span>.</li>
+					<li>PPMU and BADC sampling actions can be mixed in the same <span class="keyword">execute()</span> (new
+						in <span>7.10.0</span>).</li>
+					<li>Multiple digital channels cannot share the same BADC.</li>
+					<li>The following commands and parameter must have the same value for different pins.<ul>
+							<li><span class="keyword">FS()</span></li>
+							<li><span class="keyword">samplePeriod()</span></li>
+							<li><span class="keyword">sampleCycle()</span></li>
+							<li>Sampling number</li>
+							<li><span class="keyword">measWait()</span></li>
+						</ul></li>
+					<li>DO NOT use the <a href="149318.htm" title="Create the whole pattern in a RPTV loop. This helps to save vector memory in some cases.">repeat()</a> command in parallel waveform and
+						sampling.</li>
+				</ul>
+			</div>
+		</section>
+		<section class="section"><h2>Parallel PPMU/BADC sampling with DC Scale sampling or waveform</h2>
+			
+			<div class="p">In <span>7.10.0</span>, SmartRDI supports PPMU/BADC
+				TRIG-mode sampling in parallel with DCS sampling or waveform in the same
+					<span class="keyword">execute()</span>.<ul>
+					<li>PPMU sampling with DC Scale sampling:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").iMeas().samples(100).FS(30 kHz).capMode(TA::TRIG)
+        .pin("B").vMeas().samples(250).FS(40 kHz)
+        .execute();</pre><figure class="fignone">
+							
+							<img src="353976.png" alt="PPMU_sampling_DCS_sampling">
+						</figure></li>
+					<li>PPMU sampling with DC Scale waveform:<div></div><pre class="prettyprint linenums copyable">rdi.dc().pin("A").iMeas().samples(100).FS(20 kHz).capMode(TA::TRIG)
+        .pin("B").vForce().waveform(wave).FS(50 kHz)
+        .execute();</pre><figure class="fignone">
+							
+							<img src="353975.png" alt="PPMU_sampling_DCS_waveform">
+						</figure></li>
+				</ul></div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="144778.htm" title="Specifies the way to capture the waveform when the PPMU or BADC is used as digitizer.">capMode()</a></div><div><a href="146752.htm" title="Retrieves the raw waveform.">getWaveform()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.5.1</li><li>SmartRDI 7.10.0: More parallel DC actions on multiple pins are supported.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 346613</span><script type="text/javascript">var ti='346613';var tt='Forcing waveform and sampling in parallel on multiple pins'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

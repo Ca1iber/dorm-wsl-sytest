@@ -1,0 +1,197 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The FTCG command serves to change the system behavior with respect to the activation of primary sets."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FTCG, FTCG? - (Functional Test ConfiGure)</title><meta name="keywords" content="FTCG_, Confi, Gure"></head><body id="_98606"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98606</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FTCG, FTCG? - (Functional Test ConfiGure)</h1>
+	
+	
+	<div><p>The <span class="keyword">FTCG</span> command serves to change the system behavior with respect
+		to the activation of primary sets.</p>
+		<section class="section">
+			<p>The system activates the primary sets (timing, levels, waveforms) at two
+				occasions:</p>
+			<ul>
+				<li>When a connect sequence is executed (as, for example, at the start of every test
+					flow)</li>
+				<li>At the start of a functional test (initiated, for example, by
+						<span class="keyword">FTST?</span>, <span class="keyword">STRS?</span>)</li>
+			</ul>
+			<p>The activation is carried out on the sequencing group level. Primary sets are not
+				activated for individual ports, but always for all ports of the same sequencing
+				group, as defined in the primary timing specification (with <span class="keyword">SPRM</span>)
+				or start label (with <span class="keyword">SQSL</span>). </p>
+			<p>Set activation is time consuming, and is therefore by default executed at test start
+				only if necessary, that is, only if the test setup specifies a currently inactive
+				primary set for at least one port of the sequencing group.</p>
+			<p>There is one exception to this principle: If a sequencing group contains more than
+				one port, one set is always activated, even if it is already active (this is
+				required to synchronize the user vectors of the ports, see <em><a href="55334.htm" title="When different ports of a multi-port setup are executed at different speed their user vectors can be synchronized exactly in the sense that they are started simultaneously after each timing set change (CTIM instruction). This includes the internal CTIM, which is by default executed at the start of a functional test. To synchronize these ports exactly, they need to be included in the same sequencing group (see Defining sequencing groups for details).">Synchronization within sequencing groups</a></em>).</p>
+			<p>With the <span class="keyword">FTCG</span><strong> </strong>command, you can change this standard
+				behavior in both directions.</p>
+			<p>On the one hand (option <span class="keyword">ON</span>), you can use it to suppress activation
+				completely, even in the case of a sequencing group containing several ports, and
+				even if the respective sequencing group contains a port whose primary sets are
+				currently inactive. This option is intended for keeping a PLL alive across
+				functional tests; for the activation interrupts vector generation by executing a
+				CTOF sequence, which is associated with static states of the drivers for a certain
+				period in time. Note that activation within a connect sequence is <em>not</em>
+				suppressed.</p>
+			
+			
+			
+			<p>On the other hand (option <span class="keyword">NEVER</span>) the command serves to enforce the
+				activation even if the specified primary sets are already active for all ports of
+				the sequencing group.</p>
+			<p>In both cases the new behavior is defined for a port, but this port is treated as a
+				representative of its sequencing group.The settings defined with
+					<span class="keyword">FTCG</span><strong> </strong>remain valid until they are modified by another
+				application of <span class="keyword">FTCG</span>, or <a href="98882.htm" title="The *RST (ReSeT) command resets the firmware and all calibration data. This causes power-up default values to be loaded in the hardware. For default values see the RSET command.">*RST</a><span class="keyword"></span> is executed explicitly or implicitly.</p>
+			<p>You can restore the standard behavior with the <span class="keyword">OFF</span> option.</p>
+			<p>Note that the command has no impact on the user defined <span class="keyword">CTIM</span>
+				(Change TIMing) or <span class="keyword">CLEV</span> (Change LEVel) sequencer instructions
+				within the functional test. These instructions and their associated CTOF sequences
+				will always be executed.</p>
+			<p>Note also that suppressing the activation has the following effects:</p>
+			<ul>
+				<li>If the period lengths of the ports belonging to such a sequencing group are
+					different, the user vectors of these ports are no longer started
+					synchronously.</li>
+				<li>If activation of the primary sets is suppressed for a port that contains a
+					receive pin (<strong>io</strong> or <strong>o</strong>), the Timing Diagram will not be able to make
+					scope or high resolution measurements for the sequencing group to which this
+					port belongs.</li>
+			</ul>
+			<div class="note"><span class="title">Note</span> If keep alive ports are set via <span class="keyword">FTCG</span> and <a href="29338.htm" title="This topic contains:">FLUSH(TM::APRM)</a> (Command <a href="99061.htm" title="The following commands for utility lines do not immediately set the hardware. Instead they are buffered in the MCD (Message Concentrator and Distributor).">FLSH</a>)
+				is executed, the following message will be issued in case of updating the
+				clock:<div></div><pre class="msgblock">FTCG ON was specified for at least one port which cannot be retained unchanged now.
+The command "Flush" forces a clock off, resulting in a stop of all channels.</pre><div></div>For
+				more information, refer to <a href="55381.htm" title="By default, the primary sets are activated at the start of each functional test. This activation requires a CTOF (Change Timing On the Fly) sequence during which the tester sequencer is inactive. But when testing a PLL device, the clock must be running continuously during the whole test flow. The FTCG (Functional Test ConfiGure) command allows you to suppress the (re)activation of the primary sets for the clock pins of such a device. For general information on FTCG, see the Command Reference manual.">Suppressing Reactivation of Primary Sets with FTCG</a>.</div>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<dl>
+				
+					<dt class="dlterm">FTCG</dt>
+					<dd>
+						<div></div><pre class="prettyprint copyable singleline"><span class="keyword">FTCG</span> {<span class="keyword">parameter</span>}, {<span class="keyword">mode</span>}, {(<span class="keyword">portlist</span>)}</pre><div></div>
+					</dd>
+				
+				
+					<dt class="dlterm">FTCG?</dt>
+					<dd>
+						<div></div><pre class="prettyprint copyable singleline"><span class="keyword">FTCG?</span> {<span class="keyword">parameter</span>}, {(<span class="keyword">@@</span>)} </pre><div></div>
+						<p>returns: </p>
+						<div></div><pre class="prettyprint copyable singleline"><span class="keyword">FTCG</span> {<span class="keyword">parameter</span>}, {<span class="keyword">mode</span>}, {(<span class="keyword">portlist</span>)}</pre><div></div>
+					</dd>
+				
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd>
+						<table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1">
+											<p><span class="keyword">parameter</span></p>
+										</td>
+										<td class="colsep-0 rowsep-1" colspan="2">
+											<p>The parameter to be used is <span class="keyword">SKPR
+												</span>(SKip PRimaries).</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" rowspan="3">
+											<p><span class="keyword">mode</span></p>
+										</td>
+										<td class="colsep-0 rowsep-1" colspan="2">
+											<p>Specifies different activation conditions. This
+												option can take the following values:</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1">
+											<p><span class="keyword">ON</span></p>
+										</td>
+										<td class="colsep-0 rowsep-1">
+											<p>Suppresses activation of all primary sets at the
+												start of a functional test for the sequencing groups
+												of the ports specified by the <span class="keyword">portlist</span> parameter. This option serves to keep a
+												PLL alive across functional tests.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0">
+											<p><span class="keyword">OFF</span></p>
+										</td>
+										<td class="colsep-0 rowsep-1">
+											<p>Allows activation for the ports specified by the
+												<span class="keyword">portlist</span> parameter. This is the
+												default.</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1">
+											<p>&nbsp;</p>
+										</td>
+										<td class="colsep-0 rowsep-1">
+											<p><span class="keyword">NEVER</span></p>
+										</td>
+										<td class="colsep-0 rowsep-0">
+											<p>By this option, the primary sets will always be
+												loaded at the start of a test for all ports of the
+												sequencing groups to which the ports specified by
+												the <span class="keyword">portlist</span> parameter belong.
+											</p>
+										</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1">
+											<p><span class="keyword">portlist</span></p>
+										</td>
+										<td class="colsep-0 rowsep-1" colspan="2">
+											<p>In the command, specify a list of ports, separated by
+												commas. Note that the ports are treated as
+												representatives of their sequencing groups.
+												Activation will be suppressed, allowed, or enforced
+												not only for the specified ports, but for all member
+												ports of the sequencing groups to which the
+												specified ports belong in the current setup.</p>
+											<p>In the query, specify <span class="keyword">@@</span>, which
+												stands for all ports.</p>
+										</td>
+									</tr>
+								</tbody></table></dd>
+				
+			</dl>
+		</div><div class="syntax">
+			<h2>Application</h2>
+			<p>Continuous clock setups.</p>
+		</div>
+		
+		<h2>Example</h2><div class="example">
+			<p>The following example illustrates the dependence of the
+					<span class="keyword">FTCG</span><strong> </strong>command on the current sequencing group
+				definitions.</p>
+			<div></div><pre class="prettyprint linenums copyable">&gt; SQLB "MP_burst1",MPBU,28,31,"SG1",(clock)
+&gt; SQLB "MP_burst1",MPBU,28,29,"SG2",(data1)
+&gt; SQLB "MP_burst1",MPBU,31,32,"SG2",(data2)
+&gt; SQLB "MP_burst2",MPBU,32,33,"SG1",(clock)
+&gt; SQLB "MP_burst2",MPBU,30,31,"SG1",(data1)
+&gt; SQLB "MP_burst2",MPBU,33,34,"SG2",(data2)
+&gt; FTCG SKPR,ON,(clock)
+&gt; FTCG SKPR,NEVER,(data2)
+&gt; SPRM "cont_clock",,,
+&gt; SQSL "MP_burst1"
+&gt; SQGB ACQF,0
+&gt; FTST?
+...
+&gt; SQSL "MP_burst2"
+&gt; FTST?
+...</pre><div></div>
+			<p>In the first functional test, sequencing group <code>SG1</code><strong> </strong>only
+				contains the port <code>clock</code>, and therefore activation of primary sets
+				is suppressed at the start of <code>MP_burst1</code> only for
+					<code>clock</code>, whereas it is enforced for ports <code>data1</code>
+				and <code>data2</code>. In the second test, <code>SG1</code> contains both
+					<code>clock</code> and <code>data1</code>, and therefore activation is
+				suppressed for both these ports at the start of <code>MP_burst2</code>, and
+				enforced only for <code>data2</code>.</p>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98606</span><script type="text/javascript">var ti='98606';var tt='FTCG, FTCG? - (Functional Test ConfiGure)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

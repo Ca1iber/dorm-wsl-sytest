@@ -1,0 +1,90 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Creates a dummy pattern to synchronize the pattern of different ports in a multiport test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>portSync()</title><meta name="keywords" content="port, Sync"></head><body id="_142606"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 142606</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">portSync()</h1>
+	
+	
+	<div><p>Creates a dummy pattern to synchronize the pattern of different ports in a multiport
+		test.</p>
+		<section class="section"><p>It can be used to synchronize the patterns of all ports or synchronize the patterns of
+				selected ports.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">portSync(const string &amp;port);
+portSync();
+portSync(mode);</pre><table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_142606__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_142606__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_142606__entry__1"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_142606__entry__2"><p>The ports to be synchronized, separated by comma.</p>
+								<p>If not specified, the patterns of all ports will be synchronized.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_142606__entry__1"><p><span class="keyword">mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_142606__entry__2"><p>The execution mode.</p>
+								<p><span class="keyword">TA::CTIM</span>: Used to insert patterns with <a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">CTIM
+										(Change TIMing)</a> instructions for multiple ports synchronization. </p>
+								<p>The CTIM instructions change test setup to the current timing set and achieve port
+									synchronization.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("ptDATA").func().label("lpDcap").execute();
+  rdi.port("ptDATA2").digCap("mcsame1").pin("DATA2").samples(30).execute();
+  rdi.port("ptDATA").wait(10 ms);
+  rdi.portSync();
+  rdi.port("ptDATA2").digCap("mcsame2").pin("DATA2").samples(80).execute();
+RDI_END();
+</pre><p>Synchronizing
+				selected ports:
+				</p><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("pt_DATA1").dc().pin("DATA1").vForce(1 V).execute();
+  rdi.port("pt_DATA1").wait(30 us);
+  rdi.port("pt_DATA2").dc().pin("DATA2").iForce(0 mA).vMeas().execute();
+  rdi.port("pt_DATA3").hwRelay().pin("DATA3").setOn("ALL").execute();
+  rdi.port("pt_DATA4").hwRelay().pin("DATA4").setOn("ALL").execute();
+  rdi.port("pt_DATA4").wait(10 us);
+  rdi.portSync("pt_DATA1,pt_DATA2");  // synchronize the ports "pt_DATA1","pt_DATA2" only
+  rdi.port("pt_DATA1").func().label("label_sync").execute();
+  rdi.port("pt_DATA2").digCap().pin("DATA2").samples(16).execute();
+RDI_END();</pre><div class="note"><span class="title">Note</span> rdi.portSync() cannot handle the port synchronization after the execution of
+				sequencer instructions with unpredictable cycle counts, as in match loops and conditional jumps.
+				Alternatively, you can use an rdi.port().wait() to achieve the synchronization manually. In
+				other cases, you can use a CTIM command. See Topic 10558 <a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">Changing the
+					timing set</a>. In case of FastSync, you must split the pattern into two runs.</div></div>
+		<div class="example"><h3>Example 2</h3><p>Starting from 2.4.5, SmartRDI can insert CTIM instructions to patterns for multiport
+				synchronization. See example below.</p><div class="p"><figure class="fignone">
+					<img src="153097.png" alt="portSync()_with_CTIM">
+				</figure></div><p>Use <span class="keyword">portSync(TA::CTIM)</span> to provide synchronization for the following cases,
+				where a standard "port synchronization with dummy loops" execution cannot be performed:</p><ul>
+				<li> Ports with different period lengths that are not an integer multiple of each other.</li>
+				<li> Patterns with match loops or cogo actions.</li>
+			</ul><p><span class="keyword">portSync(TA::CTIM)</span> can only synchronize all ports and does not support
+				synchronization for selected ports.</p><div class="note"><span class="title">Note</span> <span class="keyword">CTIM</span> can generate non-cycle-based behavior.</div></div>
+		<div class="example"><h3>Example 3</h3>
+			
+			<p>For MSETs, use <span class="keyword">portSync(TA::CTIM)</span> to achieve port synchronization.</p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.port("pA").smartVec().pin("a1").writePat("1,0").execute();
+  rdi.port("pB").smartVec().pin("b1").writePat("1111,0000").execute();
+  rdi.portSync();
+  rdi.port("pA").dc().pin("a2",TA::BADC).vMeas().average(1).execute();
+  rdi.portSync(TA::CTIM);
+  rdi.port("pA").smartVec().pin("a1").writePat("1,1").execute();
+  rdi.port("pB").smartVec().pin("b1").writePat("0000,0000").execute();
+RDI_END();</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="10558.htm" title="The CTIM (Change TIMing) instruction allows you to change the timing set during a test by specifying a new timing set number. When changing the timing you must consider the information given in System preparation by firmware commands. Note also that the system automatically closes any open compare windows before the CTIM instruction is executed.">Changing the timing set (CTIM)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.1.0</li><li>SmartRDI 2.2.0: Supports synchronizing selected ports.</li><li>SmartRDI 2.4.5: New parameter TA::CTIM for exact port synchronization.</li><li>SmartRDI 7.4.4: The speed of portSync() command execution is improved.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 142606</span><script type="text/javascript">var ti='142606';var tt='portSync()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The BCMT (Binary CoMmenT) command downloads comments in binary format for a specified vector range. The BCMT? query reads the comments of the specified port."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>BCMT, BCMT? - (Binary CoMmenT)</title><meta name="keywords" content="BCMT_, Co, Mmen, T"></head><body id="_98488"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98488</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">BCMT, BCMT? - (Binary CoMmenT)</h1>
+	
+	
+	<div><p>The <span class="keyword">BCMT</span> (Binary CoMmenT) command downloads comments in binary format
+		for a specified vector range. The <span class="keyword">BCMT?</span> query reads the comments of the
+		specified port.</p>
+		<section class="section"><h2>Predependencies</h2><p>Note that <span class="keyword">BCMT</span> can only be issued in
+				the <span class="keyword">LOAD</span> or <span class="keyword">APP</span> operation modes, not in the default
+					<span class="keyword">EDIT</span> operation mode. The operation mode is set with the <a href="98726.htm" title="The SAOF (Set Alternating Operation Features) command serves to change the operation mode of the test system software for certain tasks. After performing these tasks, you should switch back to the standard editing mode (ZERO) as soon as possible; many firmware commands do not work properly in the alternative modes.">SAOF</a> command.</p></section>
+		<div class="syntax"><h2>BCMT</h2><pre class="prettyprint copyable singleline"><span class="keyword">BCMT</span> {<span class="keyword">vect_addr</span>}, {<span class="keyword">vect_length</span>}<span>[, <span class="keyword">HIMEN</span>]</span>[, (<span class="keyword">port</span>)], {<span class="keyword">#spec(data)</span>}</pre></div><div class="syntax"><h2>BCMT?</h2><pre class="prettyprint copyable singleline"><span class="keyword">BCMT?</span> [(<span class="keyword">portlist</span>)]</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">BCMT</span> {<span class="keyword">vect_addr</span>}, {<span class="keyword">vect_length</span>}<span>[, <span class="keyword">HIMEN</span>]</span>[, (<span class="keyword">port</span>)], {<span class="keyword">#spec(data)</span>}</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">vect_addr</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The first vector of the segment for which comments are to be transferred. </p>
+								<p>This number counts the active vectors of the port (as specified for the
+										<span class="keyword">port</span> parameter) across all of its labels, starting from 0. For example,
+									suppose that two labels are associated with the port, and that the first of them has eight
+									active vectors, while the second has three. Then you must enter 9 if you want to insert
+									comments for a segment that begins with the second vector of the second label.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">vect_length</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Defines the total number of active vectors for which comments are to be downloaded.
+								</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><span class="keyword">HIMEM</span></td>
+							<td class="colsep-0 rowsep-0">
+								<p>If this parameter is specified, the data format of <span class="keyword">#spec(data)</span> will be
+									treated as 64-bit. If the <span class="keyword">HIMEM</span> parameter is omitted, the data format
+									will be treated as 32-bit. If you want to set any comments to over 2GB vector address, you
+									should also use the <span class="keyword">himem:on</span> parameter in the <a href="49363.htm" title="The .technology file defines the source directory for technology-related settings, some device specific system parameters and some maximum values for certain system parameters.">.technology file</a>.</p>
+								<p>The query displays the 64-bit format if the response data includes over 2GB vector
+									addresses.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>If you specify a port, the comments are associated with the active vectors of this
+									port. Otherwise, they are associated with the active vectors of the default port @.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">#spec(data)</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The binary comment data. The format of this parameter is:</p>
+								<p>#<span class="keyword">N</span><em>n</em><sub>1</sub>n<sub>2</sub>n...<em>n</em><sub>N</sub><span class="keyword">comm_data</span>[<span class="keyword">comm_data</span><em>...</em>]</p>
+								<p>where the decimal digit <span class="keyword">N</span> defines the number of the decimal digits
+										<em>n</em><sub>i</sub> (1 ≤ <em>i</em> ≤ <em>N</em>) that specify the length of the comment data
+									in bytes. The <span class="keyword">comm_data</span> blocks are structured as follows:</p>
+								<p>Not using <span class="keyword">HIMEM</span> (default):</p>
+								<ul>
+									<li>The first byte specifies the comment length.</li>
+									<li>The next four bytes contain the number of the active vector to which the comment is to
+										be attached. The vectors are counted for the whole port across label boundaries, starting
+										from 0.</li>
+									<li>The remaining bytes (250 at most) contain the actual comment data.</li>
+								</ul>
+								<div class="p">Using <span class="keyword">HIMEM</span>:
+									<ul>
+										<li>The first byte specifies the actual comment length. (Excluding vector number.)</li>
+										<li>The next eight bytes contain the number of the active vector to which the comment is
+											to be attached. The vectors are counted for the whole port across label boundaries,
+											starting from 0.</li>
+										<li>The remaining bytes (250 at most) contain the actual comment data.</li>
+									</ul></div></td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Download comments in Pattern Tool.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if: </p><ul>
+				<li>The specified address exceeds the maximum vector address allowed by the system. </li>
+				<li>You specify a negative vector length. </li>
+				<li>Parameter is out of range. </li>
+				<li>The data transfer fails or is aborted. </li>
+				<li>There is insufficient disk space (offline operation only) </li>
+				<li>The comments in the binary data are not given sequentially (for example if a comment at line
+					10 occurs after a comment at line 20). </li>
+			</ul></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&gt; BCMT?
+&lt; BCMT 0,49,#9000000078&amp;!This is the first vector
+  of test_2&amp;0This is the first vector of test_3</pre><p>This
+				call of <span class="keyword">BCMT?</span> displays the comments of the default port. The
+					<code>&amp;</code> character (with the decimal ASCII value 38) indicates the (identical)
+				length of the two comments. The first comment is at vector 33 (decimal ASCII value of the !
+				character), the second at vector 48 (decimal ASCII value of the 0 character).</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.3: Maximum comment length increased from 40 to 250.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98488</span><script type="text/javascript">var ti='98488';var tt='BCMT, BCMT? - (Binary CoMmenT)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

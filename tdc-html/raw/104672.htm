@@ -1,0 +1,310 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PMIC Testing on Multi-Discipline Complex SIPs</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system, SI, Ps"></head><body id="_104672"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 104672</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PMIC Testing on Multi-Discipline Complex SIPs</h1>
+	
+	<div>
+		<p>Don Blair, Verigy</p>
+		<p>Pascale Cowie, Verigy</p>
+		<p>Paper ID: 104672</p>
+		<section class="section"><h2>Abstract</h2><p>Power Management ICs (PMICs) have been and will continue to be
+				in high demand because of the increasing complexity of voltages and currents required in an end
+				user application and the complexity of the lithium ion (Li-ion) battery which is a common choice
+				for portable consumer devices. In fact, unlike NiMH or NiCad batteries where undesirable
+				"memory" effects are repaired by a complete discharge, a Li-ion battery would be damaged by
+				doing this. It must stay in a narrow range of voltage and be charged at specified rates of
+				current.</p><p>New consumer devices which are being pressured by cost have created the trend of
+				integrated PMICs into a System-In-Package (SIP) single chip application. One good example of
+				this is in the cell phone market place at the entry level. See Figure One, which shows all the
+				functionality which is included in a single chip multi-die SIP cell phone IC.</p><div class="p"><figure class="fignone">
+					
+					<img src="104673.png" alt="One Single Chip Cell Phone">
+				</figure></div><p>Different IC manufacturers may put different functions in different areas, but the
+				overall architectures are similar. It can be seen in Figure One that the PMIC has two major
+				roles, one: supply the power to the different Intellectual Property (IP) functions that require
+				different voltages and two: provide the clocking and be a communication highway. The PMIC can
+				monitor functions in different blocks. Also the digital part of the base-band processor
+				communicates with the PMIC to control its functions.</p><p>The rest of the SIP is partitioned by
+				RF and IF and the analog mixed signal part of the base band processor for one die. Then the
+				other die has all of the digital functionality on it including the microcontroller, memory and
+				DSP processing which does the spectral shaping of various components.</p><p>The trend is for
+				this integration to continue. The fewer the ICs on a PC board in the cell phone, the less power
+				consumption, space, cost and if designed well can even improve performance. In the consumer
+				world, performance is very important, either the product meets its specifications or it does not,
+				however low cost is very key to consumer demand. To summarize: performance is needed to have a
+				product, but cost very well determines if it is a success or not.</p><p>The economics of this
+				drive the SIP to be packaged with known good die (KGD) that have been tested at wafer sort and
+				then demand a single insertion final package test.</p><p>The final test platform has to have
+				multi-discipline Analog mixed signal, Digital, DC and RF capabilities and the economics drive
+				this to a multi-site configuration. Additionally, a lot of test leverage can be added if the
+				same ATE platform is used for both the wafer sort and the package test. Finally, the test time
+				and capital equipment costs have to be watched carefully so the most cost effective solution can
+				be employed.</p></section>
+		<section class="section"><h2>Introduction</h2><p>In this paper the differences between testing a standalone
+				PMIC and integrated SIP PMIC will be examined. Then conventional as well as new methodologies to
+				accomplish the test will be explored and finally new testing trends will looked
+			at.</p></section>
+		<section class="section"><h2>Differences between PMIC testing on a standalone IC versus
+				SIP</h2><p>Design-For-Testability (DFT) plays a major role in what is accessible and what
+				isn't. Clearly all of the pins available in the standalone are not available in the SIP in an
+				effort to keep the pin count manageable.</p><p>The questions are " Is there enough accessibility
+				to make the PMIC testable?" and "Does the PMIC get tested individually or as a
+				system?".</p><p>The answer to the first question has a large impact to the second question. Most
+				IC manufacturers at this time are testing the PMIC with many individual tests. This provides IC
+				designers and product engineers with feedback about the IC design, process and packaging but is
+				more expensive.</p><p>The Test-Access-Mechanism (TAM) is the way that the PMIC and other IP
+				blocks interface to the outside world and internally to each other in the final test package.
+				The TAM for the chip changes the thinking on how to access desired functions. Instead of
+				accessing by the IP block, the functions are accessed via the SIP as a whole.</p><p>For
+				instance, the voltage regulator outputs may come to the package pins, but the communication
+				interfaces do not. In such a case, the PMIC is powered up first and provides the clocking for
+				the rest of the device, then the instructions can be sent to registers in the baseband processor
+				to turn on the rest of the IC. For example in Figure One, the main I/O bus is shown in black
+				routing to all the block sections.</p><p>The lack of isolation of pin access is another issue
+				which affects the test methodology. Two examples of this are explored; in Figure Two, the PMIC
+				voltage regulator output is connected to the base band processor on the load-board. This
+				configuration is chosen to allow either PMIC or the VI32 to power-up the base band processor.
+				Relays were not used because real-state on the load-board is not very available. Any tests which
+				check the current output of that voltage regulator must account also for the current used by
+				baseband processor. The second example is the PMIC_HOLD pin which passes the status back that
+				the base band processor has successfully powered up and causes the PMIC to continue providing
+				the clocking and staying powered up.</p><div class="p"><figure class="fignone">
+					
+					<img src="104905.png" alt="Lack of pin isolation">
+				</figure></div></section>
+		<section class="section"><h2>Solution complexity increases for SIP</h2><p>The device-under-test (DUT) board
+				complexity increases with the SIP solution. More components, connection points and the need to
+				route sensitive signals carefully to avoid noise and crosstalk increase with the
+				complexity.</p><p>Also the test program length and complexity will increase as a result of
+				testing the RF, baseband digital and analog and the PMIC all in one pass, one
+			insertion.</p></section>
+		<section class="section"><h2>Team approach changes</h2><p>Although many projects now employ a team approach
+				to reduce the time-to-market (TTM), the complexity of the SIP and even the knowledge
+				requirements for all of the different disciplines involved demand a multi-tiered team approach.
+				Typically a team would be assigned to each major IP block, including PMIC, baseband digital and
+				analog mixed signal and then RF. Each team has a lead who is responsible for directing the team
+				as well as backups, revision control and occasional program merges with the other teams.
+				Integrated releases can occur as often as weekly to gauge progress.</p></section>
+		<section class="section"><h2>ATE requirements</h2><p>Cost-of-Test (COT) economics demand a single insertion
+				multiple site production solution.</p><p>The RF capability needs to be multi-port source and
+				measure capable of different modulation schemes and be able to support sensitive measurements
+				such as Noise Figure and EVM. The Port Scale RF solution can source up to 6 GHz and measure to 8
+				GHz with all the common modulation schemes supported.</p><p>The digital capability needs to have
+				fast enough speeds, capable of many pins for multi-site and low cost. Typically, a quad-site
+				solution requires over 700 digital pins. Also, there needs to be links into the EDA tools to
+				easily transfer vectors back and forth. Verigy PS400 cards meet these needs well. </p><p>The
+				analog mixed signal capability needs to have multiple source and measure pins with differing
+				speeds and resolutions. The Multi-band Audio Video 8 (MBAV8) is a good choice because it has 4
+				channels of source/measure audio at 24 bits of resolution and 4 channels of source/measure in
+				baseband frequencies up to 100 MHz at 16 bits of resolution.</p><p>DC capabilities while
+				deceptively simple are very important. The V93000 per-pin measurement unit (PPMU) can sink up to
+				75 mA per pin (40 mA PPMU + 35 mA of the active load for the PS800) and is available on every
+				digital pin. These pins can also be ganged together for higher current needs. The PS400 digital
+				pins can be licensed down to 1 MHz speed for an effectively "DC only" capability. Device Power
+				Supplies (DPS) can be used for higher current requirements. The DC Scale VI32 was design
+				specifically for PMIC requirements of high accuracy. It can supply and measure up to 25 V and
+				the channels can also be ganged together for additional current. The DC Scale DPS32 is a good
+				resource for main power being able to supply up to 1.5 amps per channel.</p><p>The Per-Pin Time
+				Interval Analyzer is another time based measurement capability that is required to test these
+				SIPs. The main uses of it are frequency, rise and fall time, pulse width on one pin and often a
+				time interval measurement is needed between pins to measure timing.</p><p>Density of resources
+				and the cooling/calibration of those resources are important. The Verigy PS400 cards supply 64
+				pins of digital, PPMU and PPTIA capability all on one card. The MBAV8 has 8 parallel source and
+				measurement paths. The Port Scale RF has 24 ports of source and measure capability. The DC Scale
+				VI32 and DPS32 each have 32 pins of DC capability. All of these cards are liquid cooled,
+				maintaining a junction temperature of 32 degrees C which ensures calibration is stable (no warm
+				up time and variation due to temp changes) and also prolongs uptime and serviceable
+				life.</p><p>Scalability is also important for economic reasons. The scalability of the V93000
+				means that hardware and software investments are preserved even as newer features are developed
+				to address new requirements. </p><p>One of the key tools in scaling resources is through
+				software licensing. The product hardware comes with its full range of capability but this can be
+				licensed up or down through software. Characterization is often done with higher capability
+				resources that are not required in production. Being able to scale back in frequency, memory or
+				features on the digital cards of the V93000 is a great COT saver. The MB AV8 also can scale back
+				the number of pins available and frequency of the AWG. Another advantage of scalability is being
+				able to change where a resource is with software. The PPTIA is a great example of how in one
+				program the capability can be on one set of pins and different in another program. This greatly
+				simplifies DUT board layout. Another example of pure hardware scaling is the new Compact Test
+				Head (CTH) which can run programs and DUT boards from a large or small test head. This
+				scalability also improves the TTM because it minimizes re-tooling (DUT board) and re-programming
+				as a product moves through its life cycle from characterization to ramp to steady demand to
+				end-of-life.</p></section>
+		<section class="section"><h2>Key PMIC tests</h2><p>The Bandgap reference trim and test is a key test where
+				the tester measures a voltage reference and then will blow a fuse to make the voltage more
+				accurate as a standard. Most manufacturers perform this test at wafer sort but some at package
+				test. Since all of the different voltages a PMIC provides are based on this standard, it is
+				important to be accurate. The limit for the accuracy of this test is typically +/- 10 mV. For
+				guard-banding and keeping yields acceptable the ATE accuracy needs to be +/- 1 mV or better. The
+				DC Scale VI32 in the high accuracy mode is at +/- 200 uV accuracy.</p><div class="p"><figure class="fignone">
+					
+					<img src="104906.png" alt="LDO line and load regulation">
+				</figure></div><p>The voltage regulator accuracy, line and load regulation tests are also basic key
+				tests for the PMIC. Typically a DPS would supply the current and voltage at the Battery terminal
+				("VBAT") and at the Charger terminal ("VCHG"). One DPS or several ganged PPMU provide the
+				loading of the regulators. A PPMU measures the regulator voltage output on the sense line, as
+				shown in Figure Three. A better way would be to use the VI32 card because it has more accuracy
+				than the PPMU, it meets the loading requirements of most voltage regulators and it provides a
+				sense line. The VI32 would replace many DPSs and PPMUs and it still would allow 32 regulator
+				outputs to be tested in parallel.</p><p>One of the major functions of the PMIC is to provide
+				multiple voltages of well regulated power. Many variables occur including input voltage changes
+				(line regulation) due to the Li-ion battery going down and providing the power at the rated
+				current load output. Each test is done to measure the delivered voltage at the specified current
+				load (load regulation) and the regulator is specifically designed for Low Dropout Voltage (LDO).
+				Minimum and maximum current loads are placed at the output and then the voltage variation is
+				measured.</p><p>For the load regulation results the following formula is
+				used:</p><pre class="prettyprint copyable singleline">Load Regulation = (( Vout max - Vout min ) / (I load max - I load min) ) X 100.</pre><p>Results
+				for this test using the DPS 32 are shown in Figure Four. Three sites are plotted for this
+				chart.</p><div class="p"><figure class="fignone">
+					
+					<img src="104907.png" alt="Voltage Regulator Load Regulation measurement results">
+				</figure></div><p>Multi-site is a production feature very common in the consumer device world.
+				Parallelism efficiency at 75-90% on a typical 4 to 8 site solution significantly drives down the
+				COT.</p><p>The figure below compares test times and multi-site efficiency for the above voltage
+				regulator load regulation test. All of these are measurements with values and includes two
+				measurements and digital register setup to get the part into the correct mode and parameter
+				calculations.</p><p>Comparison of DC resource execution times and efficiency 1</p><table><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_104672__entry__1"><p>ATE Resource</p>
+							</th>
+							<th class="colsep-1" id="_104672__entry__2"><p>Measurement Time Single Site (mS)</p>
+							</th>
+							<th class="colsep-1" id="_104672__entry__3"><p>Measurement Time Tri-Site (effective) (mS)</p>
+							</th>
+							<th class="colsep-1" id="_104672__entry__4"><p>Multi-site Efficiency</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104672__entry__1"><p>MS-DPS</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__2"><p>18.3</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__3"><p>8.7</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__4"><p>80.80%</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104672__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104672__entry__1"><p>PPMU</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__2"><p>19.4</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__3"><p>9.3</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__4"><p>80%</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104672__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_104672__entry__1"><p>DC32 2</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__2"><p>11.6</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__3"><p>6.1</p>
+							</td>
+							<td class="colsep-1" headers="_104672__entry__4"><p>78.40%</p>
+							</td>
+						</tr>
+					</tbody></table><p>1 These are preliminary results and are not fully optimized for the DC32 . Final
+				numbers will be presented at the event.</p><p>2 Multi-site Efficiency = 1 - ( ( (Test Time
+				Multi-site - Test Time Single Site) / (Number of sites -1 ) ) / Test Time Single Site
+			)</p></section>
+		<section class="section"><h2>Motivation to move from Legacy DC to new DC Scale resources</h2><p>There are
+				many reasons to migrate to the new DC Scale resources on the V93000.</p><p>First, let's examine the improved COT based reasons. Faster test execution times are one result
+				of using the new DC Scale boards. Also the density is quite high at 32 individual pins per board
+				being able to supply up to 1.5 A per pin. That reduces the number of legacy DPSs (GPDPS - 4
+				pins, MS-DPS - 8 pins) required and the number of digital pins used if the PPMU was the legacy
+				DC that was being used in the past. These resources are also not locked into a specific slot in
+				the card cage the way the legacy DPSs were. The new resources reside where the digital pin cards
+				reside, so again the density capability is much higher than before.</p><p>This supports more multi-site and
+				potential concurrent testing to be done.</p><p>Next, let's look at technology reasons. The new
+				DC scale resources have higher accuracy and are test processor based. This will allow digital
+				pins to communicate "natively" with the DC Scale resources. Already planned are sequencer
+				commands which will allow DC source and measurement dynamically from inside a digital pattern
+				with 64 MB of memory per pin. No digital pin is required to trigger a resource. Also, DPS
+				measurements can be made in parallel to digital functional tests. The DC Scale resources also
+				have some special features such as an on board AWG and digitizer and also statistical
+				computation modes that will automatically provide minimum, maximum and averaged values. The DC
+				Scale VI32 has a special high impedance mode (greater than 8 MOhm at 8 volts) useful for very
+				low leakage current or measuring a voltage from a weak source.</p><p>The DC Scale resources are
+				also code compatible with legacy programs including DPS equation based , DPS_TASK or SPMU_TASK
+				based methods.</p></section>
+		<section class="section"><h2>Future Test Needs</h2><p>Some PMIC technology trends that will impact test
+				include lower voltages and lower power consumption driving needs for higher accuracy and lower
+				noise floor on ATE.</p><p>Lowering the COT is probably the biggest driver of any changes likely
+				to occur in the future. The lower the cost, the bigger the potential market; especially for
+				entry level applications in emerging economies. Cell phones are also a good example of an
+				appliance needing very little infrastructure. A cell tower in a dense urban area can be the
+				infrastructure for thousands of phones.</p><p>System level test is where instead of being tested
+				one IP block at a time, the SIP is tested end-to-end and preferably in "mission mode" where the
+				device is being tested the same as how it will be used in the end application. In the cell phone
+				this would amount to placing and answering a call and checking all of the data functions
+				(digital functional tests). This also has the potential of lowering test time and capital cost
+				of the ATE system.</p><p>The main questions would center around does this provide enough test
+				coverage and does it give the IC designers enough information to fix errors and design better
+				new circuits? There are two ways to address this.</p><p>One, a subset of devices could have more
+				extensive testing to augment the system level test. The other approach would be to have a hybrid
+				of tests that do both system level and some IP block "parametrics".</p><p>Concurrent testing of
+				multiple IP blocks is possible from the ATE side. In fact, the V93000 per pin architecture, high
+				density of resources, multiple clock domains and multi-port software make this available today
+				and is being done to some extent. However, the limitation of the extent that this can be done is
+				more on the IC design side. Designing IP blocks that can operate independent of each other and
+				that have a TAMs designed such that ATE can access and test the blocks concurrently is being
+				worked on by many manufactures.</p><p>More sites tested in parallel is a known way to drive
+				costs down further. A COT matrix should be used to determine what the optimum number of sites to
+				test for a given set of variables such as capital costs, test time, availability and cost of
+				multi-site handlers and other potential incremental infrastructure factors.</p><p>Another trend
+				is continued integration that is focused on lowering IC die costs and has the potential to lower
+				the capital costs and test time much the same as the system level tests. The higher the
+				integration, the less the individual IP blocks will be accessible through the higher integrated
+				TAMs.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>The trend of the consumer market to demand that costs are
+				reduced for mass market applications like a cell phone will continue into the future. COT is an
+				important part of this. Full capability still needs to be there but ways need to be developed to
+				reduce the cost. The IC manufacturers have found a way to do this by further integration of what
+				used to be a chip set, down into a multi-die SIP.</p><p>This approach adds greatly to the
+				complexity of the test solution including areas such as DFT discipline, increased DUT board
+				complexity and requiring an engineering team approach to meet the TTR requirements for a complex
+				IC. Even the test philosophy can potentially change at the higher integration level, with system
+				level test being a viable alternative to the IP test block mentality.</p><p>ATE manufacturers
+				need to lead similar trends in the test world. Verigy has contributed in this area across all of
+				the disciplines and even the architecture of the platform. The architecture of the platform
+				supports common hardware and software and even common test heads that scale from the 0 footprint
+				Compact test heads all the way up to Large test heads capable of 4096 digital pins. Software
+				licensing allows speed, memory, PPTIA availability and number of resources to be configured.
+				While the licensing allows great flexibility, also the number of resources per card has
+				increased including MB AV8 with 8, DC Scale DPS32 with 32, VI32 with 32, the Port Scale RF with
+				24 and the PS400 with 64 pins.</p><p>These solutions will continue to help drive down the COT
+				for consumer applications like PMIC and the single chip cell phone as shown in Figure Six.</p><div class="p"><figure class="fignone">
+					
+					<img src="104908.jpg" alt="Integrated SIP cell phone solution">
+				</figure></div></section>
+		<section class="section"><h2>References</h2><ol>
+				<li>Application exchange DC parametric program example. Jeff Brenner: device segment lead of the
+					team.</li>
+				<li>An introduction to Mixed-Signal IC Test and Measurement, by Mark Burns and Gordon W.
+					Roberts. Oxford University Press, 2001. ISBN 0-19-514016-8.</li>
+				<li>Semicon Taiwan 2007 paper " SIP challenges, the ATE View" by Thomas Herbst, Senior Director
+					of Marketing, Verigy.</li>
+			</ol></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 104672</span><script type="text/javascript">var ti='104672';var tt='PMIC Testing on Multi-Discipline Complex SIPs'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

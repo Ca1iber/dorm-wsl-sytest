@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Specifies a name of a pattern on which dynamic DC measurements can be performed."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>label()</title><meta name="keywords" content="pattern vector label"></head><body id="_351200"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351200</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">label()</h1>
+	
+	
+	<div><p>Specifies a name of a pattern on which dynamic DC measurements can be
+		performed.</p>
+		<section class="section">
+			<p>You can use <a href="148656.htm" title="Specifies a line number in a pattern where you want to apply dynamic DC measurement actions.">insertVec()</a> to set a specific line in the pattern to start dynamic DC
+				measurements. </p>
+			<p>The function can also work together with <a href="150932.htm" title="This function inserts one or more subroutines with DC, PPMU or BADC actions into an existing pattern.">insertSub()</a> to insert subroutines,
+				existing sublabel or DC actions to the main label or a sublabel. </p>
+			<p>The specified label must be the main label, not a burst label or subroutine.</p>
+		</section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">label(const string&amp; <span class="keyword">sLabelName</span>);</pre><table><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th id="_351200__entry__1">
+								<p>Parameter</p>
+							</th>
+							<th id="_351200__entry__2">
+								<p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td headers="_351200__entry__1">
+								<p><span class="keyword">sLabelName</span></p>
+							</td>
+							<td headers="_351200__entry__2">
+								<p>The name of the pattern on which dynamic DC measurements can be performed.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			
+			<p>Working together with <span class="keyword">insertVec()</span></p>
+			<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc("dynamic").label("label")
+                   .pin("pinA")
+                   .insertVec(55).vForce(5)
+                   .insertVec(90).vForce(3) // here, the line number cannot be lower than 87.
+                   .pin("pinB")
+                   .insertVec(65). vMeas()
+                   .insertVec(185).vMeas()  // here, the line number cannot be lower than 97.
+                   .execute();
+RDI_END();
+
+double value = rdi.id("dynamic").getValue("pinB");        // only the last measurement result
+
+ARRAY_D values = rdi.id("dynamic").getMultiValue("pinB"); // multiple results </pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<p>Working together with <span class="keyword">insertSub()</span></p>
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  ...
+  rdi.dc("meas").label("abc")
+                .insertSub(10).pin("pinA").vForce(0).iMeas().measWait(0.1 ms)
+                .insertSub(20).pin("pinB").vForce(1 V)
+                              .pin("pinC").vForce(2 V)
+                .insertSub(30).pin("pinA").vForce(0).iMeas().measWait(0.2 ms)
+                .execute();
+  ...
+RDI_END();
+ARRAY_D results = rdi.id("meas").getMultiValue("pinA");</pre><div></div>
+			</div>
+		</div>
+		<div class="example"><h3>Example 3</h3>
+			
+			<div class="p">Working together with <span class="keyword">insertSub()</span> to insert an existing sublabel to a
+				pattern:<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  rdi.dc().label("mainlabel")
+          .insertSub(10).pin(A).vForce(1)
+          .insertSub(15).label("sublabel")
+          .insertSub(10,2).pin(B).vForce(2)
+          .insertSub(20).pin(C).iForce(1 mA).vMeas()
+          .execute();
+RDI_END();</pre></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351200</span><script type="text/javascript">var ti='351200';var tt='label()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

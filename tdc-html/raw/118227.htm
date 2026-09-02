@@ -1,0 +1,135 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The interactive windows that may pop up during the SmarTest startup include the splash screen, the device locking window and the device changing window. To avoid the interaction with these windows, you need to disable these windows before starting SmarTest."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to disable the interactive windows</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_118227"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118227</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to disable the interactive windows</h1>
+	
+	
+	<div><p>The interactive windows that may pop up during the SmarTest startup include the splash
+		screen, the device locking window and the device changing window. To avoid the interaction with
+		these windows, you need to disable these windows before starting SmarTest.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The splash screen appears during SmarTest startup to indicate the SmarTest version you
+				are using. You need to click the <span class="uicontrol">OK </span>button to make it disappear. To make
+				the splash screen disappear automatically, you can use the environment variable
+					<span class="keyword">SA_NO_SPLASH</span>.</p><div class="note"><span class="title">Note</span> The splash screen will disappeared
+				automatically after SmarTest is started for SmarTest 6.5.2 or later versions. So you can omit
+				the step to disable the splash screen for these versions.</div><p>The device locking window
+				pops up when there is a <span class="filepath">lock_file</span> in the device you want to use. To make
+				sure the device locking window does not pop up, you need to remove the
+					<span class="filepath">lock_file</span> in the device you want to use.</p><p>The device changing window
+				pops up when the device in the <span class="filepath">device_in_use</span> cannot be load correctly. To
+				make sure that the device changing window will not pop up, you can use a safe device in the
+					<span class="filepath">.device_inuse_soc@</span><span class="keyword">&lt;hostname&gt;</span> file. This safe
+				device is an empty device.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Prepare a dummy device to be used as the safe device.</p></section>
+		<section class="sectiontitlefake"><h2>Procedure</h2><ol>
+				<li>Set a value to the environment variable <span class="keyword">SA_NO_SPLASH</span>. Any value is
+					useful.</li>
+				<li>Change the device in use to the safe device.<ol type="a">
+						<li>Open the <span class="filepath">.device_inuse_soc@</span><span class="keyword">&lt;hostname&gt;</span> file
+							in your home directory.</li>
+						<li>Modify the <span class="filepath">.device_inuse_soc@</span><span class="keyword">&lt;hostname&gt;</span> file
+							with the safe device. The format of the path is <span class="filepath">device_path/waste</span>.</li>
+					</ol></li>
+				<li>Remove the device locking file of the safe device </li>
+				<li>Remove the device locking file of the target device.</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The interactive windows are disabled and will not appear during the SmarTest startup
+				and device changing.</p></section>
+		<h2>Examples</h2><section><h3>Set a value to SA_NO_SPLASH</h3><p>setenv("SA_NO_SPLASH",1);</p><p>This will
+				disable the appearance of the splash screen during SmarTest startup.</p></section>
+		<section><h3>Change the device in use to the safe device</h3><p>The following example is to
+				disable the device changing
+			window.</p><pre class="prettyprint linenums copyable">int switchDeviceInUse(string &amp;safeDevicePath)
+{
+  struct stat stat_buf;
+  char *HomeDir;
+  ofstream devInUseFs;
+  //  This is the SmarTest default device startup file name
+  //  that will be added to the User's HOME directory path.
+  string dotDevInUseFileName("/..device_inuse_soc@&lt;hostname&gt;");
+
+  //   Get the HOME directory from the system ENV variable.
+  if((HomeDir = getenv("HOME")) == (char *)NULL)
+  {
+     cerr &lt;&lt;  "Smartest_Server:switchDeviceInUse  $HOME variable does not exist!" &lt;&lt; endl;
+     return -1;
+  }
+
+  //  create the .device_inuse_soc@&lt;hostname&gt; full path name based
+  //  on the value of the HOME env variable content.
+  dotDevInUseFileName.insert(0,HomeDir);
+
+  devInUseFs.open(dotDevInUseFileName.c_str(),ios::out);
+
+  if (!devInUseFs.is_open())
+  {
+     cerr &lt;&lt;  "Smartest_Server:switchDeviceInUse  could NOT open .device_inuse_soc@&lt;hostname&gt; file" &lt;&lt; endl;
+     return -1;
+  }
+  else
+  {
+    /**
+     *  Write the new information into the .device_inuse_soc@&lt;hostname&gt; file...
+     *
+     *  NOTE:   We need to append the "/waste" directory to the full 
+     *          device path, as required by SmarTest.
+     **/
+     safeDevicePath.append("/waste");
+     //first check that the device exists
+     if(stat(safeDevicePath.c_str(), &amp;stat_buf))
+     {
+       cerr &lt;&lt; "Smartest_Server:switchDeviceInUse - the device called for  " 
+            &lt;&lt; safeDevicePath &lt;&lt; " does not exist" &lt;&lt; endl;
+       return -1;
+     }
+
+    devInUseFs &lt;&lt; safeDevicePath &lt;&lt; endl;
+    devInUseFs.close();
+    cerr &lt;&lt;"Smartest_Server:switchDeviceInUse successfully modified"&lt;&lt; endl;
+  }
+  return 0;
+}   </pre></section>
+		<section><h3>Remove the lock_file</h3><p>The following example is to disable the device
+				locking
+			window.</p><pre class="prettyprint linenums copyable">int removeLockFile(string &amp;Device)
+{
+  string filename;
+  string command;
+  struct stat stat_buf;
+
+  filename.assign(Device);
+  filename.append("/lock_file");
+
+  if(stat(filename.c_str(), &amp;stat_buf))
+  {
+    cerr &lt;&lt; "Smartest_Server:removeLockFile -  no lock file to remove" &lt;&lt; endl;
+    return 0;
+  }
+
+  command.assign("rm -rf ");
+  command.append(filename);
+
+  if(system(command.c_str()))
+  {
+    cerr &lt;&lt; "Smartest_Server:removeLockFile - command to remove lock file "
+         &lt;&lt; filename&lt;&lt; " failed" &lt;&lt; endl;
+  }
+  else
+  {
+       //file removed
+  }
+
+  if(stat(filename.c_str(), &amp;stat_buf))
+  {
+    cerr &lt;&lt; "Smartest_Server:removeLockFile - lock file " 
+         &lt;&lt; filename &lt;&lt; " was removed" &lt;&lt; endl;
+      return 0;
+  }
+
+  cerr &lt;&lt; "Smartest_Server:removeLockFile - could not remove lock file" &lt;&lt; filename &lt;&lt; endl;
+  return -1;
+} </pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Start SmarTest with HVMAPI in SUPERVISOR and ONLINE mode</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="69770.htm" title="This section provides a list of SmarTest environment variables. Some like LANG are not just specific to SmarTest but affect its proper operation.">SmarTest environment variables</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.4: Renamed .device_inuse_soc file</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118227</span><script type="text/javascript">var ti='118227';var tt='How to disable the interactive windows'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

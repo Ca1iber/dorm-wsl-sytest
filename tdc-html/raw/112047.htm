@@ -1,0 +1,148 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Some examples are provided below to show the usage of HVM API in test execution control."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Example codes of the most often used test control tasks</title></head><body id="_112047"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 112047</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Example codes of the most often used test control tasks</h1>
+	
+	
+	<div><p>Some examples are provided below to show the usage of HVM API in test execution
+		control.</p>
+		<section class="section"><h2>Query SmarTest session
+			information</h2><pre class="prettyprint linenums copyable">//query the session status of the current visible SmarTest sessions.
+ParamList qrResults;
+query("PingSmartestSessions", qrResults);
+vector&lt;string&gt; idList = qrResults.valueArray("SESSION_ID_LIST");
+vector&lt;string&gt; lifeStatusList = qrResults.valueArray("LIFE_STATUS_LIST");
+for (unsigned int i=0; i&lt; idList.size(); i++)
+{
+  string sid = idList[i];
+  string lifeStatus = lifeStatusList[i];
+  cout &lt;&lt; "the session id "&lt;&lt; sid &lt;&lt; " has the life status" 
+       &lt;&lt; lifeStatus &lt;&lt;endl;
+}</pre></section>
+		<section class="section"><h2>Start a SmarTest
+			session</h2><pre class="prettyprint linenums copyable">//start an offline SmarTest session in supervisor mode.
+xoc::hvmapi::ParamList results;  
+xoc::hvmapi::ParamList params;
+params["ONLINE_MODE"] = "OFFLINE";
+params["USER_MODE"] = "SUPERVISOR";
+errObj = xoc::hvmapi::operation("StartSmartestSession",results,params); 
+if (errObj.isSuccess())
+{  
+  sSession=results["SESSION_ID"];
+error_message =   errObj.code() + " : " +  errObj.text();
+    sessionID = results["SESSION_ID"];  
+      
+   } 
+  else
+  {  
+      error_message = errObj.code() + " : " +  errObj.text();
+      return 1; 
+   }
+   
+   return 0;
+}</pre></section>
+		<section class="section"><h2>Change a
+			device</h2><pre class="prettyprint linenums copyable">//change the device to /home/demo/devices/74act299
+Status errObj;
+xoc::hvmapi::ParamList cmdParam;
+session = ":0"; // Use the actual session ID
+cmdParam["DEVICE_PATH"] = "/home/demo/devices";
+cmdParam["DEVICE_NAME"] = "74act299";
+cout&lt;&lt;"ChangeDevice started" &lt;&lt;endl;
+errObj=xoc::hvmapi::command("ChangeDevice",cmdParam,session);
+if(errObj.isSuccess())
+{
+  cout&lt;&lt;"ChangeDevice executed" &lt;&lt;endl;
+}
+else
+{
+  cout&lt;&lt;"ChangeDevice not executed" &lt;&lt;endl;
+  cout&lt;&lt;"error code:" &lt;&lt;errObj.code() &lt;&lt;endl;
+}</pre></section>
+		<section class="section"><h2>Download a test
+			program</h2><pre class="prettyprint linenums copyable">//download the test program tp_tm to the test system
+xoc::hvmapi::ParamList cmdParam;
+cmdParam.setValue("TESTPROGRAM_NAME","tp_tm");
+string session=":0";
+cout &lt;&lt;"DownloadTestprogram started:" &lt;&lt;endl;
+Status errObj = command("DownloadTestprogram", cmdParam,session);
+if(errObj.isSuccess())
+{
+  cout &lt;&lt;"DownloadTestprogram executed" &lt;&lt;endl;
+}
+else
+{
+  cout &lt;&lt;"DownloadTestprogram not executed" &lt;&lt;endl;
+  cout &lt;&lt;"The error code is" &lt;&lt;errObj.code() &lt;&lt;endl;
+}</pre></section>
+		<section class="section"><h2>Execute a test
+			program</h2><pre class="prettyprint linenums copyable">//execute the downloaded test program
+xoc::hvmapi::ParamList cmdParam;
+string session=":0";
+cout &lt;&lt;"ExecTestprogram started:" &lt;&lt;endl;
+Status errObj = xoc::hvmapi::command("ExecTestprogram",cmdParam,session);
+if(errObj.isSuccess())
+{
+  cout &lt;&lt;"ExeTestprogram successfully executed" &lt;&lt;endl;
+}
+else
+{
+  cout &lt;&lt;"Exectestprogram not executed" &lt;&lt;endl;
+  cout &lt;&lt;"The error code is:" &lt;&lt;errObj.code() &lt;&lt;endl;
+}</pre></section>
+		<section class="section"><h2>Query the test head system
+			information</h2><pre class="prettyprint linenums copyable">//get the online SmarTest ID
+string sid;
+ParamList qrResults,qrParams;
+query("GetOnlineSmartestSessionID", qrResults);
+sid = qrResults["SESSION_ID"];
+//get the tester information
+Status retval = query("GetTesterInfo", qrResults, ParamList(), sid);
+if ( retval == SUCCESS ) 
+{
+  vector&lt;string&gt; iidList = qrResults.valueArray("INSTRUMENT_ID_LIST");
+  printf("the TESTHEAD_ID is %s\n", qrResults["TESTHEAD_ID"]);//always 1
+  foreach iid in iidList
+  {
+    printf("Instrument ID is %s\n", iid);
+  }
+}
+//get the test head information
+qrParams ["TESTHEAD_ID"] = qrResults["TESTHEAD_ID"]; 
+query("GetTestHeadInfoByID", qrResults, qrParams, sid);
+vector&lt;string&gt; bidList = qrResults.valueArray("BOARD_ID_LIST");
+printf("The information for the testhead 1 is:\n");
+printf("  &lt;TESTHEAD_TYPE&gt;: %s\n", qrResults ["TESTHEAD_TYPE"]);
+printf("  &lt; DUT_INTERFACE &gt;: %s\n", qrResults ["DUT_INTERFACE"]);
+printf("  &lt;BOARD_ID_LIST&gt;: \n"]);
+foreach bid in bidList
+{
+    printf("     %s\n",  bid);
+}</pre></section>
+		<section class="section"><h2>Query the calibration status and execute DC
+			update</h2><pre class="prettyprint linenums copyable">//get the calibration status
+string sid;
+ParamList qrResults,qrParams;
+query("GetOnlineSmartestSessionID", qrResults);
+sid = qrResults["SESSION_ID"];
+qrParams ["CAL_TYPE"] = "DC_UPDATE"; 
+query("GetCalStatus", qrResults, qrParams, sid);
+
+//execute the DC update calibration if it is outdate
+ParamList opResults;
+If(qrResults["CAL_DATA_VALIDITY"]=="EXPIRED")
+{
+  Status retVal = syncOperation("ExecDCUpdateCal", opResults,
+                                ParamList(), sessionId);
+  if ( ! retVal.isError() ) 
+  { 
+    printf("successful execution, and execution result is %s\n",
+          opResults["CAL_EXEC_STATUS"]);
+  }
+  else {
+  printf("error (code=%s, description=%s), please check your operation",
+      retVal.code(), retVal.text();
+  } 
+}</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 112047</span><script type="text/javascript">var ti='112047';var tt='Example codes of the most often used test control tasks'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

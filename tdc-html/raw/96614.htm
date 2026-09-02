@@ -1,0 +1,82 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API returns the class (Pin Scale or P/C/Ce) of the tester in use."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GET_TESTER_CLASS</title></head><body id="_96614"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 96614</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GET_TESTER_CLASS</h1>
+	
+	
+	<div><p>This API returns the class (Pin Scale or P/C/Ce) of the tester in use.</p>
+		<section class="section"><p>After getting the tester class, you can perform different operations on
+				different platforms. This avoids the risks that occur because of performing the same operation
+				on different platforms.</p></section>
+		<section class="section"><h2>Enumeration Types</h2><p>The enumeration <code>TESTER_CLASS</code> is
+				defined to specify the class of the
+				tester.</p><pre class="prettyprint linenums copyable">namespace TM {
+    enum TESTER_CLASS {
+                       P_C_CE,
+                       PINSCALE,
+                       UNKNOWN_CLASS
+              };
+        } </pre><p>This
+				API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/TestControl.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">Const TESTER_CLASS&amp; GET_TESTER_CLASS();</pre></div><div class="syntax"><h2>Return Value</h2><p>The tester class is returned. For Smart Scale test system,
+				TM::PINSCALE is returned.</p></div>
+		
+		<h2>Example</h2><div class="example"><p>This example is a part of a voltage measurement program. <span class="keyword">pinList</span>,
+					<span class="keyword">preCharge</span>, <span class="keyword">dCurrentRange</span> and
+					<span class="keyword">forceCurrent</span> are parameters defined in the test method.
+					<code>PmuUtil::ppmuPreCharge()</code> is a function defined in
+					<span class="filepath">PmuUtil.hp</span>p of
+				dc_tml.</p><pre class="prettyprint linenums copyable">PPMU_SETTING settingPpmuFirst;
+PPMU_SETTING settingPpmuPrecharge;
+TASK_LIST   tasklist;
+PPMU_CLAMP ppmuClampOn;
+PPMU_CLAMP ppmuClampOff;
+DOUBLE low, high;
+LIMIT limit;
+
+limit.getLow(&amp;low);
+limit.getHigh(&amp;high);
+settingPpmuFirst.pin(pinList)
+                .iRange(dCurrentRange uA)
+                .min(low)
+                .max(high)
+                .iForce(forceCurrent uA);
+/* pinList, dCurrentRange and forceCurrent are the input parameters defined in the program. */
+
+TM::TESTER_CLASS testerClass;
+testerClass = GET_TESTER_CLASS();
+
+/*  1. determine whether to precharge (P/CE) or set the clamp (PinScale)*/
+if( testerClass == TM::PINSCALE )
+{
+  tasklist.add(settingPpmuFirst);
+  /* clamp low/high are fixed to -0.1V/0.1V */
+  ppmuClampOn.pin(pinList)
+             .status("CLAMP_ON")
+             .low(-0.1 V)
+             .high(0.1 V);
+  ppmuClampOn.wait(1 ms);
+  tasklist.add(ppmuClampOn);
+}
+else
+{
+  if ( preCharge == 1)
+  {
+    /* precharge voltage is fixed to 0.0V */
+    PmuUtil::ppmuPreCharge(settingPpmuPrecharge,pinList,0.0,tasklist);
+  }
+  else
+  {
+    tasklist.add(settingPpmuFirst);
+  }
+}</pre><p>The
+				first several lines define the variables that will be used in the measurement. Next, the
+				variable <code>settingPpmuFirst</code> is filled with some data. Then the tester class is
+				retrieved with the <code>GET_TESTER_CLASS</code> API. If it is Pin Scale system, the PPMU
+				clamp voltages are set to +/-0.1V. If it is P/C/Ce system, the precharge voltage is set to 0V or
+				the precharge is disabled according to the parameter
+			<kbd class="userinput">preCharge</kbd>.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="81298.htm">Continuity</a></div><div><a href="81301.htm" title="This test method measures the voltage at any pin. To measure the value of a voltage source, the test method puts the PPMU into the current force/sink mode at the lowest possible current. This causes the PPMU to act as a voltmeter.">DVM</a></div><div><a href="81302.htm" title="This is a general test method for performing DC measurements with the Pin PMU.">GeneralPMU</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 96614</span><script type="text/javascript">var ti='96614';var tt='GET_TESTER_CLASS'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

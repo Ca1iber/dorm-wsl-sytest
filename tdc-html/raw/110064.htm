@@ -1,0 +1,526 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Two Optimized Solutions for PMIC Test with V93000 Resources</title><meta name="keywords" content="93k V93000 V93k 93k 93000, V, 93000"></head><body id="_110064"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 110064</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Two Optimized Solutions for PMIC Test with V93000 Resources</h1>
+	
+	<div>
+		<p>Sophia Zhang, Verigy</p>
+		<p>Paper ID 110064</p>
+		<section class="section"><h2>Abstract</h2><p>Power management ICs (PMICs) is a critical part of portable
+				consumer appliances. IC testing engineers are now facing a new level of challenge to test PMIC
+				parameters faster with higher accuracy to meet low cost requirement. This paper introduces 2
+				optimized and high efficient test solutions to measure PMIC parameters using V93000 DC
+				resources.</p><p>The first solution will introduce a fast approaching method to test one key LDO
+				parameter - <span class="keyword">Vdropout</span>. This method can get the exact
+					<span class="keyword">Vdropout</span> condition within two steps. Comparing to conversial voltage-ramping
+				method, it will dramatically save over 80% test time and make it possible to put
+					<span class="keyword">Vdropout</span> test into production.</p><p>The second solution will introduce a <em>one-time-running</em> method. This solution will use
+				V93000 DC resources (DC-scale, MS-DPS and Gang-PPMU) or AV8-digitizer in parallel to measure
+				multiple static and dynamic parameters of LDO and DC/DC in one <em>integrated</em> test.</p></section>
+		<section class="section"><h2>Key Words</h2><p>LDO, DC/DC, Switch-IC, PWM, PFM, PMIC, PSRR, Dropout voltage, Ripple, <em>fast-approaching</em>,
+					<em>one-time-running</em></p></section>
+		<section class="section"><h2>Two Basic Voltage Regulators</h2><p>General PMICs include many voltage
+				regulators (LDO, BUCK or BOOST) which play a very important role. The voltage regulator's main
+				function is to provide a clean, fixed supply voltage to other SOC modules or devices (i.e.,
+				CODEC, RF, Logic, LCD). Without voltage regulation, changes in these modules or devices would
+				cause havoc.</p><p>There are two basic kinds of regulators structure, they are:</p><ul>
+				<li>Linear regulator</li>
+				<li>Switch-mode regulator or DC/DC converter</li>
+			</ul></section>
+		<section class="section"><h2>Linear Regulator(LDO)</h2><p>Linear regulators are based on devices that
+				operate in their linear region - in contrast, a switching regulator is based on a device forced
+				to act as an on/off switch - with the topology shown in Figure 1. As a basic voltage regulator,
+				its main components are a series pass transistor (bipolar transistor or MOSFET), differential
+				error amplifier, and precise voltage reference. One input to the differential error amplifier,
+				set by resistors R1 and R2, monitors a percentage of the output voltage. The other error
+				amplifier input is a stable voltage reference (VREF). If the output voltage increase relative to
+				VREF, the differential error amplifier changes the pass-transistor's output to maintain a
+				constant output load voltage (VOUT).</p><div class="p"><figure class="fignone">
+					<img src="110068.png" alt="Opti_Sol Figure 1. Linear Regulator Topology">
+				</figure></div><p><strong>Figure 1. Linear Regulator Topology</strong></p><p><strong>LDO</strong> stands for <strong>L</strong>ow
+					<strong>D</strong>rop <strong>O</strong>ut, which is a type of linear regulator. All linear regulators for cellular
+				phone is LDO type.</p><p>Detail about LDO dropout voltage and V93000 solution about it will be
+				described the following section of this paper.</p></section>
+		<section class="section"><h2>Switch-mode Regulator (DC/DC)</h2><p>A switching regulator is a power processor
+				in which the power handling devices are operated as switches in either ON or OFF positions. A
+				given topology is used to obtain a specific result, such as voltage step-down, voltage step-up,
+				or voltage step-up and current step-up.</p><p>The regulation process of a switch mode converter
+				is performed via the pulse width modulator with a control voltage derived from the output of the
+				converter.</p><p>To achieve high efficiency at low output loading PFM-PWM topology will be
+				usually employed in switching devices. With such topology the device automatically switches
+				between PWM (Pulse Width Modulation) and PFM (Pulse Forced Modulation) depending on the value of
+				the output current. Under low load conditions, the device goes into PFM mode, which implies that
+				it is not switching at all times. This is the feature that allows the device to achieve high
+				efficiency at very low output currents. When the device is operating at higher loads, the device
+				is in PWM mode and delivers very efficient performance (greater than 90%).</p><div class="p"><figure class="fignone">
+					<img src="110069.png" alt="Opti_Sol Figure 2. PWM_PFM _ Switching Modulation for Low Power Loss">
+				</figure></div><p><strong>Figure 2. PWM/PFM - Switching Modulation for Low Power Loss</strong></p><p>In the
+				implementation of switch mode regulator, one or more of three basic configures are usually
+				employed, other circuit topologies are usually derived from one or more of these configurations.
+				These three basic configuration are the BUCK converter (Step-down), the BOOST converter
+				(Step-up), and the BUCK-BOOST converter (Step-up-down). They are <em>basic</em> in the sense that
+				only one switch is used and there is no isolation from the output circuits.</p><div class="p"><figure class="fignone">
+					<img src="110070.png" alt="Opti_Sol Figure 3. BUCK Topology">
+				</figure></div><p><strong>Figure 3. BUCK Topology</strong></p><p>Figure 3 shows a simplified buck converter
+				that accepts a dc input and uses pulse-width modulation (PWM) of switching frequency to control
+				the output of an internal power MOSFET (Q1). An external Schottky rectifier diode, together with
+				external inductor and output capacitors, produces the rectified, filtered dc output. The
+				regulator IC compares a portion of the rectified dc output with a voltage reference (VREF) and
+				varies the PWM duty cycle (on-time vs. total switch period) to maintain a constant dc output
+				voltage. If the output voltage increases slightly due to a reduced load, the PWM briefly lowers
+				its duty cycle to reduce the regulated output, keeping it at its proper voltage level.
+				Conversely, if the output voltage tends to go down, the feedback causes the PWM duty cycle to
+				briefly increase and maintain the proper output.</p></section>
+		<section class="section"><h2>Comparing Linear Vs. Switching Regulators</h2><p>The following table shows us
+				the comparison result of linear and switch-mode regulator from a different aspect.</p><table class="frame-topbot"><caption><span>Table 1. Comparison Between Linear and Switch-Mode Regulators</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_110064__entry__1"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110064__entry__2"><p>Linear</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110064__entry__3"><p>Switching</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Function</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>Only steps down; input voltage must be greater than output.</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>Steps up, steps down, or inverts</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Efficiency</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>Low to medium, but actual battery life depends on load current and battery voltage
+									over time; high if <span class="keyword">Vin-Vout</span> difference is small.</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>High, except at very low load currents (µA), where switch-mode quiescent current is
+									usually higher.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Waste Heat</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>High, if average load and/or input/output voltage difference are high</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>Low, as components usually run cool for power levels below 10 W</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Complexity</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>Low, which usually requires only the regulator and low-value bypass capacitors</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>Medium to high, which usually requires inductor, diode, and filter caps in addition
+									to the IC; for high-power circuits, external FETs are needed</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Size</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>Small to medium in portable designs, but may be larger if heatsinking is needed</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>Larger than linear at low power, but smaller at power levels for which linear
+									requires a heat sink</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Total Cost</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>Low</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>Medium to high, largely due to external components</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__1"><p>Ripple/Noise</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__2"><p>Low; no ripple, low noise, better noise rejection.</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__3"><p>Medium to high, due to ripple at switching rate</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Key Test Items for LDO and DC/DC</h2><p>General test items for LDO and
+				BUCK/BOOST:</p><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><ol>
+									<li><strong>Accuracy</strong></li>
+									<li><strong>Line Regulation</strong></li>
+									<li><strong>Load Regulation</strong></li>
+									<li><strong>Dropout Voltage</strong></li>
+									<li>PSSR</li>
+									<li>Current Limit</li>
+									<li>Ground Pin Current<p>&nbsp;</p></li>
+								</ol></td>
+							<td class="colsep-0 rowsep-0"><ol>
+									<li><strong>Accuracy</strong></li>
+									<li><strong>Line regulation</strong></li>
+									<li><strong>Load regulation</strong></li>
+									<li>PSRR</li>
+									<li>Current Limit</li>
+									<li>Ripple voltage</li>
+									<li>Switching frequency </li>
+									<li>Duty </li>
+									<li>Rds(on)</li>
+								</ol></td>
+						</tr>
+					</tbody></table><p>The key and must-do tests:</p><ul>
+				<li><strong>Accuracy</strong> at normal</li>
+				<li><strong>Load_regulation</strong> at different Vin when Loading current is fixed</li>
+				<li><strong>Line_regulation</strong> at different Loading current when Vin is fixed</li>
+			</ul></section>
+		<section class="section"><h2>What Is The Test Challenge For These Key Tests?</h2><ul>
+				<li>Each of these tests may be repeated across numerous variations of programmed codes, Line
+					voltages and Load currents.</li>
+				<li>There may be numerous cores with unique code, line and load requirements.</li>
+				<li>We need to do all this fast, and in parallel!</li>
+			</ul><p>Facing these challenges, we will introduce two optimized solutions for key PMIC
+				parameters:</p><ul>
+				<li><em>fast approaching</em> Solution for LDO Vdropout test</li>
+				<li><em>one-time-running</em> solution for LDO and DC/DC parameters</li>
+			</ul></section>
+		<section class="section"><h2>"Fast Approaching" Solution for LDO Vdropout Test</h2></section>
+		<section class="section"><h2>What is dropout voltage?</h2><p>Low dropout refers to the difference between
+				the input and output voltages that allow the IC to regulate the output load voltage. That is, an
+				LDO can regulate the output load voltage until its input and output approach each other at the
+				dropout voltage. Ideally, the dropout voltage should be as low as possible to minimize power
+				dissipation and maximize efficiency. Typically, dropout is considered to be reached when the
+				output voltage has dropped to 100 mV below its nominal value. The load current and pass
+				transistor temperature affect the dropout voltage.</p><p>All linear regulators for cellular
+				phone are LDO type. Dropout voltage is one of the most important and must-to-test parameters for
+				LDO.</p><div class="p"><figure class="fignone">
+					<img src="110071.png" alt="Opti_Sol Figure 4. Vdropout Definition">
+				</figure></div><p><strong>Figure 4. Vdropout Definition</strong></p></section>
+		<section class="section"><h2>Vdropout Test Conditions</h2><p>Traditionally it needs to apply an input
+				voltage one Volt above the LDO's nominal output and then to load the device with the specified
+				test current. Assume the tester applies 4.3 V to a 3.3 V LDO regulator. The tester measures the
+				output voltage (assume it measures 3.3V) and then reduces the input voltage until the output
+				voltage drops by 100 mV to 3.2 V. This type of test defines dropout as the input voltage minus
+				the output voltage at this point. Thus, if <span class="keyword">Vin</span> = 3.5 V when
+					<span class="keyword">Vout</span> = 3.3 V, the LDO regulator has a 300 mV <em>dropout voltage</em>. The
+				data sheet for an LDO tested this way will include a note such as: "<em>Dropout voltage</em> is
+				defined as the differential voltage between <span class="keyword">Vout</span> and <span class="keyword">Vin</span>
+				when <span class="keyword">Vout</span> drops 100 mV below the value measured with <span class="keyword">Vin = Vout +
+					1V</span>."</p><div class="p"><figure class="fignone">
+					<img src="110072.png" alt="Opti_Sol Figure 5. Traditional Vdropout Test Method (1)">
+				</figure></div><p><strong>Figure 5. Traditional Vdropout Test Method (1)</strong></p></section>
+		<section class="section"><h2>Vdropout Test Implementation</h2><p><strong>Traditional Test Method for Vdropout
+					Test</strong></p><p>Input pin:</p><ul>
+				<li>Use DPS and AWG to generate a ramp-down waveform</li>
+			</ul><p>Output pin:</p><ul>
+				<li>Using DC-Scale/gang-ppmu to force expected current</li>
+				<li>Using Digitizer to capture the output waveform</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="110078.png" alt="Opti_Sol Figure 6. Traditional Vdropout Test Method (2)">
+				</figure></div><p><strong>Figure 6. Traditional Vdropout Test Method (2)</strong></p><p>During testing, all
+				these input and output resources work in parallel. The waveforms of input-AWG and
+				output-digitizer captured must be synchronous.</p><p>A complex post-data-analysis must be
+				performed to find the time point when <span class="keyword">Vout</span> dropped from normal value to 100
+				mV. After get this time point, the corresponding <span class="keyword">Vin</span> value can be calculated.
+				To assure the synchronization of input-AWG and output-digitizer, sometime an additional
+				input-digitizer will be added in the LDO input pin like below figure.</p><p>The disadvantages of
+				this traditional test method are:</p><ul>
+				<li>Additional AWG and digitizer channels are needed. It increases the complexity of L/B design
+					as well as test program developing and debugging.</li>
+				<li>Complex post data-analyze</li>
+				<li>Long test time costs.</li>
+			</ul><p>For most LDO devices, <span class="keyword">Vdropout</span> value is about 500~200 mV. When testing
+					<em>Dropout voltage</em>, it requires creating a very accurate ramp-down; the voltage step always
+				need less than 5 mv. For each step about several ms waiting time is needed. So in general only
+				the waveform will last several seconds. Putting in the current forcing, analog resource setup
+				time, the total time will be too long to be acceptable to customer.</p><p>Now an optimized
+				solution is generated to test this key parameter. It is really simpler and faster. We call it
+				fast approaching method.</p></section>
+		<section class="section"><h2>Fast approaching test method for Vdropout Test</h2><p><strong>Saturation
+				Line</strong></p><div class="p"><figure class="fignone">
+					<img src="110077.png" alt="Opti_Sol Figure 7. Typical FET V-I Graph">
+				</figure></div><p><strong>Figure 7. Typical FET V-I Graph</strong></p><p>First, it is necessary to understand
+				what is happening to the LDO during dropout. A typical LDO has an n-channel or a p-channel FET
+				pass element. The control circuitry modulates the gate of the FET so that it operates in the
+				linear region. Figure-7 shows a typical FET V-I curve. Note that the x-axis in the figure is the
+				FET's drain-to-source voltage, which is <span class="keyword">Vin-Vout</span> for an LDO.</p><p>The FET
+				has a minimum resistance that is shown by the Saturation Line in Figure 7. If the circuit
+				conditions require the FET operate with a lower resistance than the Saturation Line allows, the
+				LDO is in dropout.</p><p>The static FET resistance in this example is calculated by dividing the
+				change in voltage by the change in current. If we hold the current unchanged, the
+					<span class="keyword">Vds=Vin-Vout</span> will be <em>unchanged</em>. That means <span class="keyword">Vin</span> and
+					<span class="keyword">Vout</span> has an approximating linear shape.</p><div class="p"><figure class="fignone">
+					<img src="110076.png" alt="Opti_Sol Figure 8. Vdropout Test (Fixed Iout)">
+				</figure></div><p><strong>Figure 8. Vdropout Test (Fixed Iout)</strong></p><p>Based on this a solution named
+					<em>fast approaching</em> is generated which can get the final result according two steps
+					<em>guessing</em> (two points define one line in geometry).</p><ul>
+				<li>At the beginning the nominal <span class="keyword">Vout</span> value (Named as
+						<span class="keyword">vout_norm_meas</span>) should be tested at the <span class="keyword">Vin_nom</span> which is
+					normally defined as spec-expected <code>Vout(nom) +1V</code> at specified loading
+					value.</li>
+				<li>In the first guess <span class="keyword">Vin</span> will be set as <code>vout_norm_meas
+						-Vdrp_spec</code>, here <span class="keyword">Vdrp_spec</span> is the typical dropout value at same
+					loading current in the spec. Then the following measured <span class="keyword">Vout</span> (named as
+						<span class="keyword">vout_delta</span>) will be the base for the following second guess.<p><strong>Vin_1st
+							=vout_norm_meas - Vdrp_spec</strong></p></li>
+				<li>Second guess: Based on the measured <span class="keyword">Vout</span> value in the 1st guess, 2nd
+						<span class="keyword">Vin</span> value is <em>guessed</em> through following formula:<p><strong>vin_2nd=
+							vin_1st + (vout_norm_meas- vout_delta) - 0.100</strong></p></li>
+			</ul><p>Forcing this <span class="keyword">Vin</span> value and measure the output <span class="keyword">Vout</span>,
+				name as <span class="keyword">vout_delta</span>, then you can get the <span class="keyword">Vdrpout</span> value
+				through <span class="keyword">vin_2nd subtract vout_delta</span>.</p><p>Usually through two time guess you
+				can get the dropout condition with less than 5 mV accuracy which can meet most requirements. If
+				you need more accuracy you can try a third guess using the same rule.</p><p>Pseudo
+					Code:</p><pre class="prettyprint linenums copyable">//get vout at normal vin
+ vout_meas_300[site] 
+ // 1st guess at Vin for dropout condition
+ vin_custom[site]= vout_meas_300[site]-0.200; 
+// get vout data
+vout_delta[site]
+// 2nd guess at Vin apply correction to vin 
+vin_custom[site] = vin_custom[site] + (vout_meas_300[site] - vout_delta[site]) - 0.100; 
+// get vout data
+vout_delta[site]
+vout_delta_300[site]= (vout_delta[site]-vout_meas_300[site])*1000;//mv scale
+ // get dropout data</pre><p><strong>V93000
+					Hardware Implementation</strong></p><p>This test can be implemented by our new DC module (DC Scale)
+				with high accuracy and multi-site efficiency. The old gang-PPMU method is also a choice for
+				it.</p><p>In lab we have used the gang-PPMU method to test it in single site. Total test time is
+				about 70 ms. Compare the old 3 s to 5 s traditional test method, over 80% test time is
+				saved.</p><p>Lab data is shown
+			below:</p><pre class="prettyprint linenums copyable">Execute 'LDO13_DRP_TEST':
+* * * * * * * * * * * * * * * * * * * * * * *
+**** Dropout Test of LDO13
+- - - - - - - - - - - - - - - - - - - - - - -
+* * * * * * * * * * * * * * * * * * * * * * *
+** Load current = -300mA
+
+Vbat = 3.7 V
+ OUT13_s @300mA @3.7V is :3.19857
+Vbat = 3.40857 V
+ OUT13_s @300mA @3.40857V is :3.08228
+Vbat = 3.42485 V
+ OUT13_s @300mA @3.42485V is :3.09859
+
+** Vdropout@300 mA (LDO13) = 326.257mV
+** Vout droppped 99.972 mV (95mV~105mV) 
+
+Total result: PASSED</pre></section>
+		<section class="section"><h2>Conclusion</h2><p>This fast approaching method gets the exactly
+					<span class="keyword">Vdropout</span> condition within two steps. Comparing to conversional
+				voltage-ramping method, it will dramatically save over 80% test time and make it possible to put
+					<span class="keyword">Vdropout</span> test into production.</p></section>
+		<section class="section"><h2>"One-time-running" for PMIC Voltage Regulator</h2><p><em>One-time-running</em> means the integration of many static and dynamic parameters of LDO or
+				DC/DC modules into one <em>integrated</em> test package, which is showed in Figure 9.</p><div class="p"><figure class="fignone">
+					<img src="110075.png" alt="Opti_Sol Figure 9. One Time Runnning Methodology">
+				</figure></div><p><strong>Figure 9. "One Time Runnning" Methodology</strong></p><p>This <em>one time</em>
+				solution will use minimum number of test-condition-change times to get maximum number of test
+				parameters.</p><p>In this methodology:</p><ul>
+				<li>For input pin <span class="keyword">Vin</span>:<p>There are two parts, one is a sine-wave for PSRR
+						test, another is a 3-step-wave (norm, min and max) for load-regulation and
+						line-regulation.</p></li>
+				<li>For Output pin <span class="keyword">Vout</span>:<p>This is just a <code>IFVM</code> waveform
+						which changing the forcing current and measure voltage many times.</p></li>
+			</ul></section>
+		<section class="section"><h2>V93000 hardware implementation</h2><p>Two hardware implementation of this
+					<em>one-time-running</em> solution:</p><ul>
+				<li>Method 1:<p>MS-DPS as input ,n gang-PPMU as force and 1 PPMU as well as one digitizer as
+						sense for output pin</p></li>
+				<li>Method 2:<p>DC_scale(DPS32) channels as input and output</p></li>
+			</ul><p>Obviously Method 2 has much simpler hardware structure, and it will make L/B design and
+				layout simpler.</p></section>
+		<section class="section"><h2>Operation Modes for "One-Time-Running"</h2><p>There are two operation modes for
+				this <em>integrated</em> test-package.</p><ul>
+				<li>Static mode: One time resources setup with dynamic forcing value</li>
+				<li>Dynamic mode: DC-pattern running with several DC setting</li>
+			</ul><p>Let's review V93000 DC resources DC-function mode first:</p><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_110064__entry__27"><p> Resource Functions</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110064__entry__28"><p>DC Scale</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110064__entry__29"><p>PPMU</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110064__entry__30"><p>AV8 Digitizer</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__27"><p>Voltage Force</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__28"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__29"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__30"><p>-</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__27"><p>Voltage Measure</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__28"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__29"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__30"><p>Dynamic</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__27"><p>Current Measure</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__28"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__29"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__30"><p>-</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__27"><p>Current Force</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__28"><p>Static *</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__29"><p>Dynamic/Static</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110064__entry__30"><p>-</p>
+							</td>
+						</tr>
+					</tbody></table><p>* DC Scale provides current load from current clamp.</p><p>- Current clamp DACs not
+				dynamically controlled by Test Processor</p><p><strong>Static Mode Running:</strong></p><p>(* No dynamic
+				parameters such as PSRR, frequency and ripple etc.)</p><p> Implementation Description</p><ul>
+				<li>Method1<p>- Flex DC with Gang-PPMU, DPS-spec_change/DPS_TASK</p></li>
+				<li>Method2<p>- SPMU_task and DPS_TASK/ DPS-spec_change</p>
+					<p>- Higher measurement accuracy</p>
+					<p>- Higher multi-site efficiency.</p></li>
+			</ul><p><em>Lab experiment for static one-time-running</em></p><p>We tested three buck(BUCK1,
+				BUCK2, BUCK3) in parallel.</p><p>For each buck we tested the <span class="keyword">Vout</span> value at
+				three different loading values (2 mA, 30 mA, 300 mA) and 3 <span class="keyword">Vin</span> values(3.2V,
+				3.7 V, 4.2 V). So totally 3*3*3=27 <span class="keyword">Vout</span> values are tested, and all related
+				load-regulation and line-regulation is out at the same time. The total test time is about 300 to
+				400
+					ms.</p><pre class="prettyprint linenums copyable">* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+**** BUCK1, BUCK2, BUCK3 Vout Test 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - -- - - -
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+current_Input_supply pins IN1,IN2,IN3
+ current_force_pins BUCK_all_F
+ current_sense_pins BUCK_all_S
+ ppmu-gangnum/pin 4
+IN1,IN2,IN3(Input Power) = 3.7 V
+ ____ Load current = -2mA ( ** PPMU force/pin is 0.5 mA Active_load/pin is 0 mA )
+ VO1_s @2mA @3.7V = 0.789372 V 
+ VO2_s @2mA @3.7V = 0.844804 V 
+ VO3_s @2mA @3.7V = 1.57686 V 
+
+ ____ Load current = -30mA ( ** PPMU force/pin is 7.5 mA Active_load/pin is 0 mA )
+ VO1_s @30mA @3.7V = 0.780471 V 
+ VO2_s @30mA @3.7V = 0.835826 V 
+ VO3_s @30mA @3.7V = 1.56191 V 
+
+ ____ Load current = -299.999mA ( ** PPMU force/pin is 39.9998 mA Active_load/pin is 35 mA )
+ VO1_s @299.999mA @3.7V = 0.700361 V 
+ VO2_s @299.999mA @3.7V = 0.754401 V 
+ VO3_s @299.999mA @3.7V = 1.4443 V 
+
+ Load-Regulation of VO1_s (2mA_30mA @3.7V) = -8.901 mV 
+ Load-Regulation of VO2_s (2mA_30mA @3.7V) = -8.978 mV 
+ Load-Regulation of VO3_s (2mA_30mA @3.7V) = -14.944 mV 
+ Load-Regulation of VO1_s (2mA_299.999mA @3.7V) = -89.011 mV 
+ Load-Regulation of VO2_s (2mA_299.999mA @3.7V) = -90.403 mV 
+ Load-Regulation of VO3_s (2mA_299.999mA @3.7V) = -132.559 mV 
+
+IN1,IN2,IN3(Input Power) = 4.2 V
+ ____ Load current = -2mA (** PPMU force/pin is 0.5 mA Active_load/pin is 0 mA )
+ VO1_s @2mA @4.2V = 0.787359 V 
+ VO2_s @2mA @4.2V = 0.845114 V 
+ VO3_s @2mA @4.2V = 1.58522 V 
+
+ ____ Load current = -30mA (** PPMU force/pin is 7.5 mA Active_load/pin is 0 mA )
+ VO1_s @30mA @4.2V = 0.780316 V 
+ VO2_s @30mA @4.2V = 0.835749 V 
+ VO3_s @30mA @4.2V = 1.56966 V 
+
+ ____ Load current = -299.999mA (** PPMU force/pin is 39.9998 mA Active_load/pin is 35 mA )
+ VO1_s @299.999mA @4.2V = 0.700438 V 
+ VO2_s @299.999mA @4.2V = 0.753472 V 
+ VO3_s @299.999mA @4.2V = 1.45359 V 
+
+ Load-Regulation of VO1_s (2mA_30mA @4.2V) = -7.043 mV 
+ Load-Regulation of VO2_s (2mA_30mA @4.2V) = -9.365 mV 
+ Load-Regulation of VO3_s (2mA_30mA @4.2V) = -15.564 mV 
+ Load-Regulation of VO1_s (2mA_299.999mA @4.2V) = -86.921 mV 
+ Load-Regulation of VO2_s (2mA_299.999mA @4.2V) = -91.642 mV 
+ Load-Regulation of VO3_s (2mA_299.999mA @4.2V) = -131.631 mV 
+
+IN1,IN2,IN3(Input Power) = 3.2 V
+ ____ Load current = -2mA (** PPMU force/pin is 0.5 mA Active_load/pin is 0 mA )
+ VO1_s @2mA @3.2V = 0.786431 V 
+ VO2_s @2mA @3.2V = 0.844727 V 
+ VO3_s @2mA @3.2V = 1.56757 V 
+
+ ____ Load current = -30mA (** PPMU force/pin is 7.5 mA Active_load/pin is 0 mA )
+ VO1_s @30mA @3.2V = 0.77931 V 
+ VO2_s @30mA @3.2V = 0.835981 V 
+ VO3_s @30mA @3.2V = 1.55278 V 
+
+ ____ Load current = -299.999mA (** PPMU force/pin is 39.9998 mA Active_load/pin is 35 mA )
+ VO1_s @299.999mA @3.2V = 0.699045 V 
+ VO2_s @299.999mA @3.2V = 0.754014 V 
+ VO3_s @299.999mA @3.2V = 1.43377 V 
+
+ Load-Regulation of VO1_s (2mA_30mA @3.7V) = -8.901 mV 
+ Load-Regulation of VO2_s (2mA_30mA @3.7V) = -8.978 mV 
+ Load-Regulation of VO3_s (2mA_30mA @3.7V) = -14.944 mV 
+ Load-Regulation of VO1_s (2mA_299.999mA @3.7V) = -89.011 mV 
+ Load-Regulation of VO2_s (2mA_299.999mA @3.7V) = -90.403 mV 
+ Load-Regulation of VO3_s (2mA_299.999mA @3.7V) = -132.559 mV 
+
+ Line-Regulation of VO1_s @2mA (Vin =3.2-4.2V) = 0.928 mV/V 
+ Line-Regulation of VO2_s @2mA (Vin =3.2-4.2V) = 0.387 mV/V 
+ Line-Regulation of VO3_s @2mA (Vin =3.2-4.2V) = 17.654 mV/V 
+ Total result: PASSED
+Device test PASSED!</pre><p><strong>Dynamic
+					mode running:</strong></p><ul>
+				<li>Method 1<p>One DC pattern can include MS-DPS modulation, MS-DPS Vbump, as well as PPMU
+						SETTING to do the voltage and current forcing and 'Digitizer" to capture output waveform in
+						parallel.</p>
+					<p>All parameters include static (accuracy, line regulation and load regulation) and dynamic
+						(PSRR, ripple, frequency as well as duty etc) can be achieved at the one time.</p></li>
+				<li>Method 2</li>
+			</ul><div class="p"><figure class="fignone">
+					<img src="110074.png" alt="Opti_Sol Dynamic Mode Running Method 2">
+				</figure></div><p>3 or more DC patterns needed, each DC-pattern includes several level
+				changes.</p><p>Current forcing condition should be set before pattern running, input level
+				change and output voltage measure (capture) will be complete in one DC pattern.</p><p>Higher
+				parallel efficiency.</p><p><em>Lab experiment for dynamic one-time-solution</em></p><p>In lab, we
+				used one programmable BUCK as sample, which need to test three programmable values (min, max and
+				typical) at three different loading (0,100mA,300mA) and 3 different vin(3.2,3.7,4.2V). Also
+				dynamic parameters such as frequency, ripple, also need tested.</p><p>Using this dynamic
+					<em>one-time-solution</em>, we only created one DC_pattern,after this pattern running all needed
+				data can be got.</p><p>In DC-pattern:</p><ol>
+				<li>Write the register to set BUCK Vout to the expected out value</li>
+				<li>Setup PPMU to force 3 different loading values(0ma, 100mA, 300mA)</li>
+				<li>Using MS-DPS Vbump to force 3 Vin level (3.7V, 4.2V, 3.2V)</li>
+				<li>Using digitizer to capture the Vout value</li>
+			</ol><p>Figure 10 is the captured waveform in BUCK output pins</p><p>Compared to static mode, we can easily get all the programmable value for LDO and DC/DC, in
+				addition in dynamic mode the dynamic parameters such as ripple, frequency at different loading
+				and duty can also be easily got.</p><div class="p"><figure class="fignone">
+					<img src="110073.png" alt="Opti_Sol Figure 10. Dynamic Lab Result of One Time Runnning">
+				</figure></div><p><strong>Figure 10. Dynamic Lab Result of One Time Runnning</strong></p></section>
+		<section class="section"><h2>Conclusion</h2><p>This "one-time-running" solution uses V93000 DC resources (DC
+				scale, MS-DPS and Gang-PPMU) or AV8-digitizer in parallel in static and dynamic ways to test
+				multiple static and dynamic PMIC parameters.</p><p>Nearly all PMIC key parameters (for example,
+				accuracy, line-regulation, load-regulation, PSRR, PFM frequency, efficiency... etc) will be
+				gotten after "one-time-running". Test time is greatly reduced.</p></section>
+		<section class="section"><h2>References</h2><p>[1] Junichi Miyamoto,Alexander Zuendorf, Martin Schmitz,
+				"PMIC TTT Guide" v.0.52 Sept. 22, 2005</p><p>[2] Hagen Goller "DC measurements on V93000", May
+				2006</p><p>[3] Keita Gunji, "DC Scale AE Training" July.'08</p></section>
+		<section class="section"><h2>Biography</h2><p><strong>Sophia Zhang</strong> is a graduate of Fudan University,
+				Shanghai, with a Master Degree in Microelectronics. Sophia worked in CECT58 as a test engineer
+				from 1997-1999 focused in the digital and mixed-signal field. She worked at Millennium Microtech
+				(Shanghai) Co., Ltd. from 1999 to 2005 as a senior test engineer focused in PMIC, OPA, etc.
+				Sophia has worked for Agilent/Verigy since 2005, now as an application engineer focused in DC,
+				Mixed-signal, etc.</p></section>
+		<section class="section"><h2>Copyright </h2><p>Verigy owns the copyright of all submitted papers. Verigy has
+				the right to reuse the papers as they see fit for the success of VOICE. By submitting this paper
+				you are agreeing to these terms.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 110064</span><script type="text/javascript">var ti='110064';var tt='Two Optimized Solutions for PMIC Test with V93000 Resources'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

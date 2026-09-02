@@ -1,0 +1,86 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Implementing bin_disconnect to overcome the pass or fail site dependency issue</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system"></head><body id="_113365"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113365</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Implementing bin_disconnect to overcome the pass or fail site dependency issue</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This task describes how to implement <span class="keyword">bin_disconnect</span> in your
+				testflow to resolve <a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">the pass or fail site dependency</a>.</p><p>Follow
+				the steps below to insert the <span class="keyword">bin_disconnect</span> test suite into the
+				testflow.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure the test method for disconnecting (<a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a>) has been created. </p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Open the <a href="99271.htm" title="The Flow Data Editor consists of eight pages.">Flow Data Editor</a>.</span>
+			</li><li class="stepexpand">
+				<span>Right-click and choose "<span class="uicontrol">Add Test Suite... Ctrl+N</span>". </span>
+			</li><li class="stepexpand">
+				<span>On the Test Suites page, right-click and select <span class="menucascade"><span class="uicontrol">Add Special Test Suite</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Bin Disconnect</span></span>.</span>
+				<div><p>The <span class="uicontrol">New Test Suite Wizard</span> window opens. </p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Fill in the <span class="uicontrol">Test Method</span> field with your predefined test
+					method (which should have been created following the use model in <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a>). </span>
+				<div>
+					<div class="note"><span class="title">Note</span> You need to input the whole name of the test method, which
+						includes the names of project, class and test method. </div>
+				</div>
+			</li><li class="stepexpand">
+				<span>Leave all setup fields blank.</span>
+				<div><div class="p"><figure class="fignone">
+							<img src="114690.png" alt="ChooseTMforBinDisconnect">
+						</figure></div>
+				</div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>Special test suites like <span class="keyword">bin_disconnect</span> do not appear as icons in
+				the <a href="99280.htm" title="This editor displays the testflow sequence in graphical form and allows you to edit it.">Flow Sequence Editor</a>. </p><p>However, they are displayed at the end of the <a href="99272.htm" title="On the Test Suites page, you can add or delete special test suites and floating test suites. You can also edit the settings of every test suite on this page.">Test Suites page</a> in the Flow Data Editor when sorting by default in the Flow Data Editor as the
+				picture below shows. </p><div class="p"><figure class="fignone">
+					<img src="114741.png" alt="Picture1">
+				</figure></div></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>This is the sample code created following the use model in <a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a>:</p><pre class="prettyprint linenums copyable">ARRAY_I enabledSites;
+INT numEnabledSites;
+INT hwBinNumber, goodBin, reprobe, overon, otherwiseBin;
+STRING hwBinDescription, swBinDescription, swBinNumber;
+
+const string nonshareddisconnect="DLSO(@NONSHARED@); \n RLYC IDLE,OFF,(@NONSHARED@); \n CHRS OFF;
+    \n ACMD \"CNCT\",\"OFF\",(@NONSHARED@); \n FLSH MUX; \n WSDN; \n CNCT OFF,(@NONSHARED@);
+    \n BCMD \"\",ACTION,\"Update\",; PSST OFF;"; 
+
+const string finaldisconnect ="ACMD \"CNCT\",\"OFF\",(@); \n FLSH MUX; \n WSDN; \n SQST OFF;
+    \n CNCT OFF,(@); \n CHRS OFF; \n BCMD \"\",ACTION,\"Update\",; \n PSST OFF; 
+    \n RLYC IDLE,OFF,(@);";
+
+numEnabledSites = GET_ENABLED_SITES(enabledSites);
+cerr &lt;&lt;"#enabledSites: " &lt;&lt; numEnabledSites &lt;&lt; endl;
+
+if(numEnabledSites == 0)  //last site(s) to be disconnected
+{
+    cerr &lt;&lt; "do final disconnect with:  "&lt;&lt; finaldisconnect &lt;&lt; endl;
+    FW_TASK(finaldisconnect);
+}
+else  //not the last site to be disconnected
+{     //only disconnect current site and keep shared resources connected
+
+    cerr &lt;&lt; "do shared disconnect with:  "&lt;&lt; nonshareddisconnect  &lt;&lt; endl;
+    FW_TASK(nonshareddisconnect);
+}
+
+GET_CURRENT_BIN_INFORMATION(&amp;hwBinNumber, hwBinDescription, swBinNumber, swBinDescription, 
+                            &amp;goodBin, &amp;reprobe, &amp;overon, &amp;otherwiseBin);  
+
+cerr &lt;&lt; "hw Bin Description: " &lt;&lt;  hwBinDescription &lt;&lt; endl;
+cerr &lt;&lt; "hw Bin number:" &lt;&lt; hwBinNumber &lt;&lt; endl;</pre><p>The
+				implementation of this test method in a 2-site testflow (site 1 fails, and site 2 passes, while
+				site 1 is in focus as in the figure below) produces the following output in MCDLog file. </p><div class="p"><figure class="fignone">
+					<img src="114751.png" alt="BinDisconnect_MCDLog">
+				</figure></div><p>When site 1 fails and is binned out, site 2 is still enabled. So the site 1 related
+				pins are disconnected and the shared pins of both sites stay connected until site 2 passes and
+				reaches the end of the testflow.</p><p>Since site 2 is the last enabled site, the final
+				disconnect sequence is executed on all pins (using "@").</p><p>From the example above, you can
+				see it is possible to define separate disconnect sequences for different bins.</p><p>Apart from
+				controlling the disconnect behavior in Smartest with a test method in this special
+					<span class="keyword">bin_disconnect</span> test suite, you could also output the desired debug
+				information of each bin via the <a href="105658.htm" title="This API retrieves the bin information of a device. It can only be used in the test method for special test suite bin_disconnect.">GET_CURRENT_BIN_INFORMATION</a> API.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="114351.htm" title="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here.">Description and analysis of the pass or fail site dependency</a></div><div><a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a></div><div><a href="113567.htm" title="The recommended solution to avoid the pass or fail site dependency for Pin Scale systems is the Multibin SmartDisconnect test suite or the Special test suite bin_disconnect for devices which require Keeping the Clock Alive. However, the following tips show workarounds for Pin Scale systems.">Workarounds to avoid the pass or fail site dependency</a></div><div><a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113365</span><script type="text/javascript">var ti='113365';var tt='Implementing bin_disconnect to overcome the pass or fail site dependency issue'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

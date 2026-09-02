@@ -1,0 +1,121 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Creating a label with low level commands</title><meta name="keywords" content="pattern vector label"></head><body id="_59064"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 59064</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Creating a label with low level commands</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The creation of a label with low level commands consists of three main steps, </p><ol>
+				<li>expanding the sequencer area and defining the label, </li>
+				<li>adapting the sequencer program, and </li>
+				<li>downloading the waveform DC/DC power units.</li>
+			</ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Expand the sequencer area and define the label.</span>
+				<div><p>You must expand the sequencer area for the new sequencer program before you can define
+						the label. The size of the sequencer area is defined with the <span class="keyword">DMAS</span> command.
+						The new size must be the old size plus the number of lines for the new program. Thus, you must
+						first determine the current size, then define the new size, and only then define the label, as
+						follows:</p>
+				</div>
+				<ol type="a">
+					<li class="substepexpand">
+						<span><code>DMAS? SQPG,SM,(@)</code></span>
+						<div><p>The system replies:</p>
+							<p><code>DMAS SQPG,SM,9,(@)</code></p>
+						</div>
+					</li>
+					<li class="substepexpand">
+						<span><code>DMAS SQPG,SM,13,(@)</code></span>
+						<div><p>The new size must be 13 because the new
+								sequencer program consists of four lines. The 4 new lines are filled by SmarTest with the
+								dummy instruction <span class="keyword">NOP</span><em>.</em></p>
+						</div>
+					</li>
+					<li class="substepexpand">
+						<span><code>SQLB "test_2",MAIN,9,12,"table1",(@)</code></span>
+						<div><p>Define the label for the default port
+									<span class="keyword">@</span>. The label is associated with the newly created lines 9 to 12 of the
+								sequencer area. <kbd class="userinput">table1 </kbd>is the base wavetable of the label.</p>
+							<p><span class="keyword">SQLB</span> overwrites the
+									<span class="keyword">NOP</span> instructions in lines 9, 10, and 12 with the
+								<span class="keyword">STVA</span>, <span class="keyword">STSA</span>, and <span class="keyword">STOP</span> instructions,
+								respectively.</p>
+							<p>When <span class="keyword">SQLB</span> is issued, the attributes of the new label are also set to
+								their default values. One label attribute is the memory type for the vectors. On a Pin Scale
+								system, the default for the memory type depends on the memory mode. In compatibility mode,
+								it is <span class="keyword">VM</span>. Therefore in this case, you must change the memory type by
+								calling <span class="keyword">SQLA</span> as follows:</p>
+						</div>
+					</li>
+					<li class="substepexpand">
+						<span><code>SQLA LBL,"test_2","PARA_MEM=SM"</code></span>
+					</li>
+				</ol>
+			</li><li class="stepexpand">
+				<span>Adapt the sequencer program.</span>
+				<div><p>The <span class="keyword">STVA</span> instruction created by <span class="keyword">SQLB</span> points to
+						absolute vector area address 0. In order to redirect it to the actual end of the vector areas,
+						where the waveform DC/DC power units for the new label are to be appended, determine the current end of
+						the vector areas, and correct the address accordingly, with the following two commands:</p>
+				</div>
+				<ol type="a">
+					<li class="substepexpand">
+						<span><code>DMAS? PARA,SM,(@)</code></span>
+						<div><p>The system replies:</p>
+							<p><code>DMAS PARA,SM,432,(@)</code></p>
+						</div>
+					</li>
+					<li class="substepexpand">
+						<span><code>SQPG 9,STVA,432,,,(@)</code></span>
+						<div><p>The program now looks as in the figure in <a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector areas</a> except for command line 11,
+								which still contains the dummy instruction <span class="keyword">NOP</span>.
+								Overwrite command line 11 with the <span class="keyword">GENV</span>
+								instruction as follows: </p>
+						</div>
+					</li>
+					<li class="substepexpand">
+						<span><code>SQPG 11,GENV,12,,,(@)</code></span>
+					</li>
+				</ol>
+			</li><li class="stepexpand">
+				<span>Download the waveform DC/DC power units into the vector areas of the pins with
+						<span class="keyword">VECD</span>. In contrast to the sequencer area, you need not expand the parallel
+					vector areas manually before you issue this command. <span class="keyword">VECD</span> extends the vector
+					area of <code>IN1</code> automatically as required.</span>
+				<div><p>There are two ways to call <span class="keyword">VECD</span> with <strong>hpt</strong>:</p>
+					<ul>
+						<li>From the <strong>fw-hpt</strong> prompt (see <a href="10403.htm" title="This is a utility program, provided as part of the SmarTest software, which allows you to execute commands directly from a Linux shell window, while the system software is running. The utility is useful especially when debugging testflow programs.">Executing commands in a shell window using the hpt utility</a>), you can use the variant
+								<span class="keyword">$VECD</span> of the <span class="keyword">VECD</span> command (see
+								<a href="10407.htm" title="A main difference between the two hpt versions concerns the representation of binary data.">Storing and Retrieving Binary Data</a>). When you use <span class="keyword">$VECD</span>, you
+							must specify every <em>bit</em> of your input data by an ASCII
+								<span class="keyword">1</span> or <span class="keyword">0</span>. For the pin
+								<code>IN1</code>, whose vector area segment is displayed in the
+							figure in <a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector areas</a><em>,</em> you would have to issue:
+									<p><code>$VECD
+									PARA,SM,432,16,(IN1),</code></p><p><code>00001011 00001011
+									00001011 00001011 00001011 00000000 00000010 00000100
+								</code></p><p><code>00000101 00000110 00000101 00001000 00000000
+									00000000 00000000 00000000</code></p><p>You can enter the
+								blanks between the individual bytes in order to structure your
+								input.</p></li>
+						<li>When you use <span class="keyword">VECD</span>, every input character represents one <em>byte</em>.
+							You cannot enter values below 32 for <span class="keyword">VECD</span> directly
+							from the <strong>hpt</strong> prompt. However, you can create a command file with
+							an editor like <strong>emacs</strong>, and pass this file to <strong>fw-hpt</strong> (see
+								<a href="10406.htm" title="In fw-hpt, you can put a sequence of commands into a file and pass this file to hpt. The following is an example for such a command file:">Executing Firmware Commands from a Command File</a>). <strong>emacs</strong> would display the
+								<span class="keyword">VECD</span> command for pin <code>IN1</code> as
+							follows: <p><code>VECD
+									PARA,VM,432,16,(IN1),#216^K^K^K^K^K^@^B^D^E^F^E^H^@^@^@^@</code></p><p>Here,
+									<code>#216</code> specifies the length of the binary data.
+								The first digit defines the length of the following number, which,
+								in its turn, specifies the length of the following data. </p><p>Both
+								variants of the command download 16 binary values at the absolute
+								address 432; only the first 12 values are active vectors, but you
+								must specify a complete memory word. This step must be carried out
+								for all pins.</p></li>
+					</ul></div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>See the figure in <a href="119995.htm" title="The memory is organized in words each of which comprises 64 bits. Every sequencer instruction occupies one such word. For the vector areas, the memory words are divided into 8 data units of 8 bits. Every data unit can hold one physical waveform index. Thus, the biggest possible index is 255. The words are accessed from left to right.">Addressing the vector areas</a>.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 59064</span><script type="text/javascript">var ti='59064';var tt='Creating a label with low level commands'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

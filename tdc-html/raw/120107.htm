@@ -1,0 +1,268 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Arms the SMC_backgroundProcessing() method and passes the specified data to it."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SMC_ARM()</title></head><body id="_120107"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120107</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SMC_ARM()</h1>
+	
+	
+	<div><p>Arms the <span class="keyword">SMC_backgroundProcessing()</span> method and passes the
+		specified data to it.</p>
+		<section class="section" id="_120107__s_Important_points"><h2>Important points to consider</h2>
+			
+			<dl>
+				
+					<dt class="dlterm" id="_120107__dle_SMC_ARM_Passing_data_to_the_background_process">Passing data to the background process</dt>
+					<dd><div class="p">Data can be passed to the background process<ul>
+								<li>as member variable of the test method class,</li>
+								<li>by up to eight optional parameters as value,</li>
+								<li>by up to eight optional parameters as reference.</li>
+							</ul><dl>
+								
+									<dt class="dlterm">Passing data as member variable</dt>
+									<dd>The recommended way of passing data to the background process is using class member
+											variables.<p>Member variables of the test method class
+											that are used in a background process must not be
+											changed while the background process is
+											running.</p><div class="p">This restriction also applies to test
+											method parameters defined in the
+												<span class="keyword">initialize()</span> function of a test
+											method class and assigned to member variables of the
+											class: SmarTest initializes these parameters for each
+											execution of the <span class="keyword">run()</span> function to
+											ensure that the conditions are the same for all
+												sites.<div class="caution"><span class="title">CAUTION</span> Parallel access to member
+												variables of a test method class through the
+												<span class="keyword">run()</span> function and a background
+												process may result in invalid data or in a crash of
+												the test method and is therefore not
+											allowed.</div></div></dd>
+								
+								
+									<dt class="dlterm">Passing data by optional parameter as value</dt>
+									<dd>All data that are passed to the background process using the eight optional parameters
+										are copied by the SmartCalc framework. The background
+										process gets only a copy of the data.<p>Be careful with
+											passing large data containers to the background process
+											even though the parameters are only references to the
+											data containers: These data containers are also copied
+											by the framework. This might impact the performance of
+											the test method.</p></dd>
+								
+								
+									<dt class="dlterm">Passing data by optional parameter as reference</dt>
+									<dd>
+										<p>Alternatively you can pass data by the optional
+											parameters as follows, so that only references are
+											used:</p>
+										<ul>
+											<li>use <code>boost::cref()</code> - for constant
+												references</li>
+											<li>use <code>boost::ref()</code> - for non-constant
+												references</li>
+										</ul>
+										<p>For this kind of passing data to the background process,
+											you have to be aware of</p>
+										<ul>
+											<li>memory leaks if the variable is not freed
+												properly,</li>
+											<li>issues of the lifetime of the variable, as the
+												background process will last longer than the
+												<span class="keyword">run()</span> function where it has
+												been armed, and</li>
+											<li>issues regarding thread safety as two or more
+												threads could access the content of the variable at
+												the same time.</li>
+										</ul>
+									</dd>
+								
+							</dl></div>
+					</dd>
+				
+				
+					<dt class="dlterm">Binning of sites while hidden uploads are
+						running</dt>
+					<dd><p id="_120107__d7060e132">The SmartCalc framework
+							automatically synchronizes background threads before sites are binned.
+							For optimized usage of hidden uploads, only background threads that
+							process the sites to be binned should be synchronized.</p><ul>
+							<li id="_120107__d7060e136">For the <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">thread per site</a>, the processed site is
+								automatically defined by the site that was in focus when the
+								background process has been armed by this API. </li>
+							<li>For the <a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">common thread</a>, the SmartCalc frame work will
+								automatically assume that all active sites are processed in the
+								background process. In case a background process utilizes a modified
+								list of sites to process, you must use APIs <a href="348107.htm" title="Arms the SMC_backgroundProcessing() method, passes the specified data to it, and passes also a list of the sites to be processed to the SmartCalc framwork.">SMC_ARM_FOR_SITES()</a>
+								or <a href="348109.htm" title="Arms the SMC_backgroundProcessing() method, passes the name of another test suite and data to it, and passes also a list of the sites to be processed to the SmartCalc framwork. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS_FOR_SITES()</a> to make the modified list of sites
+								accessible for the SmartCalc framework.</li>
+						</ul></dd>
+				
+				
+					<dt class="dlterm">Hidden upload and Mode_contexts</dt>
+					<dd>
+						<p><a href="136161.htm" title="SmartCalc automatically determines the package size of data to be uploaded to the test system controller. It performs an optimized upload behind a currently running test (sequencer execution).">Hidden uploads</a>, controlled and started by <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a> must be finished before a <a href="10652.htm" title="After a digital pin has been defined with DFPN, its type (input or output or both) and operating mode must be configured. This is done with the CONF command. The following table lists which operation modes are supported on the various systems:">Mode context</a> is changed.</p>
+						<p>For changes of the Mode context within a test suite, we recommend calling the API
+								<a href="151642.htm" title="Waits for the end of the execution of all threads which have been started using SMC_ARM().">SMC_SYNCHRONIZE_WITHOUT_BINNING()</a> before the Mode context is changed.</p>
+						<p>For changes of the Mode context over several test suites, we recommend inserting a
+							new test suite with no level-, timing-, or pattern-information defined and assigning the system-prepared test method
+								<span class="keyword">smartCalc.SMC__SYNCHRONIZE</span>.</p>
+					</dd>
+				
+			</dl></section>
+		<section class="section" id="_120107__s_SMC_ARM"><h2>Syntax</h2>
+			
+			
+			<div></div><pre class="prettyprint copyable singleline">void SMC_ARM(value1, value2, value3,.... value8);</pre><div></div>
+			<div class="p">This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SMART_CALC2.h</span>.<div class="note"><span class="title">Note</span> With C++98 there is a compiler warning when using the compile option -Wpedantic in the
+					header.</div></div>
+			<dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd>
+						<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_120107__s_SMC_ARM__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_120107__s_SMC_ARM__entry__2">Description/Range</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120107__s_SMC_ARM__entry__1"><var class="varname">value1</var>&nbsp;...&nbsp;<var class="varname">value8</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120107__s_SMC_ARM__entry__2"><p>Up to eight optional parameters of any type to
+												transfer data to <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>.</p>The parameters of <span class="keyword">SMC_ARM()</span>
+											and your <span class="keyword">SMC_backgroundProcessing()</span>
+											method have to be equal in both the number of parameters
+											and the type of the parameter.</td>
+									</tr>
+								</tbody></table>
+					</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl></section>
+		<section class="section" id="_120107__s_SMC_backgroundProcessing"><h2>SMC_backgroundProcessing()</h2><pre class="prettyprint copyable singleline">void SMC_backgroundProcessing (type value1, type value2, ..., type value8);</pre><div></div>This
+			method must be defined as public method of your test method class. The call of this
+			function is armed by <a href="120107.htm#_120107__s_SMC_ARM">SMC_ARM()</a> in the
+				<span class="keyword">run()</span> function of the same test method class and controlled by
+			the SmartCalc framework.			
+			<p>In case different
+					<span class="keyword">SMC_backgroundProcessing()</span> methods become necessary in your test method
+				class, they need a different number of parameters to be distinguishable (different types is
+				insufficient).</p>
+			<dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd>
+						<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_120107__s_SMC_backgroundProcessing__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_120107__s_SMC_backgroundProcessing__entry__2">Description/Range</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_120107__s_SMC_backgroundProcessing__entry__1"><var class="varname">type&nbsp;value1</var>&nbsp;...&nbsp;<var class="varname">type&nbsp;value8</var></td>
+										<td class="colsep-0 rowsep-1" headers="_120107__s_SMC_backgroundProcessing__entry__2">
+											<p>Up to eight optional parameters of any type that are
+												passed from <a href="120107.htm#_120107__s_SMC_ARM">SMC_ARM()</a>.</p>
+											<p>The parameters of <span class="keyword">SMC_ARM()</span> and
+												your <span class="keyword">SMC_backgroundProcessing()</span>
+												method have to be equal in both the number of
+												parameters and the type of the parameter.</p>
+										</td>
+									</tr>
+								</tbody></table>
+					</dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>There is no return value.</dd>
+				
+			</dl></section>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Passing data by member variables</h3>
+			
+			<p>The following code shows the recommended way of passing data to
+					<span class="keyword">SMC_ARM()</span> and the background process.</p>
+			<div></div><pre class="prettyprint linenums copyable">Class myTestMethod
+{
+protected:
+
+    ARRAY_D data;
+
+    virtual void run()
+    {
+        ON_FIRST_INVOCATION_BEGIN();
+
+            //
+            // Store the data in the member variable of the class
+            //
+            data = ...
+
+            FOR_EACH_SITE_BEGIN();
+
+                SMC_ARM();
+                ...
+
+            FOR_EACH_SITE_END();
+
+        ON_FIRST_INVOCATION_END();
+        ...
+    }
+
+public:
+
+    void SMC_backgroundProcessing()
+    {
+        //
+        // Do some processing in the background
+        //
+        cout &lt;&lt; data[0] &lt;&lt; endl;
+    }
+
+} // Class myTestMethod</pre><div class="note"><span class="title">Note</span> 
+				<p>The example above contains a call of <span class="keyword">cout</span> in function <a href="120107.htm#_120107__s_SMC_backgroundProcessing">SMC_backgroundProcessing()</a>. <span class="keyword">cout</span> is not
+					thread safe. In production test <span class="keyword">cout</span> must never be used in a
+					background process.</p>
+				<p id="_120107__d5627e36">When using <span class="keyword">cout</span> in a background process,
+					you have to expect a mix up of the output in the
+						<span class="uicontrol">ui_report</span> window and possibly other unwanted
+					behavior. For more information, refer to <a href="118825.htm" title="SmartCalc only works properly, if the executed code is thread safe.">Thread safety</a>.</p>
+			</div>
+		</div>
+		<div class="example"><h3>Example 2: Passing data by reference</h3>
+			
+			<p>The following code shows how to pass data by reference to
+					<span class="keyword">SMC_ARM()</span> and the background process.</p>
+			<div></div><pre class="prettyprint linenums copyable">Class myTestMethod
+{
+protected:
+
+    virtual void run()
+    {
+        ...
+        static ARRAY_D data;
+        ...
+        //
+        // Pass the data to SMC_ARM() by reference
+        // Note: no data will be copied due to boost::cref()
+        //
+        SMC_ARM(boost::cref(data));
+        ...
+    }
+
+public:
+
+    //
+    // Your SMC_backgroundProcessing() method uses the reference to 'data'
+    //
+    void SMC_backgroundProcessing(const ARRAY_D&amp; data)
+    {
+        //
+        // Do some processing in the background
+        ...
+    }
+
+} // Class myTestMethod</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div><div><a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a></div><div><a href="348107.htm" title="Arms the SMC_backgroundProcessing() method, passes the specified data to it, and passes also a list of the sites to be processed to the SmartCalc framwork.">SMC_ARM_FOR_SITES()</a></div><div><a href="149774.htm" title="Arms the SMC_backgroundProcessing() method and passes the name of another test suite and data to it. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS()</a></div><div><a href="348109.htm" title="Arms the SMC_backgroundProcessing() method, passes the name of another test suite and data to it, and passes also a list of the sites to be processed to the SmartCalc framwork. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS_FOR_SITES()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120107</span><script type="text/javascript">var ti='120107';var tt='SMC_ARM()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

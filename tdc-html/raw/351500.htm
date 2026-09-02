@@ -1,0 +1,81 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Read register is to read a complete register or multiple registers."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Register read</title></head><body id="_351500"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351500</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Register read</h1>
+	
+	
+	<div><p>Read register is to read a complete register or multiple registers.</p>
+		<section class="section"><h2>Read a register</h2>
+			
+			<p>If a register is read-only, you can use a read operation ID in both the
+					<span class="keyword">read()</span> and <span class="keyword">RA_GET_READ_RESULT()</span> commands to retrieve the
+				register data. If register definitions are not used, you can use a read operation ID and
+				register address in <span class="keyword">RA_READ</span> to retrieve the register data.</p>
+			<p><span class="keyword">RA_GET_READ_RESULT()</span> can be called in the SMC background processing.</p>
+			<p>See <a href="351500.htm#_351500__example_1">Example 1</a>.</p>
+		</section>
+		<section class="section"><h2>Read multiple registers</h2>
+			
+			<p>Protocols can support burst write and read. That means the protocol allows to read multiple
+				data from a start address. The address is automatically incremented.</p>
+			<p>It is optional to define Multiple Read in RA.</p>
+			<p>See <a href="351500.htm#_351500__example_2">Example 2</a> for how to set the protocol and how to use Multiple Read in Test Method.</p>
+		</section>
+		<h2>Examples</h2><div class="example" id="_351500__example_1"><h3>Example 1</h3>
+			
+			<p>Read a register</p>
+			<div></div><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+RDI_BEGIN();
+
+  reg.PERIPHERAL0().REGISTER0().read("READ_ID"); // Read operation ID.
+  
+  // or 
+  // RA_READ("READ_ID", 0x1234 ); // 0x1234 is the address.
+
+RDI_END();
+ON_FIRST_INVOCATION_END();
+
+ULONG64 readResult1 = RA_GET_READ_RESULT("READ_ID"); // Collect the result for the ID.</pre><div></div>
+		</div>
+		<div class="example" id="_351500__example_2"><h3>Example 2</h3>
+			
+			<div class="p">Multiple read: Settings in
+				protocol<div></div><pre class="prettyprint linenums copyable">virtual void defineReadRegister(I2C&amp; i2c, ULONG64 address, int numberOfData) {
+ 
+ i2c.startCondition();
+  i2c.sendByteWithAck(SLAVE_ADDRESS);
+  i2c.sendByteWithAck(address / 256);
+  i2c.sendByteWithAck(address % 256);
+  i2c.startCondition();
+  i2c.sendByteWithAck(SLAVE_ADDRESS + 1); // Read slave address
+
+  if(numberOfData &lt;= 1) {
+    // One data
+    i2c.receiveByteNoAck("outData");
+  } else {
+    // Burst read
+    i2c.loopBegin(numberOfData -- 1);    // Sequence instruction loop
+      i2c.receiveByteAckLow("outData");  // Active ack low
+    i2c.loopEnd();
+    i2c.receiveByteNoAck("outData");     // No ack
+  }
+ i2c.stopCondition();
+}</pre></div>
+			<div class="p">Application in Test
+				Method<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  // Burst read 10 data
+  RA_READ("readArray_ID", START_ADDR, 10 );
+RDI_END();
+
+// Result retrieve
+vector&lt;ULONG64&gt; res;
+
+RA_GET_READ_RESULT_ARRAY("readArray_ID", res);
+
+for(unsigned int i=0;i&lt;res.size();++i) {
+  cerr &lt;&lt; "site[" &lt;&lt; CURRENT_SITE_NUMBER() 
+       &lt;&lt; "], " &lt;&lt; i        &lt;&lt; " : " &lt;&lt; res.at(i) &lt;&lt; endl;
+}</pre></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351500</span><script type="text/javascript">var ti='351500';var tt='Register read'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

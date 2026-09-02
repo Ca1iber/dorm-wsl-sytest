@@ -1,0 +1,166 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The GROUPS section is optional. It consists of the keyword GROUPS, followed by of zero or more group entries. There are four types of groups. Two of these concern multi-port setups and will be explained in The MULTI_PORT_BURST Statement and The MULTI_PORT_TIMING Statement. The other two define the members of single port bursts and the subpatterns (type SVEC) that are called directly from one MAIN pattern, respectively. The format of these latter two statements is as follows:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Structure of the GROUPS Statements</title></head><body id="_37473"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37473</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Structure of the GROUPS Statements</h1>
+	
+	
+	<div><p>The <kbd class="userinput">GROUPS</kbd> section is optional. It consists of the keyword
+			<kbd class="userinput">GROUPS</kbd>, followed by of zero or more group entries. There are four types of
+		groups. Two of these concern multi-port setups and will be explained in <a href="37520.htm" title="The MULTI_PORT_BURST statement is intended for a setup where the timing ports and the vector ports are identical. It is organized as a table. Every column contains the information for one port; every row contains information of a certain type. The information type is determined for most rows by a row header; rows without a header contain pattern names. The pattern rows must follow the rows with headers. The order of the latter is arbitrary.">The MULTI_PORT_BURST Statement</a> and
+			<a href="37521.htm" title="The MULTI_PORT_TIMING statement is intended to define a multi-port timing for a setup where timing ports and vector ports are not identical. It has the same syntax as the MULTI_PORT_BURST statement. In particular, it also requires a CTIM row.">The MULTI_PORT_TIMING Statement</a>. The other two define the members of single port bursts and the
+		subpatterns (type <kbd class="userinput">SVEC</kbd>) that are called directly from one <kbd class="userinput">MAIN
+		</kbd>pattern, respectively. The format of these latter two statements is as
+		follows:</p>
+		<p><kbd class="userinput">(SUBPAT|BURST) (CT|NCT) &lt;</kbd><em>name</em><kbd class="userinput">&gt;
+				{&lt;</kbd><em>patterns</em><kbd class="userinput">&gt;};</kbd></p>
+		<p>The following list explains the components of this statement:</p>
+		<ul>
+			<li><kbd class="userinput">(SUBPAT|BURST)</kbd>: This component defines the type of the group. <p>A
+						<kbd class="userinput">SUBPAT</kbd> group specifies the subpatterns (type
+						<kbd class="userinput">SVEC</kbd>) that are called from a given <kbd class="userinput">MAIN</kbd> pattern.
+					The <kbd class="userinput">MAIN</kbd> pattern and the subpatterns of a <kbd class="userinput">SUBPAT</kbd>
+					group must all belong to the same port. Note that nesting of subpattern calls is currently not
+					supported; all the subpatterns of a <kbd class="userinput">SUBPAT</kbd> group must be called directly
+					from the <kbd class="userinput">MAIN</kbd> pattern.</p>
+				<p>A <kbd class="userinput">BURST</kbd> group specifies the <kbd class="userinput">MAIN</kbd> patterns that
+					are to be called within a burst. This statement will be transferred to the vector configuration
+					file and will be used by the vector translation to create the burst pattern in the vector setup
+					file.</p></li>
+			<li><kbd class="userinput">(CT|NCT)</kbd>: This attribute determines whether timing set changes are
+				allowed (<kbd class="userinput">CT</kbd>) or not allowed (<kbd class="userinput">NCT</kbd>) within the
+				group. This line is not copied into the vector configuration file; but the information it
+				contains is integrated into the pattern configuration (*.vbc) files for the individual patterns
+				of the group.<p>If timing set changes are not allowed, all group elements must be set to
+						<kbd class="userinput">NCT</kbd> in the <kbd class="userinput">PATTERNS</kbd> section; only one timing set
+					is created for all patterns of the group, and if the group elements have different ASCII
+					periods, the common test system cycle length will be calculated as described under
+						<kbd class="userinput">ctim </kbd>in <a href="37462.htm" title="The following list explains all the input columns of the PATTERNS section within the global configuration file. The columns are ordered alphabetically by their name.">The Input Columns</a>.</p>
+				<p>If timing set changes are allowed within the group then different group elements may be
+					associated with different timing sets even if all the group elements are set to
+						<kbd class="userinput">NCT</kbd> in the <kbd class="userinput">PATTERNS</kbd> section. In this case,
+						<kbd class="userinput">CTIM</kbd> instructions must be inserted between the respective group
+					elements, where "between" means before the first vector of the following pattern, or
+					immediately before or after a subpattern call.</p>
+				<p>The principles according to which such group specific <kbd class="userinput">CTIM</kbd>
+					instructions are inserted depend on the group type. </p>
+				<p>If a <kbd class="userinput">BURST </kbd>group is set to <kbd class="userinput">CT</kbd>, the default
+						<kbd class="userinput">CTIM</kbd> instruction is inserted before the first vector of every group
+					element, even if the respective group element is associated with the same timing set as the
+					previous element. If the <kbd class="userinput">BURST </kbd>group is set to
+						<kbd class="userinput">NCT</kbd>, it does not contain any <kbd class="userinput">CTIM</kbd> instruction at
+					all. </p>
+				<p>With a <kbd class="userinput">SUBPAT</kbd> group, the insertion of group specific
+						<kbd class="userinput">CTIM</kbd> instructions is more complex. A <kbd class="userinput">CTIM</kbd>
+					instruction is placed at the start of its <kbd class="userinput">MAIN</kbd> pattern even if the group
+					is set to <kbd class="userinput">NCT</kbd>, and the implementation of <kbd class="userinput">CTIM</kbd>
+					insertions also depends on the <kbd class="userinput">ctim </kbd>parameter of the
+						<kbd class="userinput">MAIN</kbd> pattern. The following table shows which effects the accepted
+					combinations have on the vector translation:</p>
+				<table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><thead>
+							<tr class="rowsep-1">
+								<th class="colsep-0 rowsep-0" id="_37473__entry__1" colspan="2"><p>Timing Set Changes</p>
+								</th>
+								<th class="colsep-0 rowsep-0" id="_37473__entry__2" rowspan="2"><p>Effects</p>
+								</th>
+							</tr>
+							<tr class="rowsep-1">
+								<th class="colsep-0 rowsep-0" id="_37473__entry__3"><p>SUBPAT Group</p>
+								</th>
+								<th class="colsep-0 rowsep-0" id="_37473__entry__4"><p>MAIN pattern</p>
+								</th>
+							</tr>
+						</thead><tbody>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__1 _37473__entry__3"><p><kbd class="userinput">NCT</kbd></p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__1 _37473__entry__4"><p><kbd class="userinput">NCT</kbd></p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__2"><ul>
+										<li><kbd class="userinput">CTIM </kbd>is inserted into the <kbd class="userinput">MAIN </kbd>pattern
+											before the first line of the ASCII vector table instead of the default position before
+											the first vector (by adding <kbd class="userinput">INITIAL_CTIM </kbd>in the pattern
+											configuration file (*.vbc)). This takes care of an ASCII vector table starting with a
+											subpattern call(<kbd class="userinput">JSUB</kbd>).</li>
+										<li>The default insertion of <kbd class="userinput">CTIM </kbd>before the first vector is
+											suppressed for all subpatterns of the group (by specifying the v2b option
+												<kbd class="userinput">-T</kbd> for them in the vector configuration file (*.aiv)).</li>
+									</ul></td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__1 _37473__entry__3"><p><kbd class="userinput">CT</kbd></p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__1 _37473__entry__4"><p><kbd class="userinput">CT</kbd></p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__2"><ul>
+										<li><kbd class="userinput">CTIM </kbd>is inserted before the first vector into all patterns of
+											the group except those subpatterns that also occur in a <kbd class="userinput">SUBPAT
+											</kbd>group with <kbd class="userinput">NCT.</kbd></li>
+										<li><kbd class="userinput">CTIM </kbd>is inserted into the <kbd class="userinput">MAIN </kbd>pattern
+											after every <kbd class="userinput">JSUB </kbd>instruction (by adding the v2b option
+												<kbd class="userinput">-t</kbd> to the<kbd class="userinput">MAIN </kbd>pattern in the vector
+											configuration file (*.aiv)).</li>
+										<li>If required, <kbd class="userinput">CTIM </kbd>is inserted into the <kbd class="userinput">MAIN
+											</kbd>pattern before calling those subpatterns of the group that also occur in a
+												<kbd class="userinput">SUBPAT </kbd>group with<kbd class="userinput">NCT </kbd>(by adding<kbd class="userinput">
+												CTIM_BEFORE_JSUB </kbd>for these subpatterns in the pattern configuration file
+											(*.vbc) of the <kbd class="userinput">MAIN </kbd>pattern).</li>
+									</ul></td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__1 _37473__entry__3"><p><kbd class="userinput">CT</kbd></p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__1 _37473__entry__4"><p><kbd class="userinput">NCT</kbd></p>
+								</td>
+								<td class="colsep-0 rowsep-0" headers="_37473__entry__2"><ul>
+										<li><kbd class="userinput">CTIM </kbd>is inserted into the <kbd class="userinput">MAIN </kbd>pattern
+											before the first line of the ASCII vector table instead of the default position before
+											the first vector (by adding <kbd class="userinput">INITIAL_CTIM </kbd>in the pattern
+											configuration file (*.vbc)). This takes care of an ASCII vector table starting with a
+											subpattern call(<kbd class="userinput">JSUB</kbd>).</li>
+										<li><kbd class="userinput">CTIM </kbd>is inserted before the first vector in all subpatterns of
+											the group except those that also occur in a <kbd class="userinput">SUBPAT </kbd>group with
+												<kbd class="userinput">NCT</kbd>.</li>
+										<li>If required, <kbd class="userinput">CTIM </kbd>is inserted into the <kbd class="userinput">MAIN
+											</kbd>pattern after calling a subpattern of the group (by adding<kbd class="userinput">
+												CTIM_AFTER_JSUB </kbd>for these subpatterns in the pattern configuration file
+											(*.vbc) of the <kbd class="userinput">MAIN </kbd>pattern).</li>
+										<li>If required, <kbd class="userinput">CTIM </kbd>is inserted into the <kbd class="userinput">MAIN
+											</kbd>pattern before calling a subpattern of the group that also occurs in a
+												<kbd class="userinput">SUBPAT </kbd>group with <kbd class="userinput">NCT </kbd>(by
+												adding <kbd class="userinput">CTIM_BEFORE_JSUB </kbd>for this subpattern in the pattern
+											configuration file (*.vbc) of the <kbd class="userinput">MAIN </kbd>pattern).</li>
+									</ul></td>
+							</tr>
+						</tbody></table>
+			</li>
+		</ul>
+		
+		<p>For more details and an example, see <a href="37620.htm" title="A CTIM instruction must be inserted into the sequencer program of a pattern in the following two situations:">Controlling the Automatic Insertion of CTIM Instructions</a>.</p>
+		<ul>
+			<li><kbd class="userinput">&lt;name&gt;</kbd>: For the <kbd class="userinput">SUBPAT</kbd> group type, this
+				must be the name of a <kbd class="userinput">MAIN</kbd> pattern that is defined in the
+					<kbd class="userinput">PATTERNS</kbd> section. For the <kbd class="userinput">BURST </kbd>group type, it is
+				the name of the burst pattern, which can be freely defined within the restrictions for pattern
+				names (up to 128 alpha-numeric characters). </li>
+			<li><kbd class="userinput">{&lt;patterns&gt;}</kbd>: This component specifies the patterns that belong
+				to the group; the names must be separated by blanks. These patterns must be defined in the
+					<kbd class="userinput">PATTERNS</kbd> section with the appropriate type, <kbd class="userinput">SVEC</kbd>
+				for a <kbd class="userinput">SUBPAT </kbd>group, and <kbd class="userinput">MAIN</kbd> for a
+					<kbd class="userinput">BURST </kbd>group.</li>
+		</ul>
+		<p>It is possible to incorporate a <kbd class="userinput">SUBPAT</kbd> group into a
+				<kbd class="userinput">BURST</kbd> group. In this case, if the <kbd class="userinput">BURST</kbd> group is
+			set to <kbd class="userinput">NCT</kbd>, the <kbd class="userinput">SUBPAT</kbd> group must also be set to
+				<kbd class="userinput">NCT</kbd>.</p>
+		<p>The following figure shows a global configuration file with a <kbd class="userinput">SUBPAT</kbd>
+			group that is included in a <kbd class="userinput">BURST </kbd>group.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46161.png" alt="GROUPS Section with Nested BURST and SUBPAT Groups">
+			</figure></div>
+		<div class="note"><span class="title">Note</span> Reuse of the same pattern in more than one group is restricted by the fact that
+			only one pattern configuration file is generated for any pattern. Therefore, groups that share an
+			element must use the same base wavetable and associate the ASCII device cycles of the common
+			element with the same timing sets. For more information on pattern configuration files, see <a href="37618.htm" title="The pattern configuration file is an optional, pattern specific input file for the vector translation. It is generated automatically by the timing translation. If you use the vector translation without the timing translation, you must create this file manually. Note that aiv expects the name of the pattern configuration file to be in the format">The Pattern Configuration File (*.vbc)</a>.</div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37473</span><script type="text/javascript">var ti='37473';var tt='Structure of the GROUPS Statements'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

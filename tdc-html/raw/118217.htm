@@ -1,0 +1,90 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To start SmarTest in the factory automation production environment, you need to:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Initial SmarTest startup of the production environment</title><meta name="keywords" content="Smar, Test"></head><body id="_118217"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118217</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Initial SmarTest startup of the production environment</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="118227.htm" title="The interactive windows that may pop up during the SmarTest startup include the splash screen, the device locking window and the device changing window. To avoid the interaction with these windows, you need to disable these windows before starting SmarTest.">How to disable the interactive windows</a></li><li><a href="118228.htm" title="In the factory automation production environment, SmarTest is usually started in the SUPERVISOR and ONLINE mode. When starting SmarTest with HVMAPI, you can catch and process the HVM API events issued during the startup.">How to start SmarTest with HVMAPI</a></li><li><a href="118231.htm" title="In the factory automation environment, you can use the ChangeDevice API to change to the target device.">How to change to the target device</a></li><li><a href="118232.htm" title="You can use the DownloadTestprogram API to download the test program to the test system. Before downloading the test program, you need to synchronize with the DEVICE_CHANGE_COMPLETED HVMAPI event.">How to load the test program</a></li><li><a href="118233.htm" title="During the SmarTest startup, the HVM API events and the execution error are issued. You need to handle these events and errors in the program automatically for smooth SmarTest startup.">How to manage the alarms through the startup</a></li><li><a href="118230.htm" title="If you Do not want the operators to touch the device setting, you can hide the operation control panel using the Linux system functions.">How to hide the operation control panel</a></li></ol></div></nav>
+	
+	
+	<div><p>To start SmarTest in the factory automation production environment, you need
+		to:</p>
+		<ol>
+			<li>Clean up the SmarTest environment to make sure that SmarTest can be started successfully</li>
+			<li>Disable the interactive windows that may appear during the Startup</li>
+			<li>Start SmarTest with SUPERVISOR and ONLINE mode</li>
+			<li>Change to the target device when the first SMARTEST_SESSION_READY event is received</li>
+			<li>Download the test program when the DEVICE_CHANGE_COMPLETED event is received<p>or execute the
+					BLC client if you are controlling the test logic with BCL API (See <a href="104093.htm">How to execute a BLC from a HVM client</a>.)</p></li>
+			<li>Hide the operation control panel</li>
+		</ol>
+		<p>During the SmarTest startup, you need to manage the issued alarms and take appropriate
+			actions.</p>
+		<p>After SmarTest is started with the target device and the test program is downloaded, you can
+			start the production testing.</p>
+		<p>The HMVAPI commands and events are used in the sequence as shown in the diagram below.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="118699.png" alt="Sequence of HMVAPI commands and events">
+			</figure></div>
+		<p>After the test program is downloaded, you can execute the test program with the HVM API <a href="96463.htm" title="The remote control command tries to execute the test program that has been downloaded to the tester. When the test program is starting to execute, the event TESTPROGRAM_EXEC_STARTED is notified. When the execution is finished, the event TESTPRGROAM_EXEC_COMPLETED is notified.">ExecTestprogram</a>.</p>
+		<h2>Example</h2><div class="example"><p>The following example is the main function of a SmarTest startup program in the
+				factory automation production
+			environment.</p><pre class="prettyprint linenums copyable">int main()
+{
+  ::xoc::hvmapi::ParamList opParams, opResults;
+
+  //clean up the SmarTest environment
+  system("kill_smarTest");
+
+  cout &lt;&lt; "FA: Register handlers" &lt;&lt; endl;
+  //Register the handler for SESSION events
+  if (!xoc::hvmapi::addEventListener (handlerSession, "SESSION")) 
+  {
+    return(1);
+  }
+  //Register the handler for alarms
+  if (!xoc::hvmapi::addEventListener (handlerAlarm, "ALARM"))
+  {
+    return(1);
+  }
+  //Register the handler for DEVICE_CHANGE_COMPLETED event
+  
+  xoc::hvmapi::ParamList aspect;
+  aspect["EXECUTION_STATE"] = "DEVICE_CHANGE_COMPLETED";
+  if (!xoc::hvmapi::addEventListener(handlerDeviceChangeComplete, "EXECUTION", aspect)) 
+  {
+    return(1);
+  }
+    
+  string safe_device;
+  opParams["ONLINE_MODE"] = "OFFLINE";
+  opParams["USER_MODE"] = "SUPERVISOR";
+  safe_device="/home/demo/devices/dummy";
+  removeLockFile(safe_device);
+  //these two calls assure that SmarTest will come up cleanly in a safe device with no lockfile window
+  if(switchDeviceInUse(safe_device))
+  {
+    cout &lt;&lt;"cannot start SmarTest and safe_device does not exist" &lt;&lt;endl;
+   return 1;     
+  }
+  //disable the appearance of the splash screen
+  setenv("SA_NO_SPLASH",1);
+  //Start SmarTest in SUPERVISOR and ONLINE mode
+  ::xoc::hvmapi::Status retVal = operation("StartSmartestSession", opResults, opParams);
+  if(!retVal.isError())
+  {
+    cout &lt;&lt;"Successful startup and the session ID is s%\n" &lt;&lt; opResults["SESSION_ID"] &lt;&lt;endl;
+    //hide the operation control panel
+    hide_op_window();
+  }
+  else
+  {
+    cout &lt;&lt;"\nerror code" &lt;&lt; retVal.code() &lt;&lt;"\nerror description"&lt;&lt; retVal.text()&lt;&lt;endl;
+  }
+  cout &lt;&lt; "FA: eventLoop started, now go to the evenloop" &lt;&lt; endl;
+  xoc::hvmapi::eventLoop();
+  cout &lt;&lt; "FA: eventLoop finished" &lt;&lt; endl;
+
+}
+</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="97227.htm" title="This signature is to register an event listener which will be executed by HVMAPI internal execution thread upon a particular event.">addEventListener</a></div><div><a href="96399.htm" title="This asynchronous event indicates that a device change operation is completed.">DEVICE_CHANGE_COMPLETED</a></div><div><a href="96404.htm" title="This asynchronous event indicates a test program downloading is completed.">TESTPROGRAM_DOWNLOAD_COMPLETED</a></div><div><a href="95802.htm" title="This command triggers the startup of a new SmarTest session. When the startup procedure reaches the start point, the event SMARTEST_SESSION_STARTING will be notified. If there is no failure during the startup, the event SMARTEST_SESSION_READY will be notified and the newly created session ID will be returned. The event SMARTEST_SESSION_READY means that the SmarTest session is ready for use.">StartSmartestSession</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118217</span><script type="text/javascript">var ti='118217';var tt='Initial SmarTest startup of the production environment'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

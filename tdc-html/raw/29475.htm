@@ -1,0 +1,459 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API sends data or GPIB commands, and returns 0 on success, non-zero when timeout occurred."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GPIB_SEND</title></head><body id="_29475"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29475</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GPIB_SEND</h1>
+	
+	
+	<div><p>This API sends data or GPIB commands, and returns 0 on success, non-zero when timeout
+		occurred.</p>
+		<section class="section"><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/GpibMapi.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">INT GPIB_SEND(GPIB_ACTION action);
+INT GPIB_SEND(GPIB_ACTION action, INT address, INT address2);
+INT GPIB_SEND(GPIB_ACTION action, const STRING&amp; command);</pre><p>GPIB_ACTION is a system-defined data type to set a GPIB action.</p><table class="frame-top"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_29475__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1" id="_29475__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_29475__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_29475__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__2"><p>action</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__3"><p>Specifies an action for GPIB or devices on GPIB. You can specify an action, ABORT,
+									CLEAR, LOCAL, LLOCKOUT, REMOTE, TRIGGER, COMMAND, or DATA. For details of each action, see
+									the list below this table.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_29475__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__2"><p>address</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__3"><p>GPIB address (or primary GPIB address) of target devices.</p>
+								<p>Range: 0 to 30 [except 21]</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_29475__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__2"><p><em>address2</em></p>
+								<p>(Optional)</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__3"><p>GPIB secondary address of target device.</p>
+								<p>Range: 0 to 30</p>
+								<p>Default: -1 (Secondary address is not specified)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_29475__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__2"><p>command</p>
+							</td>
+							<td class="colsep-1" headers="_29475__entry__3"><p>GPIB command or data string. This parameter is required if "action" parameter is
+									set to COMMAND or DATA. </p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> The "command" parameter is required if "action" parameter is set to
+				COMMAND or DATA. If you specify the "command" parameter in other case, error occurs at
+				execution.</div></div><div class="syntax"><h2>Actions</h2><ul>
+				<li>ABORT<p>Aborts all activities on the GPIB interface by setting the IFC and REN lines to
+						true, and setting the ATN line to FALSE. This action clears all talker and listener
+						assignments. If you specify the "address" parameter in other case, error occurs at
+						execution.</p></li>
+				<li>CLEAR<p>If the "address" parameter is specified, this action initializes the specified
+						device, and sends the MTA UNL LAG SDC mnemonics onto the GPIB with the ATN line set to true.
+						The initial state depends on each device type. </p>
+					<p>If the "address" parameter is not specified, this action initializes all devices which
+						accept the CLEAR action, and sends the DCL mnemonic onto the GPIB with the ATN line set to
+						true. The initial state depends on each device type. </p>
+					<p>The table below lists the all GPIB mnemonics.</p></li>
+				<li>LOCAL<p>If the "address" parameter is specified, this action sets the specified device to
+						its local control state, and sends the MTA UNL LAG GTL mnemonics with ATN line set to true. </p>
+					<p>If the "address" parameter is not specified, this action sets all devices that have
+						remote/local control capabilities to the local control state by setting the REN line to false.
+						Any existing LLOCKOUT states are canceled. </p></li>
+				<li>LLOCKOUT<p>This action locks out the local button of all devices on the GPIB, thus
+						preventing anyone from interfering with system operations by pressing the local button, and
+						sends LLO onto the GPIB with the ATN line set to true. If a device is in the local control
+						state, the device is not set to the local lockout state. Error occurs if the "address"
+						parameter is specified.</p></li>
+				<li>REMOTE<p>If the "address" parameter is specified, this action sets the specified device to
+						the remote control state, and sets the REN line to true, and sends MTA UNL LAG onto the GPIB
+						with the ATN line set to true.</p>
+					<p>If the "address" parameter is not specified, this action sets all devices that have
+						remote/local control capabilities to the remote control state, and sets the REN line to true.
+					</p></li>
+				<li>TRIGGER<p>If the "address" parameter is specified, this action lets the specified listener
+						device to start some device-dependent action, and sends the UNL LAG GET mnemonics onto the
+						GPIB with the ATN line set to true.</p>
+					<p>If the "address" parameter is not specified, this action lets all listener devices to start
+						some device-dependent action, and sends the GET mnemonics onto the GPIB with the ATN line set
+						to true.</p></li>
+				<li>COMMAND<p>Sends the "command" parameter (GPIB_<em>xxxx</em>) onto the GPIB with the ATN line
+						set to true. The second table below lists the all parameters for this action. Error occurs if
+						the "address" parameter is specified.</p></li>
+				<li>DATA<p>Sends the "command" parameter onto the GPIB with the ATN line set to false. If you
+						use this action, you must set GPIB command, for example, "*RST". Error occurs if the "address"
+						parameter is specified.</p></li>
+			</ul><table><caption><span>GPIB Mnemonics</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>DCL</p>
+							</td>
+							<td class="colsep-1"><p>Device Clear</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>EOI</p>
+							</td>
+							<td class="colsep-1"><p>End or Identify</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>GET</p>
+							</td>
+							<td class="colsep-1"><p>Group Execute Trigger</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>GTL</p>
+							</td>
+							<td class="colsep-1"><p>Go To Local</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>IFC</p>
+							</td>
+							<td class="colsep-1"><p>Interface Clear</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>LAG</p>
+							</td>
+							<td class="colsep-1"><p>Listen Address Group</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>LLO</p>
+							</td>
+							<td class="colsep-1"><p>Local Lockout</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>MLA</p>
+							</td>
+							<td class="colsep-1"><p>My Listen Address (Tester controller's listen address)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>MTA</p>
+							</td>
+							<td class="colsep-1"><p>My Talk Address (Tester controller's talk address)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>PPC</p>
+							</td>
+							<td class="colsep-1"><p>Parallel Poll Configure</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>PPD</p>
+							</td>
+							<td class="colsep-1"><p>Parallel Poll Disable</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>PPE</p>
+							</td>
+							<td class="colsep-1"><p>Parallel Poll Enable</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>PPU</p>
+							</td>
+							<td class="colsep-1"><p>Parallel Poll Unconfigure</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>REN</p>
+							</td>
+							<td class="colsep-1"><p>Remote Enable</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>SDC</p>
+							</td>
+							<td class="colsep-1"><p>Selected Device Clear</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>SPD</p>
+							</td>
+							<td class="colsep-1"><p>Serial Poll Disable</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>SPE</p>
+							</td>
+							<td class="colsep-1"><p>Serial Poll Enable</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>TAD</p>
+							</td>
+							<td class="colsep-1"><p>Talk Address</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>TCT</p>
+							</td>
+							<td class="colsep-1"><p>Take Control</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UNL</p>
+							</td>
+							<td class="colsep-1"><p>Unlisten</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>UNT</p>
+							</td>
+							<td class="colsep-1"><p>Untalk</p>
+							</td>
+						</tr>
+					</tbody></table><table class="frame-none"><caption><span>Parameters for the COMMAND action</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-1 rowsep-1" id="_29475__entry__58"><p>Mnemonic</p>
+							</th>
+							<th class="colsep-1 rowsep-1" id="_29475__entry__59"><p>Decimal Value</p>
+							</th>
+							<th class="colsep-1 rowsep-1" id="_29475__entry__60"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58 _29475__entry__59 _29475__entry__60" colspan="3"><p>Universal Commands</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_UNL</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>63</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Unlisten) Unaddresses all present listeners on the GPIB. You
+									cannot unaddress a specific listener without unaddressing all listeners on the GPIB. This
+									command ensures that the GPIB is cleared of all listeners before addressing a new listener
+									or group of listeners.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_UNT</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>95</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Untalk) Unaddresses a present talker on the GPIB. This
+									command ensures that the GPIB is cleared of a talker before addressing a new talker.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_DCL</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>20</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Device Clear) Resets all devices to device-dependent
+									states.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_LLO</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>17</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Local Lock Out) Locks out local buttons of all devices.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_SPE</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>24</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Serial Poll Enable) Establishes serial poll mode for all
+									devices that are capable of being GPIB talkers, provided they recognize and support the
+									command. This command operates independently of whether the devices being polled have been
+									addressed to talk. When a device is addressed to talk, it returns an 8-bit status byte
+									message.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_SPD</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>25</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Serial Poll Disable) Terminates serial poll mode for all
+									devices.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_PPU</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>21</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Parallel Poll Unconfigure) Unconfigures parallel poll
+									configuration of all devices.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58 _29475__entry__59 _29475__entry__60" colspan="3"><p>Addressed Commands</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_GET</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>08</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Group Execute Trigger) Tells devices currently addressed as
+									listeners to initiate some device-dependent action.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_SDC</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>04</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Selected Device Clear) Resets devices currently addressed as
+									listeners to device-dependent states.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_GTL</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>01</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Go To Local) Returns all devices currently addressed as
+									listeners to their local state.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_PPC</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>05</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Parallel Poll Configure) Tells devices currently addressed
+									as listeners that a secondary command follows. The secondary command must be either
+									Parallel Poll Enable or Parallel Poll Disable.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_TCT</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>09</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Take Control) Passes control of GPIB from present active
+									controller to another device. This device must be capable of becoming an active controller,
+									which usually means it is a computer.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58 _29475__entry__59 _29475__entry__60" colspan="3"><p>Talk and Listen Addresses</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_TA0 - GPIB_TA30</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>64-94</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Talk Address Group) Addresses a talker.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_LA0 - GPIB_LA30</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>32-62</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Listen Address Group) Addresses a listener.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58 _29475__entry__59 _29475__entry__60" colspan="3"><p>Secondary Commands</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_SC0 - GPIB_SC31</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>96-127</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Secondary Command Group) Secondary commands can be used only
+									with another command. Its meaning is device dependent.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58 _29475__entry__59 _29475__entry__60" colspan="3"><p>(If a secondary command follows
+									the Parallel Poll Configure command, then it is interpreted as follows)</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_SC0 - GPIB_SC15</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>96-111</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Parallel Poll enable) Configures devices to respond to
+									parallel polls on a particular data line. The response is device dependent. </p>
+								<p>This command must be preceded by GPIB_PPC.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__58"><p>GPIB_SC16</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__59"><p>112</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_29475__entry__60"><p>(Parallel Poll Disable) Prevents devices from responding to
+									parallel poll.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		
+		<h2>Example</h2><div class="example"><ol>
+				<li><pre class="prettyprint linenums copyable">GPIB_ACTION action = LLOCKOUT;
+GPIB_SEND( action ); </pre><p>The
+							<kbd class="userinput">GPIB_SEND</kbd> API Locks out local buttons of all devices.</p></li>
+				<li><pre class="prettyprint linenums copyable">GPIB_ACTION action = REMOTE;
+INT address = 17;
+GPIB_SEND( action, address );</pre><p>The
+							<kbd class="userinput">GPIB_SEND</kbd> API sets the device at address 17 to the remote control
+						state.</p></li>
+				<li><pre class="prettyprint linenums copyable">STRING command;
+command += GPIB_UNT; //untalk command
+command += GPIB_UNL; //unlisten command
+command += GPIB_TA21; //talker address
+ (testercontroller)
+command += GPIB_LA17; // listener address
+command += GPIB_SDC; // selected device clear
+GPIB_ACTION action = COMMAND;
+GPIB_SEND( action, command);</pre><p>The
+							<kbd class="userinput">GPIB_SEND</kbd> API sends the 5 bytes of the command array onto the GPIB.
+						The GPIB_SDC (selected device clear) command is sent to the device at GPIB address 17.</p>
+					<p>In this case, you can also use decimal expressions to specify the "command" parameter.</p>
+					<p> <kbd class="userinput">STRING command;</kbd></p>
+					<p> <kbd class="userinput">command += 95;</kbd></p>
+					<p> <kbd class="userinput">command += 63;</kbd></p>
+					<p> <kbd class="userinput">command += 85;</kbd></p>
+					<p> <kbd class="userinput">command += 49;</kbd></p>
+					<p> <kbd class="userinput">command += 04;</kbd></p>
+					<p> <kbd class="userinput">GPIB_ACTION action = COMMAND;</kbd></p>
+					<p> <kbd class="userinput">GPIB_SEND(GPIB_ACTION action, command );</kbd></p></li>
+				<li><pre class="prettyprint linenums copyable">STRING command;
+command += "*RST";
+GPIB_ACTION action = DATA;
+GPIB_SEND( action, command );</pre><p>The
+							<kbd class="userinput">GPIB_SEND</kbd> API sends the "*RST" command to the all GPIB instruments
+						connected to the GPIB card for user.</p></li>
+			</ol></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.4.2: ACTION name changed to GPIB_ACTION</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29475</span><script type="text/javascript">var ti='29475';var tt='GPIB_SEND'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

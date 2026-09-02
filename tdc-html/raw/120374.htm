@@ -1,0 +1,360 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>ScanTest (scan_tml)</title><meta name="keywords" content="Scan, Test"></head><body id="_120374"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120374</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">ScanTest (scan_tml)</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><p>Performs a functional test using the specified primaries,
+				retrieves the fail cycles on the <span class="keyword">scanPins</span> from the error map and sends them
+				to the EDL stream for logging in STDF-V4/2007 format. Additionally, it dumps the retrieved fail
+				cycles to the report window and(or) to a text file if the <span class="keyword">output</span> parameter is
+				set to do so.</p><p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_120374__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_120374__entry__2"><p>Type</p>
+							</th>
+							<th class="colsep-1" id="_120374__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><p id="_120374__scanPins"><span class="keyword">scanPins</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3"><p>pin(s) or pin group(s) to collect the failing cycles. It is usually a pin group
+									holding all the scan outputs.</p>
+								<p>Default is @, which means fail cycles of all pins will be collected.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1">
+								<p id="_120374__maxFailsPerPin"><span class="keyword">maxFailsPerPin</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2">
+								<p>int</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3">
+								<p>the maximum number of failing cycles of a pin to be logged</p>
+								<p>Default is -1, which means all the fail cycles will be logged.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1">
+								<p id="_120374__perLabelBasedMaxFails"><span class="keyword">perLabelBasedMaxFails</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2">
+								<p>string</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3">
+								<p>if set to <span class="keyword">true</span>, considers <span class="keyword">maxFailsPerPin</span> as the
+									upper limit of failing cycles to be logged for each label (rather than the whole burst),
+									when a burst label is used.</p>
+								<p>Default is <span class="keyword">false</span>, which means this parameter is disabled and
+										<span class="keyword">maxFailsPerPin</span> is still regarded as the upper limit of failing cycles
+									to be logged across the whole burst.</p>
+								<p>As a sub-parameter of <span class="keyword">cycleNumberPerLabel</span>, it is only visible if
+										<code>cycleNumberPerLabel == true</code> AND <code>maxFailsPerPin &gt; 0</code>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1">
+								<p id="_120374__extraFailureFlag"><span class="keyword">extraFailureFlag</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2">
+								<p>string</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3">
+								<p>this flag lets user know whether there are extra failing cycles discarded by datalog
+									because the total failing cycles count exceeds the <span class="keyword">maxFailsPerPin</span>
+									limit.</p>
+								<p>If set to <span class="keyword">true</span>, adds a flag in datalog which marks whether there are
+									more failing cycles than the logged ones.</p>
+								<ul>
+									<li>When extra failing cycles exist, the <span class="keyword">FAIL_MAP</span> field in the STR
+										record reports <span class="keyword">1</span>.</li>
+									<li>When extra failing cycles do not exist, the <span class="keyword">FAIL_MAP</span> field in the
+										STR record reports <span class="keyword">0</span>.</li>
+								</ul>
+								<p>Default is <span class="keyword">false</span>, which means not to add this flag into datalog.</p>
+								<p>As a sub-parameter of <span class="keyword">maxFailsPerPin</span>, it is only visible if
+										<span class="keyword">maxFailsPerPin</span> &gt; 0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1">
+								<p id="_120374__stopAtSameCycle"><span class="keyword">stopAtSameCycle</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2">
+								<p>string</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3">
+								<p>if set to <span class="keyword">true</span>, compares the first failing cycles reaching the
+										<span class="keyword">maxFailsPerPin</span> limit throughout all scan pins, to find out the lowest
+									failing cycle and stops logging failures when this failing cycle is reached for each
+									pin.</p>
+								<p>Default is <span class="keyword">false</span>, which means this parameter is disabled and datalog
+									stops logging failing cycles when the total failures count exceeds
+										<span class="keyword">maxFailsPerPin</span> for each pin.</p>
+								<p>As a sub-parameter of <span class="keyword">maxFailsPerPin</span>, it is only visible if
+										<span class="keyword">maxFailsPerPin</span> &gt; 0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><p id="_120374__cycleBased"><span class="keyword">cycleBased</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2"><p>int</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3"><p>determines if fail cycles are logged in cycle-based format or pattern‑based format in the STDF
+										<a href="123927.htm" title="The Scan Test Record contains the results of a single scan test execution. In particular, it contains all individual pin and cycle failures. If there are more failures than fit into a single record, there may be STR continuation records. Scan test records are also created if no failures were detected during the scan test.">STR</a> records. Its value can be:</p>
+								<ul>
+									<li>1 (default): cycle-based logging is used, which means that failing cycles are logged in
+										an 'X1' format, any Xmode higher than 1 are decomposed to user cycles.</li>
+									<li>0: pattern‑based logging is used, which means that failing tester cycles are
+										reconstructed and logged in ATPG pattern/offset format in the resulting STDF file. </li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><p id="_120374__includeExpectedData"><span class="keyword">includeExpectedData</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2"><p>int</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3"><p>logs the expected data or not</p>
+								<p>Default is 0, which means the expected data is not logged.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><p id="_120374__testerCycleMode"><span class="keyword">testerCycleMode</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2"><p>int</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3"><p>interprets the cycles as tester cycle or as x-mode cycle</p>
+								<p>Default is 0, which means x-mode cycle. (See <a href="104652.htm" title="Tester cycle is the test period. X-mode cycles are the cycles as created by ATPG (Automatic Test Pattern Generator) or similar tools. One tester cycle may contain more than one x-mode cycles.">X-mode cycles versus tester cycles</a> ) If the parameter
+									includeExpectedData is set to 1, this parameter must be set to 0 whether for x-1 mode or
+									x-N mode.</p>
+								<p>For the x-mode cycle, the wavetable needs to be defined as shown in <a href="99707.htm" title="To display the x-modes in the Pattern Debug Tool, the wavetable contains the STATEMAP section. In this section the xN and x1/N modes are defined.">STATEMAP section of the wavetable</a>. You need to make sure that the wavetable is associated with the scan pattern in the
+									pattern editor. Otherwise, the tester cycle will be logged.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><p id="_120374__output"><span class="keyword">output</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3"><p>specifies if the collected failing cycles are output to the report window and(or) a text file in
+									addation to being sent to the datalog stream. </p>
+								<p> It can be:</p>
+								<ul>
+									<li><kbd class="userinput">none</kbd> : Do not output to thereport window or a text file, only
+										send the failing cycles to the EDL stream</li>
+									<li><kbd class="userinput">File</kbd>: In addation to sending the failing cycles to the EDL
+										stream, output the failing cycles to a text file. The file is named as &lt;test suite
+										name&gt;_&lt;pattern name&gt;_Site&lt;sitenr&gt;_&lt;timestamp&gt; and located in the
+											<span class="filepath">report</span> sub-directory of the current device directory.</li>
+									<li><kbd class="userinput">ReportUI</kbd>: In addation to sending the failing cycles to the EDL
+										stream, output the failing cycles to the report window.</li>
+									<li><kbd class="userinput">ReportUI+File</kbd>: In addation to sending the failing cycles to the
+										EDL stream, output the failing scan cycles both to the UI report window and to a text file
+										in the <span class="filepath">report</span> sub-directory under the device directory.</li>
+								</ul><p>For the details of the output, refer to the example section below.</p>
+								<p>The output of the failing cycles are currently only available for cycle-based format
+										(<span class="keyword">cycleBased</span> = 1).</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><p id="_120374__testName"><span class="keyword">testName</span></p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_120374__entry__3"><p>the test names to be used in this test method. </p>
+								<p>Default is <kbd class="userinput">ScanTest</kbd>. </p>
+								<p>If you want to use the test names defined in the test table or testflow limits, type in
+			the test names manually. Make sure the test names are in the <span class="uicontrol">Test name
+			</span>column of the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in the <span class="uicontrol">Test
+				Name</span> column of Tests page of Flow Data Editor.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_120374__entry__1"><span class="keyword">cycleNumberPerLabel</span></td>
+							<td class="colsep-1" headers="_120374__entry__2">int</td>
+							<td class="colsep-1" headers="_120374__entry__3"><span class="keyword">true</span>: Count failures as <span class="keyword">maxFailsPerPin</span> for each
+								label individually.<p><span class="keyword">false</span>: Count failures as
+										<span class="keyword">maxFailsPerPin</span> through the whole burst.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-1" headers="_120374__entry__1"><span class="keyword">xMode</span></td>
+							<td class="colsep-1" headers="_120374__entry__2">string</td>
+							<td class="colsep-1" headers="_120374__entry__3">sets the expected x-mode for the pattern. TestMethod will issue error message if
+								actual x-mode for a burst label does not match xMode.</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Limits</h2><table><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>ScanTest</p>
+							</td>
+							<td class="colsep-1"><p>This limit is only used to enter the test number.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<h2>Examples</h2><div class="example"><h3>Scan test output</h3>
+			<p>The example shows the content of the scan test output. In the output, the pattern name, the
+				number of total failing cycles, the failed site(s), and the details of each failure are shown.
+				For each failure happened, its cycle number, the failed pin name, the expected result (1 for H
+				and 0 for L) and the received result (1 for H and 0 for L) are listed. The failures are listed
+				according to the order of the cycle number.</p><pre class="prettyprint linenums copyable">Pattern: spec_search
+Total fails: 9
+Site: 1
+fail nr |    cycle number |        pin name | E | R
+----------------------------------------------------
+      1 |               8 |            I/O1 | 1 | 0
+      2 |               8 |            I/O2 | 0 | 1
+      3 |               9 |            I/O2 | 1 | 0
+      4 |               9 |            I/O3 | 0 | 1
+      5 |              10 |            I/O2 | 1 | 0
+      6 |              10 |            I/O4 | 0 | 1
+      7 |              11 |            I/O3 | 1 | 0
+      8 |              11 |            I/O5 | 0 | 1
+      9 |              12 |            I/O3 | 1 | 0</pre></div>
+		<div class="example"><h3>Example of using the maxFailsPerPin parameter</h3>
+			
+			<div class="p">Assume a scan test failed in the following burst. <span class="keyword">maxFailsPerPin</span> is set to
+					5.<table class="frame-all"><caption></caption><colgroup><col style="width:25%"><col style="width:25%"><col style="width:25%"><col style="width:25%"></colgroup><thead>
+							<tr>
+								<th class="colsep-1 rowsep-1" id="_120374__entry__42">Burst</th>
+								<th class="colsep-1 rowsep-1" id="_120374__entry__43">Cycle range</th>
+								<th class="colsep-1 rowsep-1" id="_120374__entry__44">Failing cycles of pin 1</th>
+								<th class="colsep-1 rowsep-1" id="_120374__entry__45">Failing cycles of pin 2</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__42">label 1</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__43">1-10</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__44">5-10</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__45">1-3, 6-8</td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__42">label 2</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__43">11-20</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__44">11</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__45">11-15</td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__42">label 3</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__43">21-30</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__44">21-26</td>
+								<td class="colsep-1 rowsep-1" headers="_120374__entry__45">29</td>
+							</tr>
+						</tbody></table></div>
+			<p>If both <span class="keyword">perLabelBasedMaxFails</span> and <span class="keyword">stopAtSameCycle</span> are
+				set to <span class="keyword">false</span>, failing cycles are logged as follows.</p>
+			<table class="frame-all"><caption></caption><colgroup><col style="width:17.543859649122805%"><col style="width:40.175438596491226%"><col style="width:42.280701754385966%"></colgroup><thead>
+						<tr>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__58">Burst</th>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__59">Failing cycles logged for pin 1</th>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__60">Failing cycles logged for pin 2</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__58">label 1</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__59">5-9 <sup>*</sup></td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__60">1-3, 6-7 <sup>*</sup></td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__58">label 2</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__59">**</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__60">**</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__58">label 3</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__59">**</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__60">**</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__58 _120374__entry__59 _120374__entry__60" colspan="3"><p>*: Only the first 5 failing cycles are logged. All failing
+									cycles that come after them are discarded. If <span class="keyword">extraFailureFlag</span> is set to
+										<span class="keyword">true</span>, the <span class="keyword">FAIL_MAP</span> field of the STR record reports
+										<span class="keyword">1</span> - extra failing cycles happened.</p>**: No data are logged for labels
+								2 and 3 because the burst reaches the <span class="keyword">maxFailsPerPin</span> limit on label
+								1.</td>
+						</tr>
+					</tbody></table>
+			<p>If <span class="keyword">perLabelBasedMaxFails</span> is set to <span class="keyword">true</span>, and
+					<span class="keyword">stopAtSameCycle</span> is set to <span class="keyword">false</span>, failing cycles are
+				logged as follows.</p>
+			<table class="frame-all"><caption></caption><colgroup><col style="width:17.543859649122805%"><col style="width:40.175438596491226%"><col style="width:42.280701754385966%"></colgroup><thead>
+						<tr>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__71">Burst</th>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__72">Failing cycles logged for pin 1</th>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__73">Failing cycles logged for pin 2</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__71">label 1</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__72">5-9 <sup>*</sup></td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__73">1-3, 6-7 <sup>*</sup></td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__71">label 2</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__72">11</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__73">11-15</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__71">label 3</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__72">21-25 <sup>*</sup></td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__73">29</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__71 _120374__entry__72 _120374__entry__73" colspan="3">*: Only the first 5 failing cycles are logged. All failing
+								cycles that come after them are discarded. If <span class="keyword">extraFailureFlag</span> is set to
+									<span class="keyword">true</span>, the <span class="keyword">FAIL_MAP</span> field of the STR record reports
+									<span class="keyword">1</span> - extra failing cycles happened.</td>
+						</tr>
+					</tbody></table>
+			<p>If both <span class="keyword">perLabelBasedMaxFails</span> and <span class="keyword">stopAtSameCycle</span> are
+				set to <span class="keyword">true</span>, failing cycles are logged as follows.</p>
+			<table class="frame-all"><caption></caption><colgroup><col style="width:17.543859649122805%"><col style="width:40.175438596491226%"><col style="width:42.280701754385966%"></colgroup><thead>
+						<tr>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__84">Burst</th>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__85">Failing cycles logged for pin 1</th>
+							<th class="colsep-1 rowsep-1" id="_120374__entry__86">Failing cycles logged for pin 2</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__84">label 1</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__85">5-7 <sup>**</sup></td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__86">1-3, 6-7 <sup>*</sup></td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__84">label 2</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__85">11</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__86">11-15</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__84">label 3</td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__85">21-25 <sup>*</sup></td>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__86">***</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120374__entry__84 _120374__entry__85 _120374__entry__86" colspan="3">*: Only the first 5 failing cycles are logged. All failing
+								cycles that come after them are discarded. If <span class="keyword">extraFailureFlag</span> is set to
+									<span class="keyword">true</span>, the <span class="keyword">FAIL_MAP</span> field of the STR record reports
+									<span class="keyword">1</span> - extra failing cycles happened.<p>**: Pin 1 stops at the same cycle
+									as pin 2 (failing cycle 7, the 1st lowest cycle that reaches the
+										<span class="keyword">maxFailsPerPin</span> limit). All failing cycles larger than 7 are
+									discarded.</p><p>***: Pin 2 stops at the same cycle as pin 1 (failing cycle 25, the 1st
+									lowest cycle that reaches the <span class="keyword">maxFailsPerPin</span> limit). All failing cycles
+									larger than 25 are discarded so no data is logged for pin 2.</p></td>
+						</tr>
+					</tbody></table>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99709.htm" title="The pattern debug tool offers you large flexibility regarding DUT oriented periods:">DUT oriented view - xN and x1/N mode</a></div><div><a href="117961.htm" title="This class holds the result data of a scan test. SCAN_TEST_RESULT and SCAN_TEST_PIN_RESULT are used to send data to the datalog that will show up as STR (Scan Test Record). An instance of the class SCAN_TEST_RESULT can be sent to datalog by calling judgeAndLog_ScanTest() of TESTSET API.">SCAN_TEST_RESULT</a></div><div><a href="104621.htm" title="In conjunction with the PIN_ERROR_MAP_TEST API, this API provides detailed access to functional test results like error counter and fail cycles stored in test processor resources like hardware error counter and error map.">ERROR_MAP_TEST</a></div><div><a href="29356.htm" title="This API executes a functional test. This API starts the digital sequencer to send vectors to the test device and compares the device output data with the expected data. If the all device output data matches the expected data, the result is pass. If not, the result is fail. The result can be returned by the GET_FUNCTIONAL_RESULT() or TEST API (in TEST, specify TM::CONTINUE).">FUNCTIONAL_TEST()</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div><div><a href="70858.htm" title="When creating a device test, all pins to be tested are defined using the Pin Configuration tool. Some of the pins in this pin list are often defined in pin groups. When a test is created using Test Methods, the test is specified for that pin list, and the measurement results are retrieved on a per-pin basis. The measurement results are associated with the pin names, so you must know the pin names of all the pins in the pin list, including the names of the pins in the pin groups, to retrieve the measurement results for all of the pins in the pin list.">PIN_UTILITY</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li><li>SmarTest 7.0.3:  New parameter testName.</li><li>SmarTest 7.0.3:  Test table is supported.</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is supported in
+					TML 2.1.1.</li><li>SmarTest 7.2.1:  New parameter output.</li><li>SmarTest 7.4.4: New parameters "perLabelBasedMaxFails", "extraFailureFlag" and "stopAtSameCycle"
+					to make the parameter "maxFailsPerPin" work for each label and log the extra failures when
+					number of failures exceeds the "maxFailsPerPin" upper limit.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120374</span><script type="text/javascript">var ti='120374';var tt='ScanTest (scan_tml)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

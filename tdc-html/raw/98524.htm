@@ -1,0 +1,243 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DCRM command serves to configure the Error Maps. The DCRM? query returns the current settings."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DCRM, DCRM? - (Digital Compare Result Mode)</title><meta name="keywords" content="DCRM_"></head><body id="_98524"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98524</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DCRM, DCRM? - (Digital Compare Result Mode)</h1>
+	
+	
+	<div><p>The <span class="keyword">DCRM</span> command serves to configure the Error Maps. The
+			<span class="keyword">DCRM?</span> query returns the current settings.</p>
+		<section class="section"><h2>Mode of operation</h2><p>The <em>overview</em> Error Map can be configured
+				in two modes: It either compresses a fixed number of cycles into one result bit, or
+				it returns one result bit for every pattern of a (single- or multi-port) burst. In
+				the fixed mode, you can also define the granularity of the compression.</p><p>The
+				configuration parameters of the <em>detailed</em> Error Map are</p><ul>
+				<li>the maximum number of recorded results per cycle,</li>
+				<li>how the receive edges of one cycle are to be combined into recorded results,
+					and</li>
+				<li>whether only a Pass/Fail code or more detailed error information is to be
+					returned.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><dl>
+				
+					<dt class="dlterm">DCRM</dt>
+					<dd><pre class="prettyprint copyable singleline">DCRM {map},{mode},[bits],["sub_cycles",] {(port_list)}</pre></dd>
+				
+				
+					<dt class="dlterm">DCRM?</dt>
+					<dd><pre class="prettyprint copyable singleline">DCRM? [answer_type,] {map},{(port_list)}</pre><p>returns:</p><pre class="prettyprint copyable singleline">DCRM {map},{mode},[bits],[sub_cycles,] {(port)}</pre></dd>
+				
+			</dl></div><div class="syntax"><h2>Parameters</h2><table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="3"><var class="varname">map</var></td>
+							<td class="colsep-0 rowsep-0" colspan="2">Specifies which error map
+								will be configured. Possible values are:</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">EMAP</span></td>
+							<td class="colsep-0 rowsep-1">Detailed Error Map</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">OVEM</span></td>
+							<td class="colsep-0 rowsep-1">Overview Error Map</td>
+						</tr>
+						<tr id="_98524__row_mode">
+							<td class="colsep-0 rowsep-1"><var class="varname">mode</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">The meaning of this parameter
+								depends on the <var class="varname">map</var> parameter.<ul>
+									<li><var class="varname">map</var> is set to
+											<span class="keyword">EMAP</span>:<p>In this case
+												<var class="varname">mode</var> specifies the maximum number
+											of results that are recorded per cycle. The possible
+											values are 1, 2, 4, 6, 8; 6 is only supported by Smart
+											Scale cards. 1 is the default.</p><p>Note that not all
+											these values are supported on all hardware types.
+											Furthermore certain of these values are only available
+											with one option of the <var class="varname">bits</var>
+											parameter. The details can be found in <a href="128793.htm" title="The following table contains all (and only the) supported combinations of the three commands DCRM, CYRM, and CYRP.">Possible combinations of CYRM, CYRP, and DCRM</a>.</p><p>The number of results can
+											be reduced with the <var class="varname">sub_cycles</var>
+											parameter, but not for <var class="varname">mode</var> values of
+											6 and 8.</p></li>
+									<li><span class="keyword">map</span> is set to
+											<span class="keyword">OVEM</span>:<p>In this case the
+												<span class="keyword">mode</span> parameter controls the
+											compression mode and the compression factor. The
+											following values are allowed:</p><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">FCM</span></td>
+												<td class="colsep-0 rowsep-1">A fixed number of cycles is combined into
+												one result. The number can be defined by a second
+												call of <span class="keyword">DCRM</span>, where the number
+												is specified as the <span class="keyword">mode</span>
+												parameter.</td>
+												</tr>
+												<tr id="_98524__r_LMAP">
+												<td class="colsep-0 rowsep-1"><span class="keyword">LMAP</span></td>
+												<td class="colsep-0 rowsep-1">All cycles of one pattern in a (single-port or multi-port) burst are combined
+															into one result. Note that with this option, 8&nbsp;…&nbsp;15 break cycles are
+															inserted between the patterns of the burst. In the error map, 0&nbsp;..&nbsp;7
+															additional cycles are recorded.<div class="note"><span class="title">Note</span> If you use the LMAP error map mode, <a href="98605.htm" title="If the last test was executed with the overview Error Map in LMAP mode, which implies that the start label was a (single-port or multi-port) burst, then the FLBL? query returns information about the failing labels of the burst within a certain cycle range for a specified port. This information can include the number of the first failing cycle. If this is requested, separate cycle information is returned for every failing pin of the port.">FLBL</a>
+			ignores the <span class="keyword">RETC</span> clearing flag for failures.</div></td>
+												</tr>
+													<tr id="_98524__r_BFLM">
+												<td class="colsep-0 rowsep-1"><span class="keyword">BFLM</span></td>
+												<td class="colsep-0 rowsep-1">All cycles of one pattern in a (single-port
+												or multi-port) burst are combined into one result.
+												With this option, which is only available for
+												Smart Scale, no break cycles are inserted between
+												the patterns of the burst. <div class="note"><span class="title">Note</span> In
+												<span class="keyword">BFLM</span> mode, each pattern in the
+												burst must generate 8 or more
+												cycles.</div></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">cycles</span></td>
+												<td class="colsep-0 rowsep-0"><p>The number of cycles to be
+												compressed in <span class="keyword">FCM</span> mode. It must
+												be divisible by 16. </p>
+												<p>Note that this number is not affected by a
+												switch to <span class="keyword">LMAP</span>. If you switch
+												back to <span class="keyword">FCM</span> the compression
+												factor will be the same as before the switch to
+												<span class="keyword">LMAP</span>.</p>
+												<p>The default is 4096.</p></td>
+												</tr>
+												</tbody></table></li>
+								</ul></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="5"><var class="varname">bits</var></td>
+							<td class="colsep-0 rowsep-0" colspan="2"> Only valid if
+									<span class="keyword">map</span> is set to <span class="keyword">EMAP</span>.
+								Specifies how detailed the recorded error code is to be in case of
+								failure. Possible values are:</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">PF</span></td>
+							<td class="colsep-0 rowsep-1">Only a one bit Pass/Fail result will be returned.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" rowspan="2"><span class="keyword">PFC</span></td>
+							<td class="colsep-0 rowsep-1">In case of failure, a more detailed two bit code will be
+								recorded. This is the default.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0">The meaning of the 2 bit error codes depends on the expected result as follows:<div class="p">
+									<table class="frame-topbot"><caption></caption><colgroup><col><col><col><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-1 rowsep-1" id="_98524__entry__24"></th>
+												<th class="colsep-0 rowsep-1" id="_98524__entry__25" colspan="4">Received</th>
+												</tr>
+												<tr>
+												<th class="colsep-1 rowsep-1" id="_98524__entry__26">Expected</th>
+												<th class="colsep-0 rowsep-1" id="_98524__entry__27">L</th>
+												<th class="colsep-0 rowsep-1" id="_98524__entry__28">I</th>
+												<th class="colsep-0 rowsep-1" id="_98524__entry__29">H</th>
+												<th class="colsep-0 rowsep-1" id="_98524__entry__30">U</th>
+												</tr>
+											</thead><tbody>
+												<tr>
+												<td class="colsep-1 rowsep-1" headers="_98524__entry__24 _98524__entry__26">L</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__27">00</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__28">01</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__29">10</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__30">11</td>
+												</tr>
+												<tr>
+												<td class="colsep-1 rowsep-1" headers="_98524__entry__24 _98524__entry__26">I</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__27">10</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__28">00</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__29">01</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__30">11</td>
+												</tr>
+												<tr>
+												<td class="colsep-1 rowsep-1" headers="_98524__entry__24 _98524__entry__26">H</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__27">01</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__28">10</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__29">00</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__30">11</td>
+												</tr>
+												<tr>
+												<td class="colsep-1 rowsep-1" headers="_98524__entry__24 _98524__entry__26">U</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__27">01</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__28">10</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__29">11</td>
+												<td class="colsep-0 rowsep-1" headers="_98524__entry__25 _98524__entry__30">00</td>
+												</tr>
+											</tbody></table>
+								</div><p>"I" stands for "Intermediate", and "U" stands for "Unstable".
+									Note that you can reconstruct the received result from the
+									expected result and the error code.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" colspan="2">Note that only one error code format
+								is supported for some result granularities. See <a href="128793.htm" title="The following table contains all (and only the) supported combinations of the three commands DCRM, CYRM, and CYRP.">Possible combinations of CYRM, CYRP, and DCRM</a>.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">sub_cycles</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">
+								<p>This parameter, which is only valid if <span class="keyword">map</span> is
+									set to <span class="keyword">EMAP</span>, defines the sub-cycles. The
+									format is</p>
+								<p><span class="keyword">c1:</span>
+									<span class="keyword">edge_list1</span> [<span class="keyword">c2:</span>
+									<span class="keyword">edge_list2</span> [<span class="keyword">c3:</span>
+									<span class="keyword">edge_list3</span> [<span class="keyword">c4:</span>
+									<span class="keyword">edge_list4</span>]]] </p>
+								<p>where every edge list is a comma separated list of edge
+									numbers.</p>
+								<p>The number of sub-cycles must not be larger than the number
+									specified with the <span class="keyword">mode</span> parameter. A
+									sub-cycle can contain only one edge, numbering gaps are allowed,
+									and the same edge may occur in more than one sub-cycle.</p>
+								<p>User defined sub-cycle definitions are not supported for all
+									combinations of <span class="keyword">mode</span> and
+										<span class="keyword">bits</span>, and some combinations are only
+									supported for certain recording modes and certain hardware
+									types. For details see <a href="128793.htm" title="The following table contains all (and only the) supported combinations of the three commands DCRM, CYRM, and CYRP.">Possible combinations of CYRM, CYRP, and DCRM</a><em>.</em></p>
+								<p>The default with <span class="keyword">mode</span> set to 2 is:</p>
+								<div></div><pre class="prettyprint copyable singleline">"c1:1,2,3,4 c2:5,6,7,8"</pre><div></div>
+								<p>The default with <span class="keyword">mode</span> set to 4 is:</p>
+								<div></div><pre class="prettyprint copyable singleline">"c1:1,2 c2:3,4 c3:5,6 c4:7,8" </pre><div></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">port_list</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">Specifies the ports for which the
+								recording mode is to be defined. If you specify
+									<span class="keyword">@@</span>, <span class="keyword">DCRM</span> will set the
+								recording mode, or return the current settings, for all
+								ports.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="3"><var class="varname">answer_type</var></td>
+							<td class="colsep-0 rowsep-0" colspan="2">This query parameter
+								specifies whether the current configuration or the configuration of
+								the last executed test is to be returned. Possible values
+								are:</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">CONF</span></td>
+							<td class="colsep-0 rowsep-1">The current configuration is returned. This is the
+								default.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">EXEC</span></td>
+							<td class="colsep-0 rowsep-1">The configuration of the last executed test is returned.</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Error Map (Overview Error Map and Detailed Error
+				Map).</p></div>
+		
+		
+		<h2>Examples</h2><div class="example"><h3>Example
+				1</h3><pre class="prettyprint copyable singleline">DCRM EMAP,4,PF,"c1:1,3 c2:5,7 c3:2,4 c4:6,8",(P1,P2)</pre><p>This
+				example configures the detailed Error Map of port <code>P1</code> and
+					<code>P2</code> to record 1 bit results for 4 sub-cycles, each of which
+				combines two different edges.</p></div>
+		<div class="example"><h3>Example 2</h3><pre class="prettyprint copyable singleline">DCRM EMAP,1,PFC,(P1,P2)</pre><p>This
+				example configures the Error Map to record one global detailed two bit result
+				combining all edges of a cycle at every test execution.</p></div>
+		<div class="example"><h3>Example 3</h3><pre class="prettyprint copyable singleline">DCRM OVEM,6000,,(@)</pre><p>This
+				example defines that 6000 cycles will be compressed into one Overview Error Map bit
+				when the next test will be executed.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98524</span><script type="text/javascript">var ti='98524';var tt='DCRM, DCRM? - (Digital Compare Result Mode)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

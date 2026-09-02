@@ -1,0 +1,918 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Reducing the Cost-Of-Test by using Per Pin Time Interval Analyzer</title></head><body id="_109999"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 109999</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Reducing the Cost-Of-Test by using Per Pin Time Interval Analyzer</h1>
+	
+	<div>
+		<p>Donald W. Blair, Verigy</p>
+		<p>Paper ID 109999</p>
+		<section class="section"><h2>Abstract</h2><p>System-on-Chip (SOC) devices are very complex, multi-discipline
+				devices which require a wide range of tests, sometimes including RF, digital, analog mixed
+				signal and DC setups and measurements. Often there is also a need to make period, time interval
+				and jitter measurements. Although there are other methodologies to make these measurements, they
+				have cost drawbacks in either test time or capital expense. Previously, a general trend was to
+				use an external Time Interval Analyzer (TIA) as part of the manufacturing solution. This
+				provided a correlated and stable solution. However, it had certain cost drawbacks as well as not
+				being an integrated solution. This non-integrated aspect created additional complexity in terms
+				of calibration, diagnostics and hardware and cable routing on a DUT board or test
+			head.</p></section>
+		<section class="section"><h2>Introduction</h2><p>Verigy historically has been driving down the cost of test
+				and one of the ways they accomplish this is by integrating more features and capability into the
+				system. The Pin Scale series of digital cards integrates a TIA into every digital pin (Per Pin
+				TIA - PPTIA) as shown in figure 1.</p><div class="p"><figure class="fignone">
+					<img src="110000.png" alt="Reduce_Cost figure 1 V93000 Pin Scale PPTIA">
+				</figure></div><p><strong>Figure 1. Verigy V93000 Pin Scale PPTIA</strong></p><p>This level of integration
+				makes it very effective in terms of both reducing capital cost and reducing test execution time,
+				making it an ideal manufacturing solution.</p><p>This paper will explore in detail the task of
+				creating a production test using the Pin Scale PPTIA. This example is based on a project using a
+				real device, a large wireless telecommunications company's cellular baseband processor. This
+				project converted their test program from using the external TIA to using the Verigy PPTIA. It
+				will examine all aspects of this conversion including coding and calibration. It will also
+				provide an example of six converted test measurements and look at the correlation and test
+				execution time of all these measurements.</p></section>
+		<section class="section"><h2>1.1 Getting Started</h2><p>The device-under-test (DUT) is a cellular baseband
+				processor and is shown in Figure 2.</p><div class="p"><figure class="fignone">
+					<img src="110001.png" alt="Reduce_Cost figure 2 Generic Cellular Baseband Processor">
+				</figure></div><p><strong>Figure 2. Generic Cellular Baseband Processor</strong></p><p>The blue circle
+				highlights some of the phase locked loops (PLLs) on the device. These are essential to the
+				internal clocking of the device. There are actually five PLLs that are multiplexed to one output
+				pin. The device has digital vectors that set up which of the PLLs will come out to the
+				measurement pin. They run at different frequencies.</p></section>
+		<section class="section"><h2>1.2 Defining the Test Parameters</h2><p>Different companies can have different
+				definitions for a test parameter, so it is always advisable to clearly define the measurement.
+				This test section measures six parameters. The basic measurement is shown in Figure 3.</p><div class="p"><figure class="fignone">
+					<img src="110002.png" alt="Reduce_Cost figure 3 PPTIA Measurement Basics">
+				</figure></div><p><strong>Figure 3. PPTIA Measurement Basics</strong></p><p>The PPTIA makes a measurement on
+				the rising edge of the PLL and does a mathematical overlay of N averages (user defined). T1 is
+				the earliest first rising edge, T2 the latest first rising edge, T3 is the earliest second
+				rising edge and T4 is the latest second rising edge.</p><p>The test parameters themselves are
+				defined as:</p><ul>
+				<li>Tmin, minimum period, time from T2 to T3</li>
+				<li>Tmax, maximum period, time from T1 to T4</li>
+				<li>Tmean, mean period, mean of all periods measured</li>
+				<li>TjitterPP, Peak-to-Peak Jitter, Tmax - Tmin</li>
+				<li>Tstd_dev, standard deviation of jitter, Sigma of TjitterPP</li>
+				<li>Tave-min, mean period - minimum period</li>
+			</ul></section>
+		<section class="section"><h2>Steps to the Conversion</h2><p>All of the steps required to do this conversion
+				will be explored. The PPTIA portions of this are exactly the same as if this test were developed
+				from nothing.</p></section>
+		<section class="section"><h2>Licensing</h2><p>First, the PPTIA is a licensed resource. Licensing is key to
+				reducing the capital expense for an ATE because the resource is only paid for while it is being
+				used. It is a poor use of capital to buy a piece of equipment and not fully utilize it. Verigy
+				calls this "scalability", and it allows an IC manufacturer to buy equipment at the lowest price
+				possible and then utilize additional features only when a test program actually needs it. This
+				allows great flexibility because any digital pin can have the PPTIA license enabled. This
+				simplifies DUT board pin routing. Different applications can use different pins and the license
+				is only used while the test program is loaded.</p><p>To use the PPTIA, all that is required is
+				to add "ppTia" to the pins requiring a PPTIA in the test program's model file. In this case,
+				quad site is being done to further reduce cost-of-test (COT) through parallelism; so four
+				licenses are needed. The syntax is the same for
+			each:</p><pre class="prettyprint linenums copyable">IOCHANNEL
+10101-10104 : HW = PS800, speed = 400Mbps, smem = 2M, vmem = 28M , ppTia</pre></section>
+		<section class="section"><h2>PPTIA Calibration</h2><p>The PPTIA has its own special calibration routine. The
+				default is that this special calibration is not configured as part of the standard system
+				calibration for those users who Do not use the PPTIA. However this can be easily added so that it
+				is part of the standard system calibration. It is recommended to run the calibration on all pins
+				since, as mentioned above, different applications can and will use different pins as a PPTIA
+				resource.</p></section>
+		<section class="section"><h2>Test Program Source Code</h2><p>Verigy supplies libraries that are written in
+				Test Methods APIs that run under the V93000 operating system called SmarTest. The libraries are
+				located at "/opt/hp93000/soc/TestMethod" on the system itself. It is highly recommended to use
+				these libraries since they are already debugged and test time optimized.</p><p>The actual test
+				method code is
+				shown:</p><pre class="prettyprint linenums copyable">//Section1
+ARRAY_D raw_result; raw_result.resize(Sample_size);
+
+PPTIA_TASK task1 ;
+
+DOUBLE frequency_MHz;
+
+GET_TESTFLOW_FLAG ( "debug_analog" , &amp;debug ) ;
+
+// Section 2
+ON_FIRST_INVOCATION_BEGIN() ;
+
+{
+task1.pin(tia_pin).eventASlope(Mode_A).eventAThreshold(Threshold_A_mV mV).eventACount(0) ;
+task1.pin(tia_pin).eventBSlope(Mode_B).eventBThreshold(Threshold_B_mV mV).eventBCount(0) ;
+task1.pin(tia_pin).numberOfSamples(Sample_size) ;
+task1.pin(tia_pin).armingMethod(Arming_method) ;
+task1.pin(tia_pin).resultType(TM::RESULT_ALL) ;
+
+task1.execMode(exec_mode);
+
+task1.delay(Delay_time) ;
+task1.pin(tia_pin).sampleRandomizeRatio(0.5);
+
+task1.enable TimeoutFlag();
+ task1.preAction(TM::SET_TIA_MODE).execute() ;
+}
+ON_FIRST_INVOCATION_END() ;
+
+// Section 3
+glob_avg = task1.getValue(tia_pin , TM::MEAN) ;
+glob_min = task1.getValue(tia_pin , TM::MIN) ;
+glob_max = task1.getValue(tia_pin , TM::MAX) ;
+glob_stdev = task1.getValue(tia_pin , TM::STDEV) ;</pre><p>The
+				code in section 1 is basic housekeeping; setting up arrays, variables and the PPTIA_task name.
+				The PPTIA_task is a structure where the setup parameters can be defined on a line-by-line
+				basis.</p><p>Section 2 sets up the multi-site structure ON_FIRST_INVOCATION so that the actual
+				setup and measurement is only done one time for all four sites. The rest of the code enclosed
+				there is setting up the PPTIA parameters for this specific PLL measurement, assigning threshold
+				levels and modes so that the measurement is performed as shown in Figure 3. Notice these are all
+				variable names and these variables are passed to this routine from the Test Flow test suite
+				dialog variables. The enable TimeoutFlag task enables the timeout flag. If a timeout occurs on a
+				site, the test method will not cause an error but continue its execution. On multi-site testing,
+				the time out on one site will not stop execution for other sites. This is very important for
+				multi-site testing.</p><p>Section 3 simply reads the values out of the hardware. All of the
+				parameters can be read out in one line; however there were other parameters not required for
+				these tests that would take extra test execution time to read.</p></section>
+		<section class="section"><h2>Setting the Load on the Pin</h2><p>The PLL pin will need to have a load put on
+				it to minimize reflections and other perturbations. A resistor could be put on the DUT board,
+				but there is no need to do this with the hardware built into the pin electronics of the V93000.
+				Either of two methods can be used, use the TERM mode which uses the driver's 50 Ohm as a load or
+				use the active load which will source and sink currents like a resistor. The TERM mode was
+				selected in this case as shown in Figure 4.</p><div class="p"><figure class="fignone">
+					<img src="110003.png" alt="Reduce_Cost figure 4 Load Termination for the PLL">
+				</figure></div><p><strong>Figure 4. Load Termination for the PLL</strong></p></section>
+		<section class="section"><h2>Compile and Build the PPTIA Project</h2><p>It is recommended that the PPTIA
+				code be its own project and directory. This way the code can easily be copied as a directory
+				into any other application. Also this code was made with general purpose use consideration and
+				by passing variables in, it can easily be a library for many devices. Simply select the PPTIA
+				project name and use the right mouse click menu to "build" it. Build will automatically compile
+				and register it as a valid test method so that any test suite can use it, as shown in Figure
+				5.</p><div class="p"><figure class="fignone">
+					<img src="110005.png" alt="Reduce_Cost figure 5 Building the PPTIA Test Method">
+				</figure></div><p><strong>Figure 5. Building the PPTIA Test Method</strong></p></section>
+		<section class="section"><h2>TestFlow Addition</h2><p>Now the test can be added (or modified) in the test
+				flow. For a conversion, select the test suite that had used the external TIA. For a new test
+				suite, add it and fill in all of the setup files required to get the PLL running for this test.
+				Select the testmethod as the one registered in the previous step. Now modify the test suite
+				dialog variables as shown in Figure 6. These will be passed into the testmethod shown above.
+				Also modify the test parameters and their limits.</p><div class="p"><figure class="fignone">
+					<img src="110006.png" alt="Reduce_Cost figure 6 Test Suite Dialog Window Variables">
+				</figure></div><p><strong>Figure 6. Test Suite Dialog Window Variables</strong></p></section>
+		<section class="section"><h2>Run and Debug the PPTIA Test</h2><p>Use the Eclipse Test Method debugger to run
+				and debug the test as shown in Figure 7. Make sure the PLL has an output with the scope tool.
+				Adjust the delay and threshold variables through the test suite dialog window or through the
+				Instant Console of the Test Method debugger to get the tests working and stable.</p><div class="p"><figure class="fignone">
+					<img src="110007.png" alt="Reduce_Cost figure 7 Using the Test Method Debugger to Run the PPTIA Tests">
+				</figure></div><p><strong>Figure 7. Using the Test Method Debugger to Run the PPTIA
+			Tests</strong></p></section>
+		<section class="section"><h2>Correlation</h2><p>Once the test is working and stable, it needs to be
+				correlated either to the previous external TIA or to some other bench equipment. The statistical
+				mean and sigma for each measurement was compared from the external TIA to the PPTIA. Note that
+				it was possible to reduce the number of samples taken from 1250 with the external TIA to 256
+				with PPTIA, which saved test time. Test time was reduced from 600 ms to 140 ms using the
+				PPTIA.</p></section>
+		<section class="section"><h2>Results Analysis</h2></section>
+		<section class="section"><h2>Mean Differences of External TIA versus PPTIA (All Units in nS)</h2><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_109999__entry__1"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109999__entry__2"><p>External TIA</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109999__entry__3"><p>PPTIA</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109999__entry__4"><p>Difference</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p><strong>Test1</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>50.863</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>50.868</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.005</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>50.599</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>50.625</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.026</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>52.133</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>52.14</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.007</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.322</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.358</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.036</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>1.534</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>1.514</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.019</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.322</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.243</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.078</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p><strong>Test 2</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>AVG ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>500</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>499.99</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.01</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MIN ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>499.73</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>499.77</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.04</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MAX ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>500.29</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>500.24</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.05</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.168</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.127</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.04</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.562</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.461</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.10</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.271</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.211</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.05</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p><strong>Test 3</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>AVG ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>13.023</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>13.008</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.015</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MIN ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>12.911</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>12.876</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.035</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MAX ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>13.118</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>13.104</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.014</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.036</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.0426</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.006</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.206</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.2278</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.021</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.111</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.1325</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.021</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p><strong>Test 4</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>AVG ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>20.833</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>20.803</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.03</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MIN ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>20.623</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>20.554</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.069</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MAX ER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>21.047</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>21.006</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.041</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.133</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.1265</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.006</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.424</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.4520</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.028</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.21</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.2492</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.039</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p><strong>Test 5</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>20.834</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>20.826</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.008</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>20.608</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>20.541</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.067</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>21.02</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>21.028</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.008</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.137</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.1268</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>0.010</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.411</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.4869</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.075</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__1"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__2"><p>0.226</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__3"><p>0.2845</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__4"><p>-0.058</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Sigma Differences of External TIA versus PPTIA (All Units in nS)</h2><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_109999__entry__145"><p>&nbsp;</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109999__entry__146"><p>External TIA</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109999__entry__147"><p>PPTIA</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_109999__entry__148"><p>Difference</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p><strong>Test 1</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0015</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0211</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0195</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0358</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0203</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0155</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0292</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0261</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0031</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0062</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0373</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0310</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0497</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0330</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0167</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0356</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0380</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0024</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p><strong>Test 2</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0031</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0039</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0008</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0626</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0428</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0197</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0720</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0511</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0209</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0291</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0149</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0142</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0943</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0606</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0336</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0618</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0449</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0168</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p><strong>Test 3</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0019</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0055</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0035</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0282</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0172</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0110</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0192</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0117</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0075</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0641</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0032</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0609</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0357</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0242</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0114</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0281</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0171</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0110</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p><strong>Test 4</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0105</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0092</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0012</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0575</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0690</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0114</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0438</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0486</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0047</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0173</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0233</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0059</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0638</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0489</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>0.0148</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0563</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0646</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0083</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p><strong>Test 5</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>AVG PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0092</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0114</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0022</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MIN PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0690</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0888</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0198</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>MAX PER</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0403</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0531</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0128</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>STD_DEV</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0212</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0259</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0046</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Pk-PkJitter</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0807</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0960</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0152</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__145"><p>Tavg-Tmin</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__146"><p>0.0672</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__147"><p>0.0924</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_109999__entry__148"><p>-0.0252</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Conclusion: Benefits of Using the PPTIA</h2><p>Using the PPTIA has the
+				following benefits:</p><ul>
+				<li>Lower Capital Cost - small fraction of the price of an external TIA</li>
+				<li>Faster Test Time - 140 ms versus 600 ms (external TIA)</li>
+				<li>DUT Board - no relays for the TIA and more flexibility for layout and routing</li>
+				<li>Test Head - fewer cables running to test head than with external TIA</li>
+				<li>Integrated Solution - no multi-vendors for ATE and a smaller footprint</li>
+				<li>Calibration and Diagnostics - all part of SmarTest</li>
+				<li>Availability - any Pin Scale digital pin</li>
+			</ul></section>
+		<section class="section"><h2>References</h2><p>[1] Verigy Applications Note: Frequency Testing on the V93000
+				SOC by Juergen Wolf, Joe Kelly and Michael Braun, March 2007.</p><p>[1] Block diagram (figure 2)
+				from the 2002 Verigy Seminar "Testing High Integration Wireless Baseband
+				Processors"</p><p>Special thanks to Scott Chesnut, Michael Kozma and Gianluca Lombardi for their
+				assistance in this project</p></section>
+		<section class="section"><h2>Biography</h2><p><strong>Donald W. Blair</strong> - Bachelor of Science in Electronic
+				Engineering Technology Degree. Graduated with a Bachelor's degree from the Ohio Institute of
+				Technology in Columbus Ohio. Employed by Schlumberger, and then later employed by Verigy parent
+				companies, HP and Agilent (now Verigy) developing applications on various mixed signal tester
+				platforms. Later became a Principal Technical Consultant and has been with Verigy for over 20
+				years.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 109999</span><script type="text/javascript">var ti='109999';var tt='Reducing the Cost-Of-Test by using Per Pin Time Interval Analyzer'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

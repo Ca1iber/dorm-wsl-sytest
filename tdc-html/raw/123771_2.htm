@@ -1,0 +1,125 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="On a Smart Scale system, you can adjust the timing to the actual behavior of the DUT by an embedded timing or level search."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using embedded timing and level search on a Smart Scale system</title><meta name="keywords" content="SmartScale"></head><body id="_123771"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123771</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using embedded timing and level search on a Smart Scale system</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="136531_2.htm" title="This topic describes the linear search modes and the difference between the standard and the FASTSTOP mode.">Linear search modes</a></li></ol></div></nav>
+	
+	
+	<div><p>On a Smart Scale system, you can adjust the timing to the actual behavior of the DUT by
+		an embedded timing or level search. </p>
+		<section class="section"><h2>Timing search</h2><p>In general, the operation mode of the embedded timing
+				search is similar to the parallel timing search performed with <a href="98574.htm" title="The DPSR command writes a search condition for one or more setup pins into a search set. The setup pins are the pins for which an edge is moved or a spec variable modified during the search.">DPSR</a>,
+					<a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR</a>, and <a href="98724.htm" title="The RSSR? query returns the result of a parallel search previously executed by EXSR for selected pins. The search is identified by the search set number.">RSSR</a>, namely to detect
+				PASS/FAIL or FAIL/PASS transitions within a search range, and to locate the transition points as
+				exactly as possible. The main difference is that with the embedded search, the search algorithm
+				is executed by an embedded processor, and not on the workstation.</p></section>
+		<section class="section"><h2>Advantages of embedded search</h2><p>The advantages of the embedded search over
+				the parallel timing search are the following:</p><ul>
+				<li>The search is faster when used with many pins, because the edge positions for the next
+					search step need not be downloaded serially for every setup pin.</li>
+				<li>The embedded search provides some additional functionality, which will be described
+					below.</li>
+			</ul></section>
+		<section class="section"><h2>General mode of operation</h2><p>The embedded search does not rely on spec
+				variables, but modifies edge positions directly. You cannot move a single edge, but only all
+				edges of the same type (for example, fast or slow drive edges) in parallel. Setup and result
+				pins are independent of each other, but must belong to the same test processor.</p><p>The search
+				can be configured differently for every pin. The search range is defined relative to the edge
+				positions that are defined in the current primary timing set of the current primary timing
+				specification. In case of a multi-port setup, the respective pin uniquely identifies the port
+				and thus the correct timing set.</p><p>The search is basically a combination of an initial
+				linear search, followed by a binary search. The linear search can run in standard mode and in
+					<span class="keyword">FASTSTOP</span> mode. In both modes it first looks for an area of consecutive PASS
+				results that is enclosed by a FAIL result on both ends. Only if no such area is present, PASS
+				areas that are closed on only one end are also taken into account. The difference between the
+				two modes is that in standard mode, the linear search scans the whole search range for the
+					<em>largest</em> such PASS area, whereas in FASTSTOP mode it selects the <em>first</em> such area.
+				For examples, see <a href="136531.htm" title="This topic describes the linear search modes and the difference between the standard and the FASTSTOP mode.">FASTSTOP search mode</a></p><p>You can choose between
+				three possible search results, namely the start (FAIL/PASS transition), the middle (eye), or the
+				end (PASS/FAIL transition) of the largest pass area within the search range. The selected result
+				is stored for every edge of the selected type as an offset from the delay defined by the current
+				primary timing setup, and is added to this delay when a test with this timing is
+				executed.</p><p>It is possible to store different offsets for different pairs of specification
+				and timing set simultaneously for the same pin. It is also possible to copy the offsets that
+				were determined for one such pair to other timing sets of the same or another
+			specification.</p></section>
+		<section class="section"><h2>Specific options</h2><p>There are the following specific additional
+				options:</p><ul>
+				<li>You can weaken the requirements for counting a test as passed by defining a maximum number
+					of errors that is still to be tolerated.</li>
+				<li>You can move the start (end) of the PASS area, as determined by the binary search, to the
+					right (left) so far that it starts (ends) with <span class="keyword">n</span> consecutive PASS results,
+					where <span class="keyword">n</span> is definable by the user. The step width of this additional search
+					step equals the resolution of the binary search.<p>This feature is intended to exclude that any
+						isolated FAIL results are still (already) present at the start (end) of the putative PASS
+						region.</p></li>
+				<li>Alternatively, you can move the start (end) of the PASS area, as determined by the binary
+					search, to the left (right) into the error region. This <em>histogram</em> based search will
+					determine, at every search step, the number of errors, and then calculate the difference
+					between this number and the error count of the previous step. The search will be stopped when
+					this difference is 0 (that is, the error count is stable) for <span class="keyword">m</span> consecutive
+					steps. The number of steps <span class="keyword">m</span> and the step width of the search are definable
+					by the user.<p>The start (end) of the PASS area will then be set to the centroid of all
+						calculated error differences. The formula is</p>
+					<p> <span class="keyword">x</span><sub>1</sub>*<span class="keyword">p</span><sub>1</sub> +
+							<span class="keyword">x</span><sub>2</sub>*<span class="keyword">p</span><sub>2</sub> + ... +
+							<span class="keyword">x</span><sub>n</sub>*<span class="keyword">p</span><sub>n</sub></p>
+					<p><sub> _______________________________ .</sub></p>
+					<p><span class="keyword">x</span><sub>1</sub> + <span class="keyword">x</span><sub>2</sub> + ... +
+							<span class="keyword">x</span><sub>n</sub></p>
+					
+					<p>Here, <span class="keyword">x</span><sub>i</sub> is the difference between the
+							<span class="keyword">i</span><sup>th</sup> and the <span class="keyword">i</span>+1<sup>th</sup> error count,
+						and <span class="keyword">p</span><sub>i</sub> =
+							(<span class="keyword">d</span><sub>i</sub>+<span class="keyword">d</span><sub>i+1</sub>)/2, where
+							<span class="keyword">d</span><sub>i</sub> is the position of step <span class="keyword">i</span> on the time
+						axis.</p>
+					
+					
+					<p>This feature is intended, for example, to determine a transition more precisely.</p></li>
+				<li>The <span class="keyword">FASTSTOP</span> mode is a search mode different to the standard search mode.
+					It supports the search types eye and single transition (see <a href="136531.htm" title="This topic describes the linear search modes and the difference between the standard and the FASTSTOP mode.">Linear search modes</a> and <a href="124942.htm" title="TOCF and TOCF? define and query the configuration of an embedded timing or level search for the specified pins. The search is executed with the TORN? query.">TOCF</a>). The binary search, which is executed after the linear search, is
+					not affected.</li>
+			</ul></section>
+		<section class="section"><h2>Setup and result pins</h2><p>The setup pins, that is, the pins whose edge
+				positions are modified during the search, and the result pins, that is, the pins on which the
+				outcome of the tests is to depend, need not be identical. Different setup pins can be associated
+				with different sets of result pins.</p><p>But as the timing search is done locally in the test
+				processor (TP), setup and result pins must belong to the same TP.</p></section>
+		<section class="section"><h2>Related firmware commands and test method APIs</h2><p>An embedded timing search
+				is configured with the <span class="keyword">TOCF</span> command. The search is executed with the
+					<span class="keyword">TORN?</span> query. The search results can be queried with the
+					<span class="keyword">TORT?</span> query, which returns the boundaries of the largest pass region, or the
+					<span class="keyword">TORS?</span> query, which returns the current offset. You can copy the offsets for
+				one timing set of a specification to one or more timing sets of the same or another
+				specification with <span class="keyword">TORC</span>. You can define the result pins for a setup pin with
+				the <span class="keyword">TOCR</span> command.</p><p>The test method APIs for an embedded timing search
+				are </p><ul>
+				<li><a href="140965.htm" title="Varies the offset to a given level or to a given timing edge in order to find pass/fail transitions.">DIGITAL_OFFSET_SEARCH_TASK</a>, </li>
+				<li><a href="140966.htm" title="Holds the timing/level offset search conditions for the pins specified with DIGITAL_OFFSET_SEARCH_TASK.pin().">DIGITAL_OFFSET_SEARCH_PINS</a></li>
+				<li><a href="141031.htm" title="Defines the result pins for the setup pins specified in resultPin().">DIGITAL_OFFSET_SEARCH_RESULT_PINS</a>.</li>
+			</ul></section>
+		<h2>Examples</h2><div class="example"><h3>Binary search for the left boundary</h3><p>The following example shows a binary
+				search for the left boundary (FAIL/PASS transition) with a minimal pass count of 5 (a dot
+				denotes PASS):</p><div class="p"><figure class="fignone">
+					<img src="124091.png" alt="Embedded timing search">
+				</figure></div><p>Note the following points in the graphic:</p><ul>
+				<li>It is to be understood that the largest PASS area of the linear search starts with the dot
+					in the <strong>Linear Search</strong> line. </li>
+				<li>To make the graphic more perspicuous, it is assumed that every transition occurs at a
+					multiple of the binary search resolution. </li>
+				<li>The required 5 consecutive PASS values are found after three additional steps.</li>
+			</ul></div>
+		<div class="example"><h3>Level search</h3><p>In general, the embedded level search works according to
+				the same principles as the timing search. In particular, you can also restrict the level search
+				to individual pins. The firmware commands and test method APIs with which the search is
+				configured and executed are also the same for both level and timing search.</p><p>Note that a
+				positive step width means that the level is increased, and a negative step width that it is
+				diminished. </p><p>You can combine level searches with timing searches, but not on the same pin
+				at the same time: If you define, for example, first a level search for a pin with
+					<span class="keyword">TOCF</span>, and then a timing search for the same pin, the timing search
+				configuration will overwrite the level configuration. </p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="136531.htm" title="This topic describes the linear search modes and the difference between the standard and the FASTSTOP mode.">Linear search modes</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.3</li><li>SmarTest 7.1.0: Histogram based search was added. ECL option for transition_detection parameter
+					was added. Setup pins and result pins need no longer be identical.</li><li>SmarTest 7.2.0: New search mode FASTSTOP</li><li>SmarTest 7.3.2: The algorithm of the linear search in standard mode was assimilated to that of
+					FASTSTOP mode.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123771</span><script type="text/javascript">var ti='123771';var tt='Using embedded timing and level search on a Smart Scale system'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

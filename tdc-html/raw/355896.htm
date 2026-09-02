@@ -1,0 +1,148 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This member function initiates a gang connection test on the defined ganged pins to verify that all force lines of the individual channels are connected together on the DUT board or at the DUT pins."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>HW_STATE.checkGangConnectionParallel()</title></head><body id="_355896"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 355896</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">HW_STATE.checkGangConnectionParallel()</h1>
+	
+	
+	<div><p>This member function initiates a gang connection test on the defined ganged pins to verify that all force lines of the individual
+		channels are connected together on the DUT board or at the DUT pins.</p>
+		<section class="section"><p>The function is supported only with the <a href="350661.htm" title="The XPS256 is a high-density scalable DUT power supply and V/I card for all SOC test applications. The card belongs to the DC Scale family and can reside in any channel card slot of a V93000 EXA Scale system.">DC Scale XPS256 card</a>.</p><p>The test is performed in parallel for all active sites. The
+				member function returns a go/no-go result for each configured site in a single integer array.</p><p>For more information
+				regarding the gang connection test, refer to the <a href="354657.htm#_354657__s_Checking_the_gang_connections">Checking the gang connections</a> section in <a href="354657.htm" title="In order to achieve a higher output current, parallel connection of multiple XPS256 channels is supported. This is called &#34;ganging&#34;.">XPS256 programming - Ganging</a>.</p><p>The tested pins must be disconnected for the gang connection test.</p><p>The member function should be
+				called within the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block.</p></section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint linenums copyable">bool checkGangConnectionParallel (const STRING&amp; pinList, ARRAY_I &amp;result);
+bool checkGangConnectionParallel (const STRING&amp; pinlist, const INT samples, ARRAY_I &amp;result);
+bool checkGangConnectionParallel (const STRING  pinlist, const INT samples, const DOUBLE maxResistance, ARRAY_I &amp;result);</pre><div></div>
+			<table class="frame-bottom"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_355896__entry__1">Parameter</th>
+							<th class="colsep-0 rowsep-1" id="_355896__entry__2">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__1"><var class="varname">pinList</var></td>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__2">The pins connected to the DUT board that will be queried. The pins are separated with commas. If the
+									<var class="varname">pinList</var> is empty or an invalid pin is specified, an error message will be thrown out and the
+								test will not be executed.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__1"><var class="varname">samples</var></td>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__2">
+								<p>The optional parameter defines the number of averaged measurements to be performed.</p>
+								<p>The valid range of the integer parameter is 1 … 128.</p>
+								<p>The default value is 1.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__1">
+								<p><var class="varname">maxResistance</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__2">
+								<p>The optional threshold for the pass/fail decision in ohms (Ω).</p>
+								<p>The programmable range is 0&nbsp;...&nbsp;100&nbsp;Ω.</p>
+								<p>The default value if another syntax is selected and no threshold is defined is 20&nbsp;Ω.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__1"><var class="varname">result</var></td>
+							<td class="colsep-0 rowsep-1" headers="_355896__entry__2">Integer array that is filled with the go/no-go results of the gang connection test of all tested sites.<p>The size of the array is
+									defined by the number of configured sites. The first element of the array corresponds to site 1.</p><p>The
+									returned integer values are to be interpreted as follows: </p><dl>
+									
+										<dt class="dlterm">-1:</dt>
+										<dd>No test performed: The corresponding site is not active.</dd>
+									
+									
+										<dt class="dlterm">0:</dt>
+										<dd>The Kelvin test has <strong>failed</strong> on the corresponding site.</dd>
+									
+									
+										<dt class="dlterm">1:</dt>
+										<dd>The Kelvin test has <strong>passed</strong> on the corresponding site.</dd>
+									
+								</dl></td>
+						</tr>
+					</tbody></table>
+		</div><div class="syntax">
+			<h2>Return value</h2>
+			<p>The returned <span class="keyword">bool</span> value indicates the state of the conversion from the read data to the data in the array:</p>
+			<dl>
+				
+					<dt class="dlterm"><span class="keyword">true</span></dt>
+					<dd>No error found</dd>
+				
+				
+					<dt class="dlterm"><span class="keyword">false</span></dt>
+					<dd>Invalid data read</dd>
+				
+			</dl>
+		</div>
+		
+		<h2>Example</h2><div class="example">
+			<p>The following example performs a gang connection test on three pins "pin1", "pin2", "pin3". The test is implemented into the <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION</a> block but a <a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE</a> block is used for the serial
+				sense connection test. Note that the <span class="keyword">FOR_EACH_SITE_BEGIN_WITH_QUERY()</span> API must be used to set the query focus
+				within the block.</p>
+			<div></div><pre class="prettyprint linenums copyable">SPMU_TASK       spmuTask;
+HW_STATE        hwState;
+STRING          pinlist         = "pin1, pin2, pin3";
+int             samples         = 10;
+double          maxResistance   = 30.0 Ohm;
+ARRAY_I         goNogoResult;
+ARRAY_I         perPinResult;
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Disconnect the tested pins
+    //
+    spmuTask.pin(pinlist).vForce(0.0 V).min(-1.0 A).max(1.0 A).relay("NT");
+
+    spmuTask.execMode(TM::FORCE_OFF).execute();
+
+    //
+    // Perform the gang connection test in parallel on all active sites
+    //
+    ARRAY_I goNogoResult;
+
+    hwState.checkGangConnectionParallel(pinlist, samples, maxResistance, goNogoResult);
+
+    //
+    // Evaluate the go/no-go results, re-test failing sites
+    //
+    cout &lt;&lt; "Parallel gang connection test GoNogo results per site:" &lt;&lt; endl &lt;&lt; endl;
+
+    FOR_EACH_SITE_BEGIN_WITH_QUERY();
+    {
+        cout &lt;&lt; "\tSite " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; ": ";
+
+        if (goNogoResult[CURRENT_SITE_NUMBER() -1] == 1)
+        {
+            cout &lt;&lt; "PASS" &lt;&lt; endl;
+        }
+        else
+        {
+            cout &lt;&lt; "FAIL, serial test on site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl &lt;&lt; endl;
+
+            //
+            // Serial test identifies failing pins
+            //
+            hwState.checkGangConnection(pinlist, samples, maxResistance, perPinResult);
+
+            for (int arrayIndex = 0; arrayIndex &lt; perPinResult.size(); arrayIndex++)
+            {
+                cout &lt;&lt; "\t\tPin " &lt;&lt; arrayIndex + 1 &lt;&lt; " = " &lt;&lt; perPinResult[arrayIndex] &lt;&lt; endl;
+            }
+
+            cout &lt;&lt; endl;
+        }
+    }
+    FOR_EACH_SITE_END();
+
+    cout &lt;&lt; endl;
+}
+ON_FIRST_INVOCATION_END();</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="355895.htm" title="This member function initiates a gang connection test on the defined ganged pins to verify that all force lines of the individual channels are connected together on the DUT board or at the DUT pins.">HW_STATE.checkGangConnection()</a></div><div><a href="98685.htm" title="The PDMM? (PDps Miscellaneous Measurement) query checks that the force line and the sense lines are correctly connected together at the DUT or on the DUT board.">PDMM? - (PDps Miscellaneous Measurement)</a></div><div><a href="354657.htm" title="In order to achieve a higher output current, parallel connection of multiple XPS256 channels is supported. This is called &#34;ganging&#34;.">XPS256 programming - Ganging</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.1</li><li>SmarTest 7.10.3: New syntax introduces parameters "maxResistance", "maxResistancePos", and "maxResistanceNeg".</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 355896</span><script type="text/javascript">var ti='355896';var tt='HW_STATE.checkGangConnectionParallel()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

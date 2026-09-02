@@ -1,0 +1,73 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In most applications, users will not need to call the DSP_RF_SWAP() function, because spectrum swapping (if it is needed) is performed automatically by other DSP functions, such as DSP_RF_MOD_POWER(). The DSP_RF_SWAP() function is provided for the benefit of users who wish to create their own custom DSP functions within a TestMethod, and therefore need direct access to spectrum swapping function."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSP_RF_SWAP()</title></head><body id="_92948"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 92948</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSP_RF_SWAP()</h1>
+	
+	
+	<div><p>In most applications, users will not need to call the
+			<kbd class="userinput">DSP_RF_SWAP()</kbd> function, because spectrum swapping (if it is needed) is
+		performed automatically by other DSP functions, such as <kbd class="userinput">DSP_RF_MOD_POWER()</kbd>.
+		The <kbd class="userinput">DSP_RF_SWAP()</kbd> function is provided for the benefit of users who wish to
+		create their own custom DSP functions within a TestMethod, and therefore need direct access to
+		spectrum swapping function.</p>
+		<section class="section"><p>This function is used to correct two unwanted consequences of the FFT process. The
+				first of these is that the FFT spectrum places the center frequency of the original spectrum at
+				0 Hz, so that the original signal (see graph 1a in the illustration bel0w) is split and placed
+				at the right and left sides of the spectrum (graph 1b). In this case, the measurement uses a
+				low-side LO (that is, the LO frequency is below the measured frequency). The DSP_RF_SWAP
+				function restores the center frequency to the middle of the spectrum (graph 1c). </p><div class="p"><figure class="fignone">
+					
+					<img src="92963.png" alt="Spectrum swapping">
+				</figure></div><p>The second unwanted consequence of the FFT process occurs when the measurement uses
+				a high-side LO, as in the illustration below. As shown in graph 2b, the FFT result is not only
+				split but backwards; the two halves of the split are mirror images of their counterparts in the
+				original spectrum. Consequently, the swapped spectrum in graph 2c is also a mirror image of the
+				original spectrum. To correct for this, it is necessary to reverse the swapped spectrum (graph
+				2d) to fully restore the orientation of the original spectrum.</p><div class="p"><figure class="fignone">
+					
+					<img src="92960.png" alt="Spectrum swapping and reversal">
+				</figure></div><p>Note that reversal of the spectrum is necessary if a high-side LO was used, but not
+				if a low-side LO was used.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/libdsp.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">DSP_RF_SWAP(ARRAY_COMPLEX &amp; sourceData,
+ const INT highSideLO);
+
+DSP_RF_SWAP(ARRAY_D &amp; sourceData,
+ const INT highSideLO);</pre><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_92948__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1" id="_92948__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1" id="_92948__entry__3"><p>Notes</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_92948__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_92948__entry__2"><p><kbd class="userinput">sourceData</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_92948__entry__3"><p>An array representing a spectrum produced by the FFT process; this function
+									corrects the data in the array so that the center frequency is placed in the middle of the
+									spectrum. The array can be of complex numbers or doubles. </p>
+								</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_92948__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1" headers="_92948__entry__2"><p><kbd class="userinput">highSideLO</kbd></p>
+							</td>
+							<td class="colsep-1" headers="_92948__entry__3"><p>If selected, reverse the swapped spectrum left-to-right to correct for the
+									measurement's use of an LO frequency that is above the measured frequency. </p>
+								<p>1 = correct for use of high-side LO</p>
+								<p>0 = do not correct for use of high-side LO</p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> The <kbd class="userinput">sourceData</kbd> array is not returned as a result
+				by this function; it is corrected "in place".</div></div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint copyable singleline">DSP_RF_SWAP(cData, 0);</pre><p>In this example, it would be necessary
+				for the variables that are used as function parameters to have been declared as
+			follows:</p><pre class="prettyprint copyable singleline">ARRAY_COMPLEX cData = MEAS_DEF("myModPwrMeas").getComplexWaveform();</pre></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 92948</span><script type="text/javascript">var ti='92948';var tt='DSP_RF_SWAP()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

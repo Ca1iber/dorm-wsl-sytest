@@ -1,0 +1,127 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up Routing</title></head><body id="_13448"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 13448</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up Routing</h1>
+	
+	
+	<div>
+		<p>The command has a <strong>task</strong> parameter to define the task executed on activating the routing
+			set and the <strong>task_param</strong> parameter to define the parameters for the specified task, such as
+			below.</p>
+		<div></div><pre class="prettyprint linenums copyable"> <kbd class="userinput">set# statement# analog pin</kbd>
+ <kbd class="userinput">| | |</kbd>
+ <kbd class="userinput">DFRT 1,4,ANA_CNCT,"DIFF,CORE",,(Vout2)</kbd>
+ <kbd class="userinput">| |</kbd>
+ <kbd class="userinput">task task_param</kbd></pre><div></div>
+		<p>Available tasks are as follows:</p>
+		<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">ANA_CNCT:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Connects the analog pin to the specified resource.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">FLSH:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Executes the buffered routing statements beforehand. </p>
+							<p>The statement number and the "<strong>FLSH</strong>" task, are described later in this section.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">NOP:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>No operation. You can use this task to cancel a statement in the buffered routing
+								statements beforehand.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">UTIL</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Sets the state of the specified utility lines.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		
+		<p>For the "<strong>ANA_CNCT</strong>" task, you must set the signal mode and the connection destination for
+			the specified analog pin, in the <kbd class="userinput">task_param</kbd> parameter.</p>
+		<p>You can select one of the following signal modes:</p>
+		
+		<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">SGL:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Single-ended signal mode</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">DIFF:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Differential signal mode</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">OFF:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Disconnects the analog pin from any resource.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		
+		<p>You can select one of the following connection destinations:</p>
+		<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">CORE:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Connects the analog pin to the appropriate core of the analog module for making a signal path for
+								analog waveform measurement or generation.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<div class="p"><figure class="fignone">
+				<img src="32380.png" alt="Core">
+			</figure></div>
+		
+		
+		<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+					<tr>
+						<td class="colsep-0 rowsep-0"><p><kbd class="userinput">TRIG:</kbd></p>
+						</td>
+						<td class="colsep-0 rowsep-0"><p>Connect the analog pin to the trigger terminal of the analog module for making a
+								signal path for DC testing of the analog pin.</p>
+						</td>
+					</tr>
+				</tbody></table>
+		
+		<div class="p"><figure class="fignone">
+				<img src="32382.png" alt="trig">
+			</figure></div>
+		
+		<p><strong>EXT: Connect the analog pin to the other input/output terminal of the analog module so as to
+				make a loopback path for connecting to another analog module.</strong></p>
+		<div class="p"><figure class="fignone">
+				<img src="32383.png" alt="EXT">
+			</figure></div>
+		<p>Also, each routing statement in a routing set has a statement number. When the routing set is
+			activated by the <strong>ACRS</strong> command, the routing statements will be executed in parallel
+			regardless of the statement numbers. However, if any routing statements are "<strong>FLSH</strong>" tasks,
+			the routing statements will be executed as follows:</p>
+		<ol>
+			<li>The first routing statement (statement number 1) up to the statement prior to the first
+					"<strong>FLSH</strong>" task will be executed in parallel by the first "<strong>FLSH</strong>" task.</li>
+			<li>The next statement of the "<strong>FLSH</strong>" task up to the statement prior to the next
+					"<strong>FLSH</strong>" task will be executed in parallel by the second "<strong>FLSH</strong>" task.</li>
+			<li>The subsequent sequence will also be executed.</li>
+			<li>The next statement of the last "<strong>FLSH</strong>" task up to the last statement will be executed
+				in parallel. A "<strong>FLSH</strong>" task is automatically executed after the last statement. Hence, you
+				must not set the "<strong>FLSH</strong>" task at the end of the routing sequence.</li>
+		</ol>
+		<p>In fact, the "<strong>FLSH</strong>" task reads the buffered setting data in the current readiness analog
+			set, and routing setting data in the primary routing set and as defined by the <strong>ACMD "CNCT"</strong>
+			command from the MCD, checks the combination of the settings, and downloads the contents of the
+			readiness analog set and buffered routing settings to the hardware accordingly.</p>
+		<p>When setting up the routing set, take account of the above execution order of the routing
+			statements. For more information on the execution order and the activation of the routing set,
+			see <a href="13449.htm">Defining and Activating Primary Set</a>.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 13448</span><script type="text/javascript">var ti='13448';var tt='Setting up Routing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

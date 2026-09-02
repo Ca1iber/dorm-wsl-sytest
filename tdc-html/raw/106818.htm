@@ -1,0 +1,175 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This function returns the next calibration name of a calibration category list."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>calibrationCategoryList_next()</title><meta name="keywords" content="cal, calibration, Category, List"></head><body id="_106818"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 106818</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">calibrationCategoryList_next()</h1>
+	
+	
+	<div><p>This function returns the next calibration name of a calibration category
+		list.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">const char* calibrationCategoryList_next (CalibrationCategoryList* pList);</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-0" id="_106818__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-0" id="_106818__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0" headers="_106818__entry__1"><var class="varname">pList</var></td>
+										<td class="colsep-0 rowsep-0" headers="_106818__entry__2">The calibration category list.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return Value</dt>
+					<dd>The next calibration name is returned. It can be<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">Core</span></td>
+										<td class="colsep-0 rowsep-0">for the mandatory parts of a full
+											calibration.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">ExtDc</span></td>
+										<td class="colsep-0 rowsep-0">for the focus calibration.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">Fact</span></td>
+										<td class="colsep-0 rowsep-0">for the one-time calibration done during the production of the hardware.</td>
+									</tr>
+									
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">Tmu</span></td>
+										<td class="colsep-0 rowsep-0">for TMU calibration. It is optional and only needed
+											when TMU is used.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-0"><span class="keyword">Update</span></td>
+										<td class="colsep-0 rowsep-0">for the <!--a href="service<87735.htm"-->DC update
+												calibration<!--/a-->.<span>The calibration has a shorter life time
+												than the full calibration. Refer to the calibration periods for the individual cards in
+												the <a href="105099.htm" title="Advantest specifies and verifies the specifications at the DUT interface pogo level. Using an adequate DUT board, valid system calibration and a fixture delay measurement (TDR), these specifications are valid at the device under test as well. Specifications describe warranted product performance. Characteristics are included as typical values to provide additional useful information by describing typical non-warranted performance.">Specifications</a>.</span></td>
+									</tr>
+								</tbody></table></dd>
+				
+			</dl>
+		</div>
+		<h2>Example</h2><div class="example"><p>This is a sample program to do a calibration date query provided with SmarTest in
+			the directory <span class="filepath" id="_106818__d2336e17">/opt/hp93000/soc/pws/calibration/example/</span>.</p><p>For information on how to implement the example refer to <a href="106811.htm" title="This section describes how to use the calibration API to check the calibration status and history.">How to use the calibration API</a>.</p><pre class="prettyprint linenums copyable">#include &lt;stdio.h&gt;
+
+#include "/opt/hp93000/soc/pws/include/calibration.h"
+
+void printDate (CalStatusEvent event,   // Calibration event: last or next calibration
+                const char* name,       // Calibration category name
+                const struct tm t)      // Time structure
+{
+    printf("Date of %s %-7s calibration: %4d-%02d-%02d %02d:%02d\n",
+           event == CAL_EVENT_LAST ? "last" : "next",
+           name, t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min);
+
+} // void printDate (CalStatusEvent event, const char* name, const struct tm t)
+
+//
+// Show date &amp; time of calibration for all calibration categories
+//
+void showAllCalibrationDates (CalStatusEvent event) /* calibrationevent: last or next */
+{
+    //
+    // Create a category iterator
+    //
+    CalibrationCategoryList* catList = calibrationCategoryList_new (CompleteCalibration, NULL);
+
+    const char* catName = NULL;
+
+    //
+    // Loop through all category names
+    //
+    while (catName = calibrationCategoryList_next (catList), catName != NULL &amp;&amp; *catName != '\0')
+    {
+        //
+        // Get &amp; print calibration date
+        //
+        printDate (event, catName, getCalibrationDate (event, CAL_TYPE_FULL, catName, NULL));
+    }
+
+    //
+    // Delete iterator
+    //
+    calibrationCategoryList_delete (catList);
+
+    //
+    // Repeat the loop for update calibration
+    //
+    catList = calibrationCategoryList_new (UpdateCalibration, NULL);
+
+    while (catName = calibrationCategoryList_next (catList), catName != NULL &amp;&amp; *catName != '\0')
+    {
+        printDate (event, catName, getCalibrationDate (event, CAL_TYPE_UPDATE, catName, NULL));
+    }
+
+    calibrationCategoryList_delete (catList);
+
+} // void showAllCalibrationDates (CalStatusEvent event)
+
+//
+// Print if calibration of all categories is valid or invalid
+//
+void isCalibrationValid()
+{
+    //
+    // Create a category iterator
+    //
+    CalibrationCategoryList* catList = calibrationCategoryList_new (CompleteCalibration, NULL);
+
+    const char* catName = NULL;
+
+    //
+    // Loop through all names of the category list
+    //
+    while (catName = calibrationCategoryList_next (catList), catName != NULL &amp;&amp; *catName != '\0')
+    {
+        printf("%-7s calibration is %svalid\n", catName, isValidCalibration (CAL_TYPE_FULL, catName, NULL) ? "" : "in");
+    }
+
+    //
+    // Delete iterator
+    //
+    calibrationCategoryList_delete (catList);
+
+    //
+    // Repeat the loop for update calibration
+    //
+    catList = calibrationCategoryList_new (UpdateCalibration, NULL);
+
+    while (catName = calibrationCategoryList_next (catList), catName != NULL &amp;&amp; *catName != '\0')
+    {
+        printf("%-7s calibration is %svalid\n", catName, isValidCalibration (CAL_TYPE_UPDATE, catName, NULL) ? "" : "in");
+    }
+
+    calibrationCategoryList_delete (catList);
+
+} // void isCalibrationValid()
+
+int main (void)
+{
+    printf("\nplease make sure that tester SW is running ..\n\n");
+
+    //
+    // Show calibration date of last full calibration
+    //
+    showAllCalibrationDates (CAL_EVENT_LAST);
+
+    //
+    // Show calibration date of next update calibration
+    //
+    showAllCalibrationDates (CAL_EVENT_NEXT);
+
+    //
+    // Is calibration valid ?
+    //
+    isCalibrationValid();
+
+}</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 106818</span><script type="text/javascript">var ti='106818';var tt='calibrationCategoryList_next()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

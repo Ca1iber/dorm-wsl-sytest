@@ -1,0 +1,96 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Uploads the offsets at the fail-to-pass and pass-to-fail transition boundaries (the offsets for the first and last passing values of the pass area) found in the latest offset search from the tester to the workstation."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DIGITAL_OFFSET_SEARCH_TASK.enableAutoTransitionUpload()</title></head><body id="_146558"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 146558</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DIGITAL_OFFSET_SEARCH_TASK.enableAutoTransitionUpload()</h1>
+	
+	
+	<div><p>Uploads the offsets at the fail-to-pass and pass-to-fail transition boundaries (the
+		offsets for the first and last passing values of the pass area) found in the latest offset search
+		from the tester to the workstation.</p>
+		<section class="section"><p>It functions the same as <a href="141041.htm" title="Triggers the DIGITAL_OFFSET_SEARCH_PINS instance to upload the offsets at the fail-to-pass and pass-to-fail transition points (the offsets of the first and last passing values of the pass area) found in the latest transition search from the tester into the system controller.">DIGITAL_OFFSET_SEARCH_TASK.uploadLatestTransition()</a> but used in different scenarios:</p><ul>
+				<li>When using <a href="29792.htm" title="The TASK_LIST class is a data container holding PPMU_SETTING, PPMU_RELAY, and PPMU_MEASURE tasks to be performed.">TASK_LIST</a> to execute one or more
+						<span class="keyword">DIGITAL_OFFSET_SEARCH_TASK</span> objects, if you want to retrieve the found
+					transitions, before adding those objects to a <span class="keyword">TASK_LIST</span>, you must have set
+					up this member function instead of <span class="keyword">uploadLatestTransion()</span> for every object
+					to upload the transitions to the workstation. Otherwise, you cannot get the correct
+					values.</li>
+				<li>In the other cases, use <span class="keyword">uploadLatestTransion()</span>.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void enableAutoTransitionUpload();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		<h2>Example</h2><div class="example"><p>Utilizing the <span class="keyword">TASK_LIST</span> API to perform two different digital offset
+				searches. One searches the <span class="keyword">pcie_rx1p</span> pin and the other one searches the
+					<span class="keyword">pcie_rx2p</span>
+			pin.</p><pre class="prettyprint linenums copyable">DIGITAL_OFFSET_SEARCH_TASK dos_task_1;
+DIGITAL_OFFSET_SEARCH_TASK dos_task_2;
+TASK_LIST dos_tasklist;
+DIGITAL_OFFSET_SEARCH::LevelSetSelector lss(DIGITAL_OFFSET_SEARCH::PRM);
+
+static DIGITAL_OFFSET_SEARCH::DigitalOffsetSearchConfigDataType configdata;
+configdata.resourceType = DIGITAL_OFFSET_SEARCH::VIL;
+configdata.searchType = DIGITAL_OFFSET_SEARCH::EYE;
+configdata.start = -100 mV;
+configdata.numSteps = 200;
+configdata.stepWidth = 1 mV;
+
+dos_task_1.pin("pcie_rx1p").setConfiguration(configdata);
+dos_task_2.pin("pcie_rx2p").setConfiguration(configdata);
+
+dos_task_1.enableAutoTransitionUpload();
+dos_task_2.enableAutoTransitionUpload();
+
+dos_task_1.enableAutoOffsetUpload(lss, DIGITAL_OFFSET_SEARCH::VIL);
+dos_task_2.enableAutoOffsetUpload(lss, DIGITAL_OFFSET_SEARCH::VIL);
+
+// add both tasks to list
+dos_tasklist.add(dos_task_1);
+dos_tasklist.add(dos_task_2);
+
+ON_FIRST_INVOCATION_BEGIN();
+
+  //execute list
+  dos_tasklist.execute();
+
+  FOR_EACH_SITE_BEGIN();
+
+    try
+      {
+        DOUBLE offset = dos_task_1.pin("pcie_rx1p").getLatestLBTransitionOffset();
+      } 
+    catch (TESTMETHOD_API::TMException &amp; e) 
+      {
+        //ERROR CASE
+      }
+
+      try 
+        {
+          DOUBLE offset = dos_task_1.pin("pcie_rx1p").getOffset(lss, DIGITAL_OFFSET_SEARCH::VIL);
+        } 
+      catch (TESTMETHOD_API::TMException &amp; e) 
+        {
+        //ERROR CASE
+        }
+
+      try 
+        {
+          DOUBLE offset = dos_task_2.pin("pcie_rx2p").getLatestLBTransitionOffset();
+        } 
+      catch (TESTMETHOD_API::TMException &amp; e) 
+        {
+          //ERROR CASE
+        }
+
+      try 
+        {
+          DOUBLE offset = dos_task_2.pin("pcie_rx2p").getOffset(lss, DIGITAL_OFFSET_SEARCH::VIL);
+        } 
+      catch (TESTMETHOD_API::TMException &amp; e) 
+        {
+          //ERROR CASE
+        }
+
+  FOR_EACH_SITE_END();
+
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="146559.htm" title="Uploads the offset for the middle of the pass area found in the latest offset search from the tester to the system controller.">DIGITAL_OFFSET_SEARCH_TASK.enableAutoOffsetUpload()</a></div><div><a href="146560.htm" title="Uploads the offsets at the middle of the pass area and at the fail-to-pass and pass-to-fail transition boundaries (the offsets for the first and last passing values of the pass area) found in the latest offset search from the tester to the workstation.">DIGITAL_OFFSET_SEARCH_TASK.enableAutoResultsUpload()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 7.3.1: Introduced in patch 3.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 146558</span><script type="text/javascript">var ti='146558';var tt='DIGITAL_OFFSET_SEARCH_TASK.enableAutoTransitionUpload()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

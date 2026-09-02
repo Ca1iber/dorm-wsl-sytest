@@ -1,0 +1,310 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Reducing Cost of Test using SmarTest Execution Profiles</title><meta name="keywords" content="profiler, Smar, Test"></head><body id="_121175"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 121175</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Reducing Cost of Test using SmarTest Execution Profiles</h1>
+	
+	<div>
+		<p>Ryan Lucy, Verigy</p>
+		<p>Paper-ID: 121175 April 2010</p>
+		<section class="section"><h2>Abstract</h2>
+			
+			<p>SmarTest Execution Profiles have been a part of SmarTest since 6.2, providing a fully
+				integrated solution for reducing cost of test by enabling the power of adaptive testing and
+				sampling. However, as of today, only a few customers have fully realized the potential savings
+				they provide. This paper aims to explore all the practical applications of SmarTest Execution
+				Profiles, leveraging current techniques used in the field. Topics include:</p>
+			<ul>
+				<li>A brief introduction to the profile concept</li>
+				<li>Engineering: Using profile properties to enable/disable test method debug code</li>
+				<li>Having a means to manage custom variables without modifying your test program</li>
+				<li>Using adaptive sampling to dynamically adjust data log detail based on yield throughput</li>
+				<li>Enabling adaptive testing by disabling/skipping selected testsuites that always pass</li>
+			</ul>
+			<p>Following concrete applications of these topics, this paper concludes with an estimation of
+				what dollar savings such adaptive techniques can bring to HVM environments.</p>
+			<p><strong>Key Words</strong>: Adaptive test, sampling, cost of test, profiles</p>
+		</section>
+		<section class="section"><h2>Introduction: What's a Profile?</h2>
+			
+			<p>The concept of a profile can be found in many areas of our lives, from the configuration of
+				cell phones to switch from normal to silent mode, to switching the customized configuration of
+				software programs based on a given user profile. From the software standpoint, a profile is a
+				collection of settings encapsulated within a container that can be arbitrarily switched to alter
+				a system's behavior.</p>
+			<p>In the SmarTest context, this system behavior (i.e. how a test program is executed) is
+				typically controlled via a collection of flags, in particular: system, testflow, testsuite, and
+				user-defined flags. Historically, as the supported feature set of SmarTest grew, so did the
+				number of way to configure it, resulting in a large number of flags that became difficult to
+				manage for large projects. Since often different users require different sets of flags based on
+				their working and test conditions (engineering vs. production, normal limit conditions vs. QA,
+				wafer sort vs. package test, etc.), the idea of grouping those settings into selectable profiles
+				was born.</p>
+			<p>Before the SmarTest Profile concept, users typically had to store multiple copies of their
+				testflow file with varying flag settings and switch between testflow files to change the test
+				conditions. Having multiple copies of the same testflow file was problematic, however, since all
+				of the relevant test information was stored in this single file, including the testsuites and
+				tests to execute, primaries, limit conditions for those tests, bin definitions, etc. If
+				modifications were needed to the flow at a later stage of engineering, the change had to be
+				applied multiple times to all testflow copies. The need to separate this flag information from
+				the testflow structure itself became more and more apparent.</p>
+			<p>Starting with SmarTest revision 6.2, the profile concept was introduced [1], supporting the
+				dynamic switching of flag settings with a single mouse click, as well as the definition of
+				user-defined properties. In addition, the Eclipse Profile Editor plug-in was provided to help
+				the user configure and manage the profile content. Finally, a rich programming API - the Profile
+				API [2] - was introduced to give the test engineer full control of configuring and switching
+				profiles directly from within a test method or external program. With this flexible framework in
+				place, the number of practical applications using profiles began to grow quickly as the concept
+				was rolled out to customer sites.</p>
+			<p>This paper aims to examine some of the practical use cases and how they can be applied to
+				reduce time to market (TTM) in engineering and cost of test (COT) in production environments. To
+				assist the reader, the title of each chapter implies whether the described application is
+				focused on engineering (TTM) or production (COT) improvements.</p>
+		</section>
+		<section class="section"><h2>TTM Application: Configuring data logging</h2>
+			
+			<p>The SmarTest data logging subsystem has a unique position given its usage across all device
+				technologies, be it digital, mixed-signal, or RF devices. Regardless of the test domain, every
+				test engineer is faced with configuring data logging at some point in time. Because of its
+				unique exposure, it is essential that something this central be easy to configure.</p>
+			<p>The first major application and selling point of the profile framework, therefore, was to
+				reduce the time required to configure data logging, effectively reducing the TTM for our
+				customers. This was accomplished by using the profile concept to enable "one-click data
+				logging", meaning a single mouse click can immediately switch the configuration of all flags.
+				This "one-click" is enabled via the profile combo box, shown on the left in figure 1.</p>
+			<div class="p">
+				<figure class="fignone">
+					<img src="121177.png" alt="Reducing Cost of Test using SmarTest Execution Profiles">
+				</figure>
+			</div>
+			<p><strong>Figure 1 Profile UIs</strong></p>
+			<p>The primary advantage of this is that each customer can customize what exactly data log "on"
+				or "off" means in terms of logging detail with the help of the Profile Editor (figure ), and
+				easily switch between the two during test program development. In addition, since any number of
+				profiles can be created and saved, this adds extra flexibility in defining multiple data log
+				configurations to meet the customer's specific needs.</p>
+			<p>In addition, the profile rules themselves can be fine-tuned to apply to only specific parts of
+				the testflow, such as to certain groups, test suites, test methods, or tests. With the power of
+				string wildcard matching, rules such as "for all DC tests" for example, DC_*), or "for all functional
+				tests" for example, *FUNC*) can be easily specified. It's even possible to indicate more granular
+				logging rules all the way down to the test level, either via test name, number, or software bin,
+				which previously was not possible beyond the test suite level. One large customer, for example,
+				has utilized this finer granularity to specify logging rules on a test number basis, greatly
+				benefiting their strategy. A full description of the profile rule syntax can be found under
+				[3].</p>
+		</section>
+		<section class="section"><h2>TTM Application: Using Custom Properties</h2>
+			
+			<p>Not only do profiles allow full control over existing SmarTest flags, they also allow the
+				definition of custom properties that can be dynamically switched just like flags. These
+				properties can then be queried directly by test methods similar to variables to enable/disable
+				certain behavior.</p>
+			<p>From the test method perspective, properties can be thought of as read-only variables that are
+				initialized via the active profile. Profile properties, however, offer a significant advantage
+				over traditional variables. Because the values of the properties can be changed dynamically by
+				simply activating another profile, this gives the test engineer a new dimension of controlling
+				the test method behavior without having to modify the test program. Considering test programs
+				under revision control, this means test engineers no longer have to check out and modify their
+				test program files to modify the behavior of interest, assuming profiles are utilized as the
+				mechanism.</p>
+			<p>For example, A typical pattern seen in many customer test methods is a section that is
+				executed only when debug is enabled, which typically consists of "printf" statements contained
+				within an "if (debug==1)" branch. The debug variable is usually compiled along with the test
+				method. Instead of re-compiling the code each time to switch the debug mode, a better approach
+				is to define a custom "debug" property set to true (=1) in a debug profile for example, debug_ON.prf),
+				and to query the property from within the test method using the "Property::value("debug")" API.
+				A second profile for example, debug_OFF.prf) is also defined, where the "debug" property is defined as
+				being false (=0). Now, whenever the debug mode needs to be modified, this is done on-the-fly by
+				simply activating the appropriate profile via the Profile combo box. No test program
+				modification or re-compilation is required.</p>
+			<p>Of course, the number of applications of this customizable framework is not limited to this
+				example. Properties can benefit any test method where flexible variables are required that can
+				be set outside the test program. The number of practical applications for this is open to the
+				test engineer's imagination. Properties are not limited to only true/false values; they fully
+				support all integer values.</p>
+		</section>
+		<section class="section"><h2>COT Application: Adaptive Sampling</h2>
+			
+			<p>Adaptive sampling refers to the ability to selectively determine which devices get logged
+				during production and which ones simply get pass/fail results. In addition, the degree of
+				logging can be dynamically varied as required, based on yield variations or other conditions of
+				interest.</p>
+			<p>In a perfect world where everything comes for free, one would log and store data for all
+				device executions to maintain a consistent record for yield learning tools and other backend
+				process requirements. Commanding the tester hardware to measure and transfer exact values back
+				to the workstation to be judged, logged, and formatted, however, is not a trivial matter. In
+				addition, as the level of data logging detail is increased, SmarTest must use different
+				measurement algorithms and tester resources that impact the test time. The Pin PMU, for example,
+				can compare a voltage or a current quickly against an upper and lower limit. Once values are
+				measured, the output of the Pin PMU is connected to the Board ADC, which is shared among the
+				channels on a board, and which averages over a number of measurements. If the System PMU is used
+				for the measurement, it takes even longer. The rule of thumb, therefore, is to only log what you
+				need in production environments to minimize COT.</p>
+			<p>Aside from the test time aspect, there is never an unlimited amount of hard-disk space
+				available on the workstation for storing data from large production runs; much less runs that
+				log long scan chains for debugging purposes.</p>
+			<p>Because of these reasons, reducing the amount of device data logged to a meaningful subset
+				for example, 10% by logging only every 10th device) is often sufficient enough to satisfy the yield
+				analysis requirements while also reducing the amount of required hard-disk space and tester
+				time.</p>
+			<p>A common approach to doing so is to add a testsuite to the beginning of the flow that sets the
+				appropriate profile for the upcoming device execution, accordingly. A simple implementation
+				involves counting the number of device executions and then switching the profile between
+				datalog_ON.prf and datalog_OFF.prf for every nth device [4]. More sophisticated approaches can
+				implement yield monitoring counters that automatically increase the level of detail in the event
+				that a yield drop is detected.</p>
+			<p>The potential savings of utilizing adaptive sampling can be significant. A closer examination
+				at dollar savings will be performed in chapter 0.</p>
+		</section>
+		<section class="section"><h2>COT Application: Adaptive Testing</h2>
+			
+		</section>
+		<section class="section"><h2>What's Adaptive Testing?</h2>
+			
+			<p>As pricing pressure on semiconductor devices has increased over the years, so has the need to
+				reduce the COT of those devices. Recent trends such as BIT, BIST, and DFT have taken a design
+				approach to accomplishing this, but other techniques to optimize traditional test approaches
+				exist, as well.</p>
+			<p>A forerunner is adaptive testing, where the list of tests to execute is dynamically changed
+				based on statistical models and algorithms. Adaptive testing techniques exist both for
+				engineering and production environments. Engineering approaches involve direct analysis of the
+				test program (typically by examining the EDL or STDF data log output), to identify test time
+				reduction (TTR) candidates, informing the test engineer of savings potential before the device
+				is rolled-out for production. Production environment approaches involve attaching external
+				analysis software to the public SmarTest APIs and data log interfaces, with a feedback loop to
+				dynamically alter the flow of test execution as necessary in real time.</p>
+			<p>In a simple example, if it is determined that a particular testsuite has always passed for the
+				last 1000 executions and has no direct dependencies or influence on other testsuites in the
+				flow, the testsuite can be bypassed for subsequent executions, effectively reducing the test
+				time and therefore COT. The general idea is to identify and bypass any trivial tests in the flow
+				and to focus only on the meaningful tests that help identify defective devices.</p>
+			<p>The actual intellectual property (IP) involved in making such TTR decisions can be very
+				sophisticated; there are several 3rd party tools available that specialize in this area.
+				Examining these algorithms is outside the scope of this document. The required framework to
+				connect such IP or even customized logic, however, is directly provided by SmarTest Execution
+				Profiles and will be more closely examined in the remainder of this chapter.</p>
+		</section>
+		<section class="section"><h2>Implementing Adaptive Testing</h2>
+			
+			<p>SmarTest provides the Profile API [2] to support programmatic control of everything supported
+				by the profile subsystem. This includes creating and modifying profile rules and values, and
+				most importantly, the ability to activate a profile on-the-fly. The Profile API can be called
+				from both test methods and external programs, giving the test engineer a flexible approach to
+				implementing adaptive testing methodologies.</p>
+			<p>The implementation approach discussed in this paper chooses to put the adaptive testing logic
+				in an external "formatter" process [5] as opposed to putting it within the test program (for example,
+				test method) itself. This is depicted in figure 2.</p>
+			<div class="p">
+				<figure class="fignone">
+					<img src="121178.png" alt="Reducing Cost of Test using SmarTest Execution Profiles (2)">
+				</figure>
+			</div>
+			<p><strong>Figure 2 Adaptive Test Strategy</strong></p>
+			<p>This approach is chosen for the following reasons:</p>
+			<ul>
+				<li>All relevant information for making adaptive testing decisions is contained directly within
+					the data log (test results, binning info, etc.).</li>
+				<li>A formatter is, by nature, external to the test program, which meets the requirement of
+					separating the adaptive testing logic from the test program itself.</li>
+				<li>Placing the logic in a formatter process puts it in the "post-processing" context, meaning
+					the adaptive testing IP itself will not negatively impact test time.</li>
+			</ul>
+			<p>Note that our "formatter" isn't going to format anything, but rather add or modify profile
+				rules as needed, to enable adaptive testing. This new "formatter" process subscribes to the
+				Event Stream via the public DRL API [6], listens for events of interest, and then takes action,
+				as needed, based on those events. The action is typically to collect statistics on the test
+				program itself, updating the information following each test execution and "bin reached" event
+				to reflect the real-time production data.</p>
+			<p>Whenever this custom logic determines that a particular testsuite is superfluous, the "bypass"
+				flag of that testsuite is activated by adding a new rule using the Profile API, causing the
+				testsuite to be skipped for subsequent executions, reducing COT. The flexibility of profile
+				rules allows us to even apply these to an entire group of testsuites, if needed. In addition,
+				testflow branching can be influenced by the profile's ability to modify user flags queried in
+				testflow "if" and loop statements. These capabilities effectively give you the power to
+				dynamically control what gets tested from outside the test program, delivering an ideal adaptive
+				testing framework for your custom IP.</p>
+			<p>One consideration worth mentioning here is when the changes take place. Since a formatter is
+				in the post-processing context, meaning not in the critical test program execution path, it
+				receives data log events after a slight delay (Δt) following the actual event, which is the
+				amount of time it takes for the Event Stream Server to read the queued data log events from its
+				input buffer and to distribute to all subscribed formatters. On a heavily loaded system, this
+				delay can be several milliseconds. How can the formatter safely influence the real-time testflow
+				execution from this post-processing position?</p>
+			<p>The answer lies within the profile architecture itself. Whenever changes made to the active
+				profile are saved, the flag update happens immediately. Since the new rules are generally
+				related to the testsuite that was just executed for example, bypass flag set), this means that the new
+				rule will apply to the next testflow execution for that particular testsuite. Due to the
+				potential processing delay (Δt) before the formatter sees the event, it is not recommended to
+				add or apply new profile rules that will affect testsuites that occur at a later point in the
+				same testflow execution.</p>
+			<p>For some use cases where several simultaneous flow changes are desired, it may be desirable to
+				have the formatter internally prepare the changes, but only apply them once at the beginning of
+				the next testflow execution. Since the formatter is decoupled from the testflow execution
+				context, synchronization must be explicitly programmed. This can be achieved using a shared
+				memory semaphore used between the testmethod executor process (tml_tmr) and the formatter
+				itself. The purpose of the semaphore is to communicate when testflow changes are desired. This
+				is implemented by placing a single testsuite for example, "ApplyProfile") at the start of the testflow
+				that checks the semaphore to see if the formatter has changes it would like to apply. If so, the
+				testflow execution temporarily blocks, giving control to the formatter to make the changes,
+				after which the semaphore is returned to the testflow and execution continues. Since adaptive
+				testing changes are expected to be a rare event over the entire production run, this approach
+				still has better performance than placing the entire IP logic directly in the execution
+				context.</p>
+			<p>In conclusion, using this proposed formatter approach offers a means to integrate adaptive
+				test logic into SmarTest without modifying the test program or negatively impacting test time.
+				The public DRL API is used to read all relevant production data and the SmarTest Profile API is
+				used by the adaptive test logic in the feedback loop to influence future testflow executions and
+				reduce COT.</p>
+		</section>
+		<section class="section"><h2>COT: Potential Dollar Savings</h2>
+			
+			<p>The actual dollar savings depends on many factors, including the number of devices to be
+				tested and the actual cost of purchasing or leasing equipment at sub-contract manufacturers
+				(SCMs). For the sake of simplicity, the cost of engineering work and the time contributed by
+				other test cell factors (prober/handler, operator delays, etc.) is excluded. The following
+				numbers serve as a hypothetical example, only, using leased equipment. This serves to highlight
+				a strategy for estimating the savings; the actual calculation must be performed under real
+				conditions.</p>
+			<p>Test Assumptions:</p>
+			<ul>
+				<li>Devices to be tested: 80 Million</li>
+				<li>Number of sites: 4</li>
+				<li>Number of testflow executions: 20 Million [80M/4]</li>
+			</ul>
+			<p>Equipment Assumptions:</p>
+			<ul>
+				<li>Tester cost: $150/hour</li>
+			</ul>
+			<p>Cost of Test Calculations:</p>
+			<ul>
+				<li>1 sec of testflow time: $833,333.33 [($150 * 20,000,000)/3600]</li>
+				<li>1 ms of testflow time: $833.33 [833,333.33 / 1000]</li>
+			</ul>
+			<p>Recall that one testflow execution is needed to test one set of sites, which corresponds to 4
+				devices in this example (quad site test). This means that 20M testflow executions are required
+				to test all 80M devices. Under these conditions, reducing the individual testflow execution time
+				by a single millisecond - whether done via adaptive sampling or testing - will reduce the
+				overall test time for all 80M devices in quad-site by 5.56 hours (((80M/4) * .001 sec)/3600).
+				Assuming tester costs of $150/hour, this equates to an overall COT savings of approx. $833 for
+				every ms of testflow time reduction. For high-running devices, this calculation clearly shows
+				that using the adaptive sampling or adaptive testing techniques discussed above is well worth
+				consideration.</p>
+			<p>In an actual application, one large customer implemented adaptive sampling of every 20th
+				device during a trial production run. This means that 19 out of every 20 executions benefited
+				from the reduced execution time. The measured savings for the reduced set was 500ms per flow
+				execution for an octal site setup on an xw8200 workstation. Assuming the same volume level and
+				equipment costs and adjusting the calculations above to consider octal site (1 ms of testflow
+				time = $833.33/2 = $416.67), the overall production savings for this particular device by
+				utilizing adaptive sampling equates to approx $197,918 (500ms * $416.67/ms * (19/20)), well
+				worth the comparatively low engineering investment to implement.</p>
+		</section>
+		<section class="section"><h2>References</h2>
+			
+			<p>[1] Profile UI User Documentation: <a href="95305.htm" title="This API enables modifying label vectors at runtime on the specified digital pins of a certain site, while remaining pins continue executing the original vectors. The editing operation will overwrite the drive/receive actions in the specified label with a user defined action. The vector data will be overwritten directly in the corresponding memory.">VEC_LABEL_EDIT</a></p>
+			<p>[2] Profile API User Documentation: <a href="98046.htm">Data Logging Profiles</a></p>
+			<p>[3] Profile Rule Syntax: <a href="98009.htm" title="A data logging profile consists of a number of rules with the following format:">Data logging profile rule syntax</a></p>
+			<p>[4] Profile API Examples: <a href="98360.htm" title="These are some example uses of the data logging profile API.">Data logging profile API examples</a></p>
+			<p>[5] Developing a custom DRL formatter: <a href="34858.htm">Developing a data retrieval function</a></p>
+			<p>[6] Data Retrieval Library (DRL): <a href="34714.htm">Data Retrieval Library</a></p>
+		</section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 121175</span><script type="text/javascript">var ti='121175';var tt='Reducing Cost of Test using SmarTest Execution Profiles'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

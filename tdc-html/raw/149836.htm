@@ -1,0 +1,264 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The driver waits for a special SRQ (service request) to manage the lot."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Waiting for device and binning device</title></head><body id="_149836"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149836</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Waiting for device and binning device</h1>
+	
+	
+	<div><p>The driver waits for a special SRQ (service request) to manage the lot.</p>
+		<section class="section"><p>The actions are: </p><ul>
+				<li><code>&lt;lot start&gt; | &lt;lot restart&gt;</code></li>
+				<li><code>&lt;wait for device&gt;</code></li>
+				<li><code>&lt;lot end&gt; | &lt;final lot end&gt;</code></li>
+			</ul><table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_149836__entry__1"><p>Message from driver</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_149836__entry__2"><p>Message from handler</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_149836__entry__3"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1 _149836__entry__2 _149836__entry__3" colspan="3"><p><strong>Lot start | &lt;lot restart&gt; :
+									</strong></p>
+								<p>The only difference between <span class="keyword">lot start</span> and <span class="keyword">lot restart</span> in the communication flow is the <code>SRQ</code> value.</p>
+								<p>If you want to use the lot management sequence, call <a href="42266.htm" title="This function assures that a new lot is available, before the next command in the application model is executed. The implementation of the function depends on the plug-in. For example, the function wait for the prober to report that a new lot is ready to be tested.">ph_lot_start()</a> and <a href="42267.htm" title="A call of this function informs the prober driver that the test of the current lot is finished. The implementation of the function depends on the plug-in.">ph_lot_done()</a> in the application
+									model file.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>0xC0</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler sends the special SRQ.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>SRQKIND?</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver asks for the SRQ kind.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>SRQKIND 02 | SRQKINGD 04</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler returns a lot start or lot restart signal.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>LOTORDER 0</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver replies to the lot start request from the handler.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>FULLSITES?</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver asks for device set conditions of the contactor.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>FULLSITES n</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler returns device set conditions of the contactor.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1 _149836__entry__2 _149836__entry__3" colspan="3"><p><strong>Wait for device:</strong></p>
+								<p>This action repeats until there is a device to test.</p>
+								<p>If the application model file only calls <a href="42264.htm" title="This function tells the handler to insert the next (set of) devices into the sockets (if the handler is capable of processing this command), and waits either until the handler notifies that the insertion of devices is done, or until a waiting-for-parts timeout occurs (see Parameter: waiting_for_parts_timeout).">ph_device_start()</a>,
+									this sequence replaces the <span class="keyword">lot start</span> |
+										<span class="keyword">lot</span><code></code><span class="keyword">restart</span>, and the <span class="keyword">lot
+										end</span> | <span class="keyword">final lot</span>
+									<code>end</code> sequence will not be executed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>0x41</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler sends test start.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>FULLSITES?</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver asks for device set conditions of the contactor.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>FULLSITES n</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler returns device set conditions of the contactor.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><strong>Lot end: </strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>0xC0</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler sends the special SRQ.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>SRQKIND?</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver asks for the SRQ type.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>SRQKIND 08</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler returns a lot end signal.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>LOTRETESTCLEAR?</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver clears all operation data (lot data).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>LOTRETESTCLEAR | SETTINGNG</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>When the data has been correctly cleared, the handler sends
+										<span class="keyword">LOTCLEARED</span>.</p>
+								<p>When the data has not been cleared, the handler sends <span class="keyword">SETTINGNG</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>LOTORDER 2</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver replies to the lot end request sent from the handler.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1 _149836__entry__2 _149836__entry__3" colspan="3"><p><strong>Final lot end: </strong></p>
+								<p>If there are no devices to retest, the driver will send the <span class="keyword">final lot</span>
+									<code>end</code> instead of the <span class="keyword">lot end</span> signal to the handler.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>0xC0</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler sends the special SRQ.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>SRQKIND?</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver asks for the SRQ type.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p><code>SRQKIND 10</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The handler returns the final lot end signal.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__1"><p><code>LOTORDER 2</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__2"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_149836__entry__3"><p>The driver replies to the final lot end request from the handler.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Bin device</h2><p>The driver sends the result of the device test of each
+				contactor to the handler. The driver requests the handler to echo back the result.</p><p>The
+				binning command format is defined by the driver configuration. The handler expects different
+				GPIB command formats for 16-bin or 32-bin configurations.</p><table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149836__entry__67"><p>Message from driver</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149836__entry__68"><p>Message from handler</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149836__entry__69"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__67"><p><code>BINON:</code> n</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__68"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__69"><p>If the value n is a 16-bin format, it represents
+										'<code>xxxxxxxx,xxxxxxxx,xxxxxxxx,xxxxxxxx</code>'. </p>
+								<p>If the value n is a 32-bin format. it represents '<code>x,x,x,x,x,x,x,x</code>'. </p>
+								<p>For both values:</p>
+								<ul>
+									<li>The bits, from the least significant bit, correspond to contactor No.1, 2, 3...</li>
+									<li>The number of n is the number of devices tested in parallel.</li>
+								</ul><p>For 16-bin values:</p>
+								<ul>
+									<li>The n shows the test result. (n = 0 to 9 and A to H)</li>
+								</ul><p>For 32-bin values:</p>
+								<ul>
+									<li>The n shows the test result. (n = 0 to 21 hexadecimal number)</li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__67"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__68"><p><code>ECHO: n</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__69"><p>ECHO shows the contents of BINON data received by the handler from the tester. The
+									data format is the same as that of BINON.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__67"><p><code>ECHOOK | ECHONG</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__68"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149836__entry__69"><p>When the bin information is the same as the tester has sent, the driver replies
+										<span class="keyword">ECHOOK</span>, otherwise it replies <span class="keyword">ECHONG</span>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="42264.htm" title="This function tells the handler to insert the next (set of) devices into the sockets (if the handler is capable of processing this command), and waits either until the handler notifies that the insertion of devices is done, or until a waiting-for-parts timeout occurs (see Parameter: waiting_for_parts_timeout).">Function: ph_device_start</a></div><div><a href="42266.htm" title="This function assures that a new lot is available, before the next command in the application model is executed. The implementation of the function depends on the plug-in. For example, the function wait for the prober to report that a new lot is ready to be tested.">Function: ph_lot_start</a></div><div><a href="42267.htm" title="A call of this function informs the prober driver that the test of the current lot is finished. The implementation of the function depends on the plug-in.">Function: ph_lot_done</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149836</span><script type="text/javascript">var ti='149836';var tt='Waiting for device and binning device'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

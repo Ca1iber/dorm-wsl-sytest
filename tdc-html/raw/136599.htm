@@ -1,0 +1,130 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This mode is based on the feature of Independent Sequencer Run (ISR) on SmartScale cards."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CCF-ISR mode</title></head><body id="_136599"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 136599</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CCF-ISR mode</h1>
+	
+	
+	<div><p>This mode is based on the feature of Independent Sequencer Run (ISR) on SmartScale
+		cards.</p>
+		<p>Independent sequencer running (ISR) allows starting several sequencers serially on a group of
+			ports (Independent ports) while another sequencer is running on another group of ports
+			(synchronuous ports). This can help to improve the concurrent test efficiency when the fully
+			pattern-synchronized tests cannot be achieved, for example, the interactive tests in which the
+			measurement condition depends on the previous measurement. You can run the synchronized test
+			suites concurrently with a multiport burst pattern while running other independent test suites
+			serially. Ideally,the independent test suites will be hidden behind the synchronized test
+			suites.</p>
+		<p>Currently, only one group of independent ports supported in a CCF block. The patterns used in
+			the independent test suites must be for the same ports.</p>
+		<p>Synchronized test suites: The patterns used with these test suites are handled the same way as
+			in CCF-Burst Mode. A multiport burst pattern is run and the sequencer of each port is
+			synchronized.</p>
+		<p>Independent test suites: The pattern of each test suite can be started serially or in parallel,
+			while the multiport burst pattern of the synchronized test suites is running. The running of
+			these patterns is asynchronous to the running of the multiport burst pattern. In the following
+			figure, the independent test suites <span class="keyword">CCT3_L</span> and <span class="keyword">CCT4_L</span> are
+			executed in series. They can alternatively be specified to execute in parallel. This choice is
+			controlled using the <span class="keyword">CCF_ParallelISR</span> test method parameter options: </p>
+		<ul>
+			<li><span class="keyword">SERIAL _ISR</span> - Independent test suites in the associated CTF block run
+				serially while the synchronized test suite is running.</li>
+			<li><span class="keyword">PARALLEL_ISR</span> - Independent test suites in the associated CTF block run in
+				parallel while the synchronized test suite is running.</li>
+		</ul>
+		<p>The following figure shows the process of a CCF block in the CCF-ISR Mode.</p>
+		<p><img src="137107.png" alt="A CCF block">
+			<img src="137108.png" alt="Processing a CCF block in CCF-ISR mode"></p>
+		<p>An independent test suite can have different digital primaries (timing and level) and analog
+			primaries (predefined in the analog file or created with createAnalogSet() or createRFSet()) from
+			any other independent test suite or synchronized test suites. The CCF will apply the digital
+			primaries only to the pins in the assigned focused ports. Due to the system limitation, the
+			changes of the primaries must not impact the digital master clock. Otherwise, the running
+			sequencer may be stopped.</p>
+		<p>You can make the following hardware setup before starting a pattern on the independent ports in
+			the <code>preStart()</code> funciton. </p>
+		<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr>
+						<th class="colsep-1 rowsep-1" id="_136599__entry__1"><p>Description</p>
+						</th>
+						<th class="colsep-0 rowsep-1" id="_136599__entry__2"><p>Comments</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Change multiport timing spec and timing set</p>
+						</td>
+						<td class="colsep-0 rowsep-1" headers="_136599__entry__2" rowspan="4"><p>These primary changes only apply to the pins of the
+								independent ports.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Change timing spec variable</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Change level spec and level set</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Change level spec variable</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Change static condition parameters of primary analog set</p>
+						</td>
+						<td class="colsep-0 rowsep-1" headers="_136599__entry__2" rowspan="2"><p>The hardware update only applies to the idle boards or
+								units.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Create and change an analog set</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="colsep-1 rowsep-1" headers="_136599__entry__1"><p>Change utility line state</p>
+						</td>
+						<td class="colsep-0 rowsep-1" headers="_136599__entry__2"><p>&nbsp;</p>
+						</td>
+					</tr>
+				</tbody></table>
+		<p>After an independent sequencer is finished, you can retrieve the result for the measurement in
+			the process() function.</p>
+		<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-1 rowsep-0" id="_136599__entry__13"><p>Description</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_136599__entry__14"><p>Comments</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr class="rowsep-1">
+						<td class="colsep-1 rowsep-0" headers="_136599__entry__13"><p>Retrieve pass/fail result for the previous executed pattern of the independent
+								port</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_136599__entry__14"><p>GET_FUNCTIONAL_RESULT()</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-1 rowsep-0" headers="_136599__entry__13"><p>Upload waveform from digitizer</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_136599__entry__14"><p>GET_WAVEFORM()</p>
+							<p>GET_COMPLEX_WAVEFORM()</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-1 rowsep-0" headers="_136599__entry__13"><p>Upload captured samples after the digital capture</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_136599__entry__14"><p>VECTOR()</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-1 rowsep-0" headers="_136599__entry__13"><p>Use smartCalc to do the three actions above</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_136599__entry__14"><p>&nbsp;</p>
+						</td>
+					</tr>
+				</tbody></table>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="122303.htm" title="This function sets the execution mode of the concurrent test framework. Based on the specified mode, the concurrent test framework (CCF) decides how to execute the test.">CCTsetExecMode</a></div><div><a href="118899.htm" title="This section provides details to the test program structure required by SmartCalc and an overview of the SmartCalc APIs.">SmartCalc implementation</a></div><div><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.0</li><li>SmarTest 7.3.2: CCF_ParallelISR parameter introduced to enable parallel testing of independent
+					test suites.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 136599</span><script type="text/javascript">var ti='136599';var tt='CCF-ISR mode'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

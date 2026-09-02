@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To calculate the level configuration for a memory device without ODT you need to determine the input logic high value (vih_D) out of the specified memory device input swing."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Level configuration for memory devices operating without ODT</title><meta name="keywords" content="config"></head><body id="_81408"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 81408</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Level configuration for memory devices operating without ODT</h1>
+	
+	
+	<div><p>To calculate the level configuration for a memory device without ODT you need to
+		determine the input logic high value (vih_D) out of the specified memory device input
+		swing.</p>
+		<div></div><pre class="prettyprint linenums copyable"> 1
+ 2 EQNSET 5 "HSM3600"    # without ODT
+ 3
+ 4 MODECONTEXT "HSM3600"
+ 5
+ 6 SPECS
+ 7 Vddq         [V]
+ 8 swing_device [V]      # applied around Vref
+ 9 VDQo_offset  [V]      # manual threshold offset
+10
+11 EQUATIONS
+12 Vref = 0.7*Vddq
+13 vih_D = Vref + swing_device/2 # device high input level
+14 vt_T = Vref + 3*(swing_device/2)
+15 # Dual transmission line: -&gt; voltage divider, 50-ohm environment
+16 vih_T = 2*vih_D - vt_T
+17 vil_T = vih_T - 2*swing_device
+18 vol_D_max = 0.76      # GDDR3 spec
+19 vth_T = vih_T/4 + vt_T/4 + vol_D_max/2
+20
+21 LEVELSET 1 "basic"
+22 ...
+23
+24 # dual TL
+25 PINS DQi
+26 vih=vih_T
+27 vil=vil_T
+28
+29 # dual TL
+30 PINS DQo
+31 term on
+32 vt=vt_T
+33 vth=vth_T + VDQo_offset
+34</pre><div></div>
+		<p>From a logical perspective this level configuration can be transferred into a voltage
+			divider:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="81221.png" alt="Voltage divider">
+			</figure></div>
+		<p>The value for <span class="keyword">vih_T</span> can be determined by transforming the "voltage divider"
+			formula (see following figure).</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="81223.png" alt="Equation to calculate vih_T">
+			</figure></div>
+		<p>The variable names used in the above formula are described in the table below.</p>
+		<table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_81408__entry__1"><p>Variable Name</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_81408__entry__2"><p>Description</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__1"><p><span class="keyword">vih_T</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__2"><p>Input high voltage on test system side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__1"><p><span class="keyword">vih_D</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__2"><p>Input high voltage at device side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__1"><p><span class="keyword">vt_T</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__2"><p>Termination voltage on test system side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__1"><p><span class="keyword">swing_device</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__2"><p>Expected voltage swing between logic high and logic low on device side</p>
+						</td>
+					</tr>
+					<tr class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__1"><p><span class="keyword">V</span><sub>Tswing</sub></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_81408__entry__2"><p>Voltage swing on test system side</p>
+						</td>
+					</tr>
+				</tbody></table>
+		
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 81408</span><script type="text/javascript">var ti='81408';var tt='Level configuration for memory devices operating without ODT'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

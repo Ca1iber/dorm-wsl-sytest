@@ -1,0 +1,124 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The inverse slew rate parameters vout_rise_t_ms_... and vout_fall_t_ms... of the DPSPINS resources can be used to define voltage ramps that are calculated and applied by the system controller."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Voltage ramps</title><meta name="keywords" content="dps ramps slew rate"></head><body id="_125218"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125218</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Voltage ramps</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="125220.htm" title="If the values of a DPS set are changed or if the active DPS set is switched, there may be not only a voltage, but also a current limit change. Whether the current limit is changed before or after the voltage ramp, depends on the direction of the voltage change.">Current clamp handling</a></li></ol></div></nav>
+	
+	
+	<div><p>The inverse slew rate parameters <span class="keyword">vout_rise_t_ms_...</span> and
+			<span class="keyword">vout_fall_t_ms...</span> of the DPSPINS resources can be used to define
+		voltage ramps that are calculated and applied by the system controller.</p>
+		<section class="section"><h2>Connect/Disconnect of pins in HIZ or HIZ_R Off mode</h2><p>The output
+				voltages of pins in HIZ or HIZ_R Off mode (offcurr = open or min) are undefined
+				while they are disconnected. If such pins are connected or disconnected and ramps
+				are defined, then the ramps are executed as if the connect mode is LOZ Off (offcurr
+				= act) in order to get defined start respectively end voltages for the ramps. For a
+				connect, the pins are switched to LOZ Off mode before the first ramp starts. For a
+				disconnect, the ramps are executed in LOZ Off mode and the pins are switched to HIZ
+				or HIZ_R Off mode after the last ramp has finished and all setup times have
+				expired.</p></section>
+		<section class="section"><h2>Voltage ramp approximation</h2>
+			
+			<p>The graphic in the <a href="125218.htm#_125218__ex_Example_1">example below</a> shows, how
+				a ramp is approximated by periodically reprogramming the voltage DAC. The time
+				between two programming steps is not fixed. The steps are executed as fast as
+				possible, but not faster than 25 μs, one after the other.</p>
+			<p>The system controller uses the time difference between the current time and the time
+				of the last step to compute the next voltage value. This assures, that the generated
+				ramps are as smooth as possible. But because the programming is done by the system
+				controller, a maximum time between two steps cannot be ensured.</p>
+			<p>If several ramps are generated at the same time, all affected channels must be
+				programmed sequentially. Therefore, the time required for one step depends on the
+				number of affected channels.</p>
+			<p>For example, a ramp on a single DPS128 pin could be programmed every 30 µs, while
+				programming a ramp on two DPS128 pins at the same time increases the update time to
+				at least 60 µs, which for a given slew rate also means that the calculated step
+				height must be doubled in order to reach the target ramp.</p>
+			<p>Furthermore, the system controller's operating system (OS) isn't a real time OS; the
+				scheduler may interrupt any process for an arbitrary time.</p>
+			<p>For each step, the voltage changes from the previous to the new voltage with the
+				inherent slew rate of the DPS channel. Roughly approximated, each voltage step takes
+				the same time, regardless of the voltage difference (constant rise/fall time
+				behavior). This is shown as transition time (<em>t<sub>t</sub>)</em> in the example
+				graphic below.</p>
+			<p>Depending on the settings of the inverse slew rate parameters <a href="16887.htm#_16887__vout_rise_t_ms_per_volt">vout_rise_t_ms_per_volt</a>, <a href="16887.htm#_16887__vout_rise_t_ms_per_volt_c2c">vout_rise_t_ms_per_volt_c2c</a>,
+					<a href="16887.htm#_16887__vout_fall_t_ms_per_volt">vout_fall_t_ms_per_volt</a>, or
+					<a href="16887.htm#_16887__vout_fall_t_ms_per_volt_c2c">vout_fall_t_ms_per_volt_c2c</a>, and the total change in the forced voltage,
+				the number of steps is calculated. Smallest rise times (below 1/2 transition time)
+				will result in a single step that is applied with the maximum slew rate of the DPS
+				channel.</p>
+			<p>These are the approximated values for the transition times of the different DPS
+				types:</p>
+			<table id="_125218__t_Transition_time" class="frame-none"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_125218__t_Transition_time__entry__1">DPS type</th>
+							<th class="colsep-0 rowsep-0" id="_125218__t_Transition_time__entry__2">Transition time <em>t<sub>t</sub></em></th>
+						</tr>
+					</thead><tbody>
+						
+						
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_125218__t_Transition_time__entry__1">DPS64-HC / DPS128-HC/HV</td>
+							<td class="colsep-0 rowsep-0" headers="_125218__t_Transition_time__entry__2">30 µs</td>
+						</tr>
+						
+						
+						
+						
+						
+						
+						
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_125218__t_Transition_time__entry__1">UHC4T</td>
+							<td class="colsep-0 rowsep-0" headers="_125218__t_Transition_time__entry__2">150 µs</td>
+						</tr>
+						
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_125218__t_Transition_time__entry__1">XPS256</td>
+							<td class="colsep-0 rowsep-0" headers="_125218__t_Transition_time__entry__2">70 µs</td>
+						</tr>
+					</tbody></table>
+			<p>The actual transition time values depend on the hardware and the actual loading of
+				the DPS, but for the purpose of this check it's sufficient to use these approximated
+				values.</p>
+		</section>
+		<section class="section"><h2>Limitation of the voltage step height</h2>
+			
+			
+			<p>Assuming that the operating system does not cause any delays and that the time for
+				the entire ramp is more than ten times the accumulated <a href="125218.htm#_125218__t_Transition_time">transition time</a> of all programmed pins,
+				it can also be assumed that approximately the same voltage steps are programmed for
+				the entire ramp.</p>
+			<p>As soon as delays occur or the time of the ramp is too short compared to the
+				transition time of the pins, larger voltage steps may be required to reach the
+				target ramp. In this case, all voltage steps are limited to 10% of the total ramp
+				amplitude or 200 mV, whichever is less.</p>
+			<p>This assures, that each step with a faster slew rate than programmed is limited to
+				200 mV and that the ramp has at least 10 steps. If such a voltage step limitation
+				occurs, the target ramp is shifted to the new point. The same time shift is applied
+				to all executed ramps, so that the relationship between the ramps remains
+				unchanged.</p>
+		</section>
+		<h2>Example</h2><div class="example" id="_125218__ex_Example_1"><div class="p">The graphic below illustrates this time shift:<ul>
+					<li>The theoretically wanted line is shown in red. The line is defined by the
+						initial voltage <em>V<sub>0</sub></em>, the programmed target voltage and the
+							<span class="keyword">vout_rise_...</span> parameter setting.</li>
+					<li>The actual approximated output voltage is shown in green.</li>
+				</ul></div><p>The ramp starts at <em>t<sub>0</sub></em> and at the time of the first
+				step <em>t<sub>1</sub></em>, the desired voltage is <em>V<sub>1</sub></em>. The voltage
+				step is smaller than the limit, so the output voltage is programmed to
+						<em>V<sub>1</sub></em>. This repeats for the second and third step. </p><p>But
+				there's a long delay before the 4th step, so the voltage step <em>V<sub>4</sub> -
+						V<sub>3</sub></em> would be too large. The new voltage for this step is
+				limited to <em>V<sub>4</sub>'</em> and the target ramp for this and the next steps is
+				shifted to the points (<em>t<sub>3</sub>', V<sub>3</sub></em>) and (<em>t<sub>4</sub>,
+						V<sub>4</sub>'</em>). This means, that the width of the 4th time step is
+				assumed to be <em>t<sub>4</sub> - t<sub>3</sub>'</em> instead of <em>t<sub>4</sub> -
+						t<sub>3</sub></em>. This new step width for the 4th step is taken for the
+				ramps of all other pins as well. Therefore, the relationships between all ramps
+				remain the same. If this correction is necessary for more than one pin, then the
+				smallest corrected time step is taken for all pins.</p><div class="p"><figure class="fignone">
+					<img src="125084.png" alt="Ramp approximation">
+				</figure></div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="17703.htm" title="The connect setup time is the delay from the connect of a pin to a common reference time point. The connect sequence of several pins starts with the connect of the pin with the highest setup time and ends after the connect of the pin with the lowest setup time or after the reference time point, whichever comes later.">DPS pins with connect setup time</a></div><div><a href="125208.htm" title="Similar to the connect setup time, the ramp setup times are the delay from the ramp start point to a common ramp reference time point. A connect, disconnect, level, or set change sequence for several pins starts with the begin of the first ramp and ends after the last ramp; or the reference time point, whichever comes later.">DPS pins with voltage ramps</a></div><div><a href="125220.htm" title="If the values of a DPS set are changed or if the active DPS set is switched, there may be not only a voltage, but also a current limit change. Whether the current limit is changed before or after the voltage ramp, depends on the direction of the voltage change.">Current clamp handling</a></div><div><a href="127867.htm" title="The voltage ramp parameters (vout_rise_..., vout_fall_...) allow to specify setup times and slew rates separately for rising and falling DPS voltage transitions. This example illustrates the effect of different slew rates and settling time settings.">Voltage ramp example</a></div><div><a href="16886.htm" title="Each DPS pin definition is introduced by the DPSPINS keyword and has the following global syntax:">DPSPINS</a></div><div><a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.4.0: Transition time of AVI64 added.</li><li>SmarTest 7.5.0: Transition time of FVI16 added.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125218</span><script type="text/javascript">var ti='125218';var tt='Voltage ramps'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

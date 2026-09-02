@@ -1,0 +1,78 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Suppose you want to mask the state character sequences HHHHHH and LLLLLL with XXXXXX in your output data. All other possible H,L combinations are to be evaluated. You cannot achieve this with the following definition:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Evaluation by Signal (the Mapping Operator "=&gt;")</title></head><body id="_37507"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37507</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Evaluation by Signal (the Mapping Operator "=&gt;")</h1>
+	
+	
+	<div><p> Suppose you want to mask the state character sequences <kbd class="userinput">HHHHHH
+		</kbd>and <kbd class="userinput">LLLLLL </kbd>with <kbd class="userinput">XXXXXX </kbd>in your output
+		data. All other possible <kbd class="userinput">H</kbd>,<kbd class="userinput">L</kbd> combinations are to be
+		evaluated. You <em>cannot</em> achieve this with the following definition:</p>
+		<div></div><pre class="prettyprint linenums copyable"><kbd class="userinput">DDC normalnormalnormalnormalnormalnormal</kbd>
+<kbd class="userinput">PINS O+</kbd>
+<kbd class="userinput">XXXXXX</kbd>
+<kbd class="userinput">HHHHHH-&gt;XXXXXX</kbd>
+<kbd class="userinput">LLLLLL-&gt;XXXXXX</kbd>	
+<kbd class="userinput">[HL][HL][HL][HL][HL][HL]</kbd></pre><div></div>
+		<p>For the combinations <kbd class="userinput">HHH </kbd>and <kbd class="userinput">LLL </kbd>will be mapped
+			to <kbd class="userinput">XXX </kbd>for both channels by the second and third entry (the fourth entry
+			is ignored for these combinations), and this entails that, for example, the sequence
+				<kbd class="userinput">HLHLHL </kbd>will also be masked.</p>
+		<p>To account for such a situation, the ASCII interface provides another mapping operator
+				<code>=&gt;</code>, which causes the timing translation to consider the control file entries
+			for differential pins as a whole and not split up by channels. This is called <em>evaluation by
+				signal</em>. In the example, it has the effect that the fourth entry is only ignored
+				for <kbd class="userinput">HHHHHH </kbd>and <kbd class="userinput">LLLLLL</kbd>, but not for
+				<kbd class="userinput">HLHLHL</kbd>. Thus, the following definition will produce the intended
+			result:</p>
+		<div></div><pre class="prettyprint linenums copyable">DDC normal normal normal normal normal normal
+PINS O+
+    X X X X X X
+    H H H H H H =&gt; X X X X X X
+    L L L L L L =&gt; X X X X X X
+    [HL] [HL] [HL] [HL] [HL] [HL]</pre><div></div>
+		<p>When using the <code>=&gt;</code> operator observe the following points:</p>
+		<ul>
+			<li>If <code>=&gt;</code> is used for single-ended pins it is equivalent to
+					<code>-&gt;</code>.</li>
+			<li>Considering the entries as a whole consumes much more resources than splitting them up by
+				channel.</li>
+			<li>It is not always possible to achieve the intended result by simply using
+					<code>=&gt;</code> instead of <code>=-</code>. You must also take into consideration
+				that with evaluation by channel, two control file entries that differ at their odd positions and
+				at their even positions provide a translation for four different state character sequences. In
+				contrast, the same two entries cover only two such sequences if they are evaluated by
+					signal.<p>As an example, consider the following x-4 mode
+					example:</p><pre class="prettyprint linenums copyable">DDC normal normal normal normal
+PINS O+
+    X X X X
+    H H H H -&gt; X X X X
+    H H L L
+    L L H H
+    L L L L</pre><p>In
+					this definition, every possible <kbd class="userinput">H</kbd>,<kbd class="userinput">L</kbd> pair occurs
+					at the odd positions of at least one entry and also at the even positions of at least one
+					entry. Therefore, the timing map file will contain entries for every such pair with state
+					wildcards at the complementary positions for both channels (compare the timing map file section
+					in <a href="37505.htm" title="With this type of evaluation, the two channels are treated as independent of each other. This means:">Evaluation by Channel</a>), which allows to translate every
+						<kbd class="userinput">H</kbd>,<kbd class="userinput">L</kbd> sequence of length 4 in the ASCII vector
+					file.</p>
+				<p>However, if you replace the <code>-&gt;</code> by <code>=&gt;</code>, this will no
+					longer be true. For then the entries will be considered as a whole, and no translation will be
+					provided, for example, for the sequence <kbd class="userinput">HLLH</kbd>, so that the vector
+					translation will fail if this sequence occurs in the ASCII vector file.</p></li>
+		</ul>
+		<h2>Example</h2><div class="example"><p>The following figure shows the difference between timing map file entries resulting
+				from x-mode control file blocks evaluated by signal and those resulting from blocks evaluated by
+				channel:</p><div class="p"><figure class="fignone">
+					
+					<img src="46149.png" alt="Evaluation by Channel Versus Evaluation by Signal">
+				</figure></div><p>Observe the following points in the figure:</p><ul>
+				<li>The timing map file entries resulting from evaluation by channel are characterized by the
+					fact that the state character sequences of the positive pin always contain the wild card
+					character at the even positions, while the sequences for the negative pin always contain it at
+					the odd positions. Of course, it can also occur at the odd positions for the positive pins, and
+					at the even positions for the negative pin.</li>
+			</ul></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37507</span><script type="text/javascript">var ti='37507';var tt='Evaluation by Signal (the Mapping Operator "=>")'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

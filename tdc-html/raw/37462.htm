@@ -1,0 +1,168 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The following list explains all the input columns of the PATTERNS section within the global configuration file. The columns are ordered alphabetically by their name."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The Input Columns</title></head><body id="_37462"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37462</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The Input Columns</h1>
+	
+	
+	<div><p>The following list explains all the input columns of the <kbd class="userinput">PATTERNS</kbd>
+		section within the global configuration file. The columns are ordered alphabetically by their
+		name. </p>
+		<div class="note"><span class="title">Note</span> Note that the default values of the individual columns apply automatically only
+			if the respective column is omitted from the table. If it is present, every value, even the
+			default value, must be entered explicitly; that is, every row must contain as many entries as
+			there are columns specified in the header.</div>
+		<ul>
+			<li><kbd class="userinput">{[vec_ascii_dvc] ascii_dvc [shot]}</kbd>(mandatory): specifies the ASCII
+				device cycles of the ASCII timing file that are to be used for the timing. If you specify more
+				than one ASCII device cycle the names must be separated by white spaces. The entries belonging
+				to this column must be enclosed by curly brackets in every line even if only one entry is
+				present. <p>If the device cycles in the ASCII timing file are different from those in the ASCII
+					vector file, you can specify which vector device cycle corresponds to which timing device
+					cycle. If this sub-column is present, it will be transferred to the pattern configuration files
+					(*.vbc).</p>
+				<p>If the header line specifies the ASCII device cycle column as <kbd class="userinput">{vec_ascii_dvc
+						ascii_dvc}</kbd>, then the entry</p>
+				<p><kbd class="userinput">{vec1 tim2 vec2 tim1}</kbd></p>
+				<p>will be interpreted as two ordered pairs, where the first element of the pair denotes an
+					ASCII device cycle in the ASCII vector file, and the second an ASCII device cycle in the ASCII
+					timing file. If you put the column at the end of the table, you can improve the readability of
+					the entry by inserting a line break between the two pairs as follows:</p>
+				<p><kbd class="userinput">... {vec_ascii_dvc ascii_dvc};</kbd></p>
+				<p><kbd class="userinput">... {vec1 tim2</kbd></p>
+				<p><kbd class="userinput">vec2 tim1};</kbd></p>
+				<p>Of course, if the format of the column is specified as <kbd class="userinput">{ascii_dvc}</kbd>,
+					then the entry will be interpreted in both formats as containing four ASCII device cycles from
+					the ASCII timing file.</p>
+				<p>Note that when you use the <kbd class="userinput">{vec_ascii_dvc ascii_dvc}</kbd> format then all
+					ASCII device cycles must be specified as a pair, even if the ASCII device cycle has the same
+					name in the ASCII timing and ASCII vector file.</p>
+				<p>The sub-column <kbd class="userinput">shot</kbd> must be present if the
+						<kbd class="userinput">shots</kbd> column is present and contains a value &gt; 1 for at least one
+					pattern. In this case, one and only one ASCII device cycle must be specified for every shot. If
+					the same ASCII device cycle is to be used for all shots, you can use the wildcard character
+						<kbd class="userinput">*</kbd>. An example of the format <kbd class="userinput">{vec_ascii_dvc ascii_dvc shot}
+					</kbd>is</p>
+				<p><kbd class="userinput">{vec tim *}</kbd></p>
+				<p>The "shot" concept is described in <a href="46273.htm" title="A shot is an instance of a pattern which executes all drive actions associated with the state character, for every state character of the ASCII device cycle specified for the pattern, but only a subset of its compare actions. Compare actions are distributed between the different shots in such a way that every compare action is executed in exactly one shot.">Using Shots: the shots Column</a>.</p></li>
+			<li><kbd class="userinput">avc_file</kbd> (optional): specifies the name of the ASCII vector file. The
+				default is that the name consists of the pattern name, as specified in the
+					<kbd class="userinput">name</kbd> column, and of the extension <kbd class="userinput">*.avc</kbd> or
+					<kbd class="userinput">*.avc.gz</kbd>. If you specify this parameter, the
+					<kbd class="userinput">avc_pipe</kbd> parameter must be omitted. This entry is transferred to the
+				vector configuration file. </li>
+			<li><kbd class="userinput">avc_pipe</kbd> (optional): specifies a Unix command which converts a vector
+				source file into regular ASCII interface vector data. If you specify this parameter, the
+					<kbd class="userinput">avc_file</kbd> parameter must be omitted. This entry is transferred to the
+				vector configuration file. </li>
+			<li><kbd class="userinput">avc_time</kbd> (optional): specifies the name of a file whose timestamp
+				controls the execution of the Unix command specified in the <kbd class="userinput">avc_pipe</kbd>
+				column. The command is only executed if the timestamp of the binary vector file (as specified by
+					<kbd class="userinput">name</kbd>) is earlier than the timestamp of the
+					<kbd class="userinput">avc_time</kbd> file. This entry is transferred to the vector configuration
+				file.</li>
+			<li><kbd class="userinput">context</kbd> (optional): specifies the context for the pattern. The context
+				must be defined in the pin configuration file. Contexts control whether pins are used as
+				differential or as single-ended pins. The default is the context with the fixed name<kbd class="userinput">
+					DEFAULT</kbd>. In this context all pins are single-ended. This entry is transferred to
+				the vector configuration file.</li>
+			<li><kbd class="userinput">ctim</kbd> (optional): specifies whether timing set switches are admitted
+				between the vectors of the pattern. The allowed values are <kbd class="userinput">NCT</kbd> (no
+				switches admitted), and <kbd class="userinput">CT</kbd> (switches admitted).
+					<kbd class="userinput">NCT</kbd> is the default. If the pattern is an element of a pattern group, the
+				selected value must be consistent with the value specified for the group; see <a href="37471.htm" title="Bursts, multi-port bursts, and nested patterns (MAIN patterns calling a subpattern) are all executed in one sequencer run. The GROUPS section informs the timing translation of such pattern groups. The timing translation needs this information for the following reasons:">The GROUPS Section</a>.<p>If <kbd class="userinput">CT</kbd> is selected, different timing sets may be
+					generated for different ASCII device cycles of the pattern, depending on the ASCII timing file.
+					The mapping from ASCII device cycles to timing set numbers is passed to the vector translation
+					in the pattern configuration file (*.vbc); see <a href="37618.htm" title="The pattern configuration file is an optional, pattern specific input file for the vector translation. It is generated automatically by the timing translation. If you use the vector translation without the timing translation, you must create this file manually. Note that aiv expects the name of the pattern configuration file to be in the format">The Pattern Configuration File (*.vbc)</a>. If the ASCII device
+					cycles of two successive ASCII vectors within the pattern are mapped to different timing sets,
+					then the vector translation will insert a <kbd class="userinput">CTIM </kbd>instruction between these
+					vectors into the sequencer program from the information in this file. For details see <a href="37622.htm" title="The MAPPING section of the pattern configuration file must associate every ASCII device cycle within the ASCII vector file with a timing set. If the ASCII device cycles of two successive ASCII vectors are mapped to different timing sets, then the vector translation inserts a CTIM instruction between these vectors into the sequencer program of the pattern.">Inserting CTIM Between Vectors</a>.</p>
+				<p>If <kbd class="userinput">NCT</kbd> is selected, only one timing set will be created for the
+					pattern. If more than one ASCII device cycle is associated with the pattern, the test system
+					cycle length of this timing set will be derived from the greatest common divisor (abbreviated
+						as<em> ‘gcd</em>') of the different ASCII periods as follows:</p><ol>
+					<li>If <em>gcd</em> ≥ <em>minimaltest systemcyclelength</em>, then <em>test systemcyclelength</em> =
+							<em>gcd</em>.</li>
+					<li>If <em>gcd</em> &lt; <em>minimaltest systemcyclelength</em> ≤ <em> smallestASCIIperiod</em>,
+							then<em> test system cycle length</em> = <em>smallestASCIIperiod</em>.</li>
+					<li>In all other cases the timing translation fails. <p>In cases <strong>a</strong> and <strong>b</strong> the
+							mapping from state characters to waveform DC/DC power units in the timing map file will be <em>m</em> :
+								<em>n</em> with <em>n</em> &gt; 1 for at least some of the associated ASCII device cycles. For
+							details see <a href="37617.htm" title="The timing map file entries associate sequences of M state characters with sequences of N physical waveform DC/DC power units for a certain combination of pin and ASCII device cycle. M and N are derived from the test system cycle length m of the timing set to which the entry belongs, and from the period n of the respective ASCII device cycle by">Calculating the Lengths of the State Character and the Index Sequences</a>.</p>
+						<p>Note that a <kbd class="userinput">CTIM </kbd>instruction is inserted <em>before</em> the first
+							vector even if <kbd class="userinput">NCT</kbd> is selected. To suppress this instruction, specify
+							the option <kbd class="userinput">-T</kbd> in the <kbd class="userinput">v2b_options</kbd> column.</p>
+						<p>The following figure shows an example for case <strong>a</strong>:</p>
+						<div class="p"><figure class="fignone">
+								
+								<img src="46151.png" alt="Unifying ASCII Device Cycles with Different Periods for ctim set to NCT">
+							</figure></div></li>
+				</ol></li>
+			<li><kbd class="userinput">equations</kbd> (optional): specifies the <kbd class="userinput">EQUATIONS</kbd>
+				blocks of the ASCII timing file (see <a href="37489.htm" title="The EQUATIONS and SPECS blocks serve to define the equation sets and specsets of equation based timing. The syntax is the same as in the timing setup file. The ASCII timing file can contain several EQUATIONS and several SPECS blocks which can be combined for the timing of one pattern (see The Input Columns), provided that they are compatible, that is, there are no different definitions of the same variable. You can also define several specsets for one pattern. Note that a variable can only be used after it has been defined. Therefore, the SPECS blocks should be placed at the beginning of the ASCII timing file.">EQUATIONS Blocks, SPECS Blocks, and Equation Variables</a>) that are to be integrated into the
+				equation set of the pattern. If you specify more than one <kbd class="userinput">EQUATIONS</kbd> block
+				for the same pattern, you must separate the names by commas.<p>If you omit this parameter, then
+					all <span class="keyword">EQUATIONS</span> sections that exist in ASCII timing file will be merged into
+					one <span class="keyword">EQUATIONS</span> block within the equation set, provided that they do not
+					contradict each other.</p></li>
+			<li><kbd class="userinput">name</kbd> (mandatory): specifies the name of a pattern; the name can
+				consist of up to 128 alpha-numeric characters. By default, the ASCII interface expects that the
+				name of the ASCII vector file for the pattern consists of the name specified here and of the
+				extension <kbd class="userinput">*.avc</kbd> or <kbd class="userinput">*.avc.gz</kbd>. If the ASCII vector
+				file has a different name, it must be specified in the <kbd class="userinput">avc_file</kbd>
+				column.</li>
+			<li><kbd class="userinput">port</kbd>(optional): specifies the port to which the pattern belongs. The
+				default is the default port <kbd class="userinput">@</kbd>, which contains all pins.</li>
+			<li><kbd class="userinput">shots</kbd> (optional): specifies how many shots are to be created for the
+				pattern. The default is 1, which means that no shots are generated. For details on using shots
+				see <a href="46273.htm" title="A shot is an instance of a pattern which executes all drive actions associated with the state character, for every state character of the ASCII device cycle specified for the pattern, but only a subset of its compare actions. Compare actions are distributed between the different shots in such a way that every compare action is executed in exactly one shot.">Using Shots: the shots Column</a>.</li>
+			<li><kbd class="userinput">{specs}</kbd> (optional): specifies the <kbd class="userinput">SPECS</kbd> blocks
+				of the ASCII timing file (see<a href="37489.htm" title="The EQUATIONS and SPECS blocks serve to define the equation sets and specsets of equation based timing. The syntax is the same as in the timing setup file. The ASCII timing file can contain several EQUATIONS and several SPECS blocks which can be combined for the timing of one pattern (see The Input Columns), provided that they are compatible, that is, there are no different definitions of the same variable. You can also define several specsets for one pattern. Note that a variable can only be used after it has been defined. Therefore, the SPECS blocks should be placed at the beginning of the ASCII timing file.">EQUATIONS Blocks, SPECS Blocks, and Equation Variables</a>) that are to be integrated into one or more
+				specsets. The entries belonging to this column must be enclosed with curly brackets in every
+				line. In the output version, this column consists of two subcolumns, <span class="keyword">specs</span>
+				and <kbd class="userinput">hp_sps</kbd>, which specifies the specset number, or (for multi-port
+					setups)<kbd class="userinput">hp_specification</kbd>., which contains the name of the
+					specification.<p>You can define more than one specset. The <kbd class="userinput">SPECS</kbd> blocks
+					that are to be integrated into one specset must be separated by commas. Block groups to be
+					converted into different specsets must be separated by blanks. </p>
+				<p>The entry</p>
+				<p><kbd class="userinput">{spb1,spb2 spb3,spb1},</kbd></p>
+				<p>for example, will be translated into two specsets, one from <kbd class="userinput">SPECS</kbd>
+					blocks <kbd class="userinput">spb1</kbd> and <kbd class="userinput">spb2</kbd>, and the other from
+						<kbd class="userinput">spb3</kbd> and <kbd class="userinput">spb1</kbd>.</p>
+				<p>If you omit this parameter, then all existing <span class="keyword">SPECS</span> sections will be
+					merged into one specset, provided that they do not contradict each other.</p></li>
+			<li><kbd class="userinput">type</kbd> (optional): The type of the pattern (label). The allowed values
+				are <kbd class="userinput">MAIN</kbd>, <kbd class="userinput">SVEC</kbd>, <kbd class="userinput">SJMP</kbd>, and
+					<kbd class="userinput">MDMY</kbd>. <kbd class="userinput">MAIN</kbd> is the default. The information of
+				this column ends up as an input parameter for <kbd class="userinput">v2b </kbd>(see <a href="37629.htm" title="Normally, the vector translation is performed with the high level tool aiv, which will call the low level tool v2b according to the PATTERNS entries of the vector configuration file. You can specify v2b parameters that do not correspond to a column of the PATTERNS section in the v2b_options column of the vector configuration file. But you can also call v2b directly. v2b processes one ASCII vector file and creates a binary vector file out of it.">Calling v2b Directly</a>). It must be consistent with the content of the <kbd class="userinput">GROUPS</kbd>
+				section (see <a href="37471.htm" title="Bursts, multi-port bursts, and nested patterns (MAIN patterns calling a subpattern) are all executed in one sequencer run. The GROUPS section informs the timing translation of such pattern groups. The timing translation needs this information for the following reasons:">The GROUPS Section</a>).<p><span class="keyword">MDMY</span> (Main DuMmY) is a special dummy
+					type which is unknown to SmarTest and only occurs in the global configuration file. Entries
+					with this type are not transferred to the vector configuration file. This can be used to create
+					different timings for one and the same vector file. For a possible application in connection
+					with multi-port timings see <a href="37521.htm" title="The MULTI_PORT_TIMING statement is intended to define a multi-port timing for a setup where timing ports and vector ports are not identical. It has the same syntax as the MULTI_PORT_BURST statement. In particular, it also requires a CTIM row.">The MULTI_PORT_TIMING Statement</a>. </p></li>
+			<li><kbd class="userinput">v2b_options</kbd> (optional): Here you can specify parameter options that
+				are to be passed to <kbd class="userinput">v2b </kbd>for translation of the ASCII vector file that
+				belongs to the pattern. The options specified here are transferred to the vector configuration
+				file. If more than one option is specified, they must be enclosed by curly brackets.<p>One
+					example would be the option <kbd class="userinput">-T</kbd>, which suppresses the insertion of a
+						<kbd class="userinput">CTIM</kbd> instruction in the sequencer program before the first vector. For
+					other possible options, see <a href="37629.htm" title="Normally, the vector translation is performed with the high level tool aiv, which will call the low level tool v2b according to the PATTERNS entries of the vector configuration file. You can specify v2b parameters that do not correspond to a column of the PATTERNS section in the v2b_options column of the vector configuration file. But you can also call v2b directly. v2b processes one ASCII vector file and creates a binary vector file out of it.">Calling v2b Directly</a>.</p></li>
+			<li><kbd class="userinput">xfact</kbd> (optional): specifies the x-mode factor of the pattern. In
+				general, the allowed values are 1 through 10 for standard pins, and 1 through 8 (except 5 and 7)
+				for fast pins. 1 is the default. For details on using x-modes see <a href="37467.htm" title="The term x-mode refers to the ability to execute more than one DUT cycle (as defined by the period keyword of an ASCII device cycle) in one test system cycle (as defined in a timing set). The basic idea is to combine the actions of a state character sequence into one waveform, and to expand the length of the test system cycle accordingly.">Using X-Modes: the xfact Column</a>. <p>In
+					two cases, a higher number is allowed:</p><ul>
+					<li>12 and 16 can be used for NP3G-XS (see <a href="49164.htm" title="In NP applications with fast differential output pins, you can select whether the retiming clock of the test system or the DUT clock (source synchronous mode) is to be used for the decomposition of the differential output signal. This is done by adding the">Defining the Clock for Fast Differential Receive Pins: ssb on/off</a>). </li>
+					<li>In connection with HXA multiplexing, numbers <em>m</em> * <em>n</em>, where <em>m</em> is the
+						x-mode and <em>n</em> is the multiplexing factor (which can be 2 or 4), up to 32 can be used.
+						Note that you will get a correct HXA setup only if you specify the <em>product</em> of the
+						intended x-mode and the multiplexing factor. See <a href="89949.htm" title="The pin multiplexing file can also be used to map HXA pins to Pin Scale pins. In this case the statements must have the following form:">Mapping HXA Pins To Pin Scale Pins</a> and <a href="86691.htm" title="In contrast to normal multiplexing, the (muxio) qualifier cannot be used for the vector translation of HXA multiplexing. Rather, you must pass the multiplexing file to v2b with the -K option. The pins in the ASCII vector file must be the HXA pins. Accordingly, the phase reference pins must be omitted.">Vector Translation for HXA Multiplexing</a>.<p>For Pin Scale Digital Cards, you can also specify a fractional x-mode
+							factor in the format
+								<kbd class="userinput">&lt;</kbd><em>m</em><kbd class="userinput">&gt;/&lt;</kbd><em>n</em><kbd class="userinput">&gt;</kbd>.
+							Then <em>m</em> state characters will be mapped to <em>n</em> test system cycles. Note however
+							that <em>m</em> and <em>n</em> will be canceled down as far as possible. For example, if you
+							specify <kbd class="userinput">6/4</kbd>, then 3 state characters will be mapped to 2 test system
+							cycles.</p></li>
+				</ul></li>
+		</ul>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37462</span><script type="text/javascript">var ti='37462';var tt='The Input Columns'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

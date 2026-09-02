@@ -1,0 +1,81 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="It is possible to run different pins with different x-modes simultaneously (horizontal mix of x-modes), and also to change the x-mode from one vector to the next (vertical mix of x-modes); these options can also be combined. The basic idea is to run formally all pins at the highest required x-mode in all vectors, but to create waveforms with fewer actions for those pins (horizontal mix), or ASCII device cycles (vertical mix), that actually run at a lower x-mode factor."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Mixing X-Modes: Dummy State Characters</title></head><body id="_37485"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37485</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Mixing X-Modes: Dummy State Characters</h1>
+	
+	
+	<div><p>It is possible to run different pins with different x-modes simultaneously (horizontal
+		mix of x-modes), and also to change the x-mode from one vector to the next (vertical mix of
+		x-modes); these options can also be combined. The basic idea is to run formally all pins at the
+		highest required x-mode in all vectors, but to create waveforms with fewer actions for those pins
+		(horizontal mix), or ASCII device cycles (vertical mix), that actually run at a lower x-mode
+		factor.</p>
+		<p>In order to create the waveforms for the lower <a href="68390.htm" title="X-mode refers to set up processes that can be used to fit multiple device cycles into a single test system cycle. Using x-mode, you can achieve different speeds on one I/O pin. The &#34;x&#34; implies multiplication. (&#34;x4 mode&#34; means that there are four device cycles per tester cycle.)">x-modes</a>, you must do
+			two things for the respective pins, or ASCII device cycles, namely,</p>
+		<ul>
+			<li>define dummy state characters, that is, state characters for which no action is specified, in
+				the ASCII timing file, and</li>
+			<li>restrict the state character sequences from which waveforms are created to those containing
+				the dummy state character at the required positions in the x-mode control file (see <a href="37494.htm" title="Every row of the PATTERNS section in the global configuration file associates the respective pattern with one or more ASCII device cycles, and also (explicitly or implicitly) with an x-mode factor. If this factor is &gt; 1, the waveforms for any combination of a pin with one of these ASCII device cycles will be created not from single state characters, but from state character sequences. The length of the sequences is determined by the x-mode factor; if, for example, the x-mode factor is 4, then the waveforms are generated from sequences of length 4. For details see Using X-Modes: the xfact Column.">The X-Mode Control File (*.cmb)</a> ).</li>
+		</ul>
+		<p>Suppose, for example, that your pattern runs at x-3 mode, but that output pin <kbd class="userinput">Q1
+			</kbd>is to run at normal speed. Then the state character definitions for <kbd class="userinput">Q1
+			</kbd>could look as follows:</p>
+		<p><kbd class="userinput">DVC mixed</kbd></p>
+		<p><kbd class="userinput">PINS Q1</kbd></p>
+		<p><kbd class="userinput">&amp;</kbd></p>
+		<p><kbd class="userinput">L L:6</kbd></p>
+		<p><kbd class="userinput">H H:6</kbd></p>
+		<p>Here the ampersand (<kbd class="userinput">&amp;</kbd>) is the dummy state character. In the x-mode
+			control file, any triple of state characters for <kbd class="userinput">Q1 </kbd>must be mapped to a
+			triple that contains the dummy state character at two positions as, for example, in</p>
+		<p><kbd class="userinput">DDC mixed mixed mixed</kbd></p>
+		<p><kbd class="userinput">PINS Q1</kbd></p>
+		<p><kbd class="userinput">[LH] [LH] [LH] -&gt; $1 &amp; &amp;</kbd></p>
+		<p>From these entries, the following wavetable will be created for <kbd class="userinput">Q1</kbd>: </p>
+		<p><kbd class="userinput">PINS Q1</kbd></p>
+		<p><kbd class="userinput">0 "r1:L" L..</kbd></p>
+		<p><kbd class="userinput">1 "r1:H" H..</kbd></p>
+		
+		<section class="section"><h2>Suppressing the Dummy State Character in the Device Cycle Names</h2><p>When you
+					call <kbd class="userinput">ait </kbd>with the <kbd class="userinput">-Fx</kbd> option (see <a href="37545.htm" title="The parameters marked with an asterisk ('*') are simply passed on to d2wfor every pattern in the global configuration file.">ait command line parameters</a>), the device cycle names in the wavetable are built up from the state
+				characters on whose definitions the waveform is based. If you use mixed x-modes, you can
+				suppress the dummy state character in these names with the <kbd class="userinput">XMODE_OMIT_STATE
+				</kbd>statement. This statement must be added at the start of the ASCII timing file and
+				has the following format:</p><p><kbd class="userinput">XMODE_OMIT_STATE
+					&lt;</kbd><em>dummy_character</em><kbd class="userinput">&gt;</kbd></p><p>Note that this feature
+				requires the following conditions to be met:</p><ul>
+				<li>The dummy state character must be the first in the respective timing record within the ASCII
+					timing file (as in the previous example).</li>
+				<li>The mapping statements of the x-mode control file (see <a href="37498.htm" title="You can use the mapping operator (-&gt;) to associate a state character sequence (the source sequence, which stands to the left of the mapping operator) with a waveform that was created from another state character sequence (the target sequence, which stands to the right of the mapping operator). For example, the block">The Mapping
+						Operator '-&gt;'</a> ) must not contain the dummy state character explicitly or implicitly
+					in the source sequences on the left side of the mapping operator (as in the previous example ).
+					Thus, the wildcard character <strong>*</strong> must not be used on the left side of these statements. </li>
+				<li>The target sequences on the right side of the mapping statements must also occur as normal
+					entries.</li>
+			</ul><p>The following figure shows an example of a horizontal x-mode mix where <kbd class="userinput">ait
+				</kbd>is called with <kbd class="userinput">-Fx</kbd>, and the dummy state character
+					<kbd class="userinput">&amp;</kbd> is suppressed:</p><div class="p"><figure class="fignone">
+					
+					<img src="46169.png" alt="Mixing X-Modes Horizontally and Suppressing the Dummy State Character">
+				</figure></div><p>Observe the following points in the figure:</p><ul>
+				<li>The global control file record for <kbd class="userinput">X_OMIT </kbd>specifies the highest
+					required x-mode factor, which is 3. The pin <kbd class="userinput">Q0</kbd> runs at a genuine x-3
+					mode factor, whereas pin <kbd class="userinput">Q1</kbd> actually runs at normal speed. </li>
+				<li>The statement for <kbd class="userinput">Q1</kbd> in the x-mode control file says that waveforms
+					are to be created only from the state character sequences <kbd class="userinput">A&amp;&amp;</kbd>
+					and <kbd class="userinput">B&amp;&amp;</kbd>, and that all other state character sequences occurring
+					in the ASCII vector file are to be mapped to the DC/DC power units of these waveforms, according to their
+					first character (for details see<a href="37494.htm" title="Every row of the PATTERNS section in the global configuration file associates the respective pattern with one or more ASCII device cycles, and also (explicitly or implicitly) with an x-mode factor. If this factor is &gt; 1, the waveforms for any combination of a pin with one of these ASCII device cycles will be created not from single state characters, but from state character sequences. The length of the sequences is determined by the x-mode factor; if, for example, the x-mode factor is 4, then the waveforms are generated from sequences of length 4. For details see Using X-Modes: the xfact Column.">The X-Mode Control File (*.cmb)</a>). This mapping is coded in the timing
+					map file excerpt, where the asterisk ('<strong>*</strong>') is a wildcard for arbitrary state characters
+					(for details see <a href="37618.htm" title="The pattern configuration file is an optional, pattern specific input file for the vector translation. It is generated automatically by the timing translation. If you use the vector translation without the timing translation, you must create this file manually. Note that aiv expects the name of the pattern configuration file to be in the format">The Pattern Configuration File (*.vbc)</a>).</li>
+			</ul></section>
+		<section class="section"><h2>Mapping of Dummy State Characters to the State Wildcard Character</h2><p>You can map dummy state characters to the state wildcard character without an x-mode control file
+				by using the <kbd class="userinput">XMODE_WILDCARD_MAP_STATE</kbd> statement.</p><p>This statement must
+				be added at the start of the ASCII timing file and has the following
+					format:</p><p><kbd class="userinput">XMODE_WILDCARD_MAP_STATE
+					&lt;</kbd><em>dummy_characters</em><kbd class="userinput">&gt;</kbd></p><p>The characters specified for <kbd class="userinput">&lt;dummy_characters&gt;</kbd> will be replaced by
+				the wildcard character '*' in the timing map file.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="67807.htm" title="The V93000 timing system uses x-modes to support the execution of patterns at the highest frequency the test system is capable of. This section will introduce the general concepts for defining the timing and how memory test patterns are compiled for different x-modes.">Defining memory test patterns using x-modes</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37485</span><script type="text/javascript">var ti='37485';var tt='Mixing X-Modes: Dummy State Characters'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

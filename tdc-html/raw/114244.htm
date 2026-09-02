@@ -1,0 +1,48 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The protocol engine per pin, which is available on Smart Scale systems, serves to cope with non-deterministic behavior of devices on which all data transitions at the output pins are expected to occur at multiples of a unit interval (abbreviated as &#34;UI&#34;). This UI is defined by period_length/x_mode. A protocol engine test can only be executed in x4-mode or x6-mode, so that one tester cycle will comprise either 4 or 6 UI's."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Overview of the protocol engine per pin</title><meta name="keywords" content="protocol-aware"></head><body id="_114244"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114244</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Overview of the protocol engine per pin</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a></li><li><a href="116779.htm" title="The result of the transition tracking is a stream of data bits. This stream is passed on to the pattern matching block of the protocol engine. The pattern matching block compares the received bit stream with the expected data in order to">Pattern matching</a></li></ol></div></nav>
+	
+	
+	<div><p>The protocol engine per pin, which is available on Smart Scale systems, serves to cope
+		with non-deterministic behavior of devices on which all data transitions at the output pins are
+		expected to occur at multiples of a unit interval (abbreviated as "UI"). This UI is defined by
+			<span class="keyword">period_length</span>/<span class="keyword">x_mode</span>. A protocol engine test can only be
+		executed in x4-mode or x6-mode, so that one tester cycle will comprise either 4 or 6 UI's. </p>
+		<p>The engine consists of two main parts, a transition tracking block (often simply called
+			"transition tracker" or "tracker") and a pattern tracking block. The transition tracking block
+			tries to detect all transitions within the received data, even if they do not occur at a multiple
+			of one UI, and passes its results as a bit sequence to the pattern tracking block. The pattern
+			tracking block compares this bit sequence to the expected data.</p>
+		<p>The kinds of non-deterministic behavior that can be handled by the protocol engine are initial
+			latency, drift, and insertion of idle tokens.</p>
+		<section class="section"><h2>Startup latency</h2><p>This means that the time span until the effects of the
+				first stimulus to the input pins become visible at the output pins can vary between different
+				devices of the same kind and even between different tests of the same device.</p><p>This problem
+				is solved by the pattern tracking mechanism of the protocol engine. For details see <em><a href="114245.htm" title="Initial synchronization serves to overcome an initial latency and to discover the start of the meaningful data. Its basic idea is to compare the received data, as selected by the tracking mechanism, successively with a start segment of the expected data, the synchronization pattern, until a segment of the received data matches this synchronization pattern. The start of this segment is assumed to be the start of the meaningful data.">Startup latency and initial synchronization</a></em>.</p><p>The pattern tracking mechanism can also be used to ensure a
+				consistent positioning of the transition tracking window at test start. For details see <em><a href="116558.htm" title="In many cases, the transition tracker issues the error ErrJMP2 when it detects a BC transition. However, it does not do this when it finds only one such transition, and this is the very first transition at test start or after a IO pin has switched from drive to receive mode.">Positioning the first observation window and jump by 2</a></em>.</p></section>
+		<section class="section"><h2>Drift</h2><p>Drift is a long-term deviation of the transitions from their
+				expected position. In many situations such a deviation is to be tolerated within a certain
+				range. A typical case is source synchronous testing where a common drift of the device clock and
+				the data signal is acceptable as long as the relative timing of both is still preserved (see
+				also <em><a href="84446.htm" title="In source synchronous devices, the phase of the device output clock and the output data cannot only show a static offset relative to the reference clock (which varies from device to device), but also a common dynamic distortion during execution of a pattern. This distortion can be the same for each pattern execution on the same device (deterministic distortion), but it can also vary from one pattern execution to the next.">Concept of source synchronous testing</a></em>). But then there
+				must be a way to control whether the expected number of transitions occur within the expected
+				range although the exact position of the transition is not known and may change from one test to
+				the next.</p><p>The following figure shows an example where a transition is not detected by a
+				normal digital test because of drift:</p><div class="p"><figure class="fignone">
+					<img src="116646.png" alt="Transitions missed by digital test">
+				</figure></div><p>The 3<sup>rd</sup> bit is only 3/4 UI long. This has the effect that the following
+				compare actions occur immediately before a transition. In the example, expected and received
+				value still match until the 7<sup>th</sup> transition, from H to L, which is missed because the
+					8<sup>th</sup> bit is also only 3/4 UI long.</p><p>This problem is solved by the transition
+				tracking mechanism of the protocol engine. It ensures that, under certain conditions, all data
+				transitions that actually occur at an output pin are detected. For details see <em><a href="114307.htm" title="Transition tracking serves to detect data transitions in the presence of drift. To achieve this, a sample is taken at every 1/4 UI, and an observation window moved along these over-sampled data. The length of the observation window is one UI, that is, it always contains 4 samples, which will be referred to by ABCD. One sample will be selected as the received value of the current bit and passed on to the pattern matching block for comparison with the expected value.">Drift and transition tracking</a></em>.</p></section>
+		<section class="section"><h2>Insertion of idle tokens</h2><p>In some protocols, data is transmitted in
+				packets or <em>tokens</em>, that is, as bit sequences of fixed length. These tokens come in two
+				kinds, payload tokens, which contain the user data, and idle tokens, which are inserted between
+				the payload tokens to bridge wait times, and which must be skipped for the evaluation. It is not
+				predictable when and how many of these idle tokens will be inserted between the payload tokens.
+				</p><p>This problem is solved by the pattern tracking mechanism of the protocol engine. For
+				details see <em><a href="116278.htm" title="Tokens are bit sequences of fixed length. Payload tokens contain the user data; idle tokens are inserted between the payload tokens to bridge wait times and must be skipped for the evaluation.">Skipping idle tokens</a></em>.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114244</span><script type="text/javascript">var ti='114244';var tt='Overview of the protocol engine per pin'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

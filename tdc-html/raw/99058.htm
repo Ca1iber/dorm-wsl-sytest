@@ -1,0 +1,226 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DVVA command (Define Vector VAriable) defines a vector variable for a vector label. The DVVA? query returns the definition of the specified or of all vector variables."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DVVA, DVVA? - (Define Vector VAriable)</title><meta name="keywords" content="DVVA_, V, Ariable"></head><body id="_99058"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99058</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DVVA, DVVA? - (Define Vector VAriable)</h1>
+	
+	
+	<div><p>The <span class="keyword">DVVA</span> command (Define Vector VAriable) defines a vector variable
+		for a vector label. The <span class="keyword">DVVA?</span> query returns the definition of the specified or
+		of all vector variables.</p>
+		<section class="section"><p>Vector variables specify filter criteria for data created by digital capturing. Note
+				that the <span class="keyword">DVVA</span> command only defines the criteria. The actual extraction is
+				performed by the <a href="99057.htm" title="The DIDT command is defined for Digital Source Memory (DSM) applications. It serves to download digital data to a DSM vector variable (a vector area segment of a source label). For more information see Overview of Digital Source Memory (DSM).">DIDT?</a> query. You pass the filter criteria to
+					<span class="keyword">DIDT?</span> by specifying the name of a vector variable as one of its
+				parameters.</p><p>Every vector variable is associated with one or more pins.
+					<span class="keyword">DIDT?</span> will only return data from these pins.</p><p>The unit by which
+				relevant or irrelevant information is specified is called a <em>vector</em>. A vector consists of
+				the values that were captured in one test system cycle from the selected pins at the same edge.
+				Thus, if <em>n</em> pins are associated with the vector variable, a vector is a sequence of
+					<em>n</em> binary digits. The captured data of the selected pins form a sequence of vectors. More
+				than one vector can be captured in one tester cycle. </p><p>Irrelevant vectors are discarded in
+				two steps, both of which are controlled by the parameters of the vector variable passed to
+					<span class="keyword">DIDT?</span>. These steps are as follows:</p><ol>
+				<li>A start segment of the vector sequence can be discarded before the upload. The length of
+					this start segment is defined in the <em>init_discard</em> parameter of the vector
+						variable.<p>Suppose the captured data consists of 22 vectors and you have set
+							<em>init_discard</em> to 3. Then the vectors </p>
+					<p> 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 will be uploaded to the
+					workstation.</p></li>
+				<li>After the upload, the vectors will be filtered by the following parameters of the vector variable:<ul>
+						<li><em>nr_vector_interdisc</em></li>
+						<li><em>nr_vec_per_frame</em></li>
+						<li><em>nr_frame_interdisc</em></li>
+						<li><em>nr_of_frames</em>
+							
+							
+							
+							
+							
+							<p>The names of these variables are derived from the assumption that the captured data
+								consist of blocks of relevant vectors which are called <em>frames</em>, but that these frames
+								can be interspersed with irrelevant vectors (referred to by <em>nr_vector_interdisc</em>), and
+								that irrelevant vectors can also occur between frames (referred to by
+									<em>nr_frame_interdisc</em>).</p>
+							<p>If you have set <em>vectors_interdisc</em> to 2, <em>nr_vec_per_frame</em> to 3,
+									<em>nr_frame_interdisc</em> to 1, and <em>nr_of_frames</em> to 2, then the extraction process
+								for the uploaded vectors of step 1 can be visualized as follows:</p>
+							<div class="p"><figure class="fignone">
+									<img src="52910.png" alt="inter_disc">
+								</figure></div>
+							<p>Vector 13 is discarded because of <em>nr_frame_interdisc</em>, all the others because of
+									<em>no_vectors_interdisc</em>.</p>
+							<p>After this extraction process, the remaining vectors are returned in 32 bit words that are
+								called <em>samples</em>. If the vector variable is associated with more than one pin (parallel
+								transfer mode) it is assumed that one vector makes up a complete information unit; in this
+								case, only one vector is contained in one sample. When the vector variable is defined for
+								only one pin you can specify that one sample contains several successive vectors (serial
+								transfer mode); the number of these vectors is defined with the <em>nr_vec_per_sample</em>
+								parameter.</p>
+							<p>If in the example above the vector variable has been defined for only one pin, and
+									<em>nr_vec_per_sample</em> has been set to 3, two samples would be returned; the first would
+								contain the vectors 4, 7, 10, and the second the vectors 14, 17, 20. If
+									<em>nr_vec_per_sample</em> is set to 6, then the relevant vectors of both frames will be
+								returned in one sample.</p></li>
+					</ul></li>
+			</ol></section>
+		<div class="syntax"><h2>DVVA</h2><pre class="prettyprint copyable singleline"><span class="keyword">DVVA</span> {"<span class="keyword">name</span>"}, {<span class="keyword">type</span>}, {"<span class="keyword">evector_label</span>"}, {<span class="keyword">xfer_mode</span>}, [<span class="keyword">device_cycle</span>], [<span class="keyword">start_vector_nr</span>], ["<span class="keyword">capt_label</span>"], [<span class="keyword">init_discard</span>], {<span class="keyword">nr_vec_per_frame</span>}, [<span class="keyword">nr_vec_per_sample</span>], [<span class="keyword">nr_vector_interdisc</span>], [<span class="keyword">nr_of_frames</span>], [<span class="keyword">nr_frame_interdisc</span>], {(<span class="keyword">pinlist</span>)}</pre></div><div class="syntax"><h2>DVVA?</h2><pre class="prettyprint copyable singleline"><span class="keyword">DVVA?</span> {"<span class="keyword">name</span>"|<span class="keyword">ALL</span>}[, (<span class="keyword">portlist</span>)]</pre><p>returns:
+			</p><pre class="prettyprint copyable singleline"><span class="keyword">DVVA</span> {"<span class="keyword">name</span>"}, {<span class="keyword">type</span>}, {"<span class="keyword">vector_label</span>"}, {<span class="keyword">xfer_mode</span>}, [<span class="keyword">device_cycle</span>], [<span class="keyword">start_vector_nr</span>], ["<span class="keyword">capt_label</span>"], [<span class="keyword">init_discard</span>], {<span class="keyword">nr_vec_per_frame</span>}, [<span class="keyword">nr_vec_per_sample</span>], [<span class="keyword">nr_vector_interdisc</span>], [<span class="keyword">nr_of_frames</span>], [<span class="keyword">nr_frame_interdisc</span>], {(<span class="keyword">pinlist</span>)}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Name of the vector variable to be defined. The name must be unique across vector
+									labels. If the identifier <span class="keyword">ALL</span> is used in the query, all those vector
+									variables will be returned that were defined for vector labels of the specified ports.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">type</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Type of vector variable. Currently, only the type <span class="keyword">DIGCAPT</span> is
+									supported.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">vector_label</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Name of a vector label. Only main vector labels are supported.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">xfer_mode</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Optional parameter that determines the transfer mode. The options available
+									are:</p>
+								<p><span class="keyword">PARA</span> Parallel. This is the default.</p>
+								<p><span class="keyword">SERI</span> Serial</p>
+								<p>Note that you cannot select <span class="keyword">SERI</span> if the vector variable is associated
+									with more than one pin.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">device_cycle</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>CURRENTLY NOT USED.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">start_vector_nr</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>CURRENTLY NOT USED.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">capt_label</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>This parameter describes a label reference to a capture block within a vector label
+									which has been set aside for digital capture. If this parameter is specified, the vector
+									variable is defined with respect to this capture area. If it is not specified, the capture
+									label references the entire pattern.</p>
+								<p>CURRENTLY NOT USED, DO NOT SPECIFY.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">init_discard</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The offset relative to the start location of a capture block within the capture
+									memory. The vectors before this offset will not be uploaded.</p>
+								<p>The default value is 0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">nr_vec_per_frame</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of relevant vectors within a frame.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">nr_vec_per_sample</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of (relevant) vectors that are contained in one sample.</p>
+								<p>The suitable values for this parameter depend on the selected transfer mode
+										(<span class="keyword">xfer_mode</span> parameter).</p>
+								<ul>
+									<li>For transfer mode <span class="keyword">PARA</span>, this parameter must be set to 1 (the default
+										value).</li>
+									<li>For <span class="keyword">SERI</span>, the maximum number is 32. The bigger the number is, the
+										faster the upload will be. For example, if one frame contains 5 relevant vectors, you
+										could set <span class="keyword">nr_vec_per_sample</span> to 30 in order to put 6 frames into one
+										sample.</li>
+								</ul></td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">nr_vector_interdisc</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>Defines the length of irrelevant vector blocks within a frame. These will be
+									discarded in step 2 of the extraction process. If set to 2, for example, only the first and
+									then every third vector will be extracted within a frame.</p>
+								<p>The default value is 0, in which case no vectors within a frame will be discarded.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">nr_of_frames</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of frames that are to be extracted, starting from the first frame.</p>
+								<p>The default value is 1.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">nr_frame_interdisc</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of irrelevant vectors between frames. These will be discarded in step 2
+									of the extraction process.</p>
+								<p>The default value is 0.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">pinlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>List of pins for which the vector variable is defined. The pins specified here
+									should also be associated with the vector label referenced by the <span class="keyword">vector_label</span> parameter. Only then will the digital data of these pins be retrieved by
+										<span class="keyword">DIDT?</span>, if <span class="keyword">DIDT?</span> is called with the actual vector
+									variable.</p>
+								<p>If the list contains more than one element, the element names must be separated with a
+									comma. Up to 32 pins can be associated with one vector variable.</p>
+								<p>If you have set the <em>xfer_mode</em> parameter to SERI, specify only one pin.</p>
+								<p>If you have set <em>xfer_mode</em> to PARA, the LSB of the sample will be assigned to the
+									last pin of the pin list.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">portlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>If you specify <span class="keyword">ALL</span> for <span class="keyword">name</span> in the
+										query<em>,</em> the vector variables of those vector labels will be returned that are
+									associated with the ports specified here. The default for this parameter is the default
+									port @ to which all pins belong.</p>
+								<p>Specify <span class="keyword">@@</span> to display all vector variables for all labels of all
+									ports.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Digital Capture Applications.</p></div><div class="syntax"><h2>Errors</h2><p>An error occurs if: </p><ul>
+				<li>The referenced vector label is not yet defined.</li>
+				<li>The variable name is not unique.</li>
+				<li>The vector label does not reside in sequencer memory (SM).</li>
+				<li>A <code>start_vector</code> is specified.</li>
+				<li>The vector variable exceeds the size of the vector label or the referenced capture
+					label.</li>
+				<li>The <span class="keyword">PARA</span> mode has been selected for <span class="keyword">xfer_mode</span>, and
+						<span class="keyword">nr_vec_per_sample</span> is not 1.</li>
+				<li>The referenced pin names have not been defined with the <a href="98550.htm" title="The DFPN command allocates a pin name to a digital or DC Scale channel. The DC Scale channel will be in PMU mode by this allocation. The pin name is the name by which the software identifies the pin. The DFPN? query returns a list of channels and their assigned pin names.">DFPN</a>
+					command.</li>
+			</ul></div>
+		
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">&gt; DVVA "vec_1",DIGCAPT,"port2_A",PARA,,,,0,1,1,0,\ 1,0,(I/O5_2)
+&gt; DVVA "vec_2",DIGCAPT,"port2_A",PARA,,,,0,1,1,0,1,0,(I/O7_2,I/O6_2)
+&gt; DVVA "vec_3",DIGCAPT,"port1_B",PARA,,,,0,1,1,0,\ 1,0,(Q7_1)
+&gt; DVVA? ALL,(port_1)
+&lt; DVVA "vec_3",DIGCAPT,"port1_B",PARA,,,,0,1,1,0,1,0,(Q7_1)
+&gt; DVVA? ALL,(port_2)
+&lt; DVVA "vec_1",DIGCAPT,"port2_A",PARA,,,,0,1,1,0,1,0,(I/O5_2)
+&lt; DVVA "vec_2",DIGCAPT,"port2_A",PARA,,,,0,1,1,0,1,0,(I/O7_2,I/O6_2)</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99070.htm" title="The SDGC (Setup DiGital Capture) command associates a vector label with a group of pins and a resolution mode. This is a prerequisite for capturing digital data from the specified pins. The pins will be referenced by this label. The hardware activation and cleanup is performed by DGCT?.">SDGC, SDGC? - (Setup DiGital Capture)</a></div><div><a href="99057.htm" title="The DIDT command is defined for Digital Source Memory (DSM) applications. It serves to download digital data to a DSM vector variable (a vector area segment of a source label). For more information see Overview of Digital Source Memory (DSM).">DIDT, DIDT? - (upload DIgital DaTa)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99058</span><script type="text/javascript">var ti='99058';var tt='DVVA, DVVA? - (Define Vector VAriable)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

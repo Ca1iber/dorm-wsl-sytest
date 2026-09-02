@@ -1,0 +1,54 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In some cases that may not be obvious, SmarTest Program Manager MCM (STPM MCM) has to modify data imported from a source test program (STP) into a master test program (MTP) or it may be unable to import the STP."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Special conversion issues</title></head><body id="_140628"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 140628</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Special conversion issues</h1>
+	
+	
+	<div><p>In some cases that may not be obvious, SmarTest Program Manager MCM (STPM MCM) has to
+		modify data imported from a source test program (STP) into a master test program (MTP) or it may
+		be unable to import the STP.</p>
+		<p>Some of these cases are described below.</p>
+		<section class="section"><h2>Converting dc_tml.Leakage and multi_group_dc_tml.Leakage tests for a multiport
+				environment</h2><p>The <a href="81304.htm">dc_tml.Leakage</a> test method does not work
+				in multiport environments; the <a href="121963.htm" title="This test method measures the leakage current at a device input, output, IO, DC or mixed pin.">multi_group_dc_tml.Leakage</a> may
+				require modifications to work. </p><p>STPM MCM tries to substitute the test function of modify
+				the parameters automatically. If it can do so, it continues with the conversion and notes the
+				modification in the Notes column of the MTPT <a href="137978.htm" title="The test suite table of the MTPT (STPM MCM mapping tables) describes the limits and parameters for the test suites in the MTP (master test program).">Test suite table</a>. If no automatic
+				modification is possible, it inserts an error in the Notes column and stops the
+				conversion.</p><p>STPM MCM tries to modify tests using these test methods automatically when
+				they are imported from an STP into the MTP. If it can do so, it continues with the conversion
+				and notes the modification in the Notes column of the MTPT <a href="137978.htm" title="The test suite table of the MTPT (STPM MCM mapping tables) describes the limits and parameters for the test suites in the MTP (master test program).">Test suite table</a>. If no
+				automatic modification is possible, it inserts an error in the Notes column and stops the
+				conversion.</p><p>There are three principal cases:</p><ul>
+				<li>If the <a href="81304.htm">dc_tml.Leakage</a> test method is used, STPM MCM will replace
+					it with <a href="121963.htm" title="This test method measures the leakage current at a device input, output, IO, DC or mixed pin.">multi_group_dc_tml.Leakage</a> and maps the parameters to the
+					new method. <p>A note about the conversion is inserted in the Notes column of the MTPT <a href="137978.htm" title="The test suite table of the MTPT (STPM MCM mapping tables) describes the limits and parameters for the test suites in the MTP (master test program).">Test suite table</a>.</p></li>
+				<li>If the <a href="121963.htm" title="This test method measures the leakage current at a device input, output, IO, DC or mixed pin.">multi_group_dc_tml.Leakage</a> test method is used (either
+					because it was specified in the STP or because dc_tml.Leakage was specified and automatically
+					converted, as described above), how STPM MCM handles the conversion depends on the setting of
+					the <span class="keyword">preFunction</span> parameter:<ul>
+						<li>If <span class="keyword">preFunction</span> is set to <span class="keyword">ToStopVec</span>, the test method
+							cannot run in a multiport environment and STPM MCM cannot automatically correct the issue. It
+							inserts an error message in the Notes column of the MTPT <a href="137978.htm" title="The test suite table of the MTPT (STPM MCM mapping tables) describes the limits and parameters for the test suites in the MTP (master test program).">Test suite table</a>; no
+							functional MTP is created before the error is resolved.<p>In this case, you must change
+									<span class="keyword">ToStopVec</span> to <span class="keyword">ToStopCyc</span> and convert all vector-based
+								parameter values to cycle based ones.</p>
+							<p>You can make this conversion in the MTP (so that the STP does not need to be modified), by
+								inserting the required parameter and value in the Parameters column of the MTPT <a href="137978.htm" title="The test suite table of the MTPT (STPM MCM mapping tables) describes the limits and parameters for the test suites in the MTP (master test program).">Test suite table</a>.</p>
+							<p>To determine the required cycle numbers, you can run the test suite in offline mode in
+								SmarTest and open the resulting BINL file in the Pattern Editor in expanded mode (where both
+								vector and cycle numbers are shown).</p></li>
+						<li>If <span class="keyword">preFunction</span> is set to <span class="keyword">ToStopCyc</span>, STPM MCM
+							automatically appends the port name to the values of the <span class="keyword">stopCycVecLow</span> and
+								<span class="keyword">stopCycVecLow</span> parameters.<p>For example, if the STP contains
+									<code>stopCycVecLow = "2"</code>, this is converted to <code>stopCycVecLow =
+									"2@stp1_port"</code>.</p>
+							
+							
+							
+							
+						</li>
+					</ul></li>
+			</ul></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 140628</span><script type="text/javascript">var ti='140628';var tt='Special conversion issues'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

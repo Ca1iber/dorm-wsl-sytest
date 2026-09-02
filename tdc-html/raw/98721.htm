@@ -1,0 +1,340 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>RLYC, RLYC? - (ReLaY Control)</title><meta name="keywords" content="RLYC_, Re, La, Y"></head><body id="_98721"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98721</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">RLYC, RLYC? - (ReLaY Control)</h1>
+	
+	
+	<div><p>The <span class="keyword">RLYC</span> (ReLaY Control) command controls the position of relays
+		that connect a DUT pin to various test system resources. The <span class="keyword">RLYC?</span> query
+		returns the existing relay settings.</p>
+		<section class="section"><p>Common test system resources are
+				addressed logically via the pin list. Thus the command always addresses the
+				resources which are assigned to pins in your pin list.</p>
+			<div>
+			<div class="caution"><span class="title">CAUTION</span> When using this command in a multisite configuration, you must be
+				careful as it can lead to incorrect binning and possible corruption of
+				devices.</div><p>A <a href="98721.htm" title="The RLYC (ReLaY Control) command controls the position of relays that connect a DUT pin to various test system resources. The RLYC? query returns the existing relay settings.">RLYC</a> command that is issued after
+				the testflow already binned one device does not only affect the still enabled
+				device, but all devices.</p>
+			<p>At the end of the testflow, the still enabled device is disconnected and the relays
+				are opened. But the already binned device is marked as disconnected in the shared
+				memory already and is thus not disconnected again and the relays stay closed! This
+				can lead to incorrect binning and possibly corruption of devices due to insertion
+				with active levels as the relays are in a different state than expected.</p>
+			<p><strong>Example</strong></p>
+			<div></div><pre class="msgblock">   site#1     site#2
+     |          |
+   test1      test1
+     |          |
+   test2      test2
+   (PASS)     (FAIL) -&gt; binned
+     |        site#2 stops here
+   test3      UI status is "disconnected"
+   (PASS)
+     |
+   test4
+   (PASS)
+     |
+   RLYC ON   &lt;- this RLYC commands affect both site#1 and site#2(disabled site)</pre><div></div>
+			<p>After execution of the RLYC command for site#2, the user interface still recognizes
+				site#2 is disconnected because direct execution of the firmware does
+				not update the user interface status. But the actual relay setting has changed to
+				"connect" status. The relays of site#2 which are directly controlled by the firmware
+				command are never disconnected by SmarTest at the end of the flow because the user
+				interface status considers them to be disconnected.</p>
+			<p>Programming tip: Replace the FW_escape commands by a user procedure or test method
+				doing a PSFC (see <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC, PSFC? - (Parallel Setup
+						FoCus) (Jump Template)</a> ) to the enabled sites only before doing
+				RLYC and then switching back to PSFC ALL.</p>
+		</div>
+			<div class="note"><span class="title">Note</span> If you use the <span class="keyword">RLYC</span> command to open a relay while
+				the test system is in the <em>connected</em> state, any tests executed subsequently do
+				not call the Connect sequence because the connect flag is already set. This can lead
+				to incorrect results.</div><div class="note"><span class="title">Note</span> Similarly, if you use the
+					<span class="keyword">RLYC</span> command to close a relay while the test system is in the
+				disconnected state, any Continuity test subsequently executed does not call the
+				Disconnect sequence because the disconnect flag is already set. This can also lead
+				to incorrect results.</div><p>With this command you configure setups of those sites that have the setup focus: For
+			more information, see also: <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC, PSFC?</a>.</p><p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p><p>The command does not perform any additional consistency checks!</p>
+			<p>The Pin PMU (PPMU) is a per pin resource. The board ADC is provided
+				once per logical channel board (16 channels) and is connected to a specific Pin PMU
+				via a multiplexer to perform value measurements at the corresponding DUT pin. To
+				perform such measurements, the PPMU relay is closed for the appropriate DC
+				tests.</p></section>
+		<div class="syntax"><h2>RLYC</h2><pre class="prettyprint copyable singleline">RLYC [pin_mode], [dc_target], [mux_setting,] {(pinlist)}</pre></div><div class="syntax"><h2>RLYC?</h2><pre class="prettyprint copyable singleline">RLYC? {(pinlist)}</pre><p>returns:</p><pre class="prettyprint copyable singleline">RLYC [pin_mode], [dc_target], {(pinlist)}</pre><div></div>
+			<div class="note"><span class="title">Note</span> 
+				<p>In offline mode, the command cannot always return the correct settings of the
+					hardware. This is especially true when hardware settings depend on
+					pattern‑based conditional jumps and match loops.</p>
+				<div class="p">If SmarTest determines that the state of the hardware cannot be evaluated correctly, the
+					message<div></div><pre class="msgblock">WARNING: ... - reported last DC state ... may not reflect online state.</pre><div></div>is
+					issued in the <span class="uicontrol">ui_report</span> window.</div>
+			</div></div><div class="syntax"><h2>Parameters</h2>
+			<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">pin_mode</var></td>
+							<td class="colsep-0 rowsep-1">
+								<p>This parameter controls per-pin relay resources. These are AC, DC
+									and PPMU relays. <var class="varname">pin_mode</var> can take the
+									following options:</p>
+								<div class="p">
+									<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">IDLE</span></td>
+												<td class="colsep-0 rowsep-1">Disconnects all relays</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">AC</span></td>
+												<td class="colsep-0 rowsep-1">Connects a DUT pin to its associated
+												digital channel</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">DC</span></td>
+												<td class="colsep-0 rowsep-1">Closes the DC relay</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">PPMU</span></td>
+												<td class="colsep-0 rowsep-1">Closes the PPMU relay to connect the pin to
+												the Pin-PMU</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">ACDC</span></td>
+												<td class="colsep-0 rowsep-1">Closes both the AC and DC relay</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">BOTH</span></td>
+												<td class="colsep-0 rowsep-1">Identical to
+												<span class="keyword">ACDC</span></td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">ACPM</span></td>
+												<td class="colsep-0 rowsep-1">
+												<p>Closes both the AC and the PPMU relay.</p>
+												
+												</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">DCPM</span></td>
+												<td class="colsep-0 rowsep-1">Closes both the DC and PPMU relay</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">ALL</span></td>
+												<td class="colsep-0 rowsep-1">Closes all pin relays (AC, DC,
+												PPMU)</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">CNCT</span></td>
+												<td class="colsep-0 rowsep-1">Special connect mode: for all I, O, IO pins
+												AC relay closed, for all DC pins AC relay
+												open</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">X</span></td>
+												<td class="colsep-0 rowsep-0">The settings of all relays
+												remain unchanged</td>
+												</tr>
+											</tbody></table>
+								</div>
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">dc_target</var></td>
+							<td class="colsep-0 rowsep-1">
+								<p>The parameter lets you connect DC resources to the selected DUT
+									pin. It controls the following relays:</p>
+								<ul>
+									<li>ISOL and GND relays on channel boards</li>
+									<li>Pin PMU on channel boards</li>
+									
+									
+									
+								</ul>
+								<p>The <var class="varname">dc_target</var> parameter can be specified as an
+									"enum" or a "string" value. The following keywords can be
+									specified:</p>
+								<div class="p">
+									<table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">OFF</span></td>
+												<td class="colsep-0 rowsep-1">Opens all channel board and clock board
+												relays.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">PMU</span></td>
+												<td class="colsep-0 rowsep-1">Closes the channel board PMU relay. This
+												does not automatically connect the pin to the board
+												ADC.</td>
+												</tr>
+												
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">EXT</span></td>
+												<td class="colsep-0 rowsep-1">
+												<p><em>For digital DC pin:</em></p>
+												<p>Closes the external relays (EXT) on the clock
+												board <em>and</em> ISOL and GND relays on the
+												channel board.</p>
+												
+												
+												<p><em>For utility DC pin:</em></p>
+												<div class="p">Depends on the test system.<ul>
+																<li>Smart Scale test system: closes the EXT relay and the DUT relay on the clock
+																	board.</li>
+																<li>EXA Scale test system: closes all relays on the utility-line card, card-cage,
+																	and test-head needed to establish a connection from the utility pogo to the
+																	external instrument.</li>
+															</ul></div>
+												</td>
+												</tr>
+												
+												
+												
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">X</span></td>
+												<td class="colsep-0 rowsep-1">The relays connecting the pins remain
+												unchanged.</td>
+												</tr>
+											</tbody></table>
+								</div>
+								<div class="p">The keywords specify fixed combinations of relay settings,
+									necessary to perform certain functions. As an alternative you
+									can control the relays individually using the "string" entry.
+									This has the format: <span>"CCC"</span>, where each character "C"
+									represents a relay on a channel board. Each character can take the value 0, 1, or X:<ul>
+										<li>0: opens the relay</li>
+										<li>1: closes the relay</li>
+										<li>X: leaves the relay unchanged</li>
+									</ul></div>
+								<p>The functionality of the characters from the left to the right
+									are as follows:</p>
+								<ol>
+									<li><span class="keyword">ISOL</span> relay on channel board</li>
+									<li><span class="keyword">GND</span> relay on channel board</li>
+									<li><span class="keyword">PMU</span> relay on channel board (BADC)</li>
+									
+									<li><span class="keyword">EXT</span> relay for utility lines (test system
+										dependent)</li>
+									
+									
+								</ol>
+								<p>This option, to control individual relays usin the "string" entry, is not supported for
+									utility DC pins</p>
+								
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">mux_setting</var></td>
+							<td class="colsep-0 rowsep-1">
+								<p>This is an extra parameter that controls the input MUX of the
+									board ADC (BADC). The following keywords can be
+										specified:</p><div class="p"><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1"><span class="keyword">MUX_VM_HIZ</span></td>
+												<td class="colsep-0 rowsep-1">Switches the MUX to the high-impedance
+												input of the BADC.</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-0"><span class="keyword">MUX_PPMU</span></td>
+												<td class="colsep-0 rowsep-0">Connects the BADC to the PPPMU
+												in preparation for a dynamic pin PMU value
+												measurement using the BADC.</td>
+												</tr>
+											</tbody></table></div>
+								
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">pin_list</var></td>
+							<td class="colsep-0 rowsep-1">
+								<p>The <var class="varname">pinlist</var> parameter defines which pins are
+									affected by the command. All pins must be configured as I, O, IO
+									or DC pins. If more than one pin is to be included, the names
+									must be separated by commas.</p>
+								<p>When some digital channels are configured for triggering analog
+									modules that are shared by multiple sites in a multi-site test,
+									you can use the special identifier
+										<span class="keyword">@NONSHARED@</span> to disconnect just the
+									resources that are not shared between configured sites. Also,
+									you can use <span class="keyword">@SHARED@</span> to disconnect just the
+									resources that are shared.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Low-level relay switching.</p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if you enter an illegal parameter
+				option.</p></div>
+		
+		
+		
+		
+		<h2>Example</h2><div class="example"><h3>AC and DC examples</h3>
+			
+			<table class="frame-none"><caption></caption><colgroup><col style="width:50%"><col style="width:50%"></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<div></div><pre class="prettyprint copyable singleline">RLYC IDLE,OFF,(pin)</pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1">Open all relays.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<div></div><pre class="prettyprint copyable singleline">RLYC DC,OFF,MUX_VM_HIZ,(pin)</pre><div></div>
+								
+							</td>
+							<td class="colsep-0 rowsep-1">Close the DC relay, open all channel board relays, select the high impedance input of
+								the board ADC.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<div></div><pre class="no-prettify"><code>RLYC ACPM,OFF,MUX_PPMU,(pin)
+RLYC? (pin)</code></pre><div></div>
+								
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>Close both the AC and the PPMU relay, open all channel board  relays, connect the
+									board ADC to the PPMU and</p>
+								<div class="p">query the state of the relays. The returned state
+									is<div></div><pre class="msgblock">RLYC ACPM,OFF,(pin)</pre></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<div></div><pre class="no-prettify"><code>RLYC AC,,(pin)
+RLYC? (pin)</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>Close only the AC relay and</p>
+								<div class="p">query the state of the relays. The returned state
+									is<div></div><pre class="msgblock">RLYC AC,OFF,(pin)</pre></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<div></div><pre class="no-prettify"><code>RLYC DC,,(pin)
+RLYC? (pin)</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>Close only the DC relay and</p>
+								<div class="p">query the state of the relays. The returned state
+									is<div></div><pre class="msgblock">RLYC DC,OFF,(pin)</pre></div>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<div></div><pre class="no-prettify"><code>RLYC PPMU,,(pin)
+RLYC? (pin)</code></pre><div></div>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>Close the PMU relay and</p>
+								<div class="p">query the state of the relays. The returned state
+									is<div></div><pre class="msgblock">RLYC PPMU,PMU,(pin)</pre></div>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.3: Added reference to HV pins and mux_setting
+					parameter.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98721</span><script type="text/javascript">var ti='98721';var tt='RLYC, RLYC? - (ReLaY Control)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

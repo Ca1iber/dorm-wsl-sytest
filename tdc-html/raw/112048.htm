@@ -1,0 +1,301 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Two examples are provided here. One is for test execution controlling and one is for production status monitoring."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Two complete examples of using HVM API</title><meta name="keywords" content="high voltage High Volume Manufacture"></head><body id="_112048"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 112048</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Two complete examples of using HVM API</h1>
+	
+	
+	<div><p>Two examples are provided here. One is for test execution controlling and one is for
+		production status monitoring.</p>
+		<section class="section"><h2>Example of downloading and executing a test
+			program</h2><pre class="prettyprint linenums copyable">#include &lt;xoc/hvmapi/hvmapi.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;cstdio&gt;
+
+using namespace std;
+
+static std::string sSession;
+
+// handlerSession() changes device for the first SmarTest session 
+// and report the session information for other conditions.
+void handlerSession (const std::string&amp; type,
+                     const xoc::hvmapi::ParamList&amp; params,
+                     unsigned long sec,
+                     long usec,
+                     const std::string&amp; session)
+{
+  using namespace xoc::hvmapi;
+  Status errObj;
+  
+  static int nCountOfSessionReadyEvent = 0;
+
+  if (sSession == session) 
+  {
+    if (params["SESSION_STATE"] == "SMARTEST_SESSION_READY") 
+    {
+      nCountOfSessionReadyEvent++;
+    
+      cout &lt;&lt; "received SMARTEST_SESSION_READY" &lt;&lt; endl;
+      
+      cout &lt;&lt; "number of SMARTEST_SESSION_READY is " 
+           &lt;&lt;  nCountOfSessionReadyEvent &lt;&lt; endl;
+
+
+      if ( nCountOfSessionReadyEvent == 1) 
+      {
+  
+        xoc::hvmapi::ParamList cmdParam;
+
+        cmdParam["DEVICE_PATH"] = "/home/demo/devices/";
+        cmdParam["DEVICE_NAME"] = "hvmapi_device.src";
+ 
+
+        cout &lt;&lt; "FA: ChangeDevice started: " &lt;&lt; endl;
+        errObj = xoc::hvmapi::command ("ChangeDevice",cmdParam,session);
+        if ( errObj.isSuccess() ) 
+        {
+          cout &lt;&lt; "FA: ChangeDevice executed: " &lt;&lt; endl;
+        } 
+        else 
+        {
+          cout &lt;&lt; "FA ChangeDevice not executed" &lt;&lt; endl;
+       cout &lt;&lt; "error code is " &lt;&lt; errObj.code() &lt;&lt; endl;
+        }
+      } 
+      else 
+      {
+        cout &lt;&lt; "received second SESSION_READY, do not change the device" 
+             &lt;&lt; endl;        
+      }
+
+      cout &lt;&lt; " any key to continue " &lt;&lt; endl;
+      
+      getchar();
+                  
+    }
+  } 
+  else 
+  {
+    string s = params["SESSION_STATE"];
+    
+    cout &lt;&lt; " received other session event: " &lt;&lt; s &lt;&lt;endl;
+  }
+  
+  return;
+}
+
+// handlerDeviceChangeComplete() downloads test program ft1
+// for a SmarTest session
+void handlerDeviceChangeComplete (const std::string&amp; type,
+                                  const xoc::hvmapi::ParamList&amp; params,
+                                  unsigned long sec,
+                                  long usec,
+                                  const std::string&amp; session)
+{
+  if (sSession == session) 
+  {
+
+    xoc::hvmapi::ParamList cmdParam;
+    cmdParam.setValue ("TESTPROGRAM_NAME","ft1");
+
+    cout &lt;&lt; " received change device completed events " &lt;&lt; endl;
+    
+    cout &lt;&lt; " any key to download the testprogram" &lt;&lt; endl;
+    
+    getchar();
+    
+    cout &lt;&lt; "FA: DownloadTestprogram started: " &lt;&lt; endl;
+
+    xoc::hvmapi::Status errObj = xoc::hvmapi::command("DownloadTestprogram",cmdParam,session);
+    
+    cout &lt;&lt; "FA: DownloadTestprogram executed: " &lt;&lt; endl;
+
+
+    if ( errObj.isSuccess() ) 
+    {
+      cout &lt;&lt; "FA: DownloadTestprogram executed: " &lt;&lt; endl;
+    } 
+    else 
+    {
+      cout &lt;&lt; "FA DownloadTestprogram not executed" &lt;&lt; endl;
+    }
+    
+  }
+  return;
+}
+
+// handlerTPLoadComplete() executes the test program 
+//after the test program is completely downloaded.
+void handlerTPLoadComplete (const std::string&amp; type,
+                            const xoc::hvmapi::ParamList&amp; params,
+                            unsigned long sec,
+                            long usec,
+                            const std::string&amp; session)
+{
+  if (sSession == session) 
+  {
+    cout &lt;&lt; " receive download testprogram completed event" &lt;&lt; endl;
+    cout &lt;&lt; " any key execute the testprogram " &lt;&lt; endl;
+    getchar();
+
+    xoc::hvmapi::ParamList cmdParam;
+    xoc::hvmapi::Status errObj = xoc::hvmapi::command
+                                ("ExecTestprogram",cmdParam,session);
+    
+    cout &lt;&lt; "FA: ExecTestprogram executed: " &lt;&lt; endl;
+
+
+    if ( errObj.isSuccess() ) 
+    {
+        cout &lt;&lt; "FA: ExecTestprogram successfully executed: " &lt;&lt; endl;
+    } 
+    else 
+    {
+        cout &lt;&lt; "FA ExecTestprogram not executed" &lt;&lt; endl;
+    }
+          
+
+  }
+  return;
+}
+
+//handlerTPComplete() exit the HVM internal thread 
+//when the test program execution is finished.
+void handlerTPComplete (const std::string&amp; type,
+                        const xoc::hvmapi::ParamList&amp; params,
+                        unsigned long sec,
+                        long usec,
+                        const std::string&amp; session)
+{
+  if (sSession == session) 
+  {
+    xoc::hvmapi::eventLoopExit ();
+    cout &lt;&lt; "FA: eventLoopExit executed " &lt;&lt; endl;
+  }
+  return;
+}
+
+// The main program registers the event handler defined above, 
+// start an offline SmarTest session, 
+// enter the event loop and proceed based on the event occurs.
+
+int main(int argc, char **argv) 
+{
+  xoc::hvmapi::Status errObj;
+  
+ cout &lt;&lt; "FA: Register handlers" &lt;&lt; endl;
+  if (!xoc::hvmapi::addEventListener (handlerSession, "SESSION")) 
+  {
+    return(1);
+  }
+  
+  xoc::hvmapi::ParamList aspect;
+  aspect["EXECUTION_STATE"] = "DEVICE_CHANGE_COMPLETED";
+  if (!xoc::hvmapi::addEventListener(handlerDeviceChangeComplete, "EXECUTION", aspect)) 
+  {
+    return(1);
+  }
+
+  xoc::hvmapi::ParamList aspect1;
+  aspect1["EXECUTION_STATE"] = "TESTPROGRAM_DOWNLOAD_COMPLETED";
+  if (!xoc::hvmapi::addEventListener(handlerTPLoadComplete, "EXECUTION", aspect1)) 
+  {
+    return(1);
+  }
+
+  xoc::hvmapi::ParamList aspect2;
+  aspect2["EXECUTION_STATE"] = "TESTPROGRAM_EXEC_COMPLETED";
+  if (!xoc::hvmapi::addEventListener(handlerTPComplete, "EXECUTION", aspect2)) 
+  {
+    return(1);
+  }
+
+  xoc::hvmapi::ParamList results; 
+  cout &lt;&lt; "FA: StartSmartestSession,any key to start one new session"
+       &lt;&lt; endl;    
+  getchar();
+
+  xoc::hvmapi::ParamList params, qrResults; 
+  params["ONLINE_MODE"] = "OFFLINE";
+  params["USER_MODE"] = "SUPERVISOR";
+  errObj = xoc::hvmapi::operation("StartSmartestSession",results,params);
+  if ( errObj.isSuccess() ) 
+  {
+    sSession = results["SESSION_ID"];
+    cout &lt;&lt; "the session ID currently started is " &lt;&lt; sSession &lt;&lt; endl;
+  }
+
+   errObj = xoc::hvmapi::query("PingSmartestSessions",qrResults,xoc::hvmapi::ParamList(),sSession);
+      
+   if (errObj.isSuccess())
+  {
+    cout&lt;&lt;"the session status is " &lt;&lt; qrResults["LIFE_STATUS"] &lt;&lt;endl;
+  } 
+  else 
+  {
+    cout &lt;&lt;" error to ping session " &lt;&lt; endl;
+    cout &lt;&lt;" the code is " &lt;&lt; errObj.code() &lt;&lt;endl;
+    cout &lt;&lt; "the text is " &lt;&lt; errObj.text() &lt;&lt; endl;
+  }
+  
+  cout &lt;&lt; "FA: eventLoop started, now go to the evenloop" &lt;&lt; endl;
+  xoc::hvmapi::eventLoop();
+  cout &lt;&lt; "FA: eventLoop finished" &lt;&lt; endl;
+
+  cout &lt;&lt; "now the main thread is executed again, any key to quit the client" &lt;&lt; endl;
+  getchar();
+  
+  return (0);  
+}</pre></section>
+		<section class="section"><h2>Example of monitoring the production
+			status</h2><pre class="prettyprint linenums copyable">#include "xoc/hvmapi/hvmapi.hpp"
+#include "xoc/hvmapi/Status.hpp"
+#include &lt;iostream&gt;
+#include &lt;cstdio&gt;
+#include &lt;unistd.h&gt;
+
+using namespace std;
+std::string sSession;
+
+void globalEventHandler(const std::string &amp;type, const xoc::hvmapi::ParamList &amp;params,
+                        unsigned long sec, long usec, const std::string &amp;session)
+{
+
+  if ( type == "SESSION" )
+  {
+    string  sessionState = params["SESSION_STATE"];
+    cout &lt;&lt; "PM: Event received ### Session: " &lt;&lt; session &lt;&lt; " # EventType: " &lt;&lt; type 
+         &lt;&lt; " # State: " &lt;&lt; sessionState &lt;&lt; endl;
+  }
+  else if ( type == "EXECUTION")
+  {
+    string execState = params["EXECUTION_STATE"];
+    cout &lt;&lt; "PM: Event received ### Session: " &lt;&lt; session &lt;&lt; " # EventType: " &lt;&lt; type 
+         &lt;&lt; " # State: " &lt;&lt; execState &lt;&lt; endl;  
+  
+  }
+  else if ( type ==  "ALARM" )
+  {
+    string severity = params["ALARM_SEVERITY"];
+    string code = params["ALARM_CODE"];
+    string text = params["ALARM_TEXT"];
+    cout &lt;&lt; "PM: Event received ### Session: " &lt;&lt; session &lt;&lt; " # EventType: " &lt;&lt; type
+         &lt;&lt; " # Severity: " &lt;&lt; severity &lt;&lt; "# Code: " &lt;&lt; code &lt;&lt; " # Text: " &lt;&lt; text &lt;&lt; endl;
+  }
+  else
+  {
+    cout &lt;&lt; "ERROR, receive other event category: " &lt;&lt; type &lt;&lt; endl;
+  }
+}        
+
+int main(int argc, char **argv) 
+{
+  xoc::hvmapi::ParamList aspects;
+  xoc::hvmapi::addEventListener(globalEventHandler, "SESSION");  
+  xoc::hvmapi::addEventListener(globalEventHandler, "ALARM");  
+  xoc::hvmapi::addEventListener(globalEventHandler, "EXECUTION");  
+  xoc::hvmapi::eventLoop();
+  return (0);  
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="95795.htm" title="This section describes how to create a client application with the HVM API and how to execute the application program.">How to create and execute the client application with HVM API</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 112048</span><script type="text/javascript">var ti='112048';var tt='Two complete examples of using HVM API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

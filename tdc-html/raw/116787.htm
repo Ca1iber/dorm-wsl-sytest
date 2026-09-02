@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The execution of device accesses can be dynamically delayed, either for the entire access or for a range of instruction within an access."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Device access delays</title></head><body id="_116787"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116787</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Device access delays</h1>
+	
+	
+	<div><p>The execution of device accesses can be dynamically delayed, either for the entire
+		access or for a range of instruction within an access.</p>
+		<section class="section"><h2>Delaying an entire device access</h2><p>To delay an entire device access, use
+				the <code>delay()</code> member function. For
+				example:</p><pre class="prettyprint copyable singleline">myAccess.delay(3) // Delays the entire access by three edges</pre><p>This
+				delays the execution of the device access by the specified number of edges, in this case by
+				three edges.</p><p>Instead of a fixed number, an expression can also be provided as the argument
+				of <code>delay()</code>. For
+			example:</p><pre class="prettyprint copyable singleline">myAccess.delay(myLatency)</pre></section>
+		<section class="section"><h2>Delaying part of a device access</h2><p>To delay just a range of operations
+				within an access, use the <span class="keyword">delay()</span> ... <span class="keyword">delayend</span> instruction
+				described in <a href="116771.htm" title="Device access can include control statements in the :instruction: columns of :apgAccess: objects.">Control instructions in device accesses</a>.</p><p>This instructions delays the operations enclosed
+				between <span class="keyword">delay</span> and <span class="keyword">delayend</span> by the number of edges that
+				have been provided as an argument to <span class="keyword">delay()</span>.</p><p>It is possible to insert
+				multiple <code>delay ... delayend</code> blocks in a single device access. If you do so,
+				note that an earlier delay block must not be delayed so much that it is executed after a later
+				delay block. (See <a href="116771.htm" title="Device access can include control statements in the :instruction: columns of :apgAccess: objects.">Control instructions in device accesses</a> for an example.)</p></section>
+		<h2>Examples</h2><div class="example"><h3>Delaying an entire
+			access</h3><pre class="prettyprint linenums copyable">Read(bank, row, col, ...)
+{
+  CMD(REDC); ADDR_Y(bank1, row); DQ_BurstRead().delay(2);  // delay by 2 tCK
+  CMD(DESL); ADDR_IDLE();       
+  CMD(DESL); ADDR_IDLE();       
+  CMD(DESL); ADDR_IDLE();       
+}</pre></div>
+		<div class="example"><h3>Delaying part of a device
+			access</h3><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+:interface: { myDelay }
+:table:
+{ :instruction:  :pin:  :states:  :data:  :operation:             }
+{ ~              DQi_0  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_1  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DQi_2  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_3  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DQi_4  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_5  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DQi_6  {0 1}     0       dbi(gddr5_DBI)          }
+{ ~              DQi_7  {0 1}     1       dbi(gddr5_DBI)          }
+{ ~              DBI.0  {0 1}     0       dbi(gddr5_DBI)          }
+{ delay(myDelay) EDC.0  {L H}     0       crc(gddr5_crc_write,0)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,1)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,2)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,3)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,4)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,5)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,6)  }
+{ ~              ~      {L H}     0       crc(gddr5_crc_write,7)  }
+{ delayend       ~      ~         ~       ~                       }</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="116771.htm" title="Device access can include control statements in the :instruction: columns of :apgAccess: objects.">Control instructions in device accesses</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116787</span><script type="text/javascript">var ti='116787';var tt='Device access delays'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

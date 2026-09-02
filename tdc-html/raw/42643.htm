@@ -1,0 +1,101 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In addition to auto-controlling the setup/query-focus state of sites, you can also control the state of setup-focus by using the following APIs. The first two APIs specify which sites are addressed by Setup APIs which follow, for performing the site-specific setup."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Controlling the Setup-Focus Manually</title></head><body id="_42643"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42643</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Controlling the Setup-Focus Manually</h1>
+	
+	
+	<div><p>In addition to auto-controlling the setup/query-focus state of sites, you can also
+		control the state of setup-focus by using the following APIs. The first two APIs specify which
+		sites are addressed by Setup APIs which follow, for performing the site-specific
+		setup.</p>
+		<ul>
+			<li><strong><a href="29732.htm" title="This API sets the specified sites in the currently-enabled sites to setup-focus state. This API can also set all enabled sites except for the specified single site to not setup-focus state simultaneously. The API returns also the previous state of sites.">SET_TEST_FOCUS()</a></strong><p>Sets the specified sites in the
+					currently-enabled sites to setup-focus state. This can also set all enabled sites except for
+					the specified site to not setup-focus state simultaneously.</p></li>
+			<li><strong><a href="29818.htm" title="This API sets the specified site in the currently setup-focused sites to the non-setup-focus state, and returns the previous state of the site.">UNSET_TEST_FOCUS()</a></strong><p>Sets the specified site in the
+					currently setup-focused sites to not setup-focus state.</p></li>
+			<li><strong><a href="29433.htm" title="This API returns the number of the setup-focused sites, and stores the site numbers into the array variable specified as the parameter.">GET_TEST_FOCUS()</a></strong><p>Returns the number of the setup-focused
+					sites and the site numbers.</p></li>
+		</ul>
+		<p>These APIs are meaningful in the first-invocation block except for the each site loop
+			blocks.</p>
+		<p>Changes in setup-focus state by SET_TEST_FOCUS and UNSET_TEST_FOCUS APIs are canceled
+			automatically when the execution of the test method program finishes in the test suite.</p>
+		<div class="note"><span class="title">Note</span> Setting the test focus by <span class="keyword">SET_TEST_FOCUS()</span> and
+				<span class="keyword">UNSET_TEST_FOCUS()</span> is supported for a limited selection of other APIs.
+			Supported APIs are <span class="keyword">Primary.getLevelSpec()</span>,<span class="keyword">
+				Primary.getTimingSpec()</span>, <span class="keyword">Analog.AWG()</span>,
+				<span class="keyword">Analog.DGT()</span>, <span class="keyword">Analog.TIA()</span>, and
+				<span class="keyword">Vector()</span>. For detailed information refer to <a href="42641.htm" title="Different setup data can be created for each site independently. The following setup parameters are valid for site-specific setup:">Site-Specific Setup</a>. The
+				"<em>each site loop block</em>" or the "<em>semi-parallel testing block</em>" are to be used to
+			manually control the setup focus or the query focus for other APIs. For more information refer to
+				<a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a>.</div>
+		<h2>Examples</h2><div class="example"><h3>Example 1: Get, change, and restore the setup focus of a
+			site</h3><pre class="prettyprint linenums copyable">ARRAY_I sites;
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Get the site numbers of the currently setup-focused
+    // sites and store them into the sites array.
+    //
+    GET_TEST_FOCUS(sites);
+
+    //
+    // Enable the setup focus on site 1.
+    // Disable the setup focus on all other sites.
+    //
+    // Note: The setup focus for all other sites is disabled
+    //       because the optional parameter "exclusive" is omitted.
+    //       The default value = true is applied.
+    //
+    SET_TEST_FOCUS(1);
+
+    //
+    // Apply changes only to site 1.
+    //
+    AWG("ain").vOffset(5.0 V);
+
+    FLUSH();
+
+    ...
+    ...
+
+    //
+    // Restores the state of all enabled sites to the original
+    // state by using the contents of the sites array.
+    //
+    SET_TEST_FOCUS(sites);
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+		<div class="example"><h3>Example 2: Print list of setup-focused
+			sites</h3><pre class="prettyprint linenums copyable">ARRAY_I sites;
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Get the site numbers of the currently setup-focused
+    // sites and store them into the sites array.
+    //
+    GET_TEST_FOCUS(sites);
+
+    //
+    // Print the size and the contents of the sites array
+    //
+    cout &lt;&lt; endl;
+    cout &lt;&lt; sites.size() &lt;&lt; " sites are setup-focused:" &lt;&lt; endl;
+    cout &lt;&lt; endl;
+
+    for (int index = 0; index &lt; sites.size(); index++)
+    {
+        cout &lt;&lt; "\tSite " &lt;&lt; sites[index] &lt;&lt; " is setup-focused" &lt;&lt; endl;
+    }
+
+    cout &lt;&lt; endl;
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="13863.htm" title="When you execute tests on multiple sites, the results for the site in (query) focus is shown. Only one site can be in focus at any time. Consequently to view the results from a different site, you must change the identity of the site in (query) focus.">Changing the site in focus</a></div><div><a href="42642.htm" title="You can set up the conditions for each site independently in the first-invocation block. This setup will be performed serially for each site by repetition.">Controlling the Setup/Query-Focus Automatically</a></div><div><a href="29732.htm" title="This API sets the specified sites in the currently-enabled sites to setup-focus state. This API can also set all enabled sites except for the specified single site to not setup-focus state simultaneously. The API returns also the previous state of sites.">SET_TEST_FOCUS</a></div><div><a href="29818.htm" title="This API sets the specified site in the currently setup-focused sites to the non-setup-focus state, and returns the previous state of the site.">UNSET_TEST_FOCUS</a></div><div><a href="29433.htm" title="This API returns the number of the setup-focused sites, and stores the site numbers into the array variable specified as the parameter.">GET_TEST_FOCUS</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="116559.htm" title="This API allows you to sequentially setup and query setup and result information for all active sites. It sets the current site as the query focus site in each iteration. It must be used together with FOR_EACH_SITE_END as a pair, called &#34;each site with query loop block&#34;. The query focus will be reset by FOR_EACH_SITE_END(). If you want to execute only setup information for all sites, use FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_BEGIN_WITH_QUERY</a></div><div><a href="135794.htm" title="Declares the beginning of the semi-parallel testing block that enables you to set up and execute test for the sites in semi-parallel. In the semi-parallel testing block, semi-parallel configuration and semi-parallel group will be defined. The semi-parallel groups in a semi-parallel configuration will be executed serially. While the sites in one semi-parallel group will be tested in parallel.">FOR_SEMI_PARALLEL_TEST_BEGIN</a></div><div><a href="135795.htm" title="Declares the end of the semi-parallel test block which is started by FOR_SEMI_PARALLEL_TEST_BEGIN.">FOR_SEMI_PARALLEL_TEST_END</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42643</span><script type="text/javascript">var ti='42643';var tt='Controlling the Setup-Focus Manually'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

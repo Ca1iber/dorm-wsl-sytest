@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multiple transaction ports</title></head><body id="_123986"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123986</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multiple transaction ports</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The d2s-framework allows transactions on multiple ports. In order to use multiple
+				protocols, each protocol has to be registered to the d2sFramework the same way as a single
+				protocol.</p><p>The general behavior of the d2s-framework in learning and production mode does
+				not change.</p><p>This task shows how to register multiple ports to the framework and how they
+				can be handled independently.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Ensure you have carried out all preparation and configuration steps as described in
+					<a href="123748.htm">Prepare device setup</a>, <a href="123821.htm">Prepare the test method infrastructure</a> and <a href="123831.htm">Configure the protocol</a> for each
+				protocol.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Create a d2sFramework handle.</span>
+				<div><pre class="prettyprint copyable singleline">d2sFramework fr;</pre><p>This framework handle ("<code>fr</code>")
+						will be used to access the d2sFramework methods.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Instantiate your protocols, for example, <code>sbiA</code> and
+					<code>sbiB</code>.</span>
+				<div><pre class="prettyprint linenums copyable">d2s_SBIA&amp; sbiA = d2s_SBIA ::Instance();
+d2s_SBIB&amp; sbiB = d2s_SBIB ::Instance();</pre><p>The
+						corresponding objects reflect your protocols. Each one uses its corresponding protocol file,
+						for example <code>d2s_SBIA.h</code> and <code>d2s_SBIB.h</code> to handle
+						transactions, like write and read.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Register each protocol with the framework.</span>
+				<div><pre class="prettyprint linenums copyable">fr.registerTransactionPort(sbiA);
+fr.registerTransactionPort(sbiB);</pre></div>
+			</li><li class="stepexpand">
+				<span>Define the d2s-block's begin API with the appropriate details, like burst label name and
+					mode.</span>
+				<div><pre class="prettyprint copyable singleline">fr.d2s_LABEL_BEGIN("concurrentWrite", d2sFrameWorkModeType::LearningMode);</pre></div>
+			</li><li class="stepexpand">
+				<span>Specify protocol port specific transactions within the d2s-block</span>
+				<div><pre class="prettyprint linenums copyable">sbiA.write(0x0, 0x5);
+sbiA.read(0x4, "0x4");
+sbiB.write(0x0, 0x5);
+sbiB.wait(1 ms);</pre></div>
+			</li><li class="stepexpand">
+				<span>Call the d2s-block's end API.</span>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following code snippet illustrates how multiple transactions ports can be used
+				with the d2s-framework.</p><p>This example creates bursts for each single port which will be
+				combined into a multiport burst. The multiport burst will be executed on
+					<code>d2s_LABEL_END()</code>. This way the transactions are applied to the device
+				concurrently.</p><pre class="prettyprint linenums copyable">virtual void run()
+{
+   // step 1
+   d2sFramework <strong>fr</strong>;
+
+   // step 2
+<strong>   d2s_SBIA&amp; sbiA = d2s_SBIA ::Instance();</strong>
+<strong>   d2s_SBIB&amp; sbiB = d2s_SBIB ::Instance();</strong>
+
+   // step 3
+   fr.registerTransactionPort(<strong>sbiA</strong>);
+   fr.registerTransactionPort(<strong>sbiB</strong>);
+   
+   ON_FIRST_INVOCATION_BEGIN();
+      // This only for displaying pass/fail after the ON_FIRST_INVOCATION_END()
+      <strong>sbiB</strong>.enablePassFailCheckForNextExecution();
+
+      // step 4
+      <strong>fr.d2s_LABEL_BEGIN("concurrentWrite", d2sFrameWorkModeType::LearningMode);</strong>
+
+         // step 5
+         <strong>sbiA</strong>.write(0x0, 0x5);
+         <strong>sbiA</strong>.read(0x4, "0x4");
+
+         <strong>sbiB</strong>.write(0x0, 0x5);
+         <strong>sbiB</strong>.wait(1 ms);
+
+      // step 6
+      <strong>fr.d2s_LABEL_END();</strong>
+
+      // do your measurement here
+
+   ON_FIRST_INVOCATION_END();
+
+   if(<strong>sbiB</strong>.hasPassed("concurrentWrite"))
+   {
+      cerr &lt;&lt; "test has passed on port &gt;&gt;<strong>sbiB</strong>&lt;&lt;" &lt;&lt; endl;
+   }
+   else
+   {
+      cerr &lt;&lt; "test has failed on port &gt;&gt;<strong>sbiB</strong>&lt;&lt;" &lt;&lt; endl;
+   }
+
+    cerr &lt;&lt; "read value on sbiA: 0x" &lt;&lt; hex &lt;&lt; <strong>sbiA</strong>.getReadValue("0x4") &lt;&lt; endl; 
+}</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="122667.htm" title="The d2s framework provides the flexibility to program one or more registers to meet your application needs.">d2s implementation of a serial protocol</a></div><div><a href="124495.htm" title="The d2sFramework provides classes and member functions to generate multiport burst pattern and to execute register transactions. These member functions can be categorized in general and transaction port specific member functions.">d2sFramework API</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123986</span><script type="text/javascript">var ti='123986';var tt='Multiple transaction ports'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

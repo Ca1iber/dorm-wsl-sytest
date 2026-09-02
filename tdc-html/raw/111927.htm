@@ -1,0 +1,149 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Some classic test methods may not be complete. You cannot convert them to universal test methods with the conversion tool and compile the converted UTM project successfully. In this case, you need to do some manual modification to successfully convert them to universal test methods."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to convert an incomplete classic test method to a universal test method</title><meta name="keywords" content="testmethod UTM"></head><body id="_111927"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 111927</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to convert an incomplete classic test method to a universal test method</h1>
+	
+	
+	<div><p>Some classic test methods may not be complete. You cannot convert them to universal test
+		methods with the conversion tool and compile the converted UTM project successfully. In this case,
+		you need to do some manual modification to successfully convert them to universal test
+		methods.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>The following cases are covered:</p><ul>
+				<li>The classic test method exists in the code <span class="filepath">(*.cpp</span> file), but it does not
+					exist in the registry (<span class="filepath">*.dsw</span> file).</li>
+				<li>Modifications made to the classic test method source file cause the conversion fail.</li>
+				<li>A classic test method source file in the project directory is not listed in the
+						<span class="filepath">GNUMakefileDBG</span> file.</li>
+				<li>Some manual modifications were made in the hidden files of the classic test method project
+						(<span class="filepath">TMProject.hpp</span>,
+						<span class="filepath">TMProject.cpp</span>,<span class="filepath">TMProjectTlb.cpp</span>,
+						<span class="filepath">TMProject_i.cpp</span>, <span class="filepath">TMClass.hpp</span>).</li>
+				<li>The makefile of the classic test method project (<span class="filepath">GNUmakefileDBG</span> or
+						<span class="filepath">GNUmakefileREL</span>) is broken.</li>
+			</ul></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 6.3 or later versions.</p></section>
+		<section class="sectiontitlefake"><h2>Procedures</h2></section>
+		<section class="section"><h3>Method exists in the code but not in the registry</h3><p>When you convert the
+				classic test method project with <span class="filepath">convertTMProject</span>, you will see a warning
+				message telling the method was not declared in the <span class="filepath">*.dsw</span> file. The
+				unconverted classic test method will be kept in the UTM source file and no corresponding UTM
+				code will be generated for this test method. </p><ul>
+				<li>If you do not need the unconverted test method anymore, remove it before or after
+					conversion.</li>
+				<li>Otherwise, in the converted UTM source file, you can manually add a universal test method
+					class and move the classic test method body code to the <code>run()</code> function of the
+					universal test method.</li>
+			</ul></section>
+		<section class="section"><h3>Manual modifications to the source code cannot be recognized</h3><p>This mostly
+				happens when the classic test method was modified manually or the method was commented in the
+				source file and the modifications cannot be recognized by the conversion tool. The conversion
+				tool will send out warning messages. The unconverted test method will be copied to the UTM
+				source file. An empty universal test method template will be created for the test method. You
+				need to</p><ol>
+				<li>find the unconverted classic test method code in the source file</li>
+				<li>copy the source code to the <code>run()</code> function of the empty universal test
+					method template.</li>
+				<li>remove the classic test method code from the UTM source file.</li>
+			</ol></section>
+		<section class="section"><h3>Unused C++ file exists in the classic test method project</h3><p>This happens
+				when a classic test method source file in the project directory is not listed in the
+					<span class="filepath">GNUMakefileDBG</span> file. The conversion will work but when you compile the
+				converted UTM projects, you will get some error messages. So you need to remove the unused
+				classic test method source file ahead of conversion.</p></section>
+		<section class="section"><h3>Manual modification exists in the project hidden files</h3><p>If you manually
+				modify the class test method project hidden files (<span class="filepath">TMProject.hpp</span>,
+					<span class="filepath">TMProject.cpp</span>,<span class="filepath">TMProjectTlb.cpp</span>,
+					<span class="filepath">TMProject_i.cpp</span> or <span class="filepath">TMClass.hpp</span>), for example, by
+				adding some include files and defining some variables, the conversion tool cannot recognize the
+				modifications. These modifications will be ignored during conversion. So you need to</p><ol>
+				<li>find a solution to store those modifications (for example, create a header file to contain
+					them)</li>
+				<li>convert the classic test method to a universal test method with the conversion tool</li>
+				<li>and then add the modifications to the converted UTM files manually (for example, create a
+					header file in the UTM project directory and use it in the test method class source file).</li>
+			</ol></section>
+		<section class="section"><h3>GNUmakefile* is broken</h3><p>This case happens when <span class="filepath">GNUmakefileDBG
+				</span>or <span class="filepath">GNUmakefileREL</span> is broken and they cannot be parsed by the
+				conversion tool. If the conversion tool cannot parse the makefile options correctly, it will
+				only creates the default makefile options (3 compilation include paths:
+					<span class="filepath">${HP83000_ROOT}/prod_com/include</span>,
+					<span class="filepath">${HP83000_ROOT}/prod_com/include/MAPI</span>,
+					<span class="filepath">${HP83000_ROOT}/testmethod/include</span>) of a UTM project. Error messages will
+				be sent out to indicate the errors in <span class="filepath">GNUmakefileDBG</span> or<span class="filepath">
+					GNUmakefileREL</span>. The compilation of the converted UTM project may fail. You can
+				correct the errors in <span class="filepath">GNUmakefileDBG</span> or <span class="filepath">GNUmakefileREL</span>
+				and convert the project again. Or you can manually add the missing options on <span class="uicontrol">C/C++
+					Build </span>&gt; <span class="uicontrol">Settings</span> of the UTM project
+					<span class="uicontrol">Properties</span>.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The incomplete or nonstandard classic test methods are successfully converted to
+				universal test methods.</p></section>
+		<h2>Examples</h2><section><h3>Description</h3><p>One example is provided for each case discussed above. The
+				used classic test method project is <span class="filepath">method_project</span> and the source file
+					is <span class="filepath">digital_tests.cpp</span>.</p></section>
+		<section><h3>Example for method existing in the code but not in the registry</h3><p>In this
+				example the test method <code>leakage</code> is in the source file
+					<span class="filepath">digital_tests.cpp</span> but not in the registry file
+					<span class="filepath">method_project.dsw</span>. When you try to convert the project
+					<span class="filepath">method_project</span><code>, you will get the following
+				message.</code></p><pre class="msgblock">Warning:
+digital_tests.cpp:
+HRESULT Cdigital_tests::leakage(DOUBLE vForce_low, DOUBLE vForce_high, DOUBLE settling_time,
+ double _results[4])
+this testmethod was not converted probably due to reasons:
+1)it was not declared in *.dsw file.
+2)its function head definition line was modified.
+classic testmethod editor also cannot identify and handle this kind of testmethod.
+please manually do migrate it to new testmethod, otherwise this file cannot be compiled successfully.
+converting testmethod project...finished.</pre><p>If
+				you still need the method <code>Leakage</code>, manually create a UTM
+					<code>leakage</code> test method class, copy the classic method body code to
+					<code>run()</code> function and remove the classic test method. Otherwise, remove it before
+				or after conversion.</p></section>
+		<section><h3>Example for manual modification cannot be recognized</h3><p>A parameter
+					<span class="keyword">unit</span> was added to the test method <code>leakage</code> by manually
+				editing <span class="filepath">digital_tests.cpp</span> as
+				below:</p><pre class="msgblock">HRESULT Cdigital_tests::leakage(DOUBLE vForce_low, DOUBLE vForce_high,
+                                DOUBLE settling_time, STRING unit, double _results[4])</pre><p>When
+				you try to convert the project <span class="filepath">method_project</span>, you will get a warning
+				message like the message in the above example. The classic test method <code>leakage</code>
+				is copied to the UTM source file. And an empty template will be created in the UTM source file
+				for <code>leakage</code>. You need to copy the code of <code>leakage</code> from the
+				classic test method to the <code>run()</code> function of UTM source code and add the
+				parameter <span class="keyword">unit</span> to the test method.</p></section>
+		<section><h3>Example for unused C++ files in classic test method project</h3><p>An unused
+				C++ file <span class="filepath">Test.cpp</span> exists in the <span class="filepath">method_project</span>
+				directory but is not used by the project. It uses other files which are not in the project
+				directory. When you convert the project <span class="filepath">method_project</span> to UTM project, the
+				file <span class="filepath">Test.cpp</span> will be copied to the UTM project directory. When you build
+				the UTM project, you will get the following compilation error messages.</p><div class="p"><figure class="fignone">
+					
+					<img src="112073.png" alt="Compilation error messages">
+				</figure></div><p>Before the conversion, you need to remove <span class="filepath">Test.cpp</span> from the
+					<span class="filepath">method_project</span> directory.</p></section>
+		<section><h3>Example for manual modification existing in the project hidden
+				files</h3><p>Here a macro <span class="keyword">LENGTH</span> is defined in the project hidden file
+					<span class="filepath">method_project.cpp as
+				below</span>.</p><pre class="prettyprint copyable singleline">#define LENGTH 10</pre><p>This macro is used in the test
+				method source file <span class="filepath">digital_tests.cpp</span>. When you convert the project to UTM,
+				it will be successfully finished. But when you build the UTM project, you will get the error
+				message.</p><div class="p"><figure class="fignone">
+					
+					<img src="112283.png" alt="Compilation error message">
+				</figure></div><p>So you need to add the macro <span class="keyword">LENGTH</span> in the converted UTM source
+				file manually.</p></section>
+		<section><h3>Example for GNUMakefile* is broken</h3><p>In this example, a shared library
+					<span class="filepath">dependencylib</span> is used in the classic test method project. But the
+					<span class="filepath">dependencylib</span> project path was not included in the
+					<span class="filepath">GNUMakefileDBG</span> file by mistake.
+				</p><pre class="msgblock">TMCPPFLAGS = -I$(HP83000_ROOT)/prod_com/include -I$(HP83000_ROOT)/prod_com/include/MAPI 
+             -I -D_TM_USER "-D_TM_CDIR=\"$$(/bin/pwd)\"" -DOS_LINUX -D_TM_DEBUG -MMD</pre><p>When
+				you convert the project, it will be finished with no error message. But when you build the UTM
+				project, you will get the error message as below.</p><div class="p"><figure class="fignone">
+					
+					<img src="112313.png" alt="Compilation error message">
+				</figure></div><p>You need to add the <span class="filepath">dependencylib</span> project path to UTM project <span class="menucascade"><span class="uicontrol">Properties</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">C/C++ Build</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Settings</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Tool settings</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">GCC C++ Compiler</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Directories</span></span>.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Check the converted universal test method project.</p><p>Import the converted
+				universal test method project and build it.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98959.htm" title="You may have used some mature classic test method libraries in your testing. If you want to use these test methods in the universal test method environment, you need to convert them to universal test methods.">How to convert a classic test method project to universal test method project</a></div><div><a href="98960.htm">How to convert a classic testflow to universal-test-method-based testflow</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 111927</span><script type="text/javascript">var ti='111927';var tt='How to convert an incomplete classic test method to a universal test method'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

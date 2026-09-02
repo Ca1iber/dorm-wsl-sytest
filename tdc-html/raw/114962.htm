@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The PRBS_LABEL class is provided to simplify the setup and modification of PRBS-enabled main labels in test methods. Labels containing a PRBS instruction can also be modified via the pattern debug tool."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PRBS_LABEL</title><meta name="keywords" content="pattern vector label"></head><body id="_114962"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114962</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PRBS_LABEL</h1>
+	
+	
+	<div><p>The <code>PRBS_LABEL</code> class is provided to simplify the setup and modification
+		of PRBS-enabled main labels in test methods. Labels containing a PRBS instruction can also be
+		modified via the pattern debug tool.</p>
+		<section class="section"><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/PRBS_LABEL.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Member function</h2></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint copyable singleline">PRBS_LABEL(const std::string &amp; labelname);</pre></section>
+		<section class="section"><h3>Member
+			functions</h3><pre class="prettyprint linenums copyable">PRBS_LABEL&amp; length(INT length);
+PRBS_LABEL&amp; delay(INT delay);
+INT getDelay();
+INT getLength();</pre></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint copyable singleline">PRBS_LABEL(const std::string &amp; labelname);</pre><p>This
+				function creates an object of the PRBS_LABEL with the specified label. If this label does not
+				exist, it will be automatically created.</p></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>length()</h3><pre class="prettyprint copyable singleline">PRBS_LABEL&amp; length(int length);</pre><p>This
+				function sets the length of the PRBS sequence generated. Its unit is tester cycle. It will
+				modify the parameters for the PRBS instruction in the label.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">length</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The length of the label that PRBS sequence generated.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>delay()</h3><pre class="prettyprint copyable singleline">PRBS_LABEL&amp; delay(int delay);</pre><p>This
+				function sets the number of cycles that the PRBS generator or checker needs to wait before
+				starting the actual PRBS sequence. It will modify the length of the <code>BRKV
+				</code> instruction in the label.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">delay</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The number of cycles to wait.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h3>getDelay()</h3><pre class="prettyprint copyable singleline">INT getDelay();</pre><p>This function returns
+				the number of cycles to wait before the PRBS sequence starts.</p></section>
+		<section class="section"><h3>getLength()</h3><pre class="prettyprint copyable singleline">INT getLength();</pre><p>This function returns
+				the length of the PRBS sequence generated.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Configure a PRBS test</h3><p>The following example
+				shows how to configure a PRBS test. In the example, there are two pin groups <code>Tx</code>
+				and <code>Rx</code> defined, containing two pins Tx1, Tx2 and Rx1, Rx2
+			respectively.</p><pre class="prettyprint linenums copyable">//
+// Create a PRBS set
+//
+PRBS_SET prbsSet1("PRBS_7_BER3");
+
+//
+// Configure parameters common for all pins
+//
+prbsSet1.pin("Tx,Rx").polynomial("0000011");
+
+//
+// Configure parameters for individual Rx pins, different seeds for each pin
+//
+prbsSet1.pin("Rx1").seed("1111000");
+prbsSet1.pin("Rx2").seed("0000111");
+
+//
+// Create another set
+//
+PRBS_SET prbsSet2("PRBS_31_BER3");
+
+//
+// Configure
+//
+prbsSet2.pin("Tx,Rx").polynomial("0000000000000000000000000001001");
+prbsSet2.pin("Rx1").seed("1111100000111110000011111000001");
+prbsSet2.pin("Rx2").seed("0010010110111100010100000000011");
+
+//
+// Create and configure the PRBS label
+//
+prbsSet1.label("prbs_label_rx","@").length(125);
+prbsSet2.label("prbs_label_tx","@").length(10000000).delay(125);</pre></div>
+		<div class="example"><h3>Access the PRBS sets</h3><p>The following example shows
+				how to access the PRBS sets defined in the example above. PRBS sets are kept in firmware and
+				their lifetime does not correspond to the lifetime of the PRBS_SET
+			object.</p><pre class="prettyprint linenums copyable">//
+// Access the set defined in test method A
+//
+PRBS_SET mySet("PRBS_7_BER3");
+
+//
+// Modify only the polynomial for pin Rx1
+//
+mySet.pin("Rx1").polynomial("1001001");
+</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114962</span><script type="text/javascript">var ti='114962';var tt='PRBS_LABEL'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

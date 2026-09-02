@@ -1,0 +1,129 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The API returns whether it is called from a SMC background process or not."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SMC_IN_BACKGROUNDPROCESSING()</title><meta name="keywords" content="earthing"></head><body id="_152480"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 152480</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SMC_IN_BACKGROUNDPROCESSING()</h1>
+	
+	
+	<div><p>The API returns whether it is called from a SMC background process or not.</p>
+		<section class="section"><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SMART_CALC2.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">Boolean SMC_IN_BACKGROUNDPROCESSING();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p></div><div class="syntax"><h2>Return value</h2><p>The functions returns <span class="keyword">true</span> if called
+				within a SMC background process.</p></div>
+		
+		<h2>Example</h2><div class="example"><p>In the following example, the protected function <span class="keyword">reusedFunction()</span>
+				is called directly from the <span class="keyword">run()</span> function of a test method and from the
+				public background processing function <span class="keyword">SMC_backgroundProcessing()</span> of the same
+				test method.</p><p>Function <span class="keyword">reusedFunction()</span> shows whether the function is
+				called from a background process or not and utilizes this information to skip calling
+					<span class="keyword">CURRENT_SITE_NUMBER()</span> that cannot be used within a background
+				process.</p><p>Another test suite that runs test method
+					<span class="keyword">smartCalc.SMC__SYNCHRONIZE</span> is to be used to wait for the end of the
+				background
+				process.</p><pre class="prettyprint linenums copyable">protected:
+...
+...
+virtual void run()
+{
+    cout &lt;&lt; "Begin of run() function:" &lt;&lt; endl;
+
+    reusedFunction();
+
+    ON_FIRST_INVOCATION_BEGIN();
+    {
+        FUNCTIONAL_TEST();
+
+        SMC_ARM();
+
+        cout &lt;&lt; "run() function:";
+
+        for (int index = 0; index &lt; 30; index++)
+        {
+            cout &lt;&lt;  " " &lt;&lt; index;
+
+            WAIT_TIME (1.0 ms);
+        }
+
+        cout &lt;&lt; " done" &lt;&lt; endl &lt;&lt; endl;
+    }
+    ON_FIRST_INVOCATION_END();
+
+    return;
+}
+
+virtual void reusedFunction()
+{
+    cout &lt;&lt; "\t\tSMC_IN_BACKGROUNDPROCESSING() returns " &lt;&lt; SMC_IN_BACKGROUNDPROCESSING() &lt;&lt; endl &lt;&lt; flush;
+
+    if (SMC_IN_BACKGROUNDPROCESSING() == false)
+    {
+        cout &lt;&lt; "\t\tCURRENT_SITE_NUMBER() returns " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl &lt;&lt; flush;
+    }
+    else
+    {
+        cout &lt;&lt; "\t\tCURRENT_SITE_NUMBER() is not supported in a background process." &lt;&lt; endl &lt;&lt; flush;
+    }
+
+    cout &lt;&lt; endl &lt;&lt; flush;
+}
+
+public:
+
+void SMC_backgroundProcessing()
+{
+    cout &lt;&lt; endl &lt;&lt; endl &lt;&lt; "\tBegin of background processing: Waiting 10 ms" &lt;&lt; endl &lt;&lt; endl &lt;&lt; flush;
+
+    WAIT_TIME (10.0 ms);
+
+    cout &lt;&lt; endl &lt;&lt; endl &lt;&lt; "\tBackground processing: 1st call of the reused function." &lt;&lt; endl &lt;&lt; endl &lt;&lt; flush;
+
+    reusedFunction();
+
+    WAIT_TIME (50.0 ms);
+
+    cout &lt;&lt; "\tBackground processing: 2nd call of the reused function after 50 ms" &lt;&lt; endl &lt;&lt; endl &lt;&lt; flush;
+
+    reusedFunction();
+
+    WAIT_TIME (20.0 ms);
+
+    cout &lt;&lt; "\tBackground processing finished." &lt;&lt; endl &lt;&lt; endl &lt;&lt; flush;
+}</pre><p>The
+				example above results in an UI report window output that may look as shown
+			below.</p><pre class="msgblock">Begin of run() function:
+		SMC_IN_BACKGROUNDPROCESSING() returns 0
+		CURRENT_SITE_NUMBER() returns 1
+
+run() function: 0 1 2
+
+	Begin of background processing: Waiting 10 ms
+
+ 3 4 5 6 7 8 9 10 11 12
+
+	Background processing: 1st call of the reused function.
+
+		SMC_IN_BACKGROUNDPROCESSING() returns 1
+		CURRENT_SITE_NUMBER() is not supported in a background process.
+
+ 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 done
+
+Begin of run() function:
+		SMC_IN_BACKGROUNDPROCESSING() returns 0
+		CURRENT_SITE_NUMBER() returns 2
+
+Begin of run() function:
+		SMC_IN_BACKGROUNDPROCESSING() returns 0
+		CURRENT_SITE_NUMBER() returns 3
+
+Begin of run() function:
+		SMC_IN_BACKGROUNDPROCESSING() returns 0
+		CURRENT_SITE_NUMBER() returns 4
+
+	Background processing: 2nd call of the reused function after 50 ms
+
+		SMC_IN_BACKGROUNDPROCESSING() returns 1
+		CURRENT_SITE_NUMBER() is not supported in a background process.
+
+	Background processing finished.</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118783.htm" title="Today's system controller with multiple cores allow parallel execution of various tasks. The SmartCalc (SMC) framework allows you utilizing these resources to minimize the test time. The framwork provides the ability to move time consuming calculations and uploads of test data into separate background threads. These &#34;hidden&#34; threads run as far as possible in parallel to the foreground process of SmarTest.">SmartCalc framework</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.4.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 152480</span><script type="text/javascript">var ti='152480';var tt='SMC_IN_BACKGROUNDPROCESSING()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

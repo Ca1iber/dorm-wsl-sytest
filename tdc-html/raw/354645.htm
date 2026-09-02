@@ -1,0 +1,104 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The XPS256 card features a Kelvin test unit that is also known as sense-connection test unit. Kelvin test means that the connection from the force lines to the sense lines on the DUT board or at the DUT pins is verified. The Kelvin test unit is available per channel for the force line (P#) and for the return line (common GND)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>XPS256 programming - Kelvin test / sense connection test</title><meta name="keywords" content="XPS, 256"></head><body id="_354645"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 354645</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">XPS256 programming - Kelvin test / sense connection test</h1>
+	
+	
+	<div><p>The XPS256 card features a Kelvin test unit that is also known as sense-connection test unit. Kelvin test means that the connection
+		from the force lines to the sense lines on the DUT board or at the DUT pins is verified. The Kelvin test unit is available per channel for the
+		force line (P#) and for the return line (common GND).</p>
+		<section class="section">
+			<p>The Kelvin test unit applies a small test current to the tested force to sense (FS) connection and measures the voltage difference
+				between the two lines. The resistance is calculated from the measured voltage difference and the test current, serves as criterion for
+				the pass/fail decision and should be near 0.0 Ω for a good FS connection.</p>
+			<div class="note"><span class="title">Note</span> 
+				<p>The purpose of the Kelvin test unit is to ensure that when the DUT is contacted,
+					the high-impedance sense line is connected to the force line at the DUT with a
+					sufficiently low contact resistance. Due to the high input impedance of the
+					sense lines, the fixed threshold of some kilo-Ohms will be sufficiently low.</p>
+				<p>The Kelvin test unit is the only resource that can perform a reliable sense
+					connection test with a defined test current applied.</p>
+				<p>Since connections and hardware on the DUT board can sabotage the test of the
+					sense connections, we recommend that you check the functionality of the test
+					without DUT and with open sense connections. All tested sense connections must
+					fail in this verification.</p>
+				<p>The purpose of the Kelvin test unit is not to check the low impedance force
+					connections. The force connections are to be checked by the <a href="353409.htm" title="The XPS256 card supports voltage drop measurements that are also known as Kelvin measurements. Voltage drop measurement means that the voltage drop on the two force lines is measured to ensure that these connections to the DUT have a sufficiently low resistance. Voltage drop measurements are supported per channel for the force line (P#) and for the return line (common GND).">XPS256 voltage drop measurement</a> in combination with a high test current forced by the PMU.
+					This force connection test requires that the contact resistance of the sense
+					lines already has been verified.</p>
+				<p>Attention: An inadequate sense line connection does not necessarily mean that a
+					test fails. The input bias current of the line may falsify the measurement and
+					mask another fatal error like a high voltage drop on the force line.</p>
+			</div>
+			<div class="caution"><span class="title">CAUTION</span> The XPS256 PMU forces the test current via one of the tested lines, the FS connection
+				at the DUT, and via the other tested line to ground. One of the lines may temporary be tied to ground or 0 V will be forced.
+				Therefore, the DUT must be powered down before the Kelvin test (or sense connection test) is started in disconnected mode.</div>
+		</section>
+		<section class="section"><h2>Basic data</h2>
+			
+			<div class="p">Basic data of the Kelvin test unit:<ul>
+					<li>The Kelvin test unit is available per channel.</li>
+					<li>The default value of the programmable threshold for the pass/fail decision is about 5 kΩ.</li>
+					<li>The test current is about 100 µA per channel.</li>
+					<li>The maximum capacitance between the force lines and the corresponding sense
+						lines is 5 nF.</li>
+					
+					<li>Two measurements are serially performed for the PS# pin and the GS# pin.</li>
+					<li>The test can be performed only in the disconnected state of the selected
+						pins.</li>
+				</ul></div>
+		</section>
+		<section class="section"><h2>API overview</h2>
+			
+			<div>
+				
+				<p>Two APIs support a parallel go/no-go Kelvin test on all active sites and pins and a detailed Kelvin test on the site in focus. Both
+					APIs perform two measurements for the P# to PS# connection and for the GND to GS# connection.</p>
+				<ul>
+					<li>Function <a href="152227.htm" title="This member function initiates a sense connection test on the defined pins to verify that the force lines and sense lines are connected together on the DUT board or at the DUT pins.">HW_STATE.checkKelvinStatusParallel()</a><p>The function <span class="keyword">checkKelvinStatusParallel()</span> of class <a href="105633.htm" title="This class is used to query the correct hardware status in FW. Currently, it can be used for DPS, PPMU and VI-source.">HW_STATE</a> initiates a sense connection test on the defined pins to verify that the force lines and sense lines are connected
+							together on the DUT board or at the DUT pins. The test is performed in parallel for all active sites. The function returns
+							a go/no-go result for each configured site in a single integer array.</p><ul>
+							<li>The go/no-go result of the function is set to 0 (Kelvin test has failed) if any of the tested pins has returned a
+								failing result for any of the performed measurements.</li>
+							<li>The go/no-go result of the function is set to 1 (Kelvin test has passed) if all tested pins have successfully finished
+								all measurements on all active sites.</li>
+						</ul></li>
+					<li>Function <a href="150082.htm" title="This member function initiates a sense connection test on the defined pins to verify that the force lines and sense lines are connected together on the DUT board or at the DUT pins.">HW_STATE.checkKelvinStatus()</a><p>The function initiates a sense connection test for the site in focus. The function returns
+							individual results for all tested pins in two integer arrays for the P# to PS# connections and for the GND to GS#
+							connections.</p></li>
+				</ul>
+				<p>For ganged pins, the Kelvin test / sense connection test is performed for each individual channel.</p>
+			</div>
+			
+		</section>
+		<section class="section"><h2>Kelvin test unit operating principle</h2>
+			
+			<p>For the operating principle, refer to <a href="351027.htm#_351027__dle_High_sense_test">High sense test</a> and <a href="351027.htm#_351027__dle_Ground_sense_test">Ground sense test</a> in
+					<a href="351027.htm" title="The XPS256 card features a Kelvin test unit that is also known as sense-connection test unit. Kelvin test means that the connection from the force lines to the sense lines on the DUT board or at the DUT pins is verified. The Kelvin test unit is available per channel for the force line (P#) and for the return line (common GND).">XPS256 Kelvin test unit</a>.</p>
+		</section>
+		<section class="section"><h2>Test Method Library overview</h2>
+			
+			<p>The DC test method <a href="121969.htm" title="This test method checks that the DPS force and sense wires are correctly connected to the DUT board. The two two-wire connections are also known as &#34;Kelvin connection&#34;. The performed test is known as &#34;sense connection test&#34; or as &#34;Kelvin test&#34;.">DpsConnectivity</a> of the Test Method Library is provided to control the Kelvin test unit and to read and judge
+				the state of the measurement.</p>
+		</section>
+		<section class="section"><h2>Kelvin test / sense connection test in <span>Hardware view</span></h2>
+			
+			<p>The Kelvin test / sense connection test is supported by the <a href="69687.htm" title="The Hardware view is part of the Hardware Perspective and is associated with the Pin Browser view.">Hardware view</a> for the XPS256 pins in <a href="354249.htm#_354249__s_Hardware_view">DPS operating mode</a> or in <a href="354253.htm#_354253__s_Hardware_view">PMU operating
+				mode</a>.</p>
+			
+		</section>
+		<section class="section"><h2>Application note</h2>
+			
+			<dl>
+				
+					<dt class="dlterm">Kelvin test / sense connection test in a testflow</dt>
+					<dd>A continuity test, which is normally performed at the beginning of a test flow, may use XPS256 channels. The continuity test
+						will show a reliable result only if both the force pins (P# and GND) and the sense pins (PS# and GS#) of the XPS256 channels
+						are connected properly. Therefore, we recommend implementing a Kelvin test / sense connection at the beginning of a testflow
+						before the continuity test is performed.</dd>
+				
+			</dl>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="351027.htm" title="The XPS256 card features a Kelvin test unit that is also known as sense-connection test unit. Kelvin test means that the connection from the force lines to the sense lines on the DUT board or at the DUT pins is verified. The Kelvin test unit is available per channel for the force line (P#) and for the return line (common GND).">XPS256 Kelvin test unit</a></div><div><a href="354657.htm#_354657__s_Checking_the_gang_connections">Checking the gang connections</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 354645</span><script type="text/javascript">var ti='354645';var tt='XPS256 programming - Kelvin test / sense connection test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

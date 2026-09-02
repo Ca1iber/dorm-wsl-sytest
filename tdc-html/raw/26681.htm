@@ -1,0 +1,117 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This procedure allows direct access from a C program to the system hardware at firmware level, but will not automatically handle site focus as test method APIs do."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>HpFwTask</title><meta name="keywords" content="Hp, Fw, Task"></head><body id="_26681"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 26681</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">HpFwTask</h1>
+	
+	
+	<div><p>This procedure allows direct access from a C program to the system hardware at firmware
+		level, but will not automatically handle site focus as test method APIs do.</p>
+		<section class="section"><p>Firmware commands executed via <code>HpFwTask</code> without site focus setup
+				command will not automatically get the system site focus. If you use <code>HpFwTask</code>
+				without a site focus setup command:</p><ul>
+				<li>All setup commands executed via <code>HpFwTask</code> take the default setup focus
+					(usually all sites) and apply setups accordingly</li>
+				<li>All result query commands executed via <code>HpFwTask</code> take the result of default
+					site in focus (the first available site, usually site 1), therefore the result of all sites
+					will be identical.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">VOID HpFwTask(
+    CHAR    *task_str,
+    INT32    *task_len,
+    CHAR    *answ_str,
+    INT32    *answ_len,
+    INT32    *ret_state);</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption><span>Parameters for HpFwTask</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_26681__entry__1"><p>Parameter </p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_26681__entry__2"><p> Value </p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__1"><p>task_str</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__2"><p>Command string with one or more commands, each limited by a newline
+										(<kbd class="userinput">\n</kbd>) or by a semicolon. It is an input parameter.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__1"><p>task_len</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__2"><p>Length of the command string. It is an input parameter.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__1"><p>answ_str</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__2"><p>Answer string. This is an output parameter.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__1"><p>answ_len</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__2"><p>As an input parameter: the dimensioned size of the answer string. As an output
+									parameter: the length of the answer string.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__1"><p>ret_state</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_26681__entry__2"><p>Status (see <a href="16159.htm" title="This appendix gives a listing of the MCD error codes and the associated error messages. Such an error code may be returned in the state integer when you execute a call to HpFwTask, or DataManager.">Appendix A: Listing of Error Messages</a>). This is an output parameter.</p>
+							</td>
+						</tr>
+					</tbody></table><p>In order to optimize data transfer times, the size of the answer string should be
+				determined in relation to the amount of data to be passed.</p><div class="note"><span class="title">Note</span> The SmarTest
+				software allows you to execute firmware commands directly from a terminal. The utility that does
+				this is called <kbd class="userinput">hpt</kbd> and is described in the <a href="103977.htm">Command Reference</a>. To
+				use <kbd class="userinput">hpt</kbd> the SmarTest software environment must be
+			running.</div></div>
+		
+		<h2>Example</h2><div class="example"><p>The following listing shows an example of how to build the command string for
+					<kbd class="userinput">HpFwTask</kbd> and how to retrieve results from the answer
+			string.</p><pre class="prettyprint linenums copyable">#define FW_TASK_BUF_LEN   1000
+#define FW_ANSW_BUF_LEN   1000
+
+ CHAR     TaskBuffer[FW_TASK_BUF_LEN + 1];
+ CHAR     *Task;
+ INT32    TaskLength;
+ CHAR     AnswerBuffer[FW_ANSW_BUF_LEN + 1];
+ INT32    AnswerLength;
+ INT32    ReturnState;
+ double   MeasurementValue;
+
+   /* create and execute the fw-string for */
+   /* pmu setup and measurement            */
+   Task  = TaskBuffer;
+   Task += sprintf(Task,"DFCM %d,%f,%f,%f,%f,%f,%f,%s,(%s);",1,  /* DC set number */
+           800.0,        /* force voltage [mA] */
+           200000.0,     /* clamp current in [uA] */
+           0, 200000.0,  /* PASS/ FAIL treshold */ 
+           800.0,        /* precharge voltage */
+           1.0,          /* setling time in [ms] */
+           "NTERM",      /* termination mode */
+           "CP");        /* pin to measure */
+    Task += sprintf(Task, "PTST? %d,%s,%s\n",
+           1,      /* DC set number */
+           "NONE", /* pre action: NO */
+           "CVAL"); /* mode: value with Rs comp. */
+
+  TaskLength   = Task - TaskBuffer;
+  AnswerLength = FW_ANSW_BUF_LEN;
+  HpFwTask(TaskBuffer, &amp;TaskLength, AnswerBuffer, &amp;AnswerLength, &amp;ReturnState);
+  AnswerBuffer[AnswerLength] = EOS;  /* truncation of AnswerBuffer string */
+
+   if(ReturnState==0) {
+    /* extract the pmu valid code and the measured current */
+    /* example answer: PTST 1,3,9697.204,(CP) */
+    /* PTST returns the measured current in 'uA' */
+     sscanf(AnswerBuffer, "PTST 1,%d,%lf,", &amp;ValidCode,
+     &amp;MeasurementValue);
+
+    /* the measured value is now accessible in    */
+    /* 'MeasurementValue' for further processing */
+    } else {
+      /**** HpFwTask ERROR ****/
+   }</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 26681</span><script type="text/javascript">var ti='26681';var tt='HpFwTask'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

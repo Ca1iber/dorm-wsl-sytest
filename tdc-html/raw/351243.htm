@@ -1,0 +1,68 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To get the best performance from MUX cards, follow the recommendations for designing the DUT board and setting up the test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>MUX cards layout recommendations</title><meta name="keywords" content="board"></head><body id="_351243"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351243</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">MUX cards layout recommendations</h1>
+	
+	
+	<div><p>To get the best performance from MUX cards, follow the recommendations for designing
+		the DUT board and setting up the test.</p>
+		<section class="section" id="_351243__Minimizing_the_capacitive_coupling"><h2>Minimizing the effect of capacitive coupling</h2>
+			
+			<p>The PMU01 card utilizes only solid-state switches. In open state, these switches are
+				naturally afflicted by parasitic capacitances between the input and output. For more
+				information, refer to the "Coupling capacity (IN-OUT)" values of the <!--a href="smartest<146409.htm"-->PMUX01
+				specification<!--/a-->.</p>
+			<p>The parasitic capacitances could be to blame for the fact that signals with high frequency
+				components (like a voltage step) are partially transmitted via an open switch.
+				Although the energy transferred via the parasitic capacitances is very low and
+				normally available ESD protection diodes of the DUT pins can handle much more
+				energy, it may affect your test or, in some cases, exceed the limits of a connected
+				DUT pin.</p>
+			<div class="p">Capacitive coupling can occur in two cases:<ol>
+					<li id="_351243__li_case_1_one_closed">A signal with a high voltage slew-rate is routed
+						from the multiplexer input to one of the outputs or vice versa. The other
+						outputs are open. High impedance resources or DUT pins at the open outputs
+						can "see" capacitive coupled edges of the closed connection.</li>
+					<li id="_351243__li_case_2_all_open">All switches are open and the input is connected to
+						a high impedance resource or DUT pin. The edges of a signal with a high
+						voltage slew-rate at one of the outputs can be "seen" at the input and at
+						the other open outputs.</li>
+			</ol></div>
+			<p>The following graphics is an example for case 1: A voltage step is applied to the
+				first DUT pin via the closed <span class="keyword">F##OUT1</span> switch of a PMUX01
+				multiplexer. The other three outputs of the multiplexer are open. Capacitive
+				coupling via the parasitic capacitance of the open switched has an effect on the
+				second and third DUT pin that are in a high-impedance state.</p>
+			<figure class="fignone">
+				<img src="351269.png" alt="PMUX01 capacitive coupling">
+			</figure>
+			<div class="p">There are several ways to minimize the effect of the capacitive coupling:<ul>
+					<li>Design your DUT board so that low-voltage and high-voltage DUT pins are not connected to
+						the same multiplexer:<p>Mixing up different pin types may intensify the
+							consequences of the capacitive coupling.</p></li>
+					<li>Minimize the voltage slew rate of the signal:<p>The slower the voltage
+							changes, the smaller the capacitively coupled signal. Cards like <!--a href="smartest<150864.htm"-->DC Scale AVI64
+								card<!--/a--> or the <!--a href="smartest<152680.htm"-->DC Scale FVI16 card<!--/a--> feature a programmable
+							slew-rate that may be reduced to minimize the capacitive coupling
+							through open solid-state switches.</p></li>
+					<li>Keep inactive outputs at low impedance:<p>If the DUT supports this, keep
+							inactive DUT pins at a low impedance as shown for the fourth DUT pin in
+							the graphics above.</p></li>
+					<li>Keep inactive inputs at low impedance:<p>The parasitic capacitances have also an effect if
+							all switches are open and the input is set to a high impedance state
+							(see case <a href="351243.htm#_351243__li_case_2_all_open">2.</a> above). A
+							high speed signal, applied to one of the open outputs may partially be
+							transferred to the other three open outputs if the input is connected to
+							a high-impedance resource or DUT pin. Keep the input of an unused
+							multiplexer always in a low impedance state: Use the multiplexed
+							resource to apply 0.0 V if all switches are open.</p></li>
+					<li>Add capacitors to the output lines of the multiplexer:<p>Small capacitors connected from
+							the output pins to the DUT ground will minimize the effect of the
+							capacitive coupling on high impedance DUT pins. As shown for the third
+							DUT pin in the graphics above, a 10 nF capacitor connected between a
+							multiplexer output and ground will significantly reduce the capacitive
+							coupling through an open multiplexer switch.</p></li>
+				</ul></div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.4 / 8.3.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351243</span><script type="text/javascript">var ti='351243';var tt='MUX cards layout recommendations'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

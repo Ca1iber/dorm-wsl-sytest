@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multisite handling with test flow branching</title><meta name="keywords" content="multi-site"></head><body id="_343852"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343852</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multisite handling with test flow branching</h1>
+	
+	<div>
+		<section class="section"><p>Alex Roskin, COE Europe, Advantest</p><p>Paper-ID: 343852</p>
+			<p>Sometimes it is required to exclude some sites from running a digital pattern for example, during
+				branching in a Testflow).</p><p>Generally, if there are branches within a testflow,
+				the following rules apply to SmarTest <strong>prior to SmarTest 8</strong>:</p><ul>
+				<li>In pass/fail branches, failing branches are taken before passing branches.</li>
+				<li>In if/then branches, FALSE statements are taken before TRUE statements.</li>
+			</ul><p><strong>Waiting sites (also referred to as inactive sites)</strong> receive the <strong>same data</strong> as the
+				sites currently tested. This may <strong>change</strong> their initial status. If following tests require
+				certain conditions, the sites may need to be re-initialized.</p><p>All sites, waiting (inactive) and currently tested (active), are enabled sites and by default
+				receive the same setup command and <strong>execute the same sequencer program</strong>. The
+				only difference between those is, that the waiting sites are in a connected and
+					<strong>masked</strong> state (enabled, but not active, see also <a href="42577.htm" title="The connected and masked state applies if certain sites must be tested one after the other or while a branch must wait for another branch to finish.">connected and masked</a>).
+				A site of this state receives the <strong>same vectors as all other sites</strong>. The
+				results, however, are ignored (receivers are masked).</p><p>An example is represented in the figure below (see also <a href="42691.htm" title="Take, for example, the scenario represented in the figure below.">Sequencer Start Labels on Failing Branches</a>).</p>
+			<p><img src="343853.png" alt="Example for multisite handling with test flow branching"></p>
+			<p>Testsuite 1 attempts to put devices in state 1 by clocking up a counter, ready for testsuite
+				3. Devices which fail are tested again - perhaps using another method - to try and get them into
+				state 1. Devices which fail this testsuite are binned accordingly.</p><p>However, if testsuites
+				1 and 2 comprise tests that include a SQST label (a functional test, for example), all
+				sequencers are started (because it is a global label). So, while the sites that failed testsuite
+				1 are being tested again in testsuite 2, all sites that passed testsuite 1 are receiving drive
+				vectors, although their receive pins are masked. This process then knocks all sites that passed
+				testsuite 1 out of the desired state.</p><p>Below are examples of APIs that set up the same
+				condition for all enabled sites:</p><ul>
+				<li><code>CONNECT()</code></li>
+				<li><code>DISCONNECT()</code></li>
+				<li><code>Analog.primary(set)</code></li>
+				<li><code>Analog.CLOCK_DOMAIN(num).setup_function()</code></li>
+				<li><code>Primary.setup_function(),</code>&nbsp;except&nbsp;label&nbsp;per&nbsp;site&nbsp;functions</li>
+				<li><code>Routing.Pin(pin).setup_function()</code></li>
+			</ul><p>Also, following are examples of APIs that execute tests on all enabled sites:</p><ul>
+				<li><code>EXECUTE_TEST()</code></li>
+				<li><code>START_TEST()/WAIT_TEST_DONE()</code></li>
+				<li><code>DIGITAL_CAPTURE_TEST()</code></li>
+				<li><code>FUNCTIONAL_TEST()</code></li>
+				<li><code>SPEC_SEARCH(specName,&nbsp;specType).execute()</code></li>
+				<li><code>Sequencer.function()</code></li>
+			</ul><p>For example, using a combination of a <code>CONNECT</code>() followed by a
+					<code>FUNCTIONAL_TEST</code>() would lead to executing the same sequencer program with a
+				same patterns on all enabled sites, no matter whether they are in a currently active or a
+				waiting branch (meaning, their receivers are masked or not).</p><div class="p">There are techniques that can be applied to ensure that a waiting site is not disturbed by a
+				sequencer program and patterns running on the active sites.<ol>
+					<li>One approach to ensure that a waiting site sees a different stimulus than an active is to
+						use <strong>label per site</strong> functionality of SmarTest. The implementation
+						details of this feature are covered in <a href="119760.htm" title="When you do multisite testing you may need to execute different patterns on different sites. Examples may be:">How to execute separate patterns per site (Label per site)</a>. With that
+						approach, a 'dummy' label is usually assigned to and executed on the waiting
+						site, while active sites are executing a different label.</li>
+					<li>Another approach is to open the AC relays on the sensitive pins of the waiting sites. A
+						simple
+								example:<p><code>BEGIN_EXTENSION(sensitive_sites);</code></p><p><code>FW_TASK("RLYC
+								IDLE,OFF,(sensitive_pins)\n");
+								</code></p><p><code>END_EXTENSION();</code></p><p>By doing
+							this, protected 'sensitive_pins' of selected 'sensitive_sites' will not
+							see any stimulus from the tester, even though the sequencer program is
+							executed.</p><p>You would need to reconnect sensitive pins again after
+							corresponding sites become active again, by explicitly closing the AC
+							relay (for instance -again- with a <a href="28740.htm" title="This API declares the beginning of the block where you can access the system hardware or MCD at the firmware level.">BEGIN_EXTENSION</a> block
+							definition).</p></li>
+					<li>Another solution, if you do not need to keep a waiting site in a certain state but need to
+						make sure it is not executing the sequencer program of the active site, is to power down the
+						inactive site by programming digital drive levels and power supply of the waiting site to 0V.
+						You can also keep the site powered and just reprogram the digital drive levels to 0V for example, by
+						programming vih=vil=0V).</li>
+				</ol></div>
+			<div class="note"><span class="title">Note</span> This Application paper <strong>only applies to SmarTest versions prior to SmarTest
+					8</strong>. Handling of Branching on SmarTest 8 is implemented differently than on all previous
+				SmarTest releases.</div></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343852</span><script type="text/javascript">var ti='343852';var tt='Multisite handling with test flow branching'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The x-mode control file consists of one or more blocks each of which defines the state character sequences that are admitted for a certain sequence of ASCII device cycles, for all pins. Such a block has the following general format:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The Structure of the X-Mode Control File</title></head><body id="_37496"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37496</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The Structure of the X-Mode Control File</h1>
+	
+	
+	<div><p>The x-mode control file consists of one or more blocks each of which defines the state
+		character sequences that are admitted for a certain sequence of ASCII device cycles, for all pins.
+		Such a block has the following general format:</p>
+		<div></div><pre class="prettyprint linenums copyable">DDC &lt;<em>ASCII_dvc_1</em>&gt; &lt;<em>ASCII_dvc_2</em>&gt; ... &lt;<em>ASCII_dvc_n</em>&gt;
+PINS &lt;<em>list_of_pins_or_pin_groups_1</em>&gt;
+   [&lt;<em>ch_1_1</em>&gt; &lt;<em>ch_2_1</em>&gt; ... &lt;<em>ch_n_1</em>&gt; [-&gt; &lt;<em>mch_1_1</em>&gt; &lt;<em>mch_2_1</em>&gt; ... &lt;<em>mch_n_1</em>&gt;]
+    &lt;<em>ch_1_2</em>&gt; &lt;<em>ch_2_2</em>&gt; ... &lt;<em>ch_n_2</em>&gt; [-&gt; &lt;<em>mch_1_2</em>&gt; &lt;<em>mch_2_2</em>&gt; ... &lt;<em>mch_n_2</em>&gt;]
+    ...
+    &lt;<em>ch_1_m</em>&gt; &lt;<em>ch_2_m</em>&gt; ... &lt;<em>ch_n_m</em>&gt; [-&gt; &lt;<em>mch_1_m</em>&gt; &lt;<em>mch_2_m</em>&gt; ... &lt;<em>mch_n_m&gt;</em>]]
+...
+PINS &lt;<em>list_of_pins_or_pin_groups_k</em>&gt;
+...</pre><div></div>
+		<p>The function of the individual lines is as follows:</p>
+		<ul>
+			<li><kbd class="userinput">DDC &lt;</kbd><em>ASCII_dvc_i</em><kbd class="userinput">&gt;</kbd> (mandatory):
+				This line defines the length of the sequence and, for each position, the ASCII device cycle to
+				which the character belongs. In general, the allowed lengths are 1 through 10 (1 through 8 for
+				fast pins). In two cases higher numbers are allowed:<ul>
+					<li>12 and 16 can be used for NP3G-XS (see <a href="49164.htm" title="In NP applications with fast differential output pins, you can select whether the retiming clock of the test system or the DUT clock (source synchronous mode) is to be used for the decomposition of the differential output signal. This is done by adding the">Defining the Clock for Fast Differential Receive Pins: ssb on/off</a>).</li>
+					<li>In connection with HXA multiplexing, numbers up to 32 (8 * 4, where 8 is the maximum x-mode
+						for fast pins and 4 is the maximum multiplexing factor) are allowed. See <a href="89949.htm" title="The pin multiplexing file can also be used to map HXA pins to Pin Scale pins. In this case the statements must have the following form:">Mapping HXA Pins To Pin Scale Pins</a> and <a href="86691.htm" title="In contrast to normal multiplexing, the (muxio) qualifier cannot be used for the vector translation of HXA multiplexing. Rather, you must pass the multiplexing file to v2b with the -K option. The pins in the ASCII vector file must be the HXA pins. Accordingly, the phase reference pins must be omitted.">Vector Translation for HXA Multiplexing</a> for details on HXA mapping.<p>The device cycles must be defined
+							in the ASCII timing file. The same device cycle name can occur more than once; in fact, the
+							most common case will be that the sequence is "homogeneous", that is, that the same device
+							cycle name is specified for every <kbd class="userinput">&lt;ASCII_dvc_i&gt;</kbd>.</p>
+						<p>For homogeneous sequences, a block will be applied to a pattern if the ASCII device cycle
+							is associated with the pattern, and the length of the sequence equals its x-mode factor. If
+							the state characters belong to more than one ASCII device cycle, the application rules are
+							more complex. For details see <a href="37501.htm" title="Suppose that an x-mode factor &gt; 1 is specified for a pattern that is associated with more than one ASCII device cycle. In this case the default behavior of the timing translation is to create waveforms only for state character sequences belonging to the same ASCII device cycle. This has the consequence that a pattern with an x-mode factor of 2 is not translatable if its ASCII vector file looks as follows:">Creating Sequences from Several ASCII Device Cycles</a> .</p></li>
+				</ul></li>
+			<li><kbd class="userinput">PINS
+					&lt;</kbd><em>list_of_pins_or_pin_groups_i</em><kbd class="userinput">&gt;</kbd> (mandatory):
+				This line defines the pins for which the admitted sequences are to be specified. Note that all
+				pins must occur in the block.<p>You can add the <kbd class="userinput">@diff</kbd> qualifier to the
+					positive pin of a pair of differential fast pins. If you do, you must not create a block for
+					the negative pin. You can use the qualifier for a pair of differential pins in the x-mode
+					control file only if you use it also in the ASCII timing file for this same pair. Note that the
+					timing translation accepts this qualifier only if it is called with <kbd class="userinput">-z
+						PS3600</kbd>.</p></li>
+			<li><kbd class="userinput">&lt;</kbd><em>ch_i_k</em><kbd class="userinput">&gt;[ -&gt;
+					&lt;</kbd><em>mch_j_k</em><kbd class="userinput">&gt;]</kbd> (optional): Each of these lines
+				specifies either one sequence of state characters, or two such sequences which are connected by
+				the mapping operator <kbd class="userinput">-&gt;</kbd>. In the first case, the specified sequence
+				will occur in the timing map file, and a waveform will be generated from it. In the second case,
+				the sequence to the left of <kbd class="userinput">-&gt;</kbd> will occur in the timing map file (that
+				is, it is supposed to occur in the ASCII vector file), but no waveform will be generated from
+				it. Rather, it will be mapped in the timing map file to the index of the waveform that was
+				generated from the sequence to the right of <kbd class="userinput">-&gt;</kbd>. For more details on
+				the mapping operator see <a href="37498.htm" title="You can use the mapping operator (-&gt;) to associate a state character sequence (the source sequence, which stands to the left of the mapping operator) with a waveform that was created from another state character sequence (the target sequence, which stands to the right of the mapping operator). For example, the block">The Mapping Operator ‘-&gt;'</a>.<p>If no state
+					character sequence line is specified, then waveforms will be created for all possible state
+					sequences of all pins specified in the respective <kbd class="userinput">PINS</kbd> statement.</p>
+				<p>For <kbd class="userinput">&lt;</kbd><em>ch_i_k</em><kbd class="userinput">&gt;</kbd>, the following values
+					are admitted :</p><ul>
+					<li>a single state character (for example, <kbd class="userinput">0</kbd> or
+						<kbd class="userinput">H</kbd>),</li>
+					<li>a list of state characters enclosed by brackets (for example,
+						<kbd class="userinput">[01]</kbd>),</li>
+					<li>the wildcard character <strong>*</strong>,</li>
+					<li>a reference to another column of the same sequence, denoted by a backslash (‘\') and a
+						column number (for example, <kbd class="userinput">\2</kbd>). <p>If the sequence contains a state
+							character list or the wildcard character, then it is generic and represents a collection of
+							concrete sequences. See <a href="37497.htm" title="Instead of a single state character, you can also specify a state character list, the wildcard character *, or a reference. The purpose of these notational devices is to reduce the coding effort for the x-mode control file.">State Character Lists and References</a> for details. </p>
+						<p>For <kbd class="userinput">&lt;mch_j_k&gt;</kbd>, the following values are admitted :</p></li>
+					<li>a single state character,</li>
+					<li>a reference to a column of the sequence <em>before</em> the mapping operator, denoted by a
+						dollar sign (<kbd class="userinput">$</kbd>) and a column number (for example,
+							<kbd class="userinput">$2</kbd>). <p>For a detailed explanation of these options see <a href="37498.htm" title="You can use the mapping operator (-&gt;) to associate a state character sequence (the source sequence, which stands to the left of the mapping operator) with a waveform that was created from another state character sequence (the target sequence, which stands to the right of the mapping operator). For example, the block">The Mapping Operator ‘-&gt;'</a>.</p></li>
+				</ul></li>
+		</ul>
+		<p>The following example shows a block where three state character sequences are admitted for the
+			pin group <kbd class="userinput">input</kbd>, and all sequences are admitted for the pin
+				group <kbd class="userinput">output</kbd>:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46119.png" alt="An X-Mode Control File Block">
+			</figure></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37496</span><script type="text/javascript">var ti='37496';var tt='The Structure of the X-Mode Control File'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

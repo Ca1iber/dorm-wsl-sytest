@@ -1,0 +1,215 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to convert a classic testflow to universal-test-method-based testflow</title><meta name="keywords" content="test flow testmethod UTM"></head><body id="_98960"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98960</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to convert a classic testflow to universal-test-method-based testflow</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="118306.htm" title="There are several AC test functions which have no equivalent predefined test method libraries. But you can convert these test functions to the test method libraries by modifying the device setup files and adjusting the parameters of test method libraries.">AC test function conversion</a></li></ol></div></nav>
+	
+	
+	<div><p></p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>The conversion tool is available with SmarTest 6.3 or later. Make sure that </p><ul>
+				<li>the original testflow is valid.</li>
+				<li>the classic test methods used in the testflow are registered correctly.</li>
+			</ul></section>
+		<section class="sectiontitlefake"><h2>Procedure</h2><ol>
+				<li>Change to the device testflow directory.</li>
+				<li>In the command line, type the following
+							command:<p><kbd class="userinput">/opt/hp93000/soc/testmethod/bin/convertTestflow [-t type]
+						</kbd></p>
+					<p><kbd class="userinput">[-f rename_configure_ file1[...][,fileN]]</kbd></p>
+					<p>&lt;classic_testflow_file&gt; </p>
+					<p><kbd class="userinput">&lt;new_testflow_file&gt;</kbd></p>
+					<p><kbd class="userinput">[log_file]</kbd></p>
+					<p><kbd class="userinput">[-t type]</kbd>: (optional) The conversion type. It can be
+							<kbd class="userinput">TM</kbd> for only converting classic-test-method-based test suites and
+							<kbd class="userinput">FULL</kbd> for converting both test-function-based test suites and
+						classic-test-method-based test suites. Default value is <kbd class="userinput">FULL</kbd>.</p>
+					<p><kbd class="userinput">[-f rename_configuration_ file1[,...][,fileN]]</kbd>: (optional) Input
+						configuration files for re-mapping of classic test methods in a classic testflow to universal
+						test methods in a new testflow. This parameter is only effective for the conversion of
+						classic-test-method-based test suites. The re-mapping includes test method project name, test
+						method name and test method parameters. This re-mapping is necessary if you want to define new
+						names which are different from the default testflow conversion naming. For example:</p><ul>
+						<li>the universal test method project name is different from the classic test method project
+							name;</li>
+						<li>or the universal test method name is different from the combination of the classic test
+							method class name plus '_' and the classic test method name;</li>
+						<li>or the parameters of a universal test method are different from the parameters of a
+							classic test method.<p>The syntax rule <code>if_match</code> is provided to convert the
+								classic test methods that match the specified conditions to universal test method. The
+								syntax rule <code>if_not_match</code> is provided to convert the classic test methods
+								that do not match the specified conditions to universal test method.</p>
+							<p>To create a renaming configuration file, refer to the template file
+									<span class="filepath">/opt/hp93000/soc/testmethod/include/testflow_conversion_config.template.</span></p>
+							<p><kbd class="userinput">&lt;classic_testflow_file&gt;</kbd>: file name of classic testflow.</p>
+							<p><kbd class="userinput">&lt;new_testflow_file&gt;</kbd>: file name of new format testflow</p>
+							<p><kbd class="userinput">[log file]</kbd>: (optional) The file to log the information of the test
+								functions which have no equivalent test methods in the libraries. If not specified, the
+								default file <span class="filepath">/tmp/convertTestflow.unconverted_tf_log_file</span> will be
+								used.</p>
+							<div class="note"><span class="title">Note</span> Make sure that the mapping relation is unique in all the configuration
+								files and that the mapping information exists in the test method project.</div>
+						</li>
+					</ul></li>
+				<li>(optional) Manually convert the test functions which have no equivalent test methods in the
+					libraries according to the log file.</li>
+				<li>(optional) If you linked some other libraries in your classic test method, you need to
+					manually link these libraries in the converted universal test method. About how to link the
+					libraries in UTM, see <a href="100438.htm" title="This topic shows how to use your C/C++ functions from external libraries in the test method programming.">Using C/C++ functions from external libraries in universal test methods</a>.</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>If the conversion is completed successfully, you will get a converted testflow file as
+				specified. The test method part in the new testflow file includes three parts:
+					<code>testmethodparameters</code>, <code>testmethodlimits</code> and
+					<code>testmethods</code>.</p><p>In the following cases, an information message will be sent
+				out:</p><ul>
+				<li>The classic test method is not used by any test suite, and it is removed from the new
+					testflow file.</li>
+				<li>For the conversion of test-function-based test suites, if there is no equivalent predefined
+					test method, the test function will be mapped to the most proper test method in the new
+					testflow. The warning message will be issued telling that the test function is mapped to a test
+					method and asking you to do manual conversion.</li>
+			</ul><p>If the classic testflow is invalid, the re-mapping configuration file is incorrect, or
+				the new testflow path is invalid, the conversion will stop with errors.</p></section>
+		<h2>Examples</h2><section><h3>Classic-test-method-based test suite conversion</h3><p>In the following
+				example, the classic testflow <span class="filepath">/home/demo/devices/74HC299/testflow/myFlow</span>
+				using the classic test method project
+					<span class="filepath">/home/demo/devices/74HC299/TestMethod/MyTMLib</span> is converted to a
+				universal-test-method-based testflow.</p><p>Enter the following command in the command
+					line:</p><p><kbd class="userinput">cd
+					/home/demo/devices/74HC299/testflow/</kbd></p><p><kbd class="userinput">/opt/hp93000/soc/testmethod/bin/convertTestflow -t -TM myflow
+				myflow.utm</kbd></p><p>The test method part in the classic testflow and the
+				universal-test-method-based testflow are listed below.</p><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_98960__entry__1"><p> In classic testflow</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_98960__entry__2"><p>In universal-test-method-based testflow</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_98960__entry__1"><p><code>testmethods</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>testmethod_class = "MyTMLib.ClassDcTest";</code></p>
+								<p><code>testmethod_name = "myMethod(STRING, )";</code></p>
+								<p><code>testmethod_parameters = "@:";</code></p>
+								<p><code>testmethod_limits = ":test_number:DEFAULT FUNCTIONAL
+										TEST;80;2:passCurrentLow;10;1;[;10;]40:passCurrentHigh;20;1;[;30 uA;]50
+										uA:extraLimit;200;2;[;5;];100:";</code></p>
+								<p><code>end</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_98960__entry__2"><p><code>testmethodparameters</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>"pinlist" = "@";</code></p>
+								<p><code>end</code></p>
+								<p><code>----------------------------------</code></p>
+								<p><code>testmethodlimits</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>"DEFAULT FUNCTIONAL TEST " = "":"":"":"":"80":"2";</code></p>
+								<p><code>"passCurrentLow" = "10":"GE":"40":"LE":"": "10":"1";</code></p>
+								<p><code>"passCurrentHigh" = "30":"GT":"50:"LE":"uA":"20":"1";</code></p>
+								<p><code>"extraLimit" = "5":"NA":"100":"LE":"":"200":"2" ;</code></p>
+								<p><code>end</code></p>
+								<p><code>----------------------------------</code></p>
+								<p><code>testmethods</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>testmethod_class = "MyTMLib.ClassDcTest.myMethod";</code></p>
+								<p><code>end</code></p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section><h3>Test-function-based test suite conversion</h3><p>In the following example, the
+				classic testflow <span class="filepath">/home/demo/devices/74HC299/testflow/myFlow_tf</span> using the
+				test function <kbd class="userinput">leakage</kbd> is converted to a universal-test-method-based
+				testflow.</p><p>Enter the following command in the command line.</p><p><kbd class="userinput">cd
+					/home/demo/devices/74HC299/testflow/</kbd></p><p><kbd class="userinput">/opt/hp93000/soc/testmethod/bin/convertTestflow
+					myflow_tf myflow_tf.utm</kbd></p><p>The test-function-based test suite in classic
+				testflow and the universal-test-method-based test suite in new testflow are listed
+				below.</p><table class="frame-none"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_98960__entry__5"><p> In classic testflow</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_98960__entry__6"><p>In universal-test-method-based testflow</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_98960__entry__5"><p><code>testfunctions</code></p>
+								<p><code>tf_1:</code></p>
+								<p><code>testfunction_description= "leakage_0";</code></p>
+								<p><code>testfunction_parameters =
+										"leakage;ALL_DIGITAL;V;0.0;3.3;;;;uA;-10;-10;uA;10;10;ms;1; 1;0;Vleak ($P)
+										;00;;;;;;;0;";</code></p>
+								<p><code>end</code></p>
+								<p><code>----------------------------------</code></p>
+								<p><code>testsuite</code></p>
+								<p><code>leakage:</code></p>
+								<p><code>override = 1;</code></p>
+								<p><code>override_tim_equ_set = 38;</code></p>
+								<p><code>override_lev_equ_set = 5;</code></p>
+								<p><code>override_tim_spec_set = 1;</code></p>
+								<p><code>override_lev_spec_set = 5;</code></p>
+								<p><code>override_timset = 1;</code></p>
+								<p><code>override_levset = 1;</code></p>
+								<p><code>override_seqlbl = "ALL_X";</code></p>
+								<p><code>override_test_number = 0;</code></p>
+								<p><code>override_testf = tf_1;</code></p>
+								<p><code>site_control = "parallel:";</code></p>
+								<p><code>local_flags = per_pin_on_fail, per_pin_on_pass, value_on_fail, value_on_pass,
+										output_on_fail, output_on_pass;</code></p>
+								<p><code>end</code></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_98960__entry__6"><p><code>testmethodparameters</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>"pinlist" = "ALL_DIGITAL";</code></p>
+								<p><code>"forceVoltageLow" = "0.0[V]";</code></p>
+								<p><code>"forceVoltageLow" = "3.3[V]";</code></p>
+								<p><code>"spmuClampCurrentLow" = "0";</code></p>
+								<p><code>"spmuClampCurrentHigh" = "0";</code></p>
+								<p><code>"ppmuPrecharg" = "OFF";</code></p>
+								<p><code>"ppchargeVoltageLow" = "0";</code></p>
+								<p><code>"ppchargeVoltageHigh" = "0";</code></p>
+								<p><code>"settlingTimeLow" = "1[ms]";</code></p>
+								<p><code>"settlingTimeHigh" = "1[ms]";</code></p>
+								<p><code>"stopCycVecLow" = "0";</code></p>
+								<p><code>"stopCycVecHigh" = "0";</code></p>
+								<p><code>"measure" = "BOTH";</code></p>
+								<p><code>"measureMode" = "PPMPar";</code></p>
+								<p><code>"releaySwitchMode" = "BBM";</code></p>
+								<p><code>"preFunction" = "NO";</code></p>
+								<p><code>"output" = "None";</code></p>
+								<p><code>end</code></p>
+								<p><code>----------------------------------</code></p>
+								<p><code>testmethodlimits</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>"passCurrentLow" = "-10":"GE":"10":"LE" :"uA" :"":"";</code></p>
+								<p><code>"passCurrentHigh" = "-10":"GE":"10:"LE" :"uA" :"" :"" ;</code></p>
+								<p><code>end</code></p>
+								<p><code>----------------------------------</code></p>
+								<p><code>testmethods</code></p>
+								<p><code>tm_1:</code></p>
+								<p><code>testmethod_class = "dc_tml.DcTest.Leakage";</code></p>
+								<p><code>end</code></p>
+								<p><code>----------------------------------</code></p>
+								<p><code>testsuite</code></p>
+								<p><code>leakage:</code></p>
+								<p><code>override = 1;</code></p>
+								<p><code>override_tim_equ_set = 38;</code></p>
+								<p><code>override_lev_equ_set = 5;</code></p>
+								<p><code>override_tim_spec_set = 1;</code></p>
+								<p><code>override_lev_spec_set = 5;</code></p>
+								<p><code>override_timset = 1;</code></p>
+								<p><code>override_levset = 1;</code></p>
+								<p><code>override_seqlbl = "ALL_X";</code></p>
+								<p><code>override_test_number = 0;</code></p>
+								<p><code>override_testf = tm_1;</code></p>
+								<p><code>site_control = "parallel:";</code></p>
+								<p><code>local_flags = per_pin_on_fail, per_pin_on_pass, value_on_fail, value_on_pass,
+										output_on_fail, output_on_pass;</code></p>
+								<p><code>end</code></p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98959.htm" title="You may have used some mature classic test method libraries in your testing. If you want to use these test methods in the universal test method environment, you need to convert them to universal test methods.">How to convert a classic test method project to universal test method project</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: Test-function-based test suite can now be conerted to UTM-based test
+					suite.</li><li>SmarTest 6.5.3:  New syntax rule if_match and if_not_match of the renaming configuration
+					file.</li><li>SmarTest 6.5.4:  New option [log file] to log the unconverted test function
+					information.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98960</span><script type="text/javascript">var ti='98960';var tt='How to convert a classic testflow to universal-test-method-based testflow'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

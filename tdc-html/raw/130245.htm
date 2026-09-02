@@ -1,0 +1,93 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Defining MTL arrays (either global arrays or non-global arrays) includes defining the array sizes and providing initial values for all array elements. They are defined in the APG program file (*.prog) with C-like syntax."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Defining MTL arrays</title><meta name="keywords" content="ALPAD ALPADC"></head><body id="_130245"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 130245</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Defining MTL arrays</h1>
+	
+	
+	<div><p>Defining MTL arrays (either global arrays or non-global arrays) includes defining the
+		array sizes and providing initial values for all array elements. They are defined in the <a href="67572.htm" title="The APG program file contains the actual code from which the test pattern is compiled. It may also contain reusable maintenance operations.">APG program file (*.prog)</a> with C-like syntax.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div>
+			<p>The MTL array can be initialized with values of one of the following data
+				types: integer, string, and Boolean. After the initialization, the array possesses the same data
+				type as the initial values.</p><p>The procedures for defining
+				global arrays and non-global arrays are the same.</p><p>Example 2, below, shows how to
+				initialize an array using loops. Arrays with fewer or more dimensions can be initialized in a
+				similar way by using fewer or more nested loops.</p><p>You must define an MTL array (either a
+				global array or a non-global array) before you use it to create patterns or for other
+				purposes.</p></section>
+		<section class="sectiontitlefake"><h2>Procedure</h2><ol>
+				<li>Specify dimension size when declaring arrays.<p>Note that when defining global arrays, you
+						must declare them out of the <span class="keyword">main()</span> function and subroutines.</p></li>
+				<li>Initialize all elements with either integers, or strings, or Boolean values during or after declaring the arrays.
+					After the initialization, the array possesses the same data type as the initial
+						values.<p>Before you first reference the array (including accessing the array elements and
+						passing the array to functions or device accesses), you can change the array values with the
+						same data type values. Values of different data types are not allowed.</p>
+					<p>However, after the first reference of the array, its values cannot be changed anymore.</p>
+					<p>For global arrays, if you initialize elements after declaring, you must perform the
+						initialization inside either the <span class="keyword">main()</span> function or a subroutine before you
+						use them.</p>
+					<div class="note"><span class="title">Note</span> If you initialize an array with the <span class="keyword">for</span> loops (see example
+						2 below) manner, do not put any statements other than array value assignments in a loop. See
+							<a href="130300.htm" title="MTL array carry some restrictions regarding their use in loops and changing their values.">Restrictions when using MTL arrays</a>.</div>
+				</li>
+				<li>Check to ensure the number of the initialized elements matches the array dimensions.<p>If
+						mismatch, an error message will be issued during compilation.</p>
+					<div class="note"><span class="title">Note</span> Both the dimensions and array elements can have expressions as their initial
+						values. These expressions can only contain the parameters from <a href="102150.htm" title="The syntax of the APG pattern file, in general, follows the conventions of the MTL compiler syntax.">:defines:</a>, <a href="102150.htm" title="The syntax of the APG pattern file, in general, follows the conventions of the MTL compiler syntax.">:progParam:</a><span class="keyword">,</span> and <a href="102365.htm" title="The syntax of the device access file follows the conventions of the MTL compiler syntax.">:deviceParams:</a>.</div>
+				</li>
+			</ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You have defined and initialized an MTL array and can use it.</p></section>
+		<h2>Examples</h2><section><h3>Example 1</h3><p>Initialize array elements when declaring MTL
+			arrays.</p><pre class="prettyprint linenums copyable">gloArr[8] = {1,1,1,1,1,1,1,1}; //define a global array
+
+main()
+{
+  //declaring arrays
+    burstAddr[8][8] = {{0,1,2,3,4,5,6,7},
+                       {1,2,3,0,5,6,7,4},
+                       {2,3,0,1,6,7,4,5},
+                       {3,0,1,2,7,4,5,6},
+                       {4,5,6,7,0,1,2,3},
+                       {5,6,7,4,1,2,3,0},
+                       {6,7,4,5,2,3,0,1},
+                       {7,4,5,6,3,0,1,2}};
+    burstData[8] = {dw0, dw1, dw2, dw3, dw4, dw5, dw6, dw7};
+              //(dw0 ~ dw7) are defined in :defines:, :progParam:, or :deviceParams:
+  
+  //start programming patterns
+    ...
+    ...
+}</pre></section>
+		<section><h3>Example 2</h3><p>Initializing array elements after declaring MTL
+			arrays.</p><pre class="prettyprint linenums copyable">gloArr[8];   //declare a global array.
+
+main()
+{
+  dataAddr[8][8];   // Declaring the array
+
+  for (i=0, i &lt; 8, i++)    // Outer initialization loop
+  {
+    for (j=0, j &lt; 8, j++)    // Inner initialization loop
+    {    
+      // Note: When assigning values to arrays within loops, the loops
+      // cannot contain any other types of instructions or statements.
+      dataAddr[i][j] = i + j;
+    }
+  }
+  // The array has been initialized and you can use it.
+
+  //Initialize the global array.
+  for (i=0, i &lt; 8, i++) gloArr[i] = 1;
+  // The global array has been initialized and you can use it.
+
+  ...
+}</pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Employ the defined MTL arrays to program patterns via <a href="130248.htm" title="The elements of an MTL array are accessed individually by array index which is made up of the array's name, and a series of indexes - one for each dimension of the array - to identify the element's location within the array.">accessing
+					array elements</a> or <a href="130272.htm" title="MTL arrays can be passed to functions or device accesses through the function parameters, or the interface parameters of device accesses.">passing arrays to different functions or device
+					accesses</a>.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="130248.htm" title="The elements of an MTL array are accessed individually by array index which is made up of the array's name, and a series of indexes - one for each dimension of the array - to identify the element's location within the array.">Accessing elements of an MTL array</a></div><div><a href="130272.htm" title="MTL arrays can be passed to functions or device accesses through the function parameters, or the interface parameters of device accesses.">Passing MTL arrays to functions and device accesses</a></div><div><a href="130224.htm" title="Array in MTL is a C-like array.">Array in MTL</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.1.4</li><li>MTP 3.1.6: Additional restrictions are now flagged as errors by the
+					compiler</li><li>MTP 3.1.7: Global MTL arrays can be initialized inside functions</li><li>MTP 3.3.1: MTL array data type can be strings, Boolean, or the T_KEY data type besides
+					integers.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 130245</span><script type="text/javascript">var ti='130245';var tt='Defining MTL arrays'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

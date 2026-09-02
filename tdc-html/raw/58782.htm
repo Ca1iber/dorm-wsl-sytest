@@ -1,0 +1,56 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="On the Pin Scale Digital Cards, you can record a separate result for each of the available receive edges by setting the result granularity parameter to 8 (see Result granularity). However, you can only retrieve 1 bit results (see Resolution of the error code) in this way."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Retrieving edge information by repeating the test</title></head><body id="_58782"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 58782</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Retrieving edge information by repeating the test</h1>
+	
+	
+	<div><p>On the Pin Scale Digital Cards, you can record a separate result for each of the
+		available receive edges by setting the result granularity parameter to 8 (see <em><a href="58775.htm" title="The result granularity parameter defines how many results are to be recorded per cycle. The possible values depend on the hardware type and on the resolution of the error code.">Result granularity</a></em>). However, you can only retrieve 1 bit results (see <em><a href="58776.htm" title="This parameter defines whether only a 1 bit or a 2 bit result is recorded. In the former case, you get only a pass or fail result, but can record twice as many results. In the latter case, three different error codes can be returned, which facilitates error analysis for dual threshold and window compares.">Resolution of the error code</a></em>) in this way. </p>
+		<p>In spite of this, the result queries <span class="keyword">CYCI?</span>, <span class="keyword">EARD?</span>,
+				<span class="keyword">EMAP?</span>, and <span class="keyword">ERMP?</span> can retrieve 2 bit edge information. They
+			achieve this by executing additional <em>shots</em> when (a) results are recorded on the cycle
+			level only, and (b) the test has failed. A shot is a test execution where, for each of a number
+			of pins, all receive edges except one are masked. If a cycle fails for one of these pins when
+			executing such a shot, then it must have failed because the only unmasked edge of this pin has
+			failed. The following figure illustrates the principle:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="95312.png" alt="Retrieving Edge Information with Multiple Shots">
+			</figure></div>
+		<div class="note"><span class="title">Note</span> The picture is slightly oversimplified. Actually, a shot is executed for every
+			available edge, not only for those that are used in the waveform, which compare 4 times to 1. The
+			shots for the unused edges will always pass. </div><p>The shot concept requires that masking a receive edge of a pin does not alter the test results
+			for any other receive edge of the same or another pin. But this is not ensured if the test
+			contains a match loop (see <em><a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">Match loops</a></em>). For if you mask a receive edge of a
+			pin that contributes to the outcome of the match loop, then a match could be found although the
+			respective edge still fails and the loop should actually be repeated. But then the device may be
+			in a different state after the match loop, which could lead to different test results.</p>
+		<p>Accordingly, you cannot use shots to obtain edge information on pins that take part in a match
+			loop. But then you must be able to inform SmarTest for which pins edge information is to be
+			retrieved. This is done with the <span class="keyword">CYRM</span> command. Edge information will be
+			reported only for those pins for which <span class="keyword">CYRM</span> has been set to
+				<span class="keyword">EDGE</span>. </p>
+		<p>Furthermore, shots are only executed if 2 bit codes and a result granularity of 1 have been
+			required with <span class="keyword">DCRM</span>. </p>
+		<p>Finally, there are devices which do not tolerate multiple shots. To prevent execution of shots
+			in such a case, you can use the <span class="keyword">CYRP</span> command. This command determines if
+			multiple shots are allowed. If they are not allowed, execution of a functional test will not be
+			possible if retrieval of edge information is activated for at least one pin with
+				<span class="keyword">CYRM</span> and the result granularity is set to cycle level with <span class="keyword">DCRM
+				1,PFC</span>.</p>
+		<p>To summarize, the result queries will execute shots if and only if the following conditions are
+			satisfied:</p>
+		<ul>
+			<li><span class="keyword">CYRM</span> is set to <span class="keyword">EDGE</span>.</li>
+			<li><span class="keyword">DCRM</span> is set to <span class="keyword">1,PFC</span>.</li>
+			<li><span class="keyword">CYRP</span> is set to <span class="keyword">MULT</span> (this is the default).</li>
+			<li><span class="keyword">EMAP?</span> or <span class="keyword">ERMP?</span> are called with the
+					<span class="keyword">EDGE</span> option, <span class="keyword">CYCI?</span> is called with the
+					<span class="keyword">CYRM</span> option. </li>
+		</ul>
+		<p>Note that <span class="keyword">EMAP?</span> and <span class="keyword">ERMP?</span> do not return the 2 bit codes
+			that are recorded when executing the shots, but convert them to 1 bit codes.
+				<span class="keyword">CYCI?</span> and <span class="keyword">EARD?</span>, on the other hand, translate the 2 bit
+			code into a character that fully conveys the information of the code.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 58782</span><script type="text/javascript">var ti='58782';var tt='Retrieving edge information by repeating the test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

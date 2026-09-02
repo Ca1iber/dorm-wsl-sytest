@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="A conversion tool is provided to convert user procedures to universal test method projects. The conversion tool convertUP is located in the directory /opt/hp93000/soc/prod_pws/migration/UTM_conversion/bin."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Converting user procedures to universal test methods</title><meta name="keywords" content="testmethod UTM"></head><body id="_110700"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 110700</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Converting user procedures to universal test methods</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="110704_2.htm">How to convert a user procedure to a UTM project</a></li></ol></div></nav>
+	
+	
+	<div><p>A conversion tool is provided to convert user procedures to universal test method
+		projects. The conversion tool <span class="filepath">convertUP</span> is located in the directory
+			<span class="filepath">/opt/hp93000/soc/prod_pws/migration/UTM_conversion/bin.</span></p>
+		<p>The conversion tool is only available in the 32-bit SmarTest.</p>
+		<p>During conversion the conversion tool does not touch the original user procedure files. It just
+			copies these files and the related files to a sub-directory of the converted universal test
+			method project. The universal test method project will call the user procedures in the
+				<code>run()</code> function. The universal test method will take over the responsibility of </p>
+		<ul>
+			<li>defining the parameters and limits interfacing with testflow and test suite.</li>
+			<li>parsing parameters and evaluating values for user procedures</li>
+			<li>invoking user procedure</li>
+			<li>logging comments and test results.</li>
+		</ul>
+		<p>Two sub-directories, <span class="filepath">tm</span> and <span class="filepath">up</span>, are created in the
+			converted universal test method project directory. <span class="filepath">tm</span> contains the universal
+			test method files and <span class="filepath">up</span> contains all relevant elements of the user
+			procedure.</p>
+		<p>There is only one *.cpp file in the <span class="filepath">tm</span> directory. The header of the file
+			looks like:</p>
+		<div></div><pre class="prettyprint linenums copyable">#include "ImportUserProcedure.hpp"
+IMPORT_USER_PROCEDURE("Up.myProcedure1",myProcedure1); 
+IMPORT_USER_PROCEDURE("Up.myProcedure2",myProcedure2); </pre><div></div>
+		<p>The file <span class="filepath">ImportUserProcedure.hpp</span> is in the directory
+				<span class="filepath">/opt/hp93000/soc/testmethod/include</span>. The specified name of the converted
+			test method project is also the name of the converted source file. The test method class name is
+			the original user procedure function name plus the prefix <span class="filepath">UP_</span>.</p>
+		<section class="section"><h2>Multi-site execution</h2><p>The original user procedure is executed per site.
+				After conversion, the universal test method is still executed per site.</p></section>
+		<section class="section"><h2>Build options</h2><p>To successfully build the converted universal test method,
+				proper build options must be set in addition to the CDT default options . The following table
+				lists the build options needed for the converted universal test method.</p><table class="frame-none"><caption></caption><colgroup><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-0" id="_110700__entry__1"><p>Program Type</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110700__entry__2"><p>Category</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_110700__entry__3"><p>Options</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__1" rowspan="3"><p>C++ compilation</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__2"><p>Include path</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__3"><p>/opt/hp93000/soc/testmethod/include</p>
+								<p>/opt/hp93000/soc/prod_com/include</p>
+								<p>/opt/hp93000/soc/prod_com/include/MAPI</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__2"><p>Macro</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__3"><p>_TM_CDIR="\"$$(/bin/pwd)/..\""</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__2"><p>Miscellaneous</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__3"><p>${XOC_ECLIPSE_C_32_BITS_OPTION}</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__1" rowspan="2"><p>C compilation</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__2"><p>Include path</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__3"><p>/opt/hp93000/soc/prod_com/include</p>
+								<p>/opt/hp93000/soc/prod_pws/lib</p>
+								<p>/opt/hp93000/soc/com/include</p>
+								<p>/opt/hp93000/soc/pws/include</p>
+								<p>/opt/hp93000/soc/mix_sgnl/include</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__2"><p>Miscellaneous</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__3"><p>${XOC_ECLIPSE_C_32_BITS_OPTION}</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__1"><p>C++ link</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__2"><p>Miscellaneous</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_110700__entry__3"><p>${XOC_ECLIPSE_C_32_BITS_OPTION}</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li><li>SmarTest 7.1.0:  The location of the conversion tool is changed.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 110700</span><script type="text/javascript">var ti='110700';var tt='Converting user procedures to universal test methods'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

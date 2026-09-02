@@ -1,0 +1,126 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Uploads the error map data for the specified pin and result area. It provides SmartCalc support and Hidden upload. Also, it is compatible with pin scale cards."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SMC_PIN_ERROR_MAP</title></head><body id="_140809"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 140809</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SMC_PIN_ERROR_MAP</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="149668.htm" title="Retrieves the failing tester cycles that occur after the specified start tester cycle. This reports failing tester cycles in x1-mode only.">SMC_PIN_ERROR_MAP.getFirstFailingTesterCycles()</a></li><li><a href="149669.htm" title="Retrieves the failing tester cycles that occur after the specified start tester cycle. This records failing tester cycles in the specified x-mode.">SMC_PIN_ERROR_MAP.getFirstFailingXmodeCycles()</a></li><li><a href="149671.htm" title="Retrieves the global error count.">SMC_PIN_ERROR_MAP.getGlobalErrorCount()</a></li><li><a href="140811.htm" title="Uploads error map edge results. These results are stored as CYCLE_CHUNK data structures.">SMC_PIN_ERROR_MAP.getNextCycleChunk()</a></li><li><a href="140810.htm" title="Sets the raw error map upload chunk size.">SMC_PIN_ERROR_MAP.setUploadChunkSize()</a></li></ol></div></nav>
+	
+	
+	<div><p>Uploads the error map data for the specified pin and result area. It provides
+		SmartCalc support and <a href="136161.htm" title="SmartCalc automatically determines the package size of data to be uploaded to the test system controller. It performs an optimized upload behind a currently running test (sequencer execution).">Hidden upload</a>. Also, it is compatible with pin scale
+		cards.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span> The API expects the standard receive edge to result mapping for
+				recording modes X2, and X4:<ul>
+					<li>Recording mode X1: All edges are mapped to result 1.</li>
+					<li>Recording mode X2:<ul>
+							<li>Edge 1 … 4 are mapped to result 1.</li>
+							<li>Edge 5 … 8 are mapped to result 2.</li>
+						</ul></li>
+					<li>Recording mode X4:<ul>
+							<li>Edge 1 and 2 are mapped to result 1.</li>
+							<li>Edge 3 and 4 are mapped to result 2.</li>
+							<li>Edge 5 and 6 are mapped to result 3</li>
+							<li>Edge 7 and 8 are mapped to result 4</li>
+						</ul></li>
+				</ul>Other receive edge to result mappings can be defined using API
+					<span class="keyword">RESULT_CONFIGURATION</span>. For more information, refer to <a href="130383.htm#_130383__dle_setEdgeToResultMapping">setEdgeToResultMapping()</a> in <a href="130383.htm" title="This API serves to define the result configuration. For more information see Result Configuration and Configuring the Error Map recording.">RESULT_CONFIGURATION</a>.</div>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint linenums copyable">SMC_PIN_ERROR_MAP(                const STRING &amp;pinName, const STRING &amp;resultArea);
+SMC_PIN_ERROR_MAP(const int site, const STRING &amp;pinName, const STRING &amp;resultArea);</pre><p>This
+				API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SMART_CALC2.h</span>.</p><dl>
+				
+					<dt class="dlterm">Parameters</dt>
+					<dd><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_140809__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_140809__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_140809__entry__1"><var class="varname">pinName</var></td>
+										<td class="colsep-0 rowsep-1" headers="_140809__entry__2">The pin for which the error map will be
+											uploaded.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_140809__entry__1"><var class="varname">resultArea</var></td>
+										<td class="colsep-0 rowsep-1" headers="_140809__entry__2">The name of the result area which is used to acquire
+											the fail data.</td>
+									</tr>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_140809__entry__1"><var class="varname">site</var></td>
+										<td class="colsep-0 rowsep-1" headers="_140809__entry__2">The site number.</td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>The constructor has no return value.</dd>
+				
+			</dl>
+		</div>
+		<h2>Example</h2><div class="example">
+			<p>The following example shows how to upload a pin error map data. The default upload
+				chunk size of 512KB is used.</p>
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    ON_FIRST_INVOCATION_BEGIN();
+
+        // Variables.
+        STRING mPinaName = "PinA";
+        STRING mAreaId = "Area1";
+
+        // Select result area for storing results.
+        RESULT_AREA_CONFIG_SET resArea(mAreaId);
+        resArea.setAsPrimary();
+
+        //Configure result mode
+        RESULT_CONFIGURATION resConfig;
+        resConfig.setResultStorageLocation(RESULT_CONFIGURATION::RAM);
+        resConfig.setResultGranularity(RESULT_CONFIGURATION::cycle,"@");
+        resConfig.setNumberOfResultsPerCycle(RESULT_CONFIGURATION::RPC8);
+        resConfig.setResultWidth(RESULT_CONFIGURATION::_1Bit);
+        resConfig.enable();
+
+        // Run functional test.
+        SMC_FUNCTIONAL_TEST();
+
+        // Loop over all sites and upload results
+        FOR_EACH_SITE_BEGIN();
+
+            SMC_ARM(mPinName, mAreaId);
+
+        FOR_EACH_SITE_END();
+
+        // A newly created result configuration contains the default settings.
+        // This can be used to reset the result configuration:
+
+        RESULT_CONFIGURATION  defaultConfig;
+        defaultConfig.enable();
+        resArea.deselectGlobally();
+
+    ON_FIRST_INVOCATION_END();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing(string pin, string Area)
+{
+    CYCLE_CHUNK cycles;
+
+    SMC_PIN_ERROR_MAP errorMap(pin,Area);
+
+    while ( true == errorMap.getNextCycleChunk(cycles))
+    {
+        // Outputs result information, only needed for debug information 
+        cout &lt;&lt; cycles;
+
+        // do post processing
+    }
+}</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="140869.htm" title="The RESULT_AREA_CONFIG_SET holds the setup information for configuring user defined result areas for digital and DC results.">RESULT_AREA_CONFIG_SET()</a></div><div><a href="130383.htm" title="This API serves to define the result configuration. For more information see Result Configuration and Configuring the Error Map recording.">RESULT_CONFIGURATION</a></div><div><a href="104623.htm" title="This API gives in conjunction with the API ERROR_MAP_TEST detailed access to functional test results like error counter and fail cycles stored in the respective test processor resources like hardware error counter and error map.">PIN_ERROR_MAP_TEST</a></div><div><a href="104621.htm" title="In conjunction with the PIN_ERROR_MAP_TEST API, this API provides detailed access to functional test results like error counter and fail cycles stored in test processor resources like hardware error counter and error map.">ERROR_MAP_TEST</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.1</li><li>SmarTest 7.4.2:  Added new constructor.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 140809</span><script type="text/javascript">var ti='140809';var tt='SMC_PIN_ERROR_MAP'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

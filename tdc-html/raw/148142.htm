@@ -1,0 +1,88 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The CCT Multi-port Sequencer Synchronizer API is an API set that is used to program digital multi-port bursts and handle synchronization across ports."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>CCT Multiport Sequencer Synchronizer API</title><meta name="keywords" content="multi-port"></head><body id="_148142"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 148142</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">CCT Multiport Sequencer Synchronizer API</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="148154.htm">Using the CCT Multi-Port Sequencer Synchronizer API</a></li><li><a href="148161.htm" title="The CCT Multi-Port Sequencer Synchronizer API includes user interface APIs that you use to program digital multi-port burst and handle the synchronization across ports.">CCT multi-port user interface APIs</a></li></ol></div></nav>
+	
+	
+	<div><p>The CCT Multi-port Sequencer Synchronizer API is an API set that is used to program
+		digital multi-port bursts and handle synchronization across ports.</p>
+		<section class="section"><h2>Key features</h2><p>The key features of the API set include:</p><ul>
+				<li>Automatically maintain synchronization across ports by synchronizing ports with different
+					vector/cycle lengths or execution time before the start of the next label. You can synchronize:<ul>
+						<li>Flat patterns at different ports</li>
+						<li>PA transaction sequences and normal patterns</li>
+					</ul></li>
+				<li>Execute the following read/write actions on a DUT using a predefined protocol (You can use
+					the protocol-aware method):<ul>
+						<li>Write to</li>
+						<li>read to</li>
+						<li>read from<p>You can specify different values for different sites.</p></li>
+					</ul></li>
+				<li>Insert sequencer‑controlled DC tests into the pattern (You must assign a synchronization
+					point to align with other ports).</li>
+				<li>Insert DC Dynamic tests into the pattern and maintain synchronization with the patterns of
+					other ports.</li>
+				<li>Generate a trigger pattern or a sequence of PA transactions according to an analog sequencer
+					group or an analog sequence program at a predefined port, and then synchronize it with patterns
+					at other ports.</li>
+				<li>Insert a digital capture pattern into the multiport burst pattern, and automatically
+					generate the VECTOR_VARIABLE for the digital capture pattern. </li>
+				<li>Provides unified wrapper APIs for protocol activities, using PA.</li>
+				<li>Provides smooth switching between engineering modes and production modes.</li>
+				<li>Visualizes the multiport assembly.</li>
+				<li>Create and insert a flat label to a port of multi-port burst, and generate and attach a
+					protocol-type label at the HIF port of a multi-port burst.</li>
+				<li>Supports multiple digital captures on different digital capture ports
+						(<span class="keyword">DigitalCapturePort</span>).</li>
+			</ul></section>
+		<section class="section"><h2>Supported hardware</h2><p>For normal digital pattern, the API can be used with
+				all smart scale digital cards.</p><p>The API does not require a dedicated license. However, if
+				you want to attach "protocol type labels" in the multiport burst, a protocol-aware license is
+				required.</p></section>
+		<section class="section"><h2>Synchronization across ports in a multi-port burst</h2><p>To synchronize across
+				ports in a multi-port burst, you must first use APIs to create the flat pattern. Next, you add
+				flat labels to a port of a multi-port burst, or attach protocol type labels to a multi-port
+				burst. The length or execution time of each port’s labels is recorded and then the execution
+				time differences between ports is calculated. </p><p>If synchronization is required, a label of
+				"repeating" idle vectors (for normal ports) or IDLE command (for transaction port) can be added
+				to those ports with short execution time, ensuring the sequencer of each port ends at the same
+				time. </p><p>After the synchronization, the next vector of each port starts
+				simultaneously.</p><p>The following diagram illustrates two synchronization points:</p><div class="p"><figure class="fignone">
+					<img src="148151.png" alt="SynchronizingPorts">
+				</figure></div><p>A multi-port burst is assigned so that the single-port patterns, and protocol-type
+				labels can be added to any port of the burst. It is not necessary that the multi-port burst
+				exists when it is assigned. The synchronized port and the single-port labels can be added
+				later.</p><p>The ports that need to be synchronized must be be registered. The CCT Multi-port
+				Sequencer Synchronizer API can trace the execution time of labels at each registered port by
+				querying the cycles and period of each label.</p><p>The synchronization activity is
+				user-initiated:</p><p>You might require synchronization across all registered ports or partial
+				ports. If the execution time of each port is <span class="keyword">T@Port&lt;i&gt;</span>, and the maximum
+				execution time is <span class="keyword">Tmax</span>. </p><p>The CCT Multi-port Sequencer Synchronizer API
+				appends one of the following labels to those ports that exhibit an execution time
+					<span class="keyword">T@Port&lt;i&gt;</span> of less than <span class="keyword">Tmax</span>:</p><ul>
+				<li>Dummy cycles (for normal patterns).</li>
+				<li>An IDLE command (for PA ports) which exhibit an execution time of
+						<span class="keyword">(deltaT@Port&lt;i&gt; = Tmax-T@Port&lt;i&gt;)</span>.</li>
+			</ul><p>User can assign a synchronization point to any port with the specified time point
+					<span class="keyword">Tsync</span>.</p><p>The CCT Multi-port Sequencer Synchronizer API appends one of
+				the following labels to the assigned ports that exhibit an execution time
+					<span class="keyword">T@Port&lt;i&gt;</span> of less than <span class="keyword">Tsync</span>.</p><ul>
+				<li>Dummy cycles (for normal patterns).</li>
+				<li>An IDLE command (for PA ports) which exhibit an execution time of
+						<span class="keyword">(deltT@Port&lt;i&gt; = Tsync-T@Port&lt;i&gt;)</span>.</li>
+			</ul><p>After the synchronization point, the labels newly added to the registered ports start the
+				next vector of each port simultaneously.</p></section>
+		<section class="section"><h2>Prerequisites</h2><p>Before you can use the CCT Multi-port Sequencer
+				Synchronizer API, make sure that the following conditions are met:</p><ul>
+				<li>Digital pattern must be multi-port based</li>
+				<li>Timing set must be multi-port based</li>
+				<li>Must be used in Concurrent Test Framework environment</li>
+			</ul></section>
+		<section class="section"><h2>Limitations</h2><ul>
+				<li>Ports containing CTIM/CLEV in the digital pattern are not supported.</li>
+				<li>D2S is not supported</li>
+				<li>BADC is not supported</li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="148154.htm">Using the CCT Multi-Port Sequencer Synchronizer API</a></div><div><a href="148161.htm" title="The CCT Multi-Port Sequencer Synchronizer API includes user interface APIs that you use to program digital multi-port burst and handle the synchronization across ports.">CCT multi-port user interface APIs</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 148142</span><script type="text/javascript">var ti='148142';var tt='CCT Multiport Sequencer Synchronizer API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

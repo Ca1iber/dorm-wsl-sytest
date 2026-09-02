@@ -1,0 +1,96 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="With equation based timing, you can use variables in the definitions of edge positions and period lengths. This allows you, for example, to define general relations between period length and edge delays which are preserved when the value of the variable is changed (for example, place an edge in the middle of a tester cycle for different cycle lengths)."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Data organization of equation based timing</title></head><body id="_10597"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 10597</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Data organization of equation based timing</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="104187_2.htm" title="Equation sets are identified by a header in the following format:">Timing equation set reference</a></li></ol></div></nav>
+	
+	
+	<div><p>With equation based timing, you can use variables in the definitions of edge positions
+		and period lengths. This allows you, for example, to define general relations between period
+		length and edge delays which are preserved when the value of the variable is changed (for example,
+		place an edge in the middle of a tester cycle for different cycle lengths). </p>
+		
+		<p>Equation based timing setups consist of three main types of data collections: </p>
+		<ul>
+			<li>Timing sets and variable definitions are contained in an <em>equation set</em> (see <a href="10620.htm" title="The physical waveforms fix the shapes of the signals that can be sent to the DUT. What remains to be done is to determine">Setting delays and periods</a>)</li>
+			<li>Waveforms are defined in a <em>wavetable</em> (see <a href="103885.htm" title="A waveform shape is an ordered sequence of actions each of which is associated with an edge. The edges are divided into drive edges and receive edges. Drive actions are associated with drive edges, receive actions with receive edges.">Defining waveform shapes</a>)</li>
+			<li>The values for the variables are defined in a <em>specification set</em> within a <em>timing
+					specification</em> (see <a href="56982.htm" title="In equation based timing, waveform shapes, as defined in a wavetable, are combined with a period length and edge delays, as defined in an equation set, in a timing specification which provides a complete timing for a test. This specification also contains a spec set where values are assigned to the base variables of the equation set, and specifies which checks are to be performed on the edge delays.">Defining the timing specification</a>).</li>
+		</ul>
+		<p>One timing setup file can contain several instances of each of these three types. A <em>timing
+				specification</em> defines which equation set, wavetable, and value set for the variables is to
+			be used in a test. A timing setup file can contain several timing specifications.</p>
+		<p>The data collections are downloaded with the <span class="keyword">EQFS</span> and
+				<span class="keyword">EQSP</span> commands. The collections themselves cannot be edited with firmware
+			commands. But you can query their content with firmware commands, and also change definitions at
+			runtime.</p>
+		<section class="section"><h2>Equation sets</h2><p>Equation sets are identified by a number &gt; 0. Their
+				main building blocks are in this order:</p><ol>
+				<li>A list of base variables (also called <em>spec</em> variables).<p>This (optional) part of the
+						equation set is identified by the keyword <kbd class="userinput">SPECS</kbd>. The variables, which
+						are also called briefly <em>specs</em>, are only <em>declared</em> in the equation set, they are
+						not assigned a value here. The following declarations are an
+						example:</p><pre class="prettyprint linenums copyable">SPECS
+f            [MHz]
+ts_Sx_CP     [ns]
+th_CP_Sx     [ns]</pre><p>The
+						units in brackets are displayed in the graphical user interface; this is their only
+						purpose.</p></li>
+				<li>Definitions of derived variables (also called <em>equation</em> variables).<p>This (optional)
+						part of the equation set is identified by the keyword <kbd class="userinput">EQUATIONS</kbd>. The
+						derived variables are defined by expressions that can contain constants, base variables, and
+						also derived variables that were defined in a previous statement. The header keyword reflects
+						that the definitions have the form</p><pre class="prettyprint copyable singleline">var_name = expression.</pre><p>The
+						following example definitions use the base variable <kbd class="userinput">f</kbd> of the previous
+							<span class="keyword">SPECS</span> example:
+						</p><pre class="prettyprint linenums copyable">EQUATIONS
+p= 1/f*1000
+CP_ref= p/2
+ComplDelay = 2</pre><p>Note that the
+						second and third definition use the variable <code>p</code> that was defined in the first
+						statement.</p></li>
+				<li>One or more timing sets.<p>Timing sets are the only mandatory part of an equation set. They
+						are identified by a number that counts all the timing sets of a given equation set. They
+						define edge delays and a period (tester cycle) by assigning expressions, which can contain
+						base variables and derived variables, to keywords identifying edges.</p>
+					<p>The following timing set fragment uses the example definitions from the
+							<span class="keyword">SPECS</span> and the <span class="keyword">EQUATIONS</span> sections
+						above:</p><pre class="prettyprint linenums copyable">TIMINGSET 1
+period= p
+PINS mode
+d1= CP_ref - ts_Sx_CP - ComplDelay
+d2= CP_ref - ts_Sx_CP
+d3= CP_ref + th_CP_Sx</pre><p>For
+						more information see </p><ul>
+						<li><a href="10622.htm" title="In equation based timing, timing sets are part of an equation set, and are edited within this equation set. The following figure shows an equation set as displayed in the timing equation editor of SmarTest.">Defining the global period</a></li>
+						<li><a href="104039.htm" title="Edge delays are defined for pins, not for individual waveforms. This implies that for a given pin, the position of an edge is the same in every waveform definition where the edge is used. This holds for both standard and fast pins.">Setting the edge delays</a></li>
+					</ul></li>
+			</ol><p>For detailed reference information on equation sets see <a href="104187.htm" title="Equation sets are identified by a header in the following format:">Timing equation set reference</a>.</p></section>
+		<section class="section"><h2>Wavetables</h2><p><em>Wavetables</em> define waveforms and device cycles. They
+				are identified by a name. The name can consist of up to 40 characters. If it contains spaces, it
+				must be enclosed by double quotes. It must not contain a semicolon.</p><p>For examples of waveform definitions in a wavetable, see <a href="103903.htm" title="Waveform shapes for standard pins are defined in the wavetable by a sequence of edge-action pairs. You can also add a name for the shape, which, for historical reasons, is called a &#34;device cycle name&#34;. The format is:">Defining waveform shapes for Pin Scale standard pins</a> and <a href="113740.htm" title="The main difference between legacy and Smart Scale waveforms is that there are now separate sets of edges for drive actions and for tri-state actions. There are thus 16 drive edges each of which can be associated with a different delay. Waveforms for Smart Scale pins can be specified in two formats.">Defining waveform shapes for Smart Scale pins</a>.</p></section>
+		<section class="section"><h2>Specification sets and timing specifications</h2><p><em>Specification sets</em>
+				(briefly <em>spec sets</em>) assign fixed values to the base variables that are defined in the
+				equation set. They are identified by a number that counts the specification sets for a given
+				equation set, starting from 1; up to 99 spec sets can be defined for one equation set. The
+				following example supplies values to the base variables declared
+				above:</p><pre class="prettyprint linenums copyable">SPECSET 1
+f          60    [MHz]
+ts_Sx_CP    7    [ ns]
+th_CP_Sx    1    [ ns]</pre><p>Spec
+				sets are defined within a so-called <em>timing specification</em>, which in addition contains
+				pointers to an equation set and a wavetable, thus defining a complete timing.</p><p>Note that
+				specification sets only exist within a specification. If two different specifications point to
+				the same equation set, their specification sets must have a different specification set number.
+				Due to this, every pair of equation set and specification set numbers uniquely identifies the
+				wavetable of the specification, so that timing specifications can be identified by their
+				equation set number and specification set number. </p><p>In the firmware commands, you refer to
+				a timing specification through its <em>specset ID</em>, a number that is generated as
+				follows:</p><pre class="prettyprint copyable singleline">(<span class="keyword">equation_set_nr</span> * 100) + <span class="keyword">specification_set_nr</span></pre><p>For
+				more information on timing specifications see <a href="56982.htm" title="In equation based timing, waveform shapes, as defined in a wavetable, are combined with a period length and edge delays, as defined in an equation set, in a timing specification which provides a complete timing for a test. This specification also contains a spec set where values are assigned to the base variables of the equation set, and specifies which checks are to be performed on the edge delays.">Defining the timing specification</a>.</p></section>
+		<h2>Example</h2><div class="example"><p>The following figure exemplifies the structure of equation based timing by a schematic
+				setup:</p><div class="p"><figure class="fignone">
+					
+					<img src="10596.png" alt="Timing Specifications">
+				</figure></div></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 10597</span><script type="text/javascript">var ti='10597';var tt='Data organization of equation based timing'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using the CCT Multi-Port Sequencer Synchronizer API</title><meta name="keywords" content="multiport"></head><body id="_148154"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 148154</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using the CCT Multi-Port Sequencer Synchronizer API </h1>
+	
+	
+	<div><p></p>
+		<section class="sectiontitlefake"><h2>Appending a flat pattern</h2><p>A single-port
+				flat pattern is to be appended to the assigned port of the burst.</p><p>You can repeatedly
+				append the single-port flat pattern n times, where n ≥ 1 (default 1). The single port pattern is
+				checked against the target port and must be made up of the unique target port.</p><div class="p"><figure class="fignone">
+					<img src="148163.png" alt="AppendFlatPattern">
+				</figure></div></section>
+		<section class="sectiontitlefake"><h2>Playing a flat pattern</h2><p>A single-port
+				pattern with LOOP/END sequencer command is to be appended to the assigned port of the
+				burst.</p><p>Such appending can be looped (repeated) n times, where n ≥ 1 (default 1).
+				Alternatively, the execution time (t) of the loop section can be assigned and the required
+				number of loop times (n) is automatically determined, so that the actual execution time of the
+				loop section is not shorter than the required execution time but also not longer than the time
+				required for (n+1) times of the loop section.</p><p>These single port patterns are copied to a
+				new pattern, the loop count &lt;n&gt; adjusted to suit, and the new pattern is appended to the
+				target port of the burst. The new single port pattern is assigned the original pattern name with
+				a postfix number reflecting the assigned loop count: <span class="keyword">&lt;original
+					name&gt;_&lt;n&gt;</span>.</p><div class="note"><span class="title">Note</span> If the single-port pattern does not include
+				a LOOP/END sequencer command pair, an error is raised. If there are more than one LOOP/END
+				sequencer command pairs, only the first LOOP command is adjusted.</div><div class="p"><figure class="fignone">
+					<img src="148164.png" alt="PlayFlatPattern">
+				</figure></div></section>
+		<section class="sectiontitlefake"><h2>Creating a protocol type label on transaction
+				ports</h2><p>You can create a protocol type label using PA and then attach it to the
+				multiport burst. You must also complete the following:</p><ul>
+				<li>Define the protocol, timing, and level.</li>
+				<li>Assign pins to roles in the protocol.</li>
+				<li>Create PA wrapper APIs.</li>
+			</ul><p>The Multi-port Sequencer Synchronizer API invokes PA wrapper APIs to generate a protocol
+				type label that is then attached to a multi-port burst.</p><p>The default sync mark to attach
+				the protocol type label is the first vector of the multiport burst label. However, you can
+				assign a custom sync mark to which the protocol type label is attached.</p><p>The Multi-port
+				Sequencer Synchronizer API checks the transaction port against the multi-port burst, ensuring
+				that there is no overlap pins between the transaction port and any port in the multi-port
+				burst.</p></section>
+		<section class="section"><h3>Example</h3><p>Example code for checking the transaction port against the
+				multi-port
+			burst:</p><pre class="prettyprint linenums copyable">CCTMultiportSync Sync;
+Sync.registerSyncPort(Lshift::getInstance(tsName));
+Lshift::getINstance(tsName).write(0x18, 0x22); 
+Lshift::getINstance(tsName).write(0x18, 0x86);
+Lshift::getINstance(tsName).read(0x18, "readID1"); 
+Lshift::getINstance(tsName).readExpect(0x18, 0xFE); 
+Lshift::getINstance(tsName).getReadValue("readID1") //get the read value marked as "readID1"</pre></section>
+		<section class="sectiontitlefake"><h2>Adding a sequencer‑controlled DC to an assigned
+				port</h2><p>The sequencer‑controlled DC test uses a digital channel as an instrument so that
+				it can be mixed with those activities on the same port that is not PA transaction port. When
+				making sequencer‑controlled DC tests on dedicated pins, other pins will issue break
+				waveforms.</p><p>For a sequencer‑controlled DC test, a single port main pattern at the assigned
+				port is created for which the main label consists of only one JSUB command to call a sub-label.
+				You must assign the name of main label and sub-label.</p><p>The user defined MSET (created by
+				PPMU_XXX is downloaded to the sub-label that you assigned. The main label and sub-label are
+				created automatically and then appended to the assigned port of multi-port burst. You must
+				ensure all pins in the MSET belong to the target port.</p><div class="note"><span class="title">Note</span> BADC is not
+						supported (only PPMU is supported).</div></section>
+		<section class="section"><h3>Example</h3><p>Code example for adding a sequencer‑controlled DC to an assigned
+				port:</p><pre class="prettyprint linenums copyable">CCTMultiportSync Sync;
+DCDynamicPort::getInstance().setPort("pPPMUDC");
+Sync.registerSyncPort(DCDynamicPort::getInstance());
+DCDynamicPort::getInstance().PPMU_Relay("DC_Pin1", "PPMU_ON", 20 ns);
+DCDynamicPort::getInstance().PPMU_Setting_VForce("DC_Pin1", vin V, 10 mA, -12 uA, 12 mA, 10 ns);
+DCDynamicPort::getInstance().PPMU_Relay(MeasPin, "PPMU_ON", 20 us);
+DCDynamicPort::getInstance().PPMU_Setting_IForce(MeasPin, "CLAMP_ON", 0 uA, 100 uA, -1 uA, 1 uA, 0.002 ms);
+DCDynamicPort::getInstance().PPMU_VClamp(MeasPin, "CLAMP_ON", 0, 4 V, 0.1 us);
+DCDynamicPort::getInstance().PPMU_Meas(MeasPin, "VMUM", "PVAL", 2, 10 ns);</pre></section>
+		<section class="sectiontitlefake"><h2>Adding a dynamic DC test to an assigned
+				port</h2><p>You must define a dedicated port that includes only DC Scale pins (DPS32, VI32,
+				DPS128 and DPS64) and define its synchronized port-derived class.</p><p>You must provide a
+				template with the following structure to hook the DC Events:</p><div class="p"><figure class="fignone">
+					<img src="148174.png" alt="DCEventStructure">
+				</figure></div><p>The CCTMultiPortSync API creates a new label (multi-port burst name) named
+				"MPB_(CCTgetTestsuiteName)" at the assigned port by copying the user-defined template pattern
+				and adding a DC event to the vector #32.</p></section>
+		<section class="section"><h3>Example</h3><p>Code example for adding a dynamic DC test to an assigned
+				ports:</p><pre class="prettyprint linenums copyable">CCTMultiportSync Sync;
+DCDynamicPort::getInstance().setPort("pDPS128");
+Sync.registerSyncPort(DCDynamicPort::getInstance());
+DCDynamicPort::getInstance().DPS_MeasVoltageRange(mDpsPins, 3.0);
+DCDynamicPort::getInstance().DPS_Force("DPS128_2"), vin, 50 mA);
+DCDynamicPort::getInstance().DPS_MeasVoltage(mDpsPins, 2);</pre></section>
+		<section class="sectiontitlefake"><h2>Adding a digital capture test pattern to an
+				assigned port</h2><p>A digital capture pattern can be automatically generated using the
+				DigitalCapturePort class. This includes the correct setup of digital capture vector variables.
+				Digital capture patterns can be useful for an ADC test where data needs to be captured on a
+				digital port at certain intervals while a stimulus is being applied. The DigitalCapturePort
+				class can only insert captures at certain times/vectors.</p></section>
+		<section class="sectiontitlefake"><h2>Preparing HW trigger patterns for analog or RF
+				tests </h2><p>The PortScale RF instruments/cards and mixed-signal cards (MCB, MCE) are
+				controlled by digital trigger lines during the execution of their respective programs. A typical
+				RF sequence requires multiple RF and Analog cards. To generate an RF-modulated signal at the
+				signal pin, multiple cards of the RF subsystem must be triggered at different points in time, by
+				multiple digital trigger lines. You must set up a sequence using the test method to synchronize
+				RF-modulated signal with events on other ports.</p></section>
+		<section class="sectiontitlefake"><h2>Running the multiport burst</h2><p>After the
+				multi-port burst pattern is created, it can be executed like any other multi-port burst
+				pattern.</p></section>
+		<section class="sectiontitlefake"><h2>Creating burst pattern across test suites with the
+				CCF framework</h2><p>In a CCT group, each test suite has its own multi-port burst pattern.
+				When it is executed in concurrent mode, it can create a concurrent multi-port burst pattern
+				across test suites. </p></section>
+		<section class="sectiontitlefake"><h2>A data structure to store the assembled multiport
+				burst</h2><p>"CCTMultiport Sync API" can return a data structure describing the contents of
+				the assembled multiport burst. The amount of information shown is determined by the Development
+				Mode parameter selected. </p></section>
+		<section class="sectiontitlefake"><h2>Visualize the synchronization across
+				ports</h2><p>The multi-port burst pattern is constructed and displayed in the UI Report
+				window, illustrating all synchronizations of all
+					ports.</p><p><code>Sync.dumpMPBGraph();</code></p><div class="p"><figure class="fignone">
+					<img src="148383.png" alt="dumpGraph">
+				</figure></div></section>
+		<section class="sectiontitlefake"><h2>Debug Level</h2><p>Sets the debug level of
+				CCTMultiportSync. By default, the debug level is set to 0x0.</p><p>The debug level is defined by
+				the following mask bits:</p><ul>
+				<li><code>CODE_TRACE_LEVEL_DATALOG 0x1</code></li>
+				<li><code>CODE_TRACE_LEVEL_GRAPH 0x2</code></li>
+				<li><code>CODE_TRACE_LEVEL_SAVE_DATA 0x4</code></li>
+				<li><code>CODE_TRACE_LEVEL_TIMING 0x8</code></li>
+				<li><code>CODE_TRACE_LEVEL_DETAIL 0x100 (Decimal: 256)</code></li>
+				<li><code>CODE_TRACE_LEVEL_FUNC_CALL 0x200 (Decimal: 512)</code></li>
+			</ul></section>
+		<section class="sectiontitlefake"><h2>Development Mode</h2><p>Sets the develop mode of
+				the MultiportSync instance. It skips burst in Production Mode for Throughput. The available mode
+				are:</p><ul>
+				<li>0 = OFF</li>
+				<li>1 = Learning (if setup exists, then use it. Otherwise create it)</li>
+				<li>2 = Development (if setup exists, delete it and re-generate it</li>
+			</ul></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="148142.htm" title="The CCT Multi-port Sequencer Synchronizer API is an API set that is used to program digital multi-port bursts and handle synchronization across ports.">CCT Multiport Sequencer Synchronizer API</a></div><div><a href="148161.htm" title="The CCT Multi-Port Sequencer Synchronizer API includes user interface APIs that you use to program digital multi-port burst and handle the synchronization across ports.">CCT multi-port user interface APIs</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 148154</span><script type="text/javascript">var ti='148154';var tt='Using the CCT Multi-Port Sequencer Synchronizer API'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API aborts all of the analog sequencers and digital sequencer. ABORT_TEST also disables the external trigger for all analog modules."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>ABORT_TEST</title></head><body id="_28645"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 28645</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">ABORT_TEST</h1>
+	
+	
+	<div><p>This API aborts all of the analog sequencers and digital sequencer.
+			<kbd class="userinput">ABORT_TEST</kbd> also disables the external trigger for all analog
+		modules.</p>
+		<section class="section"><p>The digital sequencer will turn to the break cycle. The AWG sequencers and
+				digitizer/sampler sequencers stop. The TIAs are reset.</p><p>This API can also be used to stop
+				the AWG sequencers after the <kbd class="userinput">WAIT_TEST_DONE</kbd> or test execution API waits
+				for the digital sequencer and analog modules except the AWGs to be halted.</p><p>This API is
+				defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/Execute.h.</span></p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint linenums copyable">ABORT_TEST();
+ABORT_TEST (const TM::ABORT_ACTION, const STRING&amp; context);</pre><table class="frame-bottom"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_28645__entry__1"><p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_28645__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_28645__entry__1"><p><span class="keyword">ABORT_ACTION</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_28645__entry__2"><p>Either: <span class="keyword">ABORT_DIGITAL</span>, <span class="keyword">ABORT_AWG</span>, or
+										<span class="keyword">_ALL</span>. Which are used to abort the digital sequencers, the analog
+									waveform generators, or both, respectively.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_28645__entry__1"><p><span class="keyword">context</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_28645__entry__2"><p>The name of the digital sequencer context to be aborted.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Important points</h2><ul>
+				<li>If this API is executed just after a test execution, analog modules are in the following
+					status: <ul>
+						<li>AWGs: <p>If the AWG generates waveform after a test execution, this API stops the output.
+								For example, if you program the infinite waveform generation, you must execute this API
+								after a test execution.</p></li>
+						<li>Digitizers/Samplers: <p>If this API is executed when the module digitizer/sampler is
+								running, this API stops the measurement. The results of the aborted measurement are
+								corrupt.</p>
+							<p>If this API is executed after finishing the measurement, the module digitizer/sampler
+								keeps the measurement results on the internal waveform memory.</p></li>
+						<li>TIAs: <p>If this API is executed after or during a test execution, the TIA is reset and
+								all measurement results on the TIA are discarded.</p></li>
+					</ul></li>
+				<li>If you use an AWG with the infinite waveform generation and a TIA in a test, execute this
+					API to stop the AWG after getting the TIA results
+					below.<div></div><pre class="prettyprint linenums copyable">EXECUTE_TEST();                 // Test execution
+result = TIA("pinA").getXXXX(); // Get TIA result
+ABORT_TEST();                   // Stop AWG output</pre></li>
+				<li>If you use the digital drivers with the infinite vector generation and a TIA in a test, use
+					the use <kbd class="userinput">SEQUENCER_STATUS</kbd> API (<kbd class="userinput">Sequencer.abort()</kbd>)
+					to set the digital sequencer to break state. The measurement results on the TIA are kept.</li>
+			</ul></div>
+		
+		<h2>Example</h2><div class="example"><ol>
+				<li>Aborting the test execution when the condition specified in the if-clause is resolved:
+					<div></div><pre class="prettyprint linenums copyable">  :
+If (vout &gt; 1.5) 
+{
+  ABORT_TEST();
+}
+  :</pre></li>
+				<li>Aborting the digital sequencers in the digital sequencer context
+					"test":<div></div><pre class="prettyprint copyable singleline">ABORT_TEST(TM::ABORT_DIGITAL, "test");</pre></li>
+			</ol></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.3.2</li><li>SmarTest 7.3.2: Added ABORT_ACTION and context parameters.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 28645</span><script type="text/javascript">var ti='28645';var tt='ABORT_TEST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

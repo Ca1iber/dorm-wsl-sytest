@@ -1,0 +1,174 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The RA library provides register dump, register tracking, and register cache memory print for debugging purposes."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>RA debugging</title></head><body id="_351490"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351490</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">RA debugging</h1>
+	
+	
+	<div><p>The RA library provides register dump, register tracking, and register cache memory
+		print for debugging purposes.</p>
+		<section class="section"><h2>Register dump</h2>
+			
+			<div class="p">The RA library uses <span class="keyword">RA_REGISTER_DUMP()</span> in test methods to control register
+				dump. If not specified, <span class="keyword">RA_REGISTER_DUMP()</span> dumps all related registers in the
+				RDI_BEGIN/RDI_END block. When a specific register list is set, this API dumps for the specified
+				register list only. See the example as follows: <table class="ly"><caption></caption><colgroup><col style="width:550pt"></colgroup><tbody>
+							<tr>
+								<td><code>RA_REGISTER_DUMP()</code> in the test method:</td>
+							</tr>
+							<tr>
+								<td>
+									<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+    // Register Write
+    reg.PERIPHERAL0().REGISTER0().setValue(INIT_VALUE).write();
+    // Field Write [3:2]
+    reg.PERIPHERAL0().REGISTER1().setField_FIELDB(1).write();
+    // Write Dynamic
+    reg.PERIPHERAL0().REGISTER2().writeDynamic(DYN_ID);
+    // Read Back
+    reg.PERIPHERAL0().REGISTER3().read(READ_ID);
+    // Compare value (PF)
+    reg.PERIPHERAL0().REGISTER4().setValue(INIT_VALUE).compare();
+    // Pattern call
+    rdi.func().label("test").execute();
+    // DC tests
+    rdi.dc(ID_DC_MEAS).pin("DATA1").iForce(0).vMeas().measWait(2 ms).execute();
+    rdi.hwRelay().pin("DATA1").setOff("ALL").execute();
+
+    /// Debug : Dump Register
+    RA_REGISTER_DUMP("ID_DUMP1");
+
+    RA_REGISTER_DUMP("ID_DUMP2", [vector&lt;ULONG64&gt;&amp; addressList]);
+
+    /// Continue with Register Operation
+    reg.PERIPHERAL1().REGISTER0().setValue(INIT_VALUE).write();
+
+RDI_END();</pre><div></div>
+								</td>
+							</tr>
+							<tr>
+								<td>Dump output: </td>
+							</tr>
+							<tr>
+								<td>
+									<div></div><pre class="prettyprint linenums copyable">=====================================================
+Register Dump : ID_DUMP1
+=====================================================
+site[1] : Ax207f, Dx00, PERIPHERAL0().REGISTER0
+site[1] : Ax2090, Dx00, PERIPHERAL0().REGISTER1
+site[1] : Ax2080, Dx00, PERIPHERAL0().REGISTER2
+site[1] : Ax2091, Dx00, PERIPHERAL0().REGISTER3
+site[1] : Ax41df, Dx00, PERIPHERAL0().REGISTER4
+site[1] : Ax4321, Dx00, PERIPHERAL1().REGISTER0
+=====================================================
+Register Dump : ID_DUMP1
+=====================================================
+site[2] : Ax207f, Dx00, PERIPHERAL0().REGISTER0
+site[2] : Ax2090, Dx00, PERIPHERAL0().REGISTER1
+site[2] : Ax2080, Dx00, PERIPHERAL0().REGISTER2
+site[2] : Ax2091, Dx00, PERIPHERAL0().REGISTER3
+site[2] : Ax41df, Dx00, PERIPHERAL0().REGISTER4
+site[2] : Ax4321, Dx00, PERIPHERAL1().REGISTER0</pre><div></div>
+								</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		<section class="section"><h2>Register tracking</h2>
+			
+			<div class="p">The RA library uses <span class="keyword">RA_PRINT_TRACKING()</span> for printing changed values from
+				all the registers in the last RDI_BEGIN/RDI_END block.<table class="ly"><caption></caption><colgroup><col style="width:550pt"></colgroup><tbody>
+							<tr>
+								<td><code>RA_PRINT_TRACKING()</code> in test methods:</td>
+							</tr>
+							<tr>
+								<td>
+									<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  ...
+  // Register Write
+  reg.PERIPHERAL0().REGISTER2().setValue(INIT_VALUE).write();
+
+  // Field Write [3:2]
+  reg.PERIPHERAL0().REGISTER1().setField_FIELDB(1).write();
+  ...
+  // Continue with Register Operation
+  reg.PERIPHERAL1().REGISTER0().setValue(INIT_VALUE).write();
+RDI_END();
+
+RA_PRINT_TRACKING(RA::GROUP_BY_OPERATION);
+RA_PRINT_TRACKING(RA::GROUP_BY_REGISTER);</pre><div></div>
+								</td>
+							</tr>
+							<tr>
+								<td>Register tracking result: </td>
+							</tr>
+							<tr>
+								<td>
+									<div></div><pre class="prettyprint linenums copyable">==================================================================
+Register Tracking (Group by Operation) : _TestBasics_bk1
+==================================================================
+  [0] Register : PERIPHERAL0.REGISTER2, Address : 0x207f, Value : 0xab
+                 Fields { DATA0[3:0]:b,  }
+  [1] Register : PERIPHERAL0.REGISTER1, Address : 0x2090, Value : 0xa7
+                 Fields { FIELDE[7:7]:1, FIELDB[3:2]:1, FIELDC[4:4]:0, FIELDD[6:5]:1, FIELDA[1:0]:3,  }
+  [2] Register : PERIPHERAL0.REG_CALIB1, Address : 0x2080, Value : [ Site1 : 0x67, Site2 : 0xc6 ]
+  [3] Register : PERIPHERAL0.REGISTER3, Address : 0x2091, Value : 0xeb
+                 Fields { FIELDA[3:0]:1, FIELDB[6:4]:1, FIELDC[7:7]:1,  }
+  [4] Register : PERIPHERAL1.REGISTER0, Address : 0x41df, Value : 0xab
+                 Fields { FIELDSAMP[6:3]:5, FIELDZERO[2:0]:3,  }
+==================================================================
+Register Tracking (Group by Register): _TestBasics_bk1
+==================================================================
+  Register : Ax207f, PERIPHERAL0.REGISTER2
+      [0] Register : PERIPHERAL0.REGISTER2, Address : 0x207f, Value : 0xab
+                     Fields { DATA0[3:0]:b,  }
+  Register : Ax2080, PERIPHERAL0.REG_CALIB1
+      [0] Register : PERIPHERAL0.REG_CALIB1, Address : 0x2080, Value : [ Site1 : 0x67, Site2 : 0xc6 ]
+  Register : Ax2090, PERIPHERAL0.REGISTER1
+      [0] Register : PERIPHERAL0.REGISTER1, Address : 0x2090, Value : 0xa7
+                     Fields { FIELDE[7:7]:1, FIELDB[3:2]:1, FIELDC[4:4]:0, FIELDD[6:5]:1, FIELDA[1:0]:3,  }
+  Register : Ax2091, PERIPHERAL0.REGISTER3
+      [0] Register : PERIPHERAL0.REGISTER3, Address : 0x2091, Value : 0xeb
+                     Fields { FIELDA[3:0]:1, FIELDB[6:4]:1, FIELDC[7:7]:1,  }
+  Register : Ax41df, PERIPHERAL1.REGISTER0
+      [0] Register : PERIPHERAL1.REGISTER0, Address : 0x41df, Value : 0xab
+                     Fields { FIELDSAMP[6:3]:5, FIELDZERO[2:0]:3,  }</pre><div></div>
+								</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		<section class="section"><h2>Register Cache Memory Print </h2>
+			
+			<div class="p">The RA library uses <span class="keyword">RA_PRINT_REGISTER_MEMORY()</span> to print the register cache
+				memory for Partial Bit Field Write operation (RMW). <table class="ly"><caption></caption><colgroup><col style="width:550pt"></colgroup><tbody>
+							<tr>
+								<td><span class="keyword">RA_PRINT_REGISTER_MEMORY()</span> in test method:</td>
+							</tr>
+							<tr>
+								<td>
+									<div></div><pre class="prettyprint linenums copyable">RDI_BEGIN();
+  reg.PERIPHERAL().REGISTER0().setField_FIELDB(1).write();
+RDI_END();
+
+// print register mem
+RA_PRINT_REGISTER_MEMORY();
+</pre><div></div>
+								</td>
+							</tr>
+							<tr>
+								<td>Printing cache memory</td>
+							</tr>
+							<tr>
+								<td>
+									<div></div><pre class="prettyprint linenums copyable">========================================================
+RA_PRINT_REGISTER_MEMORY() of testsuite : TestBasics
+========================================================
+PERIPHERAL0.REGISTER0     , Ax207f, Value : 0xab
+PERIPHERAL0.REGISTER1     , Ax2090, Value : 0xa7
+PERIPHERAL0.REGISTER2     , Ax2080, Value : 0x0
+PERIPHERAL0.REGISTER3     , Ax2091, Value : 0xeb
+PERIPHERAL0.REGISTER4     , Ax41df, Value : 0xab</pre><div></div>
+								</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351490</span><script type="text/javascript">var ti='351490';var tt='RA debugging'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

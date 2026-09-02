@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Writes bit data to a pattern."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>writeBit()</title><meta name="keywords" content="write, Bit"></head><body id="_149044"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149044</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">writeBit()</h1>
+	
+	
+	<div><p>Writes bit data to a pattern.</p>
+		<h2>Syntax</h2><div class="syntax">
+			<div></div><pre class="prettyprint linenums copyable">writeBit(ARRAY_I bitStream,int startBit);
+writeBit(const string &amp;sData, int startBit);  // application for runtime
+writeBit(vector&lt;ARRAY_I&gt; perSiteBitStream, int startBit);</pre><div></div>
+			<p>For pattern generation with bit streams per site, the sizes of all elements in
+					<span class="keyword">ARRAY_I</span> must be the same. The value for a site can be different from the
+				value for another site. The values for all sites cannot be changed at runtime.</p>
+			<p>For more information about bits versus DVCs, see <a href="351019.htm" title="In the pattern generation through the smartVec() class, SmartRDI allows the bit values 0, 1, and 2 specified by some APIs to match with 0, 1, Z or L, H, X device cycles (DVC) defined in your wavetable.">Relationship between bits and device cycles</a>.</p>
+			<table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149044__entry__1">
+								<p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149044__entry__2">
+								<p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__1">
+								<p><span class="keyword">bitStream</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__2">
+								<p>The bit stream to be written to the pattern.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__1">
+								<p><span class="keyword">sData</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__2">
+								<p>The sData of the parameter that can be changed at runtime.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__1">
+								<p><span class="keyword">startBit</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__2">
+								<p>The bit position in pattern, starting from which the specified bit stream or sData to be
+									written on. </p>
+								<p>If the <span class="keyword">startBit</span> parameter is not specified, the default value is
+										<span class="keyword">0</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__1"><span class="keyword">perSiteBitStream</span></td>
+							<td class="colsep-0 rowsep-0" headers="_149044__entry__2">The bit stream per site.</td>
+						</tr>
+					</tbody></table>
+		</div>
+		<h2>Examples</h2><div class="example"><pre class="prettyprint linenums copyable">...
+ARRAY_I bitStream(4);
+bitStream[0]=1;
+bitStream[1]=0;
+bitStream[2]=1;
+bitStream[3]=1;
+
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA1").writeBit(bitStream,4).execute();
+  rdi.smartVec().pin("DATA1").writeBit(bitStream).execute(); // The value of the "startBit" is 0.
+RDI_END();</pre></div>
+		<div class="example">
+			<div class="p">Application for
+				runtime<div></div><pre class="prettyprint linenums copyable">...
+// This data type for writeBit() runtime
+vector&lt;ARRAY_I&gt; runtime_vec_ARRAY_I;
+//Initialize the array with required data
+rdi.runTimeVal("string_runtime_vec_ARRAY_I", runtime_vec_ARRAY_I);
+
+// This data type for writeBit() runtime
+ARRAY_I runtime_ARRAY_I;
+//Initialize the array with required data
+rdi.runTimeVal("string_runtime_ARRAY_I", runtime_ARRAY_I);
+
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA1").writeBit("string_runtime_vec_ARRAY_I",2).execute();
+  rdi.smartVec().pin("DATA3").writeBit("string_runtime_ARRAY_I",4).execute();
+RDI_END();</pre></div>
+		</div>
+		<div class="example">
+			<div class="p">Pattern generation with per-site
+				data<div></div><pre class="prettyprint linenums copyable">...
+vector&lt;ARRAY_I&gt; perSiteBitStream_1,perSiteBitStream_2;
+ARRAY_I dataBit(8);
+dataBit[0] = 1;
+...
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA3").writeBit(perSiteBitStream_1,0).writeData(0x55,8,20).execute();
+  ...
+RDI_END();
+ARRAY_I bitStream(20),bitStream_2(20);
+...
+perSiteBitStream_1.push_back(bitStream);
+perSiteBitStream_2.push_back(bitStream_2);
+...
+RDI_BEGIN();
+  rdi.smartVec().pin("DATA1").writeBit(perSiteStream_1,0).defaultBit(0)
+                .pin("DATA2").readData(4,0).execute();
+    ...
+RDI_END();</pre></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149036.htm" title="The SmartRDI Vector class supports the generation of vector and patterns with simple commands. It provides an easy way to read digital outputs of a device.">SmartRDI: Vector and protocol programming</a></div><div><a href="351019.htm" title="In the pattern generation through the smartVec() class, SmartRDI allows the bit values 0, 1, and 2 specified by some APIs to match with 0, 1, Z or L, H, X device cycles (DVC) defined in your wavetable.">Relationship between bits and device cycles</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.0</li><li>SmartRDI 2.5.1: writeBit() supports to generate patterns with per-site data.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149044</span><script type="text/javascript">var ti='149044';var tt='writeBit()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

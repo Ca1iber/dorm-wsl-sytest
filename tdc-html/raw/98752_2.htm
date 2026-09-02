@@ -1,0 +1,108 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SQST, SQST? - (SeQuencer STate)</title><meta name="keywords" content="SQST_, Se, Quencer, S, Tate"></head><body id="_98752"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98752</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SQST, SQST? - (SeQuencer STate)</h1>
+	
+	
+	<div><p>The <span class="keyword">SQST</span> command serves to control the state of a set of sequencers.
+		This sequencer set is determined by an execution context which consists of a list of ports; it
+		comprises the sequencers that belong to these ports. The ports of a user defined execution context
+		must be a subset of the ports that are contained in the current start label. The port set of this
+		label constitutes the <em>global</em> execution context. For more information on execution contexts
+		see <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a>.</p>
+		<section class="section"><p>Some sequencer states can be set only for the global execution context, and this
+				implies that all user defined contexts will also be set into this state. But the RUN and
+				(indirectly also) the BRK state can be assigned on the execution context level. </p><p>The
+					<span class="keyword">SQST?</span> query returns the maximum current state. </p><p>There are dependencies
+				to the command <a href="98746.htm" title="The command serves two purposes simultaneously. On the one hand, it controls the termination of the sequencers. By default, the complete test is executed once, but the test can also be repeated in an endless loop or stopped before it is completed.">SQGB, SQGB? - (SeQuencer GloBal)</a>, see below.</p><p>Note that the DPS128/DPS64, when
+				starting the sequencer with <code>SQST RUN</code> or with the <a href="29701.htm" title="The SEQUENCER_STATUS API accesses the data container holding the digital sequencer status. You can access the sequencers using the member functions. Note the following restrictions:">SEQUENCER_STATUS run()</a> test method, cannot execute dynamic and static DC actions in
+				parallel. Use <a href="136105.htm" title="Profiling (DC profiling) allows you to measure and display current and voltage waveforms during pattern execution. The tool is also known as DC Profiler and is available in the Hardware perspective.">profiling</a> for measurements in parallel to a dynamic
+				pattern.</p></section>
+		<div class="syntax"><h2>SQST</h2><p><span class="keyword">SQST</span> {<span class="keyword">seq_state</span>}
+					[,"<span class="keyword">exec_context</span>"]</p></div><div class="syntax"><h2>SQST?</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQST?</span> ["<span class="keyword">exec_context</span>"]</pre><p>returns:
+			</p><pre class="prettyprint copyable singleline"><span class="keyword">SQST</span> {<span class="keyword">seq_state</span>}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-bottom"><caption></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="8"><p><span class="keyword">seq_state</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Gives the state of the sequencer: </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">OFF</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In the <span class="keyword">OFF</span> state, both the sequencers and the clock
+									are off. All pins go into the high-z state. </p>
+								<p>This option can only be applied to all execution contexts. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">HALT</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In the <span class="keyword">HALT</span> state, both the sequencer and the clock
+									are off, and the drivers keep their last level or remain in high-z state if already in
+									high-z state. </p>
+								<p>Note that you cannot pass directly from <span class="keyword">HALT</span> to <span class="keyword">OFF</span>
+									or from <span class="keyword">OFF</span> to <span class="keyword">HALT</span>. You must first pass to
+										<span class="keyword">BRK</span> in both cases.</p>
+								<p>This option can only be applied to all execution contexts. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">BRK</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In the <span class="keyword">BRK</span> state, the clock is on and the break
+									waveform is applied to the DUT. </p>
+								<p>This option can only be applied to all execution contexts. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ABRT</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>This is not a sequencer state, but an instruction to change the state of
+									an execution context from <span class="keyword">RUN</span> to <span class="keyword">BRK</span>.
+										<span class="keyword">ABRT</span> requires that an execution context is specified.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CBRK</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>This is not a sequencer state, but a conditional instruction. If no
+									context is in <span class="keyword">BRK</span> or <span class="keyword">RUN</span> state, the state of the
+									global context will be changed to <span class="keyword">BRK</span>. If any context is in
+										<span class="keyword">BRK</span> or <span class="keyword">RUN</span> state, nothing will be done.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">RUN</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>In the <span class="keyword">RUN</span> state, the clock is on and the sequencer applies
+									vectors to the DUT. This option can be applied to a specified execution context.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>Note that if the sequencer state changes
+									from <span class="keyword">OFF</span> or <span class="keyword">BRK</span> to <span class="keyword">RUN</span>, the
+									sequencer runs with the <em>global</em> settings that have previously been defined with <a href="98746.htm" title="The command serves two purposes simultaneously. On the one hand, it controls the termination of the sequencers. By default, the complete test is executed once, but the test can also be repeated in an endless loop or stopped before it is completed.">SQGB, SQGB? - (SeQuencer GloBal)</a>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">exec_context</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>An execution context. In the command, this
+									parameter can only be added to the sequencer state <span class="keyword">RUN</span> and the
+									instruction <span class="keyword">ABRT</span>. It must be added if <span class="keyword">ABRT</span> is
+									specified. For more information on execution contexts see <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a> .</p>
+								<p>If the query is issued without a context, then <span class="keyword">RUN</span> will be returned if
+									there is at least one context that is in the <span class="keyword">RUN</span> state.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>AC tests.</p><p>Connect or disconnect the test system, see
+					<a href="10489.htm">Relays Control Commands</a>. </p></div>
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint copyable singleline">SQST RUN</pre><p>This example starts a global sequencer run.
+			</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.2.0:  An execution context can now be specified for the RUN and the new ABRT
+					option.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98752</span><script type="text/javascript">var ti='98752';var tt='SQST, SQST? - (SeQuencer STate)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

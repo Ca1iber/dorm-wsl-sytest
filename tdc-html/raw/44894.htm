@@ -1,0 +1,120 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>User Flag</title></head><body id="_44894"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 44894</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">User Flag</h1>
+	
+	
+	<div><p></p>
+		<section class="section"><h2><kbd class="userinput">get</kbd></h2><p><kbd class="userinput">IsUserFlagDefined
+				</kbd>checks whether the flag with the name *name is defined. It returns 0 when not
+				defined, otherwise returns 1.</p><p><kbd class="userinput">GetUserFlag</kbd> retrieves the current
+				value of the user defined flag named,<kbd class="userinput">*flag</kbd>, and deposits it in
+					<kbd class="userinput">long</kbd>, pointed to by <kbd class="userinput">*value</kbd>. The flag must have
+				been declared as a userflag (= int). </p><p><kbd class="userinput">GetUserFlagOfSite</kbd> lets you
+				specify which site should be used (1,2,...), while <kbd class="userinput">GetUserFlag</kbd> assumes
+				the site currently in focus (for example during sequential User Procedure execution). In case of
+				single site test the first site is always in focus. Use a "string" constant to identify the flag
+				required.</p><p><kbd class="userinput">GetAllTestflowUserFlags</kbd> retrieves the names and values of
+				all the user flags and stores them in the relevant C
+				structure.</p><pre class="prettyprint linenums copyable">int IsUserFlagDefined(char *name)
+long  GetUserFlag(char *flag, long *value)
+long  GetUserFlagOfSite(char *flag, long site, long *value)
+long  GetAllTestflowUserFlags( CI_CPI_USER_FLAG_LIST *user_flag_list)</pre><p>The
+				values returned are as follows, </p><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>ok</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>error on a name</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>-1</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>internal error</p>
+							</td>
+						</tr>
+					</tbody></table>
+			<div class="p">The following example code snippet shows how the function
+					<kbd class="userinput">IsUserFlagDefined()</kbd> is used to check if the
+					<code>RDI_INFO_LEVEL</code> flag is defined in the
+				testflow.<div></div><pre class="prettyprint linenums copyable">char testflag[] = "RDI_INFO_LEVEL";
+int ok = IsUserFlagDefined(testflag);</pre></div><p>The following example shows how the function
+					<code>GetUserFlag()</code> <kbd class="userinput"></kbd>is used,
+				</p><pre class="prettyprint linenums copyable">void CiExample2(char  *parm_list_input,
+  int    parmcount,
+  char  *comment_out,
+  int   *comlen,
+  int   *state_out)
+{
+  /* A variable name is to be passed as parameter */
+
+  long   type;
+  long   flag_var;
+  double double_var;
+  char   str_var[CI_CPI_MAX_USER_STRING_LEN+1]
+  *comment_out='\0';
+  *comlen=0;
+
+  if (GetUserType(param_list_input,&amp;type))
+     {
+     Errorhandling("Cannot retrieve variable type.");
+     *state_out=CI_TEST_FAIL;
+     return;
+     }
+
+  switch(type)
+    {
+    case CI_CPI_DBL:
+      {
+        GetUserDouble(param_list_input,&amp;double_var); 
+        fprintf(stderr,"Value of %s is %lf.\n",
+                 param_list_input,double_var);
+      }
+
+    case CI_CPI_FLG:
+      {
+        GetUserFlag(param_list_input,&amp;flag_var);
+        fprintf(stderr,"Value of %s is %ld.\n",
+                 param_list_input,flag_var);
+      }
+
+    case CI_CPI_STR:
+      {
+        GetUserString(param_list_input,str_var);
+        fprintf(stderr,"Value of %s is \"%s\".\n",
+                 param_list_input,str_var);
+      }
+
+    }
+  *state_out = CI_CALL_PASS;
+}
+</pre><p>The next example shows how the function
+					<code>GetAllTestflowUserFlags()</code> is
+			used.</p><pre class="prettyprint linenums copyable">CI_CPI_USER_FLAG_LIST user_flag_list;
+CI_CPI_USER_FLAG *pFlag;
+int i = 0;
+If (GetAllTestflowUserFlags(&amp;user_flag_list)==0 )
+{
+  for (i=0; i&lt; user_flag_list.number_of_user_flag; i++)
+  {
+    pFlag = &amp; user_flag_list.user_flags[i];
+    printf("the user flag name is %s\n", pFlag-&gt;name);
+  }
+}</pre></section>
+		<section class="section"><h2><kbd class="userinput">set</kbd></h2><p><kbd class="userinput">SetUserFlag</kbd> sets the
+				value of the user defined flag <kbd class="userinput">*flag</kbd> with the value
+					<kbd class="userinput">value</kbd>. The flag specified must have been declared as a userflag. Flags
+				are actually declared as <kbd class="userinput">int</kbd>s, but are defined as
+					<kbd class="userinput">long</kbd>s within this function.
+					</p><p><kbd class="userinput">SetUserFlagOfSite</kbd> lets you specify which site should be used
+				(1,2,...), while <kbd class="userinput">SetUserFlag</kbd> assumes the site currently in focus (for
+				example during sequential User Procedure execution). In case of single site test the first site
+				is always in focus. </p><p>Use a "string" constant to identify the flag required.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.3:  New function GetAllTestflowUserFlags().</li><li>SmarTest 7.4.0:  New function IsUserFlagDefined().</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 44894</span><script type="text/javascript">var ti='44894';var tt='User Flag'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

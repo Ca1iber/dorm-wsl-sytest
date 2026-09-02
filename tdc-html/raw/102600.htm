@@ -1,0 +1,41 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When you are working with values of sizes other than 64 bits, you should be aware of certain behaviors, particularly when values of different sizes are combined in arithmetic expressions."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Special considerations</title></head><body id="_102600"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102600</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Special considerations</h1>
+	
+	
+	<div><p>When you are working with values of sizes other than 64 bits, you should be aware of
+		certain behaviors, particularly when values of different sizes are combined in arithmetic
+		expressions.</p>
+		<section class="sectiontitlefake"><h2>Behaviors</h2></section>
+		<section class="section"><h3>Floating-point values</h3><p>Expressions with more than 64 bits cannot be
+				combined with floating-point values in one expression.</p></section>
+		<section class="section"><h3>Mismatch of value and size</h3><p>If a number with fewer bits is expressed as a
+				value with more bits, the value is padded with zeroes. For
+				example:</p><pre class="prettyprint copyable singleline">a = :96:0xffffffffffffffff;      /* a == 0x00000000ffffffffffffffff */</pre><p>If
+				a number with more bits is expressed as a value with fewer bits, the number is truncated. For
+				example:</p><pre class="prettyprint copyable singleline">a = :64:0xeeeeffffffffffffffffffffffff;      /*a == 0xffffffffffffff */</pre></section>
+		<section class="section"><h3>Missing size specification</h3><p>If a value (including a variable) in an
+				arithmetic expression has no size specifier, it is assumed to be a 64-bit value. This can lead
+				to unintuitive results. For
+				example:</p><pre class="prettyprint linenums copyable">a = :48: -1:
+b = a &gt;&gt; 1;  /*b == 0x7fffffffffff */</pre><p>Compare:</p><pre class="prettyprint linenums copyable">a = :48: -1:
+b = :48: a &gt;&gt; 1;  /*b == 0x7fffffffffff */</pre></section>
+		<section class="section"><h3>Multiplication, division, addition, and subtraction</h3><p>In calculations with
+				values of different sizes, the value with fewer bits is padded with zeroes. The result always
+				has the same number of bits as the larger value. For
+			example:</p><pre class="prettyprint linenums copyable">a = :96:0xffffffffffffffffffffffff;    /* a = -1 */
+b = :64:0x0000000000000009;            /* b = 9  */
+c = a + b;     /* c = 0x000000000000000000000008 (8) */</pre></section>
+		<section class="section"><h3>Bitwise operations</h3><p>As with addition, described above, the smaller value
+				is padded and the result has the size of the larger
+			value:</p><pre class="prettyprint linenums copyable">a = :64:-1;    /* a =         0xffffffffffffffff */
+b = :96:-1;    /* b = 0xffffffffffffffffffffffff */
+c = a &amp; b;     /* c = 0x00000000ffffffffffffffff */</pre></section>
+		<section class="section"><h3>Bit shift operations</h3><p>Left bit shifts (&lt;&lt;) are unsigned; the sign
+				bit is not extended. For
+			example:</p><pre class="prettyprint linenums copyable">c = :96:-1;     /* c = 0xffffffffffffffffffffffff (-1) */
+e = c &gt;&gt; 2;     /* e = 0x3fffffffffffffffffffffff      */</pre></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="68695.htm" title="MTL supports expressions with a size of more than 64 bits. This is especially useful for testing devices with very wide data paths.">Expressions with more than 64 bits</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102600</span><script type="text/javascript">var ti='102600';var tt='Special considerations'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

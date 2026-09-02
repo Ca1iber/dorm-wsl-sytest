@@ -1,0 +1,76 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The FFPM? query retrieves information on the order of the pins of a FFCI? query."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>FFPM? (First Failing cycle information Pin Mapping)</title><meta name="keywords" content="FFPM_"></head><body id="_144138"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 144138</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">FFPM? (First Failing cycle information Pin Mapping)</h1>
+	
+	
+	<div><p>The <span class="keyword">FFPM?</span> query retrieves information on the order of the pins of a
+			<a href="98603.htm" title="The FFCI? query retrieves information on the first n failed cycles for all configured O and IO pins in the current mode context. If a port is specified, SmarTest returns only the pins from that port. The port should correspond to one of the pattern ports used in the last functional test execution.">FFCI?</a> query.</p>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">FFPM? [port]</pre><p>returns:</p><pre class="prettyprint copyable singleline">FFPM {no_pins}, {Pinlist}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">port</var></td>
+							<td class="colsep-0 rowsep-1">Specifies the port for the pins for which information is to be
+								returned. If you omit this parameter information will be returned
+								for the default port @ to which all configured pins belong.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">no_pins</var></td>
+							<td class="colsep-0 rowsep-1">The number of pins, which belong to the specified port.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">PinList</var></td>
+							<td class="colsep-0 rowsep-1">
+								<p>List of pin names, corresponding to the order in the <a href="98603.htm" title="The FFCI? query retrieves information on the first n failed cycles for all configured O and IO pins in the current mode context. If a port is specified, SmarTest returns only the pins from that port. The port should correspond to one of the pattern ports used in the last functional test execution.">FFCI</a> pin result block (from MSB of
+									first byte to LSB in the last byte).</p>
+								<p>For more information, refer to the <span class="keyword">FFCI</span>
+									parameter description for <a href="98603.htm#_98603__r_specData">#spec(data)</a>.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p><a href="55750.htm" title="The error map is the basis for analyzing the test results. SmarTest uses the error map to record information about failing test cycles.">Error Map</a></p></div>
+		
+		
+		<h2>Example</h2><div class="example">
+			<div class="p"><div>
+				
+				<p>The pogo numbers of the following example setup are assigned in descending order
+					to emphasize that the order of the pogo numbers and not the order of the
+					definition by <a href="98550.htm" title="The DFPN command allocates a pin name to a digital or DC Scale channel. The DC Scale channel will be in PMU mode by this allocation. The pin name is the name by which the software identifies the pin. The DFPN? query returns a list of channels and their assigned pin names.">DFPN</a> matters.</p><pre class="prettyprint linenums copyable">DFPN 11105,"",(pinA)
+DFPN 11104,"",(pinB)
+DFPN 11103,"",(pinC)
+DFPN 11102,"",(pinD)
+DFPN 11101,"",(pinE)
+CONF IO,F160,(pinA)
+CONF I,F160,(pinB,pinC)
+CONF O,F160,(pinD,pinE)</pre><div></div>
+				<p>The <span class="keyword">FFCI?</span> command will sort <span class="keyword">I</span> /
+						<span class="keyword">IO</span> pins based on their pogo number defined for the first
+					site resulting in the pin list <span class="keyword">pinE</span>, <span class="keyword">pinD</span>,
+						<span class="keyword">pinA</span>. The two pins <span class="keyword">pinB</span> and
+						<span class="keyword">pinC</span> have no output capability and, therefore, will not
+					be included in the FFCI? answer.</p><p>Assuming a test has been executed where
+						<span class="keyword">pinA</span> passes, but <span class="keyword">pinD</span> and
+						<span class="keyword">pinE</span> fail for every cycle, the <span class="keyword">FFCI?</span>
+					answer for the first two failing cycles now would look like this:</p><pre class="prettyprint linenums copyable">FFCI? 2
+FFCI 2,3,#218
+  00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  11000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+  00000001 11000000</pre><div></div>
+				<div class="p">The binary data of the answer is to be interpreted as follows:<ul>
+						<li>Byte 1 … 8: Address of the first cycle (<code>00000000</code> …
+								<code>00000000</code> = 0)</li>
+						<li>Byte 9: Pin data <code>11000000</code></li>
+						<li>Byte 10 … 17: Address of the second cycle (<code>00000000</code> …
+								<code>00000001</code> = 1)</li>
+						<li>Byte 18: Pin data <code>11000000</code></li>
+					</ul></div>
+				<p>Byte 9 and 18 show that the first two pins on the left side (MSB) are failing.
+					According to the sorting scheme that is defined in the <span class="keyword">FFCI</span>
+					parameter description for <a href="98603.htm#_98603__r_specData">#spec(data)</a>,
+					the failed pins are <span class="keyword">pinE</span> (Channel 11101 and
+						<span class="keyword">pinD</span> (Channel 11102).</p></div>For the configuration defined above, the
+					<code>FFPM?</code> command will return the following data:</div>
+			<div></div><pre class="prettyprint copyable singleline">FFPM 3,(pinE,pinD,pinA)</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="98603.htm" title="The FFCI? query retrieves information on the first n failed cycles for all configured O and IO pins in the current mode context. If a port is specified, SmarTest returns only the pins from that port. The port should correspond to one of the pattern ports used in the last functional test execution.">FFCI? - (First Failed Cycle Information)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.2.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 144138</span><script type="text/javascript">var ti='144138';var tt='FFPM? (First Failing cycle information Pin Mapping)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

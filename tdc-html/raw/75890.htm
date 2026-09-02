@@ -1,0 +1,95 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="DC measurement parameters can be defined by using variables. If a testflow containing such a variable dependent DC test is repeated in a loop, then the values of the variables may be different for each testflow repetition. In this case a new DC set, or a new measurement set, would be created with each new testflow execution, and the testflow would eventually fall back on using only one DC set, as described in DC set management."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Managing DC Tests with Variable Parameters</title></head><body id="_75890"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 75890</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Managing DC Tests with Variable Parameters</h1>
+	
+	
+	<div><p>DC measurement parameters can be defined by using variables. If a testflow containing
+		such a variable dependent DC test is repeated in a loop, then the values of the variables may be
+		different for each testflow repetition. In this case a new DC set, or a new measurement set, would
+		be created with each new testflow execution, and the testflow would eventually fall back on using
+		only one DC set, as described in <a href="75771.htm" title="Every DC test stores its measurement parameters in a DC set, which is identified by a number. All those DC tests that (can) define a PPMU test use a common pool of DC sets, which are stored in the Sequencer Memory: if the firmware commands they issue specify the same DC set number, they refer to the same object.">DC set management</a>.</p>
+		<p>To avoid such a DC set overflow, the </p>
+		<ul>
+			<li><kbd class="userinput">DPS_TASK</kbd></li>
+			<li><kbd class="userinput">SPMU_TASK</kbd></li>
+			<li><kbd class="userinput">TASK_LIST</kbd></li>
+			<li><kbd class="userinput">PATTERN_CONTROLLER</kbd></li>
+		</ul>
+		<p>API's provide a restore mechanism for repeated definitions of measurement parameters within one
+			class object of the <kbd class="userinput">DPS_TASK</kbd> or <kbd class="userinput">SPMU_TASK</kbd> API, or,
+			in the case of the <kbd class="userinput">TASK_LIST</kbd> and <kbd class="userinput">PATTERN_CONTROLLER</kbd>
+			API, within one class object of a DC task API. The mechanism will be explained for the
+				<kbd class="userinput">TASK_LIST</kbd> API; the <kbd class="userinput">PATTERN_CONTROLLER</kbd> API works
+			exactly the same way. For the <kbd class="userinput">DPS_TASK</kbd> and the
+				<kbd class="userinput">SPMU_TASK</kbd> API<kbd class="userinput">,</kbd> replace "DC task" by "collection of
+			parameters", and "measurement set" by "DC set" in the following paragraphs. A similar mechanism
+			is employed by the <kbd class="userinput">SEARCH_FUNC_TASK</kbd> API, see <a href="70897.htm" title="Search conditions can be defined by using variables. If a testflow containing such a variable dependent parallel search is repeated in a loop, then the values of the variables may be different for each execution of the search. In this case a new search set would be created with each testflow execution, and the testflow would fall back on using only one search set after 126 loop repetitions.">Managing Search Conditions with Variables</a>.</p>
+		<p>The <kbd class="userinput">TASK_LIST</kbd> API serves to download and execute measurement sets
+			defined by the DC task API's <kbd class="userinput">PPMU_SETTING</kbd>,
+				<kbd class="userinput">PPMU_CLAMP</kbd>, <kbd class="userinput">PPMU_RELAY</kbd>, and
+				<kbd class="userinput">PPMU_MEASURE</kbd> (see <a href="75653.htm" title="If a testflow containing several DC tests is to be executed in a loop, and the measurement parameters are to be downloaded only once, these parameters must be stored at different locations in order that the parameters of all tests are available for the second and all subsequent testflow repetitions. Most DC test API's achieve this by creating a new DC set for every additional test. But some PPMU API's use the DC sets more economically, as will now be explained.">Using DC Sets Economically: DC Sets and Measurement Sets</a>). If a class object of one of
+			these API's defines more than one task, the first of these definitions is considered as the
+			original. A new measurement set will be created for this definition, unless a set with exactly
+			these conditions already exists. The following definitions are regarded as temporary
+			modifications. They will be written into the same measurement set that holds the parameters of
+			the first definition (and will override the original). But after termination of the test method,
+			the modifications will be canceled, so that the measurement set will contain the original
+			definition again at the next testflow execution.</p>
+		<div class="note"><span class="title">Note</span> You cannot introduce new pins with the later modifications. You can only modify
+			the parameters of the pins that occur in the original definition.</div><p>With this restore mechanism, you can solve the problem of variable dependent DC tasks. Namely,
+			you must first create a variable-free DC task with dummy values for the respective parameters,
+			and subsequently overwrite this original definition with the genuine parameters that depend on
+			variables. Since the original values are restored, the API class object will find a measurement
+			set containing exactly the dummy values at the next test execution, and will therefore reuse this
+			set for the following variable dependent modifications. </p>
+		<p>Since the dummy values only serve to enable reuse of the measurement set, the resulting set
+			must be downloaded, but not be executed. This is achieved by using the
+				<kbd class="userinput">setup()</kbd> member function of the <kbd class="userinput">TASK_LIST</kbd> API. The
+				<kbd class="userinput">setup()</kbd> function creates a new measurement set if no set with exactly
+			these values exists, but it does not execute the measurement. </p>
+		<p>Thus a DC task with variables should be coded according to the following schema:</p>
+		
+		<ol>
+			<li>Define the DC task using dummy values instead of variables.</li>
+			<li>Apply the <kbd class="userinput">setup()</kbd> member function of the
+					<kbd class="userinput">TASK_LIST</kbd> API to download the task.</li>
+			<li>Modify the task using variables as required.</li>
+			<li>Apply the <kbd class="userinput">execute()</kbd> member function of the
+					<kbd class="userinput">TASK_LIST</kbd> API to download the modifications and execute the measurement
+				set. </li>
+		</ol>
+		<p>The following figure illustrates the principles:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="78559.png" alt="Reuse of DC Sets for Variable Parameters">
+			</figure></div>
+		<p>The following is a multi-site code example:</p>
+		<div></div><pre class="prettyprint linenums copyable">PPMU_MEASURE m1;
+ON_FIRST_INVOCATION_BEGIN();
+  PPMU_SETTING s1;
+  PPMU_RELAY r1;
+  s1.pin("IN1").iRange("100uA");
+  s1.pin("IN1").iForce(100 uA).min(50 mV).max(100 mV);
+  r1.pin("IN1").status("PPMU_ON");
+  m1.pin("IN1").execMode("GPF");
+  TASK_LIST t1;
+  t1.add(s1).add(r1).add(m1);
+  t1.setup();
+
+  FOR_EACH_SITE_BEGIN(); 
+    DOUBLE var = rand() % 6; 
+    s1.pin("IN1").iRange("100uA");
+    s1.pin("IN1").iForce(100 uA).min(var/1000 V).max((var+1)/1000 V);
+  FOR_EACH_SITE_END();
+
+  t1.execute();
+ON_FIRST_INVOCATION_END();
+Boolean pf = m1.getPassFail();</pre><div></div>
+		<p>The example uses the <kbd class="userinput">rand()</kbd> function to assign different values to the
+			variable <kbd class="userinput">var</kbd> in offline mode for every loop repetition. In practice, the
+			value of the variable will usually be determined by a previous measurement.</p>
+		<div class="note"><span class="title">Note</span>  In a multisite test program, the dummy setup will be restored at the end of the
+			first invocation of the first site. This is not necessarily the end of the testflow.</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 75890</span><script type="text/javascript">var ti='75890';var tt='Managing DC Tests with Variable Parameters'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="To utilize the advantage of the non-blocking execution and as stated in previous sections, a digital and an analog sequencer must be running concurrently for the advantage of cost benefits. The reference to digital capture is only related to specific tests where analog sequencers are active which also require digital capture."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Multiple analog tests during single digital sequence</title></head><body id="_57385"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 57385</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Multiple analog tests during single digital sequence</h1>
+	
+	
+	<div><p>To utilize the advantage of the non-blocking execution and as stated in previous
+		sections, a digital and an analog sequencer must be running concurrently for the advantage of cost
+		benefits. The reference to digital capture is only related to specific tests where analog
+		sequencers are active which also require digital capture. </p>
+		<p>To perform a non-blocking test, the following elements needed:</p>
+		<ul>
+			<li>The non-blocking API</li>
+			<li>Triggers to be used as flags for operational control and sequencer synchronization</li>
+			<li>Match loops to act as waiting statements for synchronization purposes only.</li>
+		</ul>
+		<p>The flow diagram shown in the <em><a href="57381.htm" title="An example of the testmethod sequence and flow for an ADC using non-blocking digital capture is illustrated below.">Non-blocking digital capture example</a></em> demonstrates the ADC portion of the
+			concurrent test. </p>
+		<ul>
+			<li>The sequence to the right is the testmethod control in the testsuite. </li>
+			<li>The left side of the diagram shows the digital sequence. </li>
+			<li>The center of the diagram shows the arbitrary waveform generator (AWG).</li>
+		</ul>
+		<p>The testsuite enables the analog instruments, and then starts all digital sequences for all
+			ports by executing <kbd class="userinput">NB_Digital_Capture</kbd>. </p>
+		<ul>
+			<li>The digital sequence sends a trigger to the waiting AWG. </li>
+			<li>The AWG then starts sending the analog signal (defined in the active analog sequence) to the
+				DUT. </li>
+			<li>The digital sequence captures the output of the DUT ADC. </li>
+			<li>The digital sequence is then paused by a match loop that is waiting for the testmethod to
+				receive the availability flag from the AGW in order to change the utility line (flag) and allow
+				continuation of the digital execution. </li>
+			<li>The first test sequence is complete and it is time to switch analog resources. </li>
+		</ul>
+		<p>In the mean time, any digital execution performed at another port is not effected by these
+			changes. </p>
+		<p>The process of setting flags through the utility line "ON" and "OFF" continues for as many
+			times as needed.</p>
+		<p>When all the tests are complete, control is returned to the testmethod at the
+				<kbd class="userinput">NB_Digital_Capture_end</kbd> that is waiting for test completion. </p>
+		<p>After this: </p>
+		<ul>
+			<li>All the analog test results are retrieved and calculated. </li>
+			<li>The digital portion of the test operation is executed in parallel. </li>
+			<li>Uploading of the captured data is performed at the end of the digital sequencer. </li>
+			<li>The analog result calculations are serial.</li>
+		</ul>
+		<p>The following sections will describe the setup for the multiple analog test technique.</p>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 57385</span><script type="text/javascript">var ti='57385';var tt='Multiple analog tests during single digital sequence'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

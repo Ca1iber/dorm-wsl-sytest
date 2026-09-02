@@ -1,0 +1,162 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This test method measures frequency by digital capture on designated pins of the DUT. The test method can be used to measure the frequency of synchronous or asynchronous outputs of a device."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Frequency_byDigitalCapture</title></head><body id="_91086"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91086</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Frequency_byDigitalCapture</h1>
+	
+	
+	<div><p>This test method measures frequency by digital capture on designated pins of the DUT.
+		The test method can be used to measure the frequency of synchronous or asynchronous outputs
+		of a device.</p>
+		<p>The test method performs a digital capture test on the desired pins specified in a vector
+			variable (see <a href="19952.htm" title="Many test applications in the field of V93000 testing require the test system to be capable of acquiring large amounts of digital output data of a device at a high data rate, and storing this data for later analysis and data processing. This is called digital capturing.">Using Digital Capture</a> for details of performing a digital capture test). Then it
+			analyzes the digital capture data to determine the frequency. </p>
+		<section class="section"><h2>Algorithms to calculate the frequency</h2><p>Two algorithms are provided to
+				calculate the frequency:</p><ul>
+				<li><strong>FFT (Tabei-Ueda Interpolation)</strong></li>
+			</ul><p>In this algorithm, an FFT is done and the interpolation algorithm is applied to the FFT
+				frequency data array. It takes the maximum peak bin and its immediate neighboring bins into
+				account to interpolate the real frequency. It assumes the real frequency lies between the bins
+					K<sub>max</sub> and K<sub>neighbor</sub>. K<sub>max</sub> is the maximum peak bin number and
+					K<sub>neighbor</sub> is its highest direct neighbor. Assuming V(K<sub>max</sub>) and
+					V(K<sub>neighbor</sub>) being the respective bin values of K<sub>max</sub> and K<sub>neighbor
+				</sub>(the unit is V, no logarithmic scale), the offset of the real frequency from the maximum
+				bin K<sub>max </sub>is calculated as,</p><div class="p"><figure class="fignone">
+					<img src="93545.png" alt="Formula">
+				</figure></div><p>If K<sub>max</sub>&gt;K<sub>neighbor</sub> , then</p><div class="p"><figure class="fignone">
+					<img src="93548.png" alt="Formula1">
+				</figure></div><p>If K<sub>neighbor</sub>&gt;K<sub>max</sub> , then</p><div class="p"><figure class="fignone">
+					<img src="93549.png" alt="Formula2">
+				</figure></div><p>The interpolated frequency can be calculated by multiplying the interpolated index
+				with the frequency resolution of the FFT,</p><div class="p"><figure class="fignone">
+					<img src="93550.png" alt="Formula">
+				</figure></div><ul>
+				<li><strong>Linear Regression Fit</strong></li>
+			</ul><p>In this algorithm the positions of Low-to-High transitions in the captured data array is
+				plotted. The regression line can be obtained from the plot. For the actual calculation of the
+				regression line, the DSP_REG() API can provide the regression coefficient and regression
+				offset.</p><div class="p"><figure class="fignone">
+					
+					<img src="94124.png" alt="Low-to-High transition plot">
+				</figure></div><p>The slope of the regression line above corresponds to the period. The frequency can
+				be calculated by</p><div class="p"><figure class="fignone">
+					<img src="93552.png" alt="Formula4">
+				</figure></div><p>As this method utilizes the least square calculation to obtain the regression line,
+				the deviation of the interval between transitions must follow Gaussian distribution. If the
+				deviation does not follow Gaussian distribution, the FFT method is recommended.</p><p>You can
+				choose to use FFT (Tabei-Ueda Interpolation) or Linear Regression Fit algorithm to calculate the
+				frequency.</p></section>
+		<section class="section"><h2>Cons and Pros</h2><p>The FFT algorithm has a low noise sensitivity because it
+				only uses the max bin and its neighboring bins of the signal spectrum. But this algorithm needs
+				clear max bin in spectrum because it use the max bin and its neighbor to calculate the
+				frequency.</p><p>Linear Regression Fit is well suited for duty cycle distortion or effects that
+				create a spur higher than the fundamental. But it is sensitive to noise due to the use of high
+				bandwidth comparators. (Duty cycle distortion is the difference in the mean pulse width of "1"
+				pulses compared to the mean pulse width of "0" pulses in a clock like bit sequence.)</p><p>This test method supports test table. But you need to enter the test names manually in
+			the parameter. You can use both test table and testflow limits in a testflow. The test table has
+			higher priority than testflow limits. If a test name used in the test flow is defined in both
+			test table and testflow limits, the value defined in the test table will be used.</p><table><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1" id="_91086__entry__1"><p>Parameters</p>
+							</th>
+							<th class="colsep-1" id="_91086__entry__2"><p>Type</p>
+							</th>
+							<th class="colsep-1" id="_91086__entry__3"><p>Decription</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_91086__entry__1"><p><span class="keyword">vectorVariableName</span></p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__3"><p>The vector variable name to perform digital capture.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_91086__entry__1"><p><span class="keyword">algorithm</span></p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__3"><p>FFT or LinearFit. </p>
+								<p>Default is FFT.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_91086__entry__1"><p><span class="keyword">samplePeriod</span></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__3"><p>Digital capture sample period on the pins to be measured. The sample period is the
+									time span between two consecutive capture actions. It depends on the tester period and the
+									number of capture actions executed by the waveform.</p>
+								<p>This parameter is used to evaluate the frequency in both FFT and LinearFit algorithms.
+									(For details, see the source file <em>ClassACTestUtil.h</em> in the directory
+										<em>/opt/hp93000/soc/TestMethod/AC_TML/</em>.)</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_91086__entry__1"><p><span class="keyword">targetFrequency</span></p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__2"><p>SpecValue</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__3"><p>The target frequency. It is used in undersampling. Default value is 0.</p>
+								<p>It is in the format of <kbd class="userinput">value[unit]</kbd>. Default value is
+										<kbd class="userinput">0[MHz]</kbd>.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_91086__entry__1"><p><span class="keyword">output</span></p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__3"><p>Controls how to output the per pin test result. It can be:</p>
+								<ul>
+									<li><kbd class="userinput">None</kbd>: Do not output the per pin result.</li>
+									<li><kbd class="userinput">ReportUI</kbd>: Output all the per pin result to the report
+				window.</li>
+								</ul><p><kbd class="userinput">ShowFailOnly</kbd>: Only outputs the failed pin result to the
+									report window.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1" headers="_91086__entry__1"><p>testName</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__2"><p>string</p>
+							</td>
+							<td class="colsep-1" headers="_91086__entry__3"><p>The test names to be used as limits. Default is
+										<kbd class="userinput">passFrequency_MHz</kbd>. </p>
+								<p>If you want to use the test names defined in the test table or testflow limits, type in
+			the test names manually. Make sure the test names are in the <span class="uicontrol">Test name
+			</span>column of the test table (Refer to <a href="112490.htm" title="A TMLimits CSV file is a standard CSV file with a specified column structure.">Structure of a TMLimits CSV file</a>) or in the <span class="uicontrol">Test
+				Name</span> column of Tests page of Flow Data Editor.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Limit</h2><table><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1"><p>passFrequency_MHz</p>
+							</td>
+							<td class="colsep-1"><p>The pass range of the measured frequency.</p>
+							</td>
+						</tr>
+					</tbody></table><div class="note"><span class="title">Note</span> If you migrate this test method from previous TML versions to this
+			version and test table is used in the device, you need to add the limit(s) in the test table
+			manually to avoid the execution error. When the mix usage of test table limit and testflow limit
+			in one testflow is supported, the manual adaption will not be needed.</div></section>
+		<section class="section"><h2>Implementation pseudo
+			code</h2><pre class="prettyprint linenums copyable">IF not already connected THEN
+  connect DUT
+ENDIF
+do a digital capture test
+retrieve the vector data for each measured pin
+IF algorithm FFT THEN
+  calculate the frequency with Tabei-Ueda interpolation
+ELSEIF LinearFit
+  calculate the frequency with linear regression fit
+ENDIF
+datalog the test results</pre></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: Remove "_unit" from the parameter names in UTM library.</li><li>SmarTest 6.5.2: Change the parameter type of samplePeriod and targetFrequency to SpecValue in
+					UTM library.</li><li>SmarTest 7.0.3:  Classic test method library is removed.</li><li>SmarTest 7.0.3:  New parameter testName.</li><li>SmarTest 7.0.3:  Test table is supported.</li><li>SmarTest 7.1.1:  Mixed usage of test table and testflow limits in one testflow is supported in
+					TML 2.1.1.</li><li>SmarTest 7.2.1:  New option ShowFailOnly for the parameter output in TML 2.2.0.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91086</span><script type="text/javascript">var ti='91086';var tt='Frequency_byDigitalCapture'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

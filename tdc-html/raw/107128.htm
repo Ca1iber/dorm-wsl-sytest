@@ -1,0 +1,46 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The examples presented so far in this chapter have focused on the creation of a custom production test shell where SmarTest controls the material handling equipment (prober/handler). Graphically, this can be represented as follows:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Controlling the material handling equipment with the test shell</title></head><body id="_107128"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 107128</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Controlling the material handling equipment with the test shell</h1>
+	
+	
+	<div><p>The examples presented so far in this chapter have focused on the creation of a custom
+		production test shell where SmarTest controls the material handling equipment (prober/handler).
+		Graphically, this can be represented as follows:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="107129.png" alt="Prober/handler controlled by SmarTest">
+			</figure></div>
+		<p>However, this may not always be the case. You may want to have the test shell control the
+			prober/handler directly. For example, this is how the KLA Integrator Test Shell software (not yet
+			ported to Linux) works, where it communicates with the prober directly over the GPIB interface.
+			This can be visualized as follows:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="107130.png" alt="Prober/handler controlled by the test shell">
+			</figure></div>
+		<p>The shared memory which is accessed by both the shell and SmarTest serves to synchronize the
+			activities of both programs with respect to the prober/handler. SmarTest informs the test shell
+			that it is ready for the next wafer (taking the prober as an example) by setting a bit in the
+			shared memory; after that it waits for the shell to complete the loading operation. The test
+			shell informs SmarTest that it has loaded a new wafer by setting another bit in the shared
+			memory; after that it waits in turn for SmarTest to request another wafer. This mechanism of
+			BLOCKING and UNBLOCKING is how the Test Shell and SmarTest remain synchronized.</p>
+		<div class="note"><span class="title">Note</span> You can use other forms of interprocess communications to synchronize the Test
+			Shell with SmarTest (like remote procedure calls). Shared memory was selected here because it is
+			relatively simple. </div><p>The following figure illustrates the BLOCKING/UNBLOCKING mechanism used to keep the test shell
+			and SmarTest synchronized. </p>
+		
+		<div class="p"><figure class="fignone">
+				
+				<img src="107131.png" alt="Synchronizing the test shell and SmarTest by shared memory">
+			</figure></div>
+		<p>As you can see, SmarTest accesses the shared memory from the application model by calling
+			functions of the P/H driver library with <kbd class="userinput">PROB_HND_CALL()</kbd>. Note that these
+			are not the generic driver functions of the V93000 driver, but custom C functions belonging to a
+			user defined driver library. This library must be selected as the P/H driver library for the test
+			program in question.</p>
+		<p>The figure shows synchronization on the wafer level. In a similar way, the shell and SmarTest
+			must be synchronized on the die level.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 107128</span><script type="text/javascript">var ti='107128';var tt='Controlling the material handling equipment with the test shell'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

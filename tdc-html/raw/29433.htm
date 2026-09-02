@@ -1,0 +1,196 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API returns the number of the setup-focused sites, and stores the site numbers into the array variable specified as the parameter."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GET_TEST_FOCUS</title></head><body id="_29433"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29433</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GET_TEST_FOCUS</h1>
+	
+	
+	<div><p>This API returns the number of the setup-focused sites, and stores the site numbers into
+		the array variable specified as the parameter.</p>
+		<section class="section"><p>This API is defined in the header file<span class="filepath">
+					/opt/hp93000/soc/prod_com/include/MAPI/SiteControl.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">INT GET_TEST_FOCUS(ARRAY_I&amp; sites);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29433__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29433__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29433__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29433__entry__1"><p>O</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29433__entry__2"><p>sites</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29433__entry__3"><p>The site numbers of the setup-focused sites are returned to the contents of this
+									array variable.</p>
+								<p>Note: The size of the array is set to 1 if the API is executed outside of the
+									ON_FIRST_INVOCATION block or inside of a FOR_EACH_SITE loop block.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Return value</h2><p>This API returns the number of the setup-focused
+			sites.</p></div>
+		
+		<h2>Examples</h2><div class="example"><h3>Example 1: Using GET_TEST_FOCUS in a semi parallel test
+				block</h3><pre class="prettyprint linenums copyable">ARRAY_I                 sitesArray;
+ARRAY_I                 configuredSitesArray;
+string                  activeSitesString;
+INT                     configuredSites;
+string                  enabledSitesString;
+SEMI_PARALLEL_CONFIG    semiParallelConfig_3_1;
+
+//
+// Define the semi parallel test groups
+//
+semiParallelConfig_3_1.group(1).add(1).add(2).add(4);
+semiParallelConfig_3_1.group(2).add(3);
+
+//
+// Show the site in focus for the current invocation
+//
+cout &lt;&lt; endl;
+cout &lt;&lt; "Invocation for site: " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl;
+cout &lt;&lt; endl;
+
+//
+// ON_FIRST_INVOCATION block
+//
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Show the static site information
+    //
+    GET_ACTIVE_SITES        (activeSitesString);
+    GET_ENABLED_SITES       (enabledSitesString);
+
+    configuredSites = GET_CONFIGURED_SITES(configuredSitesArray);
+
+    cout &lt;&lt; "\tCONFIGURED_SITES:    " &lt;&lt; configuredSites       &lt;&lt; endl;
+    cout &lt;&lt; "\tENABLED_SITES:       " &lt;&lt; enabledSitesString    &lt;&lt; endl;
+    cout &lt;&lt; "\tACTIVE_SITES:        " &lt;&lt; activeSitesString     &lt;&lt; endl;
+    cout &lt;&lt; endl;
+
+    //
+    // Show the sites in setup focus at the begin of the ON_FIRST_INVOCATION block
+    //
+    GET_TEST_FOCUS(sitesArray);
+
+    cout &lt;&lt; "\tBegin of ON_FIRST_INVOCATION block, sites in setup focus:";
+
+    for (int index = 0; index &lt; sitesArray.size(); index++)
+    {
+        cout &lt;&lt; " " &lt;&lt; sitesArray[index];
+    }
+
+    cout &lt;&lt; endl;
+    cout &lt;&lt; endl;
+
+    //
+    // Semi parallel test block
+    //
+    FOR_SEMI_PARALLEL_TEST_BEGIN (semiParallelConfig_3_1);
+    {
+        //
+        // Show the sites in setup focus within the semi parallel test block
+        //
+        cout &lt;&lt; "\t\tSemi parallel test group " &lt;&lt; GET_CURRENT_SEMI_PARALLEL_GROUP_NUMBER();
+        cout &lt;&lt; ", sites in setup focus:";
+
+        GET_TEST_FOCUS(sitesArray);
+
+        for (int index = 0; index &lt; sitesArray.size(); index++)
+        {
+            cout &lt;&lt; " " &lt;&lt; sitesArray[index];
+        }
+
+        cout &lt;&lt; endl;
+        cout &lt;&lt; endl;
+    }
+    FOR_SEMI_PARALLEL_TEST_END();
+
+    //
+    // Show the sites in setup focus at the end of the ON_FIRST_INVOCATION block
+    //
+    GET_TEST_FOCUS(sitesArray);
+
+    cout &lt;&lt; "\tEnd of ON_FIRST_INVOCATION block, sites in setup focus:";
+
+    for (int index = 0; index &lt; sitesArray.size(); index++)
+    {
+        cout &lt;&lt; " " &lt;&lt; sitesArray[index];
+    }
+
+    cout &lt;&lt; endl;
+    cout &lt;&lt; endl;
+}
+ON_FIRST_INVOCATION_END();</pre><p>The
+				example above results in the following console output if four sites are configured and site 2
+				has been
+			deactivated:</p><pre class="msgblock">Invocation for site: 1
+
+	CONFIGURED_SITES:    4
+	ENABLED_SITES:       1111
+	ACTIVE_SITES:        1011
+
+	Begin of ON_FIRST_INVOCATION block, sites in setup focus: 1 3 4
+
+		Semi parallel test group 1, sites in setup focus: 1 4
+
+		Semi parallel test group 2, sites in setup focus: 3
+
+	End of ON_FIRST_INVOCATION block, sites in setup focus: 1 3 4
+
+Testsuite: Example_1 PASSED on site 1
+
+Invocation for site: 3
+
+Testsuite: Example_1 PASSED on site 3
+
+Invocation for site: 4
+
+Testsuite: Example_1 PASSED on site 4</pre></div>
+		<div class="example"><h3>Example 2: Get, change, and restore the setup focus of a site</h3><div class="note"><span class="title">Note</span> Setting the test focus as show in the following example is supported for a limited
+				selection of APIs. For detailed information refer to <a href="42641.htm" title="Different setup data can be created for each site independently. The following setup parameters are valid for site-specific setup:">Site-Specific Setup</a>. We recommend using
+				the "<em>each site loop block</em>" or the "<em>semi-parallel testing block</em>" to manually
+				control the setup focus or the query focus. For more information refer to <a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a>.</div><pre class="prettyprint linenums copyable">ARRAY_I sites;
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Get the site numbers of the currently setup-focused
+    // sites and store them into the sites array.
+    //
+    GET_TEST_FOCUS(sites);
+
+    //
+    // Enable the setup focus on site 1.
+    // Disable the setup focus on all other sites.
+    //
+    // Note: The setup focus for all other sites is disabled
+    //       because the optional parameter "exclusive" is omitted.
+    //       The default value = true is applied.
+    //
+    SET_TEST_FOCUS(1);
+
+    //
+    // Apply changes only to site 1.
+    //
+    AWG("ain").vOffset(5.0 V);
+
+    FLUSH();
+
+    ...
+    ...
+
+    //
+    // Restores the state of all enabled sites to the original
+    // state by using the contents of the sites array.
+    //
+    SET_TEST_FOCUS(sites);
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29732.htm" title="This API sets the specified sites in the currently-enabled sites to setup-focus state. This API can also set all enabled sites except for the specified single site to not setup-focus state simultaneously. The API returns also the previous state of sites.">SET_TEST_FOCUS</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE_BEGIN</a></div><div><a href="29350.htm" title="This API declares the end of the each site loop block that is started by FOR_EACH_SITE_BEGIN.">FOR_EACH_SITE_END</a></div><div><a href="135794.htm" title="Declares the beginning of the semi-parallel testing block that enables you to set up and execute test for the sites in semi-parallel. In the semi-parallel testing block, semi-parallel configuration and semi-parallel group will be defined. The semi-parallel groups in a semi-parallel configuration will be executed serially. While the sites in one semi-parallel group will be tested in parallel.">FOR_SEMI_PARALLEL_TEST_BEGIN</a></div><div><a href="135795.htm" title="Declares the end of the semi-parallel test block which is started by FOR_SEMI_PARALLEL_TEST_BEGIN.">FOR_SEMI_PARALLEL_TEST_END</a></div><div><a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a></div><div><a href="13863.htm" title="When you execute tests on multiple sites, the results for the site in (query) focus is shown. Only one site can be in focus at any time. Consequently to view the results from a different site, you must change the identity of the site in (query) focus.">Changing the site in focus</a></div><div><a href="42643.htm" title="In addition to auto-controlling the setup/query-focus state of sites, you can also control the state of setup-focus by using the following APIs. The first two APIs specify which sites are addressed by Setup APIs which follow, for performing the site-specific setup.">Controlling the Setup-Focus Manually</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29433</span><script type="text/javascript">var ti='29433';var tt='GET_TEST_FOCUS'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

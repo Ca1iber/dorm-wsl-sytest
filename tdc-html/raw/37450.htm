@@ -1,0 +1,64 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In the second step, the vector translator converts the ASCII vector file into a binary vector file. This includes converting the state characters of the ASCII vector file into physical waveform DC/DC power units."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Vector Translation</title></head><body id="_37450"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 37450</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Vector Translation</h1>
+	
+	
+	<div><p>In the second step, the <em>vector translator</em> converts the ASCII vector file into a
+		binary vector file. This includes converting the state characters of the ASCII vector file into
+		physical waveform DC/DC power units.</p>
+		<p>The ASCII timing file and the ASCII vector file are translated in two successive steps.
+			Therefore the timing translator stores the mappings from state characters to physical waveform
+			DC/DC power units for every combination of pin and ASCII device cycle in an intermediate file, the
+			so-called <em>timing map file</em>. </p>
+		<p>For the wavetable displayed in <em><a href="37447.htm" title="First the timing translator translates the ASCII timing file. The information of the event sequences, which already contain delays for every action, is separated on the one hand into a wavetable, and on the other hand into a timing set.">Timing Translation</a></em>, the timing map file section looks
+			as follows:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46153.png" alt="Excerpt of a Timing Map File">
+			</figure></div>
+		<p>Notice the following points in the figure:</p>
+		<ul>
+			<li>The first column contains the state characters that are defined for pins
+					<kbd class="userinput">Q0</kbd>, <kbd class="userinput">Q1</kbd> and the ASCII device cycle
+					<kbd class="userinput">std</kbd> in the ASCII timing file.</li>
+			<li>The second column contains the DC/DC power units of the physical waveforms created from the action
+				sequences of these state characters.</li>
+		</ul>
+		<p>Using this file, the vector translator determines the target index for any state character in
+			the ASCII vector file by the column to which the character belongs (identifying the pin), and by
+			the ASCII device cycle specified in the row header. Thus, it translates the state character
+				<kbd class="userinput">L</kbd> for pin <kbd class="userinput">Q0</kbd> in the second ASCII vector of
+					<em><a href="37444.htm" title="The state characters defined in the ASCII timing file are used in ASCII vector files. Every ASCII vector file contains the vectors of one pattern (label). The files are arranged in a tabular format. The columns correspond to pins, and the rows to vectors (similar to the layout of the pattern debug tool); accordingly, the rows are called ASCII vectors. Every table cell contains one state character. The following figure shows an example of an ASCII vector file:">ASCII Vector File</a></em> to the index 0.</p>
+		<p>The resulting physical waveform DC/DC power units are used as arguments for the vector download commands.
+			These commands are pin specific, that is, their arguments are the waveform DC/DC power units that result
+			from one <em>column</em> of the ASCII vector table. The download commands in their turn write the
+			waveform DC/DC power units into the vector areas of the respective pins when the binary vector file is
+			executed.</p>
+		<p>The vector translation also creates the download commands for the sequencer instructions that
+			serve to send the signals to the DUT.</p>
+		<p>The following figure shows an excerpt of the binary vector file that the vector translator
+			creates from the information in <em><a href="37444.htm" title="The state characters defined in the ASCII timing file are used in ASCII vector files. Every ASCII vector file contains the vectors of one pattern (label). The files are arranged in a tabular format. The columns correspond to pins, and the rows to vectors (similar to the layout of the pattern debug tool); accordingly, the rows are called ASCII vectors. Every table cell contains one state character. The following figure shows an example of an ASCII vector file:">ASCII Vector File</a></em> and the previous figure:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="46148.png" alt="Download Commands in the Binary Vector File">
+			</figure></div>
+		<p>Notice the following points in the figure:</p>
+		<ul>
+			<li>The excerpt has been converted with the <kbd class="userinput">vis</kbd> command (to be found in
+					<kbd class="userinput">/opt/hp93000/soc/fw/TEST_TOOLS/bin</kbd>) in order to make the binary data of
+				the <kbd class="userinput">VECD</kbd> command readable.</li>
+			<li>The <kbd class="userinput">SQPG</kbd> command downloads a <kbd class="userinput">GENV</kbd> sequencer
+				instruction which says "Send three vectors to the DUT."</li>
+			<li>The <kbd class="userinput">VECD</kbd> command can broadly be paraphrased as "Load the following 28
+				bytes into the vector area of pin <kbd class="userinput">Q0</kbd> at the address 0". 28 bytes is the
+				smallest unit of the Vector Memory (VM memory type in Pin Scale compatibility mode) that can be
+				accessed for load operations. Only the first 7 bytes of the binary data are displayed in the
+				figure. The first 3 bytes contain the 3 waveform DC/DC power units for pins <kbd class="userinput">Q0</kbd>. The
+				other bytes contain no user data.</li>
+		</ul>
+		<p>The vector translator also requires the pin configuration file. For example, it needs to know
+			the port definitions for the generation of a multi-port setup, and the context of the pins for an
+			NP setup.</p>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 37450</span><script type="text/javascript">var ti='37450';var tt='Vector Translation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

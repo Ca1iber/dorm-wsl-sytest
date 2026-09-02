@@ -1,0 +1,151 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SQBV command serves to synchronize the user vectors of ports that belong to different sequencing groups. It can insert break vectors at runtime at two places into all patterns of a specified port, namely:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SQBV, SQBV? - (SeQuencer Break Vector insertion)</title><meta name="keywords" content="SQBV_, Se, Quencer"></head><body id="_98745"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98745</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SQBV, SQBV? - (SeQuencer Break Vector insertion)</h1>
+	
+	
+	<div><p>The <span class="keyword">SQBV</span> command serves to synchronize the user vectors of ports that
+		belong to different sequencing groups. It can insert break vectors at runtime at two places into
+		all patterns of a specified port, namely:</p>
+		<section class="section"><ul>
+				<li>Immediately before the first user vector</li>
+				<li>Immediately before the last primary set is activated.</li>
+			</ul><p>The specified port will be called the <em>insertion port</em>. The break vectors before the
+				first user vector are called <em>pattern-align</em> vectors. They are intended to synchronize a
+				port that admits no activation of primary sets (<a href="98606.htm" title="The FTCG command serves to change the system behavior with respect to the activation of primary sets.">FTCG</a><span class="keyword">
+					SKPR,ON</span>) with another port that must change its primary sets during the testflow.
+				Their purpose is to compensate the delay which is caused by activating primary sets in the other
+				port, and thus to synchronize the start of the user vectors. The break vectors before the last
+				activation, which are called <em>CTOF-align</em> vectors, are to ensure that moving edges across
+				cycle boundaries does not change the time interval between the last user vector of the
+				respective test and the first user vector of its successor test.</p><p>You can define a
+				different number of pattern-align vectors or CTOF-align vectors for different types of
+				activation sequences. The possible types are:</p><ul>
+				<li>No activation of primary sets<p>This type is intended for adjustments that are required by
+						the hardware.</p></li>
+				<li>Only timing activation</li>
+				<li>Timing and level activation</li>
+				<li>Activation of all primary sets</li>
+			</ul><p>The port with which the insertion port is to be synchronized is specified with the
+					<span class="keyword">SQRP</span> command. It is called the <em>reference port</em>. At runtime, whenever
+				the reference port enters an activation sequence, <a href="98608.htm" title="The FTST? (Functional TeST) query executes a functional test and returns either a pass or a fail result. The test that is executed must have previously been defined by the SQLB, SQLB? - (SeQuencer LaBel definition) command and activated for execution by the SQSL, SQSL? - (SeQuencer Start Label) command.">FTST?</a> determines
+				the type of the sequence and inserts the number of pattern-align vectors defined for that type
+				with <span class="keyword">SQBV</span> before the user vectors of the insertion port. For the CTOF-align
+				vectors, insertion port and reference port are typically identical. </p><div class="note"><span class="title">Note</span> The
+				number of break vectors that are required for a certain activation sequence cannot be calculated
+				beforehand. It must be determined empirically, based on the device setup, calibration data, and
+				the hardware topology. </div><p>The <span class="keyword">SQBV?</span> query returns the current numbers
+				for the specified port and sequence type.</p><p>The <span class="keyword">SQBV</span> command is not
+				available on the P/Ce systems.</p></section>
+		<div class="syntax"><h2>SQBV</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQBV</span> [<span class="keyword">CTOF_align</span>],[<span class="keyword">pattern_align</span>],[<span class="keyword">activ_type</span>],{(<span class="keyword">port</span>)}</pre></div><div class="syntax"><h2>SQBV?</h2><pre class="prettyprint copyable singleline"><span class="keyword">SQBV?</span> {(<span class="keyword">port</span>)}</pre><p>returns:</p><pre class="prettyprint copyable singleline"><span class="keyword">SQBV</span> {<span class="keyword">CTOF_align</span>},{<span class="keyword">pattern_align</span>},{<span class="keyword">activ_type</span>},{(<span class="keyword">portlist</span>)}</pre><table class="frame-bottom"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">CTOF_align</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This parameter specifies the number of
+									break vectors that are to be inserted before the last activation. If the specified number
+									is not exactly divisible by 8, it will be autocorrected to the next multiple of 8. The
+									default is 0. The maximum depends on the <span class="keyword">activ_type</span> parameter. </p>
+								<p>Note that a value greate than 0 is not allowed for ports whose sequencing group does not
+									admit any activation of primary sets (<a href="98606.htm" title="The FTCG command serves to change the system behavior with respect to the activation of primary sets.">FTCG</a><span class="keyword">
+										SKPR,ON</span>).</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">pattern_align</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>This parameter specifies the number of
+									break vectors that are to be inserted before the first user vector. If the specified number
+									is not exactly divisible by 8, it will be autocorrected to the next multiple of 8. The
+									default is 0. The maximum depends on the <span class="keyword">activ_type</span> parameter.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p><span class="keyword">activ_type</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The type of activation sequence which is to
+									be compensated by the break vectors. The possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">NONE</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>No primary sets are activated. This option can be used to compensate
+									hardware specific delays. The maximum number for this type is 2 * 262136.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">TIM</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Only the timing is activated. The maximum number for this type, which
+									must not be smaller than that specified for NONE, is the number for NONE plus 262136.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">TIM_LEV</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>Timing and levels are activated. The maximum number for this type, which
+									must not be smaller than that specified for TIM, is the number for TIM plus 262136.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ALL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>All primary sets are activated. This is the default. The maximum number for this
+									type, which must not be smaller than that specified for TIM_LEV, is the number for TIM_LEV
+									plus 2 * 262136.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">port</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The port where the break vectors are to be
+									inserted. Note that the vectors are inserted into all patterns of this port.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">portlist</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1" colspan="2"><p>The ports for which the settings are to be
+									returned. Specify <span class="keyword">@@</span> to retrieve the settings of all ports.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		
+		<h2>Example</h2><div class="example"><p>The following example synchronizes two ports RX and TX, each of which is the only port
+				in its sequencing group. The RX port does not admit any changes of primary sets, the TX port
+				must change its primary sets several times during the testflow. This is implemented by the <a href="98606.htm" title="The FTCG command serves to change the system behavior with respect to the activation of primary sets.">FTCG</a> command as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; FTCG SKPR,OFF,(@@)
+&gt; FTCG SKPR,ON,(RX)</pre><p>In order to
+				synchronize both ports, the time span used up by the activation sequences in TX must be filled
+				with break vectors in RX. If both ports operate with the same period length, and the PHASE flag
+				is set for both of them in the multi-port timing specification, then the number of break vectors
+				that compensates the different types of activation sequences will always be a multiple of 8. The
+				exact number must be determined by empirical tests. The required numbers could then be passed to
+					<span class="keyword">SQBV</span> as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; SQBV ,1504,TIM,(RX)
+&gt; SQBV ,22048,TIM_LEV,(RX)
+&gt; SQBV ,31784,ALL,(RX)</pre><p>The
+				reference port is TX. This is specified by</p><pre class="prettyprint copyable singleline">&gt; SQRP (TX)</pre><p>Finally,
+				the timing changes in TX may include moving receive edges across cycle boundaries, and this in
+				turn can (in rare cases) prolong the activation sequence for the next functional test. But this
+				is not acceptable, because only one value can be passed to <span class="keyword">SQBV</span> for every
+				activation sequence type. In order to secure that the length of an activation sequence is not
+				affected by the timing of the preceding test, break vectors can be inserted in TX before the
+				last activation of the respective sequence type, so that the sequence as a whole has the
+				extended length even if no cycle crossing takes place in the previous test.</p><p>The required
+				number of break vectors must again be determined by measurements. The required number of vectors
+				could then be defined as
+				follows:</p><pre class="prettyprint linenums copyable">&gt; SQBV 128,,TIM,(TX)
+&gt; SQBV 128,,TIM_LEV,(TX)
+&gt; SQBV 128,,ALL,(TX)</pre><p>Note
+				that in this case the insertion port is identical with the reference port.</p></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98745</span><script type="text/javascript">var ti='98745';var tt='SQBV, SQBV? - (SeQuencer Break Vector insertion)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

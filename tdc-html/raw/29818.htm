@@ -1,0 +1,88 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API sets the specified site in the currently setup-focused sites to the non-setup-focus state, and returns the previous state of the site."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>UNSET_TEST_FOCUS</title></head><body id="_29818"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29818</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">UNSET_TEST_FOCUS</h1>
+	
+	
+	<div><p>This API sets the specified site in the currently setup-focused sites to the
+		non-setup-focus state, and returns the previous state of the site.</p>
+		<section class="section"><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SiteControl.h</span>.</p><div class="note"><span class="title">Note</span> Setting the test focus by this API is supported for a limited selection
+			of other APIs. Supported APIs are <span class="keyword">Primary.getLevelSpec()</span>,<span class="keyword">
+				Primary.getTimingSpec()</span>, <span class="keyword">Analog.AWG()</span>,
+				<span class="keyword">Analog.DGT()</span>, <span class="keyword">Analog.TIA()</span>, and
+				<span class="keyword">Vector()</span>. For detailed information refer to <a href="42641.htm" title="Different setup data can be created for each site independently. The following setup parameters are valid for site-specific setup:">Site-Specific Setup</a>. The
+				"<em>each site loop block</em>" or the "<em>semi-parallel testing block</em>" are to be used to
+			manually control the setup focus or the query focus for other APIs. For more information refer to
+				<a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a>.</div></section>
+		<section class="section"><h2>Application note</h2><ul>
+				<li>This API specifies which site is not addressed by the Setup APIs that follow, for performing
+					site-specific setup.</li>
+				<li>This API is meaningful for multi-site testing, and is used in the first-invocation block
+					enclosed by <a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a> and <a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a>, except for the <a href="29344.htm" title="This API declares the beginning of the block that allows you to execute setup sequentially for all sites before the parallel test. If you want to sequentially setup and query, use FOR_EACH_SITE_BEGIN_WITH_QUERY.">FOR_EACH_SITE</a> loop block. For single-site testing, this API generates a
+					warning message to the report window, and program execution continues to the next statement. In
+					this case, the setting by this API except for site 1 is ignored. You can also ignore the
+					warning message by using <a href="28764.htm" title="This API disables generation of error messages to the report window. Note that the generation of error messages to the report window is enabled by default.">DISABLE_ERROR_MESSAGE</a>.</li>
+				<li>If this API is executed to any disabled sites for setup-focus unsetting, it generates a
+					warning message to the report window.</li>
+				<li>Changes of setup-focus state by <a href="29732.htm" title="This API sets the specified sites in the currently-enabled sites to setup-focus state. This API can also set all enabled sites except for the specified single site to not setup-focus state simultaneously. The API returns also the previous state of sites.">SET_TEST_FOCUS</a> and <span class="keyword">UNSET_TEST_FOCUS
+					</span>APIs are canceled automatically when the execution of the test method program
+					finishes in the testsuite.</li>
+			</ul></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">Boolean UNSET_TEST_FOCUS(INT site);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29818__entry__1"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29818__entry__2"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29818__entry__3"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29818__entry__1"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29818__entry__2"><p>site</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29818__entry__3"><p>A site to be set to not setup-focus state.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Return value</h2><p>The previous state of the specified site is returned in
+				boolean type. If the previous state was setup-focus state, this API returns
+					<span class="keyword">TRUE</span> (1). Otherwise, this API returns <span class="keyword">FALSE</span>
+			(0).</p></div>
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">ON_FIRST_INVOCATION_BEGIN();
+{
+    //
+    // Disable the setup-focus for site 2.
+    // Read the old setup-focus state of site 2.
+    //
+    Boolean setup_flag = UNSET_TEST_FOCUS(2);
+
+    //
+    // Apply changes to all enabled sites except site 2.
+    //
+    AWG("Ain").vOffset(2.5 V);
+    ...
+    ...
+
+    //
+    // Restore the previous state setup-focus state of site 2.
+    //
+    // Note: The 2nd parameter "exclusive" is set to FALSE. Site 2
+    //       will be added to the list to the list of sites with
+    //       setup-focus enabled. The setup-focus state of other
+    //       sites will not be changed.
+    //
+    if (setup_flag == TRUE)
+    {
+        Boolean exclusive = FALSE;
+
+        SET_TEST_FOCUS(2, exclusive);
+    }
+}
+ON_FIRST_INVOCATION_END();</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29732.htm" title="This API sets the specified sites in the currently-enabled sites to setup-focus state. This API can also set all enabled sites except for the specified single site to not setup-focus state simultaneously. The API returns also the previous state of sites.">SET_TEST_FOCUS</a></div><div><a href="29433.htm" title="This API returns the number of the setup-focused sites, and stores the site numbers into the array variable specified as the parameter.">GET_TEST_FOCUS</a></div><div><a href="29526.htm" title="This API declares the beginning of the block that enables you to execute setup and test for all sites in parallel, when the program is run for the first tested site.">ON_FIRST_INVOCATION_BEGIN</a></div><div><a href="29532.htm" title="This API declares the end of the first-invocation block that is started by ON_FIRST_INVOCATION_BEGIN.">ON_FIRST_INVOCATION_END</a></div><div><a href="20921.htm" title="With SmarTest, you can run a test suite that has a test method program with multi-site testing by setting up the Parallel Mode Enable testflow flag and Allow Parallel test suite flag (see Setting Flags for Parallel Execution and Allow Parallel); also, you can run a test suite that has a test method or user procedure. However, the test method program is run sequentially for all sites, such as a user procedure. This serial execution for all sites means that maximum performance is not achieved.">Controlling Multiple Sites</a></div><div><a href="13863.htm" title="When you execute tests on multiple sites, the results for the site in (query) focus is shown. Only one site can be in focus at any time. Consequently to view the results from a different site, you must change the identity of the site in (query) focus.">Changing the site in focus</a></div><div><a href="42643.htm" title="In addition to auto-controlling the setup/query-focus state of sites, you can also control the state of setup-focus by using the following APIs. The first two APIs specify which sites are addressed by Setup APIs which follow, for performing the site-specific setup.">Controlling the Setup-Focus Manually</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29818</span><script type="text/javascript">var ti='29818';var tt='UNSET_TEST_FOCUS'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

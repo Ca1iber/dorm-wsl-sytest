@@ -1,0 +1,250 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The output data hold time can be pass/fail test or value test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Output Data Hold Time conversion</title></head><body id="_118555"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 118555</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Output Data Hold Time conversion</h1>
+	
+	
+	<div><p>The output data hold time can be pass/fail test or value test.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>For pass/fail test, you can convert it to an
+					<code>ac_tml.AcTest.functionalTest</code> test method using the pass value in the test
+				function.</p><p>For value test, you can convert it to an
+				<code>ac_tml.AcTest.</code> parametricFunctionalTest test method. Firstly, you need to define
+				a timing spec to control the right neighbor edge (shifted edge) of the measured edge. Then you
+				can use it in a<code>c_tml.AcTest.parametricFunctionalTest</code> as the parameter to
+				shift.</p><p>In value test, the Output Data Hold Time test function tries to find the minimum
+				time for which the output signals must retain their present state after the reference signal has
+				validated new data. The definition of propagation delay time (t<sub>pd</sub>) and output data
+				hold time (t<sub>dh</sub>) are shown in the figure below.</p><div class="p"><figure class="fignone">
+					
+					<img src="28218.png" alt="Propagation Delay and Output Data Hold Time Evaluation">
+				</figure></div></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Define a timing spec as output data hold time to control the shifted edge:</span>
+				<div><p><code>shifted_edge = reference_time + period + output_data_hold_time</code></p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Calculate the range of the spec according to the search range of the shifted edge.
+						(<code>output_data_hold_time = shifted_edge - reference_time - period</code>)</span>
+				<div><p>Start position of the shifted edge is defined as <code>reference_time + period +
+							pass_output_data_hold_time.</code></p>
+					<p>The left boundary of the shifted edge is</p>
+					<ul>
+						<li>For edge compare, the last receive edge minus one period (if exists) or the start position
+							minus one period</li>
+						<li>For window compare, the window open edge<p>The right boundary of the shifted edge is</p></li>
+						<li>for edge compare, the start position plus one period</li>
+						<li>for window compare, next window compare edge in the same test system cycle or the start
+							position plus one period.</li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Enter the parameter value for the ac_tml.AcTest.parametricFunctionalTest.</span>
+				<div><table><caption></caption><colgroup><col><col></colgroup><tbody>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">spec</span></p>
+									</td>
+									<td class="colsep-1"><p>the spec defined to control receive edge</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">resultPinList</span></p>
+									</td>
+									<td class="colsep-1"><p>pin list in the test function</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">resultPinListMode</span></p>
+									</td>
+									<td class="colsep-1"><p>parallel</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">setupPinList</span></p>
+									</td>
+									<td class="colsep-1"><p>pin list in the test function</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">setupPinListMode</span></p>
+									</td>
+									<td class="colsep-1"><p>parallel</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">method</span></p>
+									</td>
+									<td class="colsep-1"><p>linear/binary for edge compare</p>
+										<p>binary search for window compare</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">start</span></p>
+									</td>
+									<td class="colsep-1"><p>the start value calculated in last step</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">stop</span></p>
+									</td>
+									<td class="colsep-1"><p>the stop value calculated in last step</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">step</span></p>
+									</td>
+									<td class="colsep-1"><p>omit</p>
+										<p>It is defined by the <a href="98598.htm" title="The ESGB (Edge Search GloBal) command defines the step width settings for iterative searches and defines the minimum pulse width for input timing measurements. Defining these parameters is a prerequisite for executing the following queries:">ESGB</a> firmware command. Default is 0.5
+											ns.</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">resolution</span></p>
+									</td>
+									<td class="colsep-1"><p>omit</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">passMin</span></p>
+									</td>
+									<td class="colsep-1"><p>omit</p>
+									</td>
+								</tr>
+								<tr class="rowsep-1">
+									<td class="colsep-1"><p><span class="keyword">passMax</span></p>
+									</td>
+									<td class="colsep-1"><p>the pass hold time value in the test function</p>
+									</td>
+								</tr>
+							</tbody></table>
+				</div>
+			</li></ol></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>The following example shows how to convert a output data hold time to
+				ac_tml.AcTest.parametricFunctionalTest. The timing setup used in the test function is shown on
+				the left side of the test function.</p><div class="p">
+				<figure class="fignone">
+					
+					<img src="118611.png" alt="Output data hold time example">
+				</figure>
+			</div><p>In the example, the output data hold time is measured for edge <kbd class="userinput">r1</kbd>
+				of pin group <kbd class="userinput">ser_out</kbd>. The reference time is edge
+					<kbd class="userinput">d1</kbd> of pin <kbd class="userinput">CP</kbd>. If the measured output data hold
+				time is larger than 1 ns, the measurement is pass.</p><p>To convert the output data hold time to
+					<code>ac_tml.AcTest.parametricFunctionalTest</code>, you need to:</p><ol>
+				<li>Define a spec <span class="keyword">output_hold</span> to control the moved edge
+						<span class="keyword">r2</span><code>:</code><pre class="prettyprint linenums copyable">PINS all_out
+r1 = 45
+r2 = output_hold + 70</pre></li>
+				<li>The left boundary of <span class="keyword">r2</span> search range is nominal setup of
+						<span class="keyword">r2</span> minus one period and the right boundary of <span class="keyword">r2</span> search
+					range is nominal setup of <span class="keyword">r2</span> plus one period. The following figure shows the
+					search range of <span class="keyword">r2</span>.</li>
+			</ol><div class="p">
+				<figure class="fignone">
+					
+					<img src="118850.png" alt="Search range">
+				</figure>
+			</div><p>Start position is <span class="keyword">pass_data_hold + period + reference_time</span> =
+				1</p><p>+50+20 =71. So the search range of <span class="keyword">r2</span> is from start - period to start
+				+ period, which is from 21 to 121.</p><p><span class="keyword">output_hold</span> = r2 -70. So the search
+				range of r2 is from -49 to 51.</p><div class="p">Enter the parameter values for
+					<code>ac_tml.AcTest.parametricFunctionalTest</code>.<table><caption></caption><colgroup><col><col></colgroup><tbody>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">spec</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">output_hold</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">resultPinList</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">all_out</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">resultPinListMode</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">parallel</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">setupPinList</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">all_out</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">setupPinListMode</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">parallel</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">method</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">lin/bin</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">start</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">-49</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">stop</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">51</kbd></p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">step</span></p>
+								</td>
+								<td class="colsep-1">
+									<p>&nbsp;</p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">resolution</span></p>
+								</td>
+								<td class="colsep-1">
+									<p>&nbsp;</p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">passMin</span></p>
+								</td>
+								<td class="colsep-1">
+									<p>&nbsp;</p>
+								</td>
+							</tr>
+							<tr class="rowsep-1">
+								<td class="colsep-1">
+									<p><span class="keyword">passMax</span></p>
+								</td>
+								<td class="colsep-1">
+									<p><kbd class="userinput">1</kbd></p>
+								</td>
+							</tr>
+						</tbody></table>
+			</div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="91085.htm">ParametricFunctionalTest</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 118555</span><script type="text/javascript">var ti='118555';var tt='Output Data Hold Time conversion'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

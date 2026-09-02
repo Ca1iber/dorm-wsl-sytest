@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Inserting counted match loops</title><meta name="keywords" content="matchloop"></head><body id="_122701"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 122701</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Inserting counted match loops</h1>
+	
+	
+	<div><p></p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Match loops are used to put a DUT without a reset pin into a state required for some
+			test. The general principle is to specify a sequence of vectors that are executed in a
+			loop and, if repeated often enough, put the DUT successively into each of its possible
+			states. After each repetition, it is checked if the desired state has been reached. If
+			so, the loop is terminated. If not, it is repeated.</p><p>A certain time is required for evaluating the compare result and to propagate it to the
+			error flag that controls the repetition of the loop. To provide this time span, a number
+			of dummy vectors without compare actions must be generated after the functional vectors
+			before the end of the match loop.</p><p>The following figure shows the operation mode of the counted match loop:</p><div class="p"><figure class="fignone" id="_122701__d1455e22">
+				
+				<img src="10564.png" alt="Counted match loop">
+			</figure></div><p>There are two loops, the main loop and the wait loop. The body of the main loop
+			executes the compare vectors once, and then the wait loop.</p><p>A counted match loop is started with the <span class="keyword">MACT</span> instruction. This
+			instruction specifies the maximum number of unsuccessful repetitions for the main loop. The
+				<span class="keyword">CONTINUE</span> option specifies to carry on with the test even if all repetitions
+			of the match loop failed. Then the compare vectors must be specified with a
+				<span class="keyword">GENV</span> or <span class="keyword">RPTV</span> instruction (an exception is when using <a href="346553.htm" title="Match loops can be nested.">Nested match loops</a>, in which case you may insert the <span class="keyword">MACT</span> or
+				<span class="keyword">MRPT</span> instruction here). These must be followed by the <span class="keyword">MRPT</span>
+			instruction, which defines the number of dummy vectors to be repeated in the wait loop. You can
+			specify more than one dummy vector if the total number of cycles within the match loop must be a
+			multiple of a number greater than&nbsp;1.</p><div class="note"><span class="title">Note</span> Because switching into match loop mode can only be done at cycle boundaries of 8, and a match
+				loop can start and end anywhere, the start and end cycles of a match loop block may belong to
+				the surrounding pattern. This can have an effect on the recording in the Error Map and on the
+				test result. Therefore the seven vectors prior to the <span class="keyword">MACT</span> instruction and
+				the dummy vectors must not contain any compare action. For details see <a href="96934.htm" title="The sequencers pass waveform DC/DC power units to the data queue in blocks of 8. Each such block is supplemented by the information whether or not it is part of a match loop. This information applies to the block as a whole. The block with which the match loop starts is marked as a match loop block, and therefore all of the 8 cycles that are generated from it are supposed to be match loop cycles, which will not be recorded in the Error Map. The block in which the surrounding test continues after the match loop is marked as part of the surrounding test, and therefore all of its cycles will be recorded in the Error Map.">Adjusting the junctions between match loop and surrounding label</a>.</div></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>The Instruction column must be displayed and the pattern must be displayed in collapsed
+				mode. </p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>To insert the <span class="keyword">MACT</span> instruction, right-click the
+						<span class="uicontrol">Vector#</span> or <span class="uicontrol">Instruction</span> cell
+					where you want to insert it, and select <span class="uicontrol">Insert
+						Instruction</span>.</span>
+				<div>
+					<p>Make sure that at least the last seven vectors before the
+							<span class="keyword">MACT</span> instruction contain no compare actions.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Double-click <span class="keyword">MACT</span> and type the number of loops (the maximum number of
+					unsuccessful repetitions, for example, <kbd class="userinput">32</kbd>.</span>
+			</li><li class="stepexpand">
+				<span>Optionally select the <span class="keyword">CONTINUE</span> option. It specifies to continue the test
+					even if all loops (repetitions) failed.</span>
+			</li><li class="stepexpand">
+				<span>Specify the compare vectors in the rows below.</span>
+			</li><li class="stepexpand">
+				<span>For the last compare vector, specify the compare event (supported by DPS128 only). You can
+					set the <span class="uicontrol">Compare Type</span> to either High or Low (see also example
+					below).</span>
+			</li><li class="stepexpand">
+				<span>To insert the <span class="keyword">MRPT</span> instruction, right-click where you want to insert it,
+					and select <span class="uicontrol">Insert Instruction</span>.</span>
+			</li><li class="stepexpand">
+				<span>Double-click <span class="keyword">MRPT</span> and type the number of vectors, i.e. the number of
+					dummy vectors to be repeated in the wait loop, for example, <kbd class="userinput">5</kbd>. The
+						<span class="keyword">REPEATEND</span> instruction is inserted in the row after the number of specified
+					vectors.</span>
+			</li><li class="stepexpand">
+				<span>Make sure none of the receive pins of the dummy vectors is set to receive, but for example
+					to X (Do not care).</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The Pattern Editor displays the counted match loop as shown in the example
+			below.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><p>Note that the compare event shown below in row 67, is supported by DPS128 only. In
+				this example the Compare Type is set to High.</p><div class="p"><figure class="fignone">
+					
+					<img src="122707.png" alt="Counted match loop in pattern editor">
+				</figure></div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="10563.htm" title="Match loops are used to put a DUT without a reset pin into a state required for some test. The general principle is to specify a sequence of vectors that are executed in a loop and, if repeated often enough, put the DUT successively into each of its possible states. After each repetition, it is checked if the desired state has been reached. If so, the loop is terminated. If not, it is repeated.">Match loops</a></div><div><a href="96934.htm" title="The sequencers pass waveform DC/DC power units to the data queue in blocks of 8. Each such block is supplemented by the information whether or not it is part of a match loop. This information applies to the block as a whole. The block with which the match loop starts is marked as a match loop block, and therefore all of the 8 cycles that are generated from it are supposed to be match loop cycles, which will not be recorded in the Error Map. The block in which the surrounding test continues after the match loop is marked as part of the surrounding test, and therefore all of its cycles will be recorded in the Error Map.">Adjusting the junctions between match loop and surrounding label</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 6.5.2: Counted match loops superseded timed match loops.</li><li>SmarTest 7.1.4:  Additional option for counted match loops: CONTINUE</li><li>SmarTest 7.2.1: Additional function for counted match loops: Compare event (DPS128
+					only)</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 122701</span><script type="text/javascript">var ti='122701';var tt='Inserting counted match loops'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

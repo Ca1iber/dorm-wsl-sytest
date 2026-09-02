@@ -1,0 +1,126 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Result areas for error map data</title></head><body id="_349886"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 349886</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Result areas for error map data</h1>
+	
+	
+	<div><p></p>
+		<section class="section">
+			<div class="p">The required space for a result area created to hold error map data (pass/fail cycles) depends
+				on the following parameters:<ul>
+					<li><a href="13807.htm" title="You can define how the test results are recorded in the Error Map. This definition can be done in the test suite or in the Error Map Tool.">acquire mode</a> (cycle oriented versus failure oriented),</li>
+					<li>range of cycles to record for cycle oriented mode, or the minimum number of fail cycles
+						that must be recorded in acquire fail mode,</li>
+					<li><a href="128291.htm" title="The Result Mode tab allows you configure three recording parameters, namely">result mode</a> (<a href="25189.htm" title="This term refers to set up processes which can be used to fit multiple device cycles into a single test system cycle. The &#34;X&#34; implies multiplication (&#34;X4 mode&#34; means that there are 4 device cycles per test system cycle). The purpose of X modes is to run tests faster and use memory more efficiently.">x-modes</a> x1, x2, x4,
+						x6 or x8), and results resolution (bits per result).</li>
+				</ul></div>
+			<p>The following table explains the parameters used in the calculations.</p>
+			<div class="p"><table class="ly"><caption><span>Parameters</span></caption><colgroup><col><col></colgroup><tbody>
+							<tr>
+								<td><span class="keyword">128</span></td>
+								<td>The 128 bytes are for safety, to avoid alignment issues and to ensure the minimum
+									result area size requirement is reached.</td>
+							</tr>
+							<tr>
+								<td>
+									<p><span class="keyword">ResultsPerTesterCycle</span>
+									</p>
+								</td>
+								<td>Given by the x-mode.</td>
+							</tr>
+							<tr>
+								<td>
+									<p><span class="keyword">BitsPerResult</span>
+									</p>
+								</td>
+								<td>The resolution of the error code (1 or 2 bits per result) </td>
+							</tr>
+							<tr>
+								<td>
+									<p><span class="keyword">RecordedTesterCycles</span></p>
+								</td>
+								<td>The range of cycles to record</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		<section class="section"><h2>Cycle oriented mode</h2>
+			
+			<p>In cycle oriented mode, results for all cycles are recorded regardless of whether the compare
+				result is pass or fail.</p>
+			<p>The number of required bites is given by the following formula.</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (ResultsPerTesterCycle * BitsPerResult *
+					RecordedTesterCycles + 7) / 8</span></p>
+			<p>If the cycles to be recorded are not at the beginning of the pattern, then additionally the
+				start analyze delay must be programmed, so that error map recording is delayed until the first
+				cycle of interest (see <a href="98525.htm" title="The DCRP command defines the recording position for Error Map recording. The interpretation of the recording position is defined with the DCGM command separately for both Error Maps; the position can be used as a start or a stop position, or it can be ignored.">DCRP, DCRP? - (Digital Compare Result Positioning)</a>).</p>
+		</section>
+		<section class="section"><h2>Acquire fail mode - x1, x2, x4, and x8 mode</h2><p>For this mode the exact area
+				needed cannot be calculated before hand (as we do not know the number of fail cycles), so the
+				upper bound must be used. Since not all cycles are recorded, it is necessary to record the cycle
+				number (tag) of each recording.</p><p>There are two relevant upper bounds to consider, depending
+				on whether you expect the failure rate to be high or low.</p><p>If fail cycles are rare, then
+				10.67 bytes are recorded per cycle. (This includes bytes for the cycle tag. The 2/3 are the
+				results of padding bytes.)</p><p><span class="keyword">ResultAreaSizeInBytes = 128 + RecordedFailCycles *
+					10.67</span></p><p>However for short patterns with a high failure rate, where effectively
+				the whole pattern is recorded, it is not necessary to record the cycle tag for each failure
+				cycle, and so we can use the calculation from the cycle oriented mode, but with a correction of
+				5.34/4 (due to extension and padding bytes):</p><p><span class="keyword">ResultAreaSizeInBytes = 128 +
+					(ResultsPerTesterCycle * BitsPerResult * RecordedTesterCycles + 7) / 8 * (5.34 /
+				4)</span></p>If you know the minimum number of fail cycle you want to record, you can
+			determine the maximum result area needed by calculating both upper bounds described above, and
+			choose the minimum of the two (see example below).</section>
+		<section class="section"><h2>Acquire fail mode - x6 mode</h2><p>For acquire fail mode, the x6 mode is a special
+			case that requires more memory.</p>
+			<p>For sparse fail cycles, 16 bytes are recorded per fail cycle:</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + RecordedFailCycles * 16</span></p>
+			<p>If the failure rate is so high that you can neglect the cycle tag recordings however, you need
+				an area of size given by:</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (ResultsPerTesterCycle * BitsPerResult *
+					RecordedTesterCycles + 7) / 8 * (5.34 / 4.5)</span></p></section>
+		<h2>Examples</h2><div class="example"><h3>Cycle oriented mode example 1</h3>
+			
+			<p>An error map for 40000 cycles is to be recorded, using the x8-1bit result mode:</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (8 * 1 * 40000 + 7) / 8 = 40128</span></p>
+		</div>
+		<div class="example"><h3>Cycle oriented mode example 2</h3>
+			
+			<p>An error map for 40000 cycles is to be recorded, using the x1-1bit result mode:</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (1 * 1 * 40000 + 7) / 8 = 5128</span></p>
+		</div>
+		<div class="example"><h3>Acquire fail mode example - x8 mode</h3>
+			
+			<p>You have a pattern of 100 cycles, and are using the x8-1bit mode.</p>
+			<p>If you need to ensure you can record at least 100 fail cycles in acquire fail mode, then your
+				two upper bounds are:</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + 100 * 10.67 = 1195 bytes</span></p>
+			<p>and</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (8 * 1 * 100 + 7) / 8 * (5.34 / 4) = 262
+					bytes</span></p>
+			<p>So in this case, you need 262 bytes to ensure you record at least the wanted 100 fail
+				cycles.</p>
+			<p>If however your pattern is instead 40000 cycles, then the second equation reads</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (8 * 1 * 40000 + 7) / 8 * (5.34 / 4) = 53529
+					bytes</span>,</p>
+			<p>and so you should instead take the other upper bound, and set the result area to 1195
+				bytes.</p>
+		</div>
+		<div class="example"><h3>Acquire fail mode example - x6 mode</h3>
+			
+			<p>You have a pattern of 100 cycles, and are using the x6-1bit mode.</p>
+			<p>If you need to ensure you can record at least 100 fail cycles in acquire fail mode, then your
+				two upper bounds are:</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + 100 * 16 = 1728 bytes</span></p>
+			<p>and</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (6 * 1 * 100 + 7) / 8 * (5.34 / 4.5) = 218
+					bytes</span></p>
+			<p>So in this case, you need 218 bytes to ensure you record at least the wanted 100 fail
+				cycles.</p>
+			<p>If however your pattern is instead 40000 cycles, then the second equation reads</p>
+			<p><span class="keyword">ResultAreaSizeInBytes = 128 + (6 * 1 * 40000 + 7) / 8 * (5.34 / 4.5) = 35729
+					bytes</span>,</p>
+			<p>and so you should instead take the other upper bound, and set the result area to 1728
+				bytes.</p>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118934.htm" title="Result areas allow independent data capture and upload.">Result areas for hidden digital upload</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.5.3</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 349886</span><script type="text/javascript">var ti='349886';var tt='Result areas for error map data'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

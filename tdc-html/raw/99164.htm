@@ -1,0 +1,145 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The RESULT_POINT class gives the position of the result of a sequencer based measurement in the memory. One RESULT_POINT object corresponds to one measurement result, that is, each result is specified by its associated result point."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>RESULT_POINT</title></head><body id="_99164"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 99164</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">RESULT_POINT</h1>
+	
+	
+	<div><p>The RESULT_POINT class gives the position of the result of a sequencer based measurement
+		in the memory. One RESULT_POINT object corresponds to one measurement result, that is, each result
+		is specified by its associated result point.</p>
+		<section class="section"><p>A RESULT_POINT allows the user to iterate over uploaded results without caring about
+				possibly missing results in a non-continuous result range. A non-continuous range could appear
+				when only failed results are uploaded rather than all results. Most likely the result range will
+				contain "holes" (=passes). The RESULT_POINT object's increment operator ("++") allows to jump to
+				the next uploaded result, regardless whether it is a direct successor of the actual result or
+				not. The only possible direction is forward, jumping backwards (decrement operator) is not
+				supported.</p><p>RESULT_POINT objects cannot be constructed directly by the user. Valid
+				RESULT_POINTs can be either obtained through API calls or by using RESULT_POINT operators (for
+				example, the increment operator ++).</p><p>The lifetime of a RESULT_POINT is equal to the
+				lifetime of the uploaded results. A subsequent result upload will invalidate all existing
+				RESULT_POINTs. In order to access the new uploaded results the existing RESULT_POINTs must be
+				updated (request new objects for the uploaded range) or new RESULT_POINTs must be
+				created.</p><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/ResultPoint.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Class definition</h2></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">RESULT_POINT();
+RESULT_POINT (RESULT_POINT::ResultIndexType resultIndex);</pre></section>
+		<section class="section"><h3>Member
+			Functions</h3><pre class="prettyprint linenums copyable">RESULT_POINT::ResultIndexType getResultIndex() const;
+void setResultIndex( const RESULT_POINT::ResultIndexType&amp; );</pre></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint copyable singleline">RESULT_POINT(const RESULT_POINT&amp;);</pre><p>Copy
+				constructor. Generates a RESULT_POINT object by copying an existing RESULT_POINT object. Both
+				objects reference the same result.</p></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>getIndex()</h3><pre class="prettyprint copyable singleline">RESULT_POINT::IndexType getIndex() const;</pre><p>Returns
+				the index of the result this RESULT_POINT object points to. If the RESULT_POINT is not valid,
+				the value RESULT_POINT::NoResult is returned (which is for sure less in comparison to any
+				other valid index value).</p></section>
+		<section class="section"><h3>setIndex()</h3><pre class="prettyprint copyable singleline">void setIndex( const IndexType&amp; resultIndex);</pre><p>Sets
+				the index of an empty created RESULT_POINT object.</p><table class="ly"><caption><span>Parameter</span></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"><p>resultIndex</p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>The index to set.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="sectiontitlefake"><h2>Operators</h2></section>
+		<section class="section"><h3>operator+</h3><pre class="prettyprint copyable singleline">RESULT_POINT operator+ (const RESULT_POINT::DistanceType offset) const;</pre><p>Returns
+				a RESULT_POINT which references the result at the position "offset" relative to the actual
+				result position. As results are not always continuous (for example, only failed results
+				uploaded), the offset parameter refers to the number of uploaded results. </p><p><em>Example:</em>
+				If all results were uploaded, a + 3 on a RESULT_POINT at index 2 would result in index 5. If
+				only failed results were uploaded, having the sequence 1,3,4,6,7,9, a + 3 on a RESULT_POINT at
+				index 3 would result in index 7.</p><p>The sum of "actual position + offset" must not exceed the
+				number of uploaded results, otherwise an error will be generated.</p></section>
+		<section class="section"><h3>operator+=</h3><pre class="prettyprint copyable singleline">RESULT_POINT&amp; operator+= (const RESULT_POINT::DistanceType offset );</pre><p>Allows
+				modifying the actual object instead of returning a copy.</p></section>
+		<section class="section"><h3>operator++</h3><pre class="prettyprint linenums copyable">RESULT_POINT&amp; operator++();
+RESULT_POINT&amp; operator++(int);</pre><p>Pre/post
+				increment operators used to step to the next RESULT_POINT. These operators are context aware,
+				i.e. they will always step forward to the next existing result, depending on the mode of the
+				uploaded results (uploaded ALL or FAILS only results).</p></section>
+		<section class="section"><h3>Comparison
+				operators</h3><pre class="prettyprint linenums copyable">bool operator==(const RESULT_POINT&amp; otherResPoint);
+bool operator!=(const RESULT_POINT&amp; otherResPoint);
+bool operator&lt; (const RESULT_POINT&amp; otherResPoint);
+bool operator&lt;=(const RESULT_POINT&amp; otherResPoint);
+bool operator&gt; (const RESULT_POINT&amp; otherResPoint);
+bool operator&gt;=(const RESULT_POINT&amp; otherResPoint);</pre><p>Comparison
+				operators. RESULT_POINT objects are compared according to their indexes.</p></section>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable">virtual void run()
+{
+    // ...
+    // Perform DC Dynamic measurement ....
+    ON_FIRST_INVOCATION_BEGIN();
+
+        // settings and relay switching ...
+        FUNCTIONAL_TEST();
+
+    ON_FIRST_INVOCATION_END();
+
+    // ...
+
+    STRING pin("dps1");
+
+    // upload the results
+    //
+    // Define a result accessor object
+    DC_RESULT_ACCESSOR allResults;
+
+    // Upload all available results for the pin in RESULT_INDEX addressing scheme.
+    // The variable "range" will contain the start index and the length of the uploaded
+    // result range. For uploadResult() the length is equal to the number of uploaded
+    // results but for uploadFailedResults() it is usually larger than the number of
+    // failed results.
+    // Before the result data can be accessed, they always first need to be uploaded from
+    // hardware/firmware. Each uploadResult() will overwrite the last uploaded results.
+    // (independent of the particular DC_RESULT_ACCESSOR object!).
+
+    const TM::RESULT_RANGE range(allResults.uploadResult(pin, TM::RESULT_INDEX));
+    if (range.length &gt; 0)
+    {
+        // Use result accessor member functions getFirstResultPoint() and
+        // getLastResultPoint() to obtain iterators (RESULT_POINT objects) to the
+        // first and last uploaded results.
+
+        const RESULT_POINT first(allResults.getFirstResultPoint(pin));
+        const RESULT_POINT end  (allResults.getLastResultPoint(pin));
+
+        // process the results
+
+        // Loop over the uploaded results using the first and end iterators (RESULT_POINTs)
+        // and the increment ("++") operator on an iterator (decrement is not supported).
+        for ( RESULT_POINT p = first; p &lt;= end; ++p )
+        {
+            const bool testPassed         = allResults.getPassFail(p);
+            const TM::PHYSICAL_VALUE type = allResults.getMeasurementType(p);
+
+            std::cout &lt;&lt; "Test " &lt;&lt; (testPassed ? " PASSED " : " FAILED ");
+            std::cout &lt;&lt; ", Measured value " &lt;&lt; allResults.getValue(p);
+            std::cout &lt;&lt; ((type == TM::VOLTAGE) ? " V " : " A ");
+            std::cout &lt;&lt; " at point " &lt;&lt; p.getIndex();
+            std::cout &lt;&lt; " at site "  &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; endl;
+
+            if (! testPassed)
+            {
+                // test has failed at this point
+                // obtain the status info to examine the fail reason...
+                const RESULT_FAIL_INFO failInfo = allResults.getFailInfo(p);
+
+                // print out the status bits ...
+                std::cout &lt;&lt; " HighLimitFailed : " &lt;&lt; failInfo.hasHighLimitFailed();
+
+                // ...
+            }
+        }
+    }
+
+    // set the test result and send data to datalog ...
+    TEST(allResults, TRUE);
+}
+</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="99071.htm" title="The DC_RESULT_ACCESSOR API allows the consistent handling of measurement results for different pin types and measurement types.">DC_RESULT_ACCESSOR</a></div></div></nav>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 99164</span><script type="text/javascript">var ti='99164';var tt='RESULT_POINT'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

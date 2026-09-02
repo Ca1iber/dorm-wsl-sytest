@@ -1,0 +1,100 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="You can considerably simplify the definition of a parallel protocol by combining the pin roles of such a protocol into a pin role group. This construct allows you to define the frame data of these pin roles on the group level with one single entry. Due to this, the relationships between parameters and fields of a pin role group can be coded very compactly. Another advantage of pin role groups is that they improve the performance."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using pin role groups for parallel protocols</title></head><body id="_142213"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 142213</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using pin role groups for parallel protocols</h1>
+	
+	
+	<div><p>You can considerably simplify the definition of a parallel protocol by combining the pin
+		roles of such a protocol into a <em>pin role group</em>. This construct allows you to define the
+		frame data of these pin roles on the group level with one single entry. Due to this, the
+		relationships between parameters and fields of a pin role group can be coded very compactly.
+		Another advantage of pin role groups is that they improve the performance. </p>
+		<p>The field length of a pin role group must be set in the frame definition to</p>
+		<p><span class="keyword">field_length</span> = <span class="keyword">protocol_width</span> *
+				<span class="keyword">field_length_per_pin</span>,</p>
+		<p>where <span class="keyword">protocol_width</span> is the number of pin roles that belong to the group,
+			and <span class="keyword">field_length_per_pin</span> the length of the fields for the individual pins,
+			which must be equal for all pins.</p>
+		<p>The assignment of the content of a group field to the individual pins is definable by the user
+			with the (mandatory) <span class="keyword">sliceDepth</span> attribute of the pin role group. The maximum
+			slice depth is <span class="keyword">field_length_per_pin</span>, the minimum is 1. In the latter case, the
+				<span class="keyword">i</span><sup>th</sup> pin role in the order of the pin role group definition is
+			associated with bits <span class="keyword">protocol_width</span> * <span class="keyword">n</span> +
+				<span class="keyword">i</span> for all <span class="keyword">n</span> ≥ 0 such that
+				<span class="keyword">protocol_width</span> * <span class="keyword">n</span> + <span class="keyword">i</span> ≤
+				<span class="keyword">field_length</span>. Thus if <span class="keyword">protocol_width</span> = 2, then bits 1, 3,
+			... will be associated with the first pin role, and 2, 4, ... with the second pin role.</p>
+		
+		<h2>Example</h2><div class="example"><p>The following protocol fragment contains all information that is necessary to
+				understand the
+				example.</p><pre class="prettyprint linenums copyable">. . .
+&lt;pinRoleGroup name='IN_GR' sliceDepth='1'&gt;
+&lt;pinRoleRef name='IN1'/&gt;
+&lt;pinRoleRef name='IN2'/&gt;
+&lt;/pinRoleGroup&gt;
+
+&lt;pinRoleGroup name='OUT_GR' sliceDepth='4'&gt;
+&lt;pinRoleRef name='OUT1'/&gt;
+&lt;pinRoleRef name='OUT2'/&gt;
+&lt;/pinRoleGroup&gt;
+
+&lt;frame name='group_trans' &gt;
+&lt;para name='input' direction='IN' length='16' displayNumbers='HEX'&gt;
+&lt;decode function=''/&gt;
+&lt;/para&gt;
+
+&lt;para name='output' direction='OUT' length='16' displayNumbers='HEX'&gt;
+&lt;decode function='@OUT_GR.@out_field'/&gt;
+&lt;/para&gt;
+
+&lt;pinRoleData pinRoleRef='IN_GR'&gt;
+&lt;field name='in_field' length='16' direction='DEFAULT'&gt;
+&lt;encode function='input'/&gt;
+&lt;/field&gt;
+&lt;/pinRoleData&gt;
+&lt;pinRoleData pinRoleRef='OUT_GR'&gt;
+&lt;field name='out_field' length='16' direction='DEFAULT'&gt;
+&lt;encode function='output'/&gt;
+&lt;/field&gt;
+&lt;/pinRoleData&gt;
+&lt;/frame&gt;
+. . .</pre><p>There
+				are two pin role groups, <code>IN_GR</code> and <code>OUT_GR</code>. Group
+					<code>IN_GR</code>, which comprises pin roles <code>IN1</code> and
+				<code>IN2</code>, has slice depth 1, group <code>OUT_GR</code>, which contains pin roles
+					<code>OUT1</code> and <code>OUT2</code>, has slice depth 4.</p><p>The pin roles of this
+				protocol are assigned to device pins as
+				follows:</p><pre class="prettyprint linenums copyable">&lt;protocolMapping protocol='group_prot' resource='prot' &gt;
+&lt;pinRoleMapping pin='prI' pinRole='IN1' /&gt;
+&lt;pinRoleMapping pin='prO' pinRole='OUT1' /&gt;
+&lt;pinRoleMapping pin='prI2' pinRole='IN2' /&gt;
+&lt;pinRoleMapping pin='prO2' pinRole='OUT2' /&gt;
+&lt;/protocolMapping&gt;</pre><p>The
+				test method is very simple,
+				too:</p><pre class="prettyprint linenums copyable">virtual void run()
+  {
+     SYNCHRONIZED_TEST test("prot");
+       test.transaction("group_trans").set("input", "0b1010101010010010").
+                                       expect("output", "0b1010101010010010");
+       test.flush();
+       FUNCTIONAL_TEST();
+    return;</pre><p>Note
+				that the parameter values specified in the test method are identical for both groups. In this
+				way it should be easier to verify the effects of the different slice depths.</p><p>These effects
+				can be checked by displaying the resulting protocol pattern with the state character layout in
+				the Pattern Debug Tool:</p><div class="p"><figure class="fignone">
+					<img src="143185.png" alt="protocol_pattern_for_pin_role_groups">
+				</figure></div><p>Note the following points</p><ul>
+				<li>The pattern is in X4-mode. This is defined by the state mapping in the wavetable. </li>
+				<li>The binary string that is specified as the parameter value in the test method is
+					automatically converted into a state character sequence. In the case of an input parameter, the
+					state characters "0" and "1" are used, for an output parameter, the characters "L" and "H". 
+					
+					
+					
+					
+				</li>
+			</ul></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="126133.htm" title="The protocol details are shown if you select the protocol in the protocol editor's overview area.">Protocol details</a></div><div><a href="130453.htm" title="The slice depth defines how many bits of the state character sequence will be applied to a pin role before proceeding to the next pin role of the group.">Slice depth</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 142213</span><script type="text/javascript">var ti='142213';var tt='Using pin role groups for parallel protocols'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

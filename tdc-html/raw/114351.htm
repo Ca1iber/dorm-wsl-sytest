@@ -1,0 +1,41 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In multi-site testing, some devices require Keeping the Clock Alive. The reasons which lead to a pass or fail site dependency issue for these devices are discussed here."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Description and analysis of the pass or fail site dependency</title></head><body id="_114351"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114351</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Description and analysis of the pass or fail site dependency</h1>
+	
+	
+	<div><p>In multi-site testing, some devices require <a href="37524.htm" title="SmarTest always activates the actual primary timing and level sets when a connect sequence is executed (as, for example, at the start of every test flow). By default, it also activates them before the start of a functional test whenever necessary. Finally, new timing or level sets are activated within a functional test when CTIM or CLEV sequencer instructions occur in the sequencer program of the test.">Keeping the Clock Alive</a>. The reasons which
+		lead to a pass or fail site dependency issue for these devices are discussed
+		here.</p>
+		<p>While performing multi-site testing, the standard disconnect sequence cannot deal with the
+			devices that require a continuously running clock. </p>
+		<p>The situation is that if, after running test suite "A", a device fails and goes into the
+			bad bin, in the following test suite "B", other devices at the sites which have remained
+			enabled will also fail. This behavior is called the pass or fail site dependency issue
+			in multi-site testing. </p>
+		<p>Reasons for failing are explained below: </p>
+		<ul>
+			<li>The test suite is not self-contained (<a href="42596.htm" title="If sites are executed in parallel, vectors are always sent to ALL sites, regardless of whether these sites are currently under test or not. The results of the devices not under test are ignored, but their states change.">Self-contained test
+					suites</a> are independent of the output from previous test and provide the
+				device with all the required initializations). </li>
+			<li>When the bad device is binned out, SmarTest executes the <a href="113093.htm" title="When the test system resources are disconnected from the DUT and the tester is set to the &#34;disconnect&#34; state, a standard disconnect sequence is used within SmarTest by default.">Standard disconnect sequence</a>.
+					<p>This sequence issues an <span class="keyword">SQST OFF</span> firmware command, which
+					is applied to all the sequencers across all sites and sets all pins to a High-Z
+					state. As a result, the PLL keep-alive clock in the device is interrupted, or a
+					control pin of the device (which needs to stay at a certain state) might be set
+					to a different level; consequently, devices in other sites lose their state.
+				</p></li>
+		</ul>
+		<p>Given the facts above, you need choose other disconnect methods. </p>
+		<p>If you require any shared<em> </em>digital pins (for example trigger pins for analog
+			instruments), you need distinguish them from non-shared pins in your disconnect sequence
+			because shared pins typically need to stay connected until binning of the last site
+			happens (for example at the end of the test flow).</p>
+		<h2>Example</h2><div class="example"><p>A typical example for the pass or fail site dependency issue:</p><ul class="simple">
+				<li>One dual-site test flow has both sites enabled.</li>
+				<li>f1 and f2 are two successive functional tests in the test flow.</li>
+				<li>When any site fails in f1, the other site will fail in f2.</li>
+			</ul></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="116387.htm" title="SmarTest uses the disconnect sequence to separate the test system resource from the DUT. This also sets the test system to the &#34;disconnect&#34; state independent of the previous test system state.">Comparing the disconnect methods</a></div><div><a href="113093.htm" title="When the test system resources are disconnected from the DUT and the tester is set to the &#34;disconnect&#34; state, a standard disconnect sequence is used within SmarTest by default.">Standard disconnect sequence</a></div><div><a href="353718.htm" title="The Multibin SmartDisconnect test suite is a combination of a multibin node and a user defined test suite. Like a multibin node, the Multibin SmartDisconnect test suite is inserted into the fail branch of a Run and Branch test suite. A custom disconnect sequence adapted to the needs of the failed test suite can be implemented using test method APIs or SmartRDI-based code.">Multibin SmartDisconnect test suite</a></div><div><a href="113351.htm" title="This section explains how to use the special test suite bin_disconnect to do a flexible disconnect after binning.">Special test suite bin_disconnect</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114351</span><script type="text/javascript">var ti='114351';var tt='Description and analysis of the pass or fail site dependency'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

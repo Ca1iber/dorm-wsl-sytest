@@ -1,0 +1,65 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="One task of testing a source synchronous device is to measure the relative timing variations a device experiences (or generates) dependent on a flurry of parameter variations. The source sync test method we provide with the HSM Series software enables you to test more efficiently."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Source-synchronous testing concept</title></head><body id="_97231"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 97231</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Source-synchronous testing concept</h1>
+	
+	
+	<div><p>One task of testing a source synchronous device is to measure the relative timing
+		variations a device experiences (or generates) dependent on a flurry of parameter variations. The
+		source sync test method we provide with the HSM Series software enables you to test more
+		efficiently.</p>
+		<p>In source synchronous devices, the phase of the device output clock and the output data
+			cannot only show a static offset relative to the reference clock (which varies from device to
+			device), but also a common dynamic distortion during execution of a pattern. This distortion can
+			be the same for each pattern execution on the same device (deterministic distortion), but it can
+			also vary from one pattern execution to the next. </p>
+		<p>Both these cases are to be tolerated if the relative timing of the device clock and the
+			data signal still satisfies certain requirements (setup time, hold time). Therefore the task for
+			testing source synchronous devices is to distinguish reliably between such common mode phase
+			variations and genuine violations of the relative timing requirements. The minimum setup time can
+			serve as an example for the solution of this task: </p>
+		<p>The relative setup time for a data change is observed if there are points in time
+				<span class="keyword">p1</span> and <span class="keyword">p2</span> within the tester cycle that satisfy the
+			following conditions:</p>
+		<ul>
+			<li id="_97231__d1027e35">
+				<span class="keyword">p2</span> = <span class="keyword">p1</span> + required setup time</li>
+			<li id="_97231__d1027e44"> The output data already has the new value at <span class="keyword">p1</span>.</li>
+			<li id="_97231__d1027e50"> The output clock still has the old value at <span class="keyword">p2</span>.</li>
+		</ul>
+		<p>In principle, this can be validated by comparing the data and the clock signal with
+			these expected values and placing the respective compare edges at the distance of the required
+			setup time. But in the presence of common phase distortion, these points (if they exist) can have
+			a different delay relative to the start of the tester cycle in different cycles, so that they
+			cannot be found by a single pattern execution. Rather, the tester cycle must be scanned
+			systematically in search of <span class="keyword">p1</span> and <span class="keyword">p2</span>. </p>
+		<p>Therefore, the pattern must be executed repeatedly. With each shot, the compare edges
+			for the clock and data pins are moved in parallel (so that their distance remains equal to the
+			setup time) by a certain step width. </p>
+		<p>If the phase distortion is deterministic, then the required points will (usually) be
+			found if they exist, provided that the step width is small enough, and the pattern is repeated
+			often enough. Even if the distortion varies from test execution to test execution, the specified
+			criterion is still valid. But of course, the risk of missing the required <span class="keyword">p1</span>
+			and <span class="keyword">p2</span>, although they exist, will be greater in this latter case.</p>
+		<p>A cycle can then be accepted as passed if it passes at least in one shot. Since
+			different cycles can pass in different shots, the whole pattern can be accepted as passed if
+			every cycle passes at least in one shot. Note that this requires a disjunctive accumulation of
+			the individual shots.</p>
+		<h2>Example</h2><div class="example"><p id="_97231__d1027e83">The following figure illustrates the principle by a very simple
+				example with deterministic phase distortion (common mode drift):</p><div class="p" id="_97231__d1027e85"><figure class="fignone" id="_97231__d1027e86">
+					
+					<img src="84881.png" alt="Pattern iteration for source-synchronous testing">
+				</figure></div><p id="_97231__d1027e97">In this example, the pattern is repeated eight times. This is a certain
+				redundancy since every cycle has passed at least in one shot already after the third shot. If
+				unnecessary shots are to be avoided, the overall result would have to be checked after each
+				shot. </p><p id="_97231__d1027e99">So far, it has been assumed that only one data change occurs in every
+				cycle, so that only one result per cycle is required. But you can also check several changes in
+				one cycle. In this case you would have to record results on the edge level (all eight edges are
+				recorded in one shot). In this case the whole pattern would be considered as passed if every
+				edge passes at least in one shot.</p><p id="_97231__d1027e101">The above discussion centers on validation of a
+				given requirement. But you can also measure the actual setup time by setting the distance
+				between the data edge and the clock edge to 0. The setup time will then be the time between the
+				first and the last point where the expected values are received for both data and clock. </p><p id="_97231__d1027e103">A group of output data pins and the associated output clock pin is called a <em id="_97231__d1027e105">synchronization group</em>. One source synchronous device may contain several synchronization
+				groups.</p></div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 97231</span><script type="text/javascript">var ti='97231';var tt='Source-synchronous testing concept'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

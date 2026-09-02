@@ -1,0 +1,75 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In previous releases of SmarTest, every pin has one vector area which contains the physical waveform DC/DC power units for the patterns (labels) of all ports to which the pin belongs. Starting from release 7.0, every port has its own port specific vector area on every pin that belongs to it. Accordingly, the addresses of the STVA instructions, which specify the start of the vectors for the respective pattern, refer to the specific area of the respective pattern port. One advantage of these port specific vector areas is that the memory can be used much more efficiently when different ports have a pin in common."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>From global to port specific vector areas: Migration and compatibility</title></head><body id="_114507"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 114507</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">From global to port specific vector areas: Migration and compatibility</h1>
+	
+	
+	<div><p>In previous releases of SmarTest, every pin has one vector area which contains the
+		physical waveform DC/DC power units for the patterns (labels) of all ports to which the pin belongs.
+		Starting from release 7.0, every port has its own port specific vector area on every pin that
+		belongs to it. Accordingly, the addresses of the <span class="keyword">STVA</span> instructions, which
+		specify the start of the vectors for the respective pattern, refer to the specific area of the
+		respective pattern port. One advantage of these port specific vector areas is that the memory can
+		be used much more efficiently when different ports have a pin in common. </p>
+		<p>This is in contrast to the global vector area where the physical location of the vector data is
+			determined by the order in which the patterns are created. Since the start address of the vectors
+			must be the same for all pins within the same port, the vectors of any new pattern are appended
+			at the address that corresponds to the end of the largest vector area among the pins that belong
+			to the pattern port. If these pins have vector areas of different length, this produces "holes"
+			in the memory, that is, unused memory segments not necessitated by padding. The following figure
+			illustrates how such unused memory segments could be generated with the example setup in <a href="119987.htm" title="A column of the index array points to the waveforms that the sequencer program is to apply successively to a certain pin of the DUT. This (vertical) index sequence is stored in a vector area of the respective pin. Just as the sequencer areas, the vector areas are port specific. Every pin (more precisely, the channel which is associated with the pin in the pin configuration) has a separate vector area for every port to which it belongs. In fact, a pin can have two vector areas for each of its ports, one for each of two memory types (see Selecting the memory type). In contrast to the sequencer areas, the data of the vector areas will usually be different for different pins of the label port.">Sequencer areas and vector areas</a> when the vector area is global:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="10530.png" alt="Parallel Vector Area of a Pin Belonging to Different Ports">
+			</figure></div>
+		<p>In this example, the patterns were created in the order <strong>Test 3</strong>, <strong>Test 1</strong>, <strong>Test
+				2</strong>, <strong>Test 4</strong>. When <strong>Test 1</strong> is created, the largest vector area among the pins of
+				<strong>port1</strong> is that of <strong>Pin2</strong>, which already contains 112 vectors. Consequently, the start
+			segment 0 through 111 of the vector area for <strong>Pin1</strong> must be left empty.</p>
+		<p>In fact such holes are sometimes created even if the vector areas of the pattern port pins all
+			have the same length, but <em>another</em> pin has a larger vector area. Such the risk of such a
+			waste of memory space is greatly reduced by the new vector area layout.</p>
+		<p>Note that the new layout becomes visible in the vector setup file only if </p>
+		<ul>
+			<li>patterns exist for different ports, and </li>
+			<li>the vector setup is stored in a single setup file (in contrast to a pattern master file
+				setup).</li>
+		</ul>
+		<p>If a pattern master file is used, every pattern is stored in a separate file, and its
+				<span class="keyword">VECD</span> or <span class="keyword">VECC</span> commands specify only the vectors for this
+			pattern. Thus these commands can be combined into a port specific vector area as well as into a
+			global one. </p>
+		<p>At the same time, SmarTest 7.<em>x</em> is still able to load a multi-port setup that uses the
+			old global vector area. However, it converts such a setup into its own native format. In
+			particular, it divides the global vector area into port specific vector areas by analyzing the
+			addresses of the <span class="keyword">STVA</span> instructions. Accordingly, queries concerning the vector
+			areas of the currently loaded setup must be issued, and are answered, in the new format. </p>
+		<p>In order to be able to distinguish both vector area types, SmarTest must be told how the
+			addresses of the <span class="keyword">STVA</span> instructions (<span class="keyword">SQPG</span> command) are to be
+			interpreted, globally or locally. This information is given by the position of the address. A
+			global address is specified in <span class="keyword">param_1</span>, a port specific one in
+				<span class="keyword">param_2</span> of the <span class="keyword">STVA</span> instruction. In both cases the other
+			parameter must be omitted. Note that SmarTest stores and displays the address in
+				<span class="keyword">param_2</span> only if the above two conditions concerning the new layout are
+			fulfilled. In all other cases it uses <span class="keyword">param_1</span>.</p>
+		<p>The other firmware commands that are affected by the port specific vector area layout are</p>
+		<ul>
+			<li><span class="keyword">VECD(?), VECC(?)</span></li>
+			<li><span class="keyword">GETA?</span></li>
+			<li><span class="keyword">DMAS(?)</span></li>
+		</ul>
+		<p>For details see the respective command descriptions.</p>
+		<section class="section"><h2>Migration and compatibility</h2><p>The new multi-port format is not backward
+				compatible. Single setup files that contain patterns for more than one port cannot be loaded
+				with an earlier SmarTest release after they have been saved on a 7.<em>x</em> release. </p><p>If
+				backward compatibility is required, it is recommended to convert a single setup file in the old
+				format into a pattern master file setup. The format of the pattern master file setups did not
+				change. </p><p>Furthermore, if a single setup file is necessary to reduce the download times
+				(which can be longer with a pattern master file, see <a href="58905.htm" title="Vector data can be organized in two ways. You can either keep all the labels (patterns) in one big vector setup file, or you can store every pattern in a separate file and specify the subset of them that you want to work with in a pattern master file. The pattern master file contains the names of the pattern files and also the directory path where they are located.">The pattern master file</a>), compatibility
+				could theoretically be preserved by using a setup file in the old format on both system types.
+				However, this is not advisable, since loading a single setup file in the old format with a
+					7.<em>x</em> system takes considerably longer than loading a file in the new format. Rather, you
+				should use a pattern master file setup as a single source and create two single setup files from
+				it, one for older releases, and one for 7.<em>x</em>. </p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 114507</span><script type="text/javascript">var ti='114507';var tt='From global to port specific vector areas: Migration and compatibility'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

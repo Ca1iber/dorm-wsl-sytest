@@ -1,0 +1,216 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The syntax of the waveform mapping file is similar to that of the Timing file, although not identical to it. Wavetables for waveform mapping can be specified in three different variants of a basic syntax. These syntaxes cannot be mixed within one PINS block, but one wavetable may contain PINS blocks with different syntaxes."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Waveform mapping file syntax</title><meta name="keywords" content="wave form waveform table"></head><body id="_102554"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 102554</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Waveform mapping file syntax</h1>
+	
+	
+	<div><p>The syntax of the waveform mapping file is similar to that of the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>, although not identical to it. Wavetables for waveform mapping can be specified in three
+		different variants of a basic syntax. These syntaxes cannot be mixed within one
+			<span class="keyword">PINS</span> block, but one wavetable may contain <span class="keyword">PINS</span> blocks with
+		different syntaxes.</p>
+		<section class="section"><p>Specifically, a waveform mapping file looks like
+				this:</p><pre class="prettyprint linenums copyable"><span class="keyword">[</span> WAVETBL <span class="keyword">&lt;wavetableName&gt;]</span>
+<span class="keyword">[</span> MODECONTEXT <span class="keyword">&lt;modeContextName&gt;]</span>
+
+PINS <span class="keyword">&lt;dutPinName&gt;...</span> (<span class="keyword">[&lt;deviceCycleName&gt;]</span>)
+<span class="keyword">&lt;waveform_specification&gt;</span>
+<span class="keyword">...</span>
+
+<span class="keyword">...</span></pre><p>The
+				order of the statements shown must follow the example above; the various elements are identified
+				by their positions relative to the other elements.</p><p>Italic text indicates meta-syntax, as
+				described in <a href="101937.htm" title="This section describes the notation used to describe configuration file syntax.">Syntax conventions</a>.</p></section>
+		<section class="section"><h2>Keywords and parameters</h2><p>These are the keywords and parameters in
+				alphabetical order:</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_102554__entry__1"><p>Keyword</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_102554__entry__2"><p>Parameters and descriptions</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102554__entry__1"><p><span class="keyword">MODECONTEXT</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102554__entry__2"><p>The mode context to be used for this waveform. </p>
+								<p>This keyword is optional; it is required when WAVETBL is used and ignored otherwise.</p>
+								<p><span class="keyword">&lt;modeContextName&gt;</span>: The name of the mode context, as defined in
+									SmarTest.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102554__entry__1"><p><span class="keyword">PINS</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102554__entry__2"><p>The waveform mapping for a pin or pin group.</p>
+								<p>A waveform mapping file may contain any number of pin definitions.</p>
+								<p><span class="keyword">&lt;dutPinName&gt;</span>: A pin or pin group name defined in the pin
+									configuration file of the SmarTest software. These names must be mapped to MTL pins in the
+										<a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a>. There can be up to 256 DUT pin names after a
+										<span class="keyword">PINS</span> keyword, separated by spaces. If maintenance operations are used,
+									waveforms for non-interruptible sequences on pins in the <span class="keyword">VEC</span> refresh
+									mode must have indexes between (hexadecimal) 80 and FF. (See <a href="75895.htm" title="Maintenance operations are procedures that need to be performed regularly during the testing of a device, most commonly refreshes.">Maintenance operations</a> for
+									details.)</p>
+								<p><span class="keyword">&lt;deviceCycleName&gt;</span>: This parameter should no longer be used. It
+									was needed for <a href="95292.htm" title="Earlier releases of MTL supported x-modes in a different way than the current release, requiring users to create specific device accesses for each x-mode they wanted to use. This made x-mode programs both harder to use and maintain as well as more difficult to read.">Non-transparent x-modes</a>, which we recommend you no longer use. If used, it
+									must reference a device cycle specified by the <span class="keyword">:devCyc:</span> keyword in the
+										<a href="67571.htm" title="The device access file describes which bitstreams need to be sent to device pins to execute specific operations on the device, translating logical calls to concrete waveforms. The device access defined in the device access file are called from the APG program file.">Device access file</a>.</p>
+								<p>The parentheses are required in any case, whether a device cycle name is given or not.
+									(The parentheses must be omitted if the <span class="keyword">WAVETBL</span> keyword is used.)</p>
+								<p><span class="keyword">&lt;waveform_specification&gt;</span>: A specification of the waveform. The
+									concrete form of this specification differs according to the type of syntax, as described
+									below.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_102554__entry__1"><p><span class="keyword">WAVETBL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_102554__entry__2"><p>Optional keyword.</p>
+								<p>The <span class="keyword">WAVETBL</span> keyword is needed if a waveform mapping file is to be used
+									for direct waveform mapping in place of a timing file.</p>
+								<p>If it is used, <span class="keyword">MODECONTEXT</span> is also required and there must be no
+									parentheses at the end of the <span class="keyword">PINS</span> line. (See above.)</p>
+								<p><span class="keyword">&lt;wavetableName&gt;</span>: The name of this wavetable that can be
+									referenced from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>. The name can be any string complying with the
+										<a href="73015.htm" title="When creating names for variables, parameters, or functions in MTL, you must follow certain rules. There are also recommendations for names access from subroutines, although these are not mandatory.">naming conventions</a>.</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Compatible syntax</h2><p>The compatible syntax offers two ways of specifying a
+				waveform, standard and fast.</p><p>In both modes, a waveform is specified
+				as:</p><pre class="prettyprint copyable singleline"><span class="keyword">&lt;wfIndex&gt;&lt;wfDescription&gt;&lt;states&gt;</span></pre><p>The
+				elements have these meanings:</p><ul>
+				<li><span class="keyword">&lt;wfIndex&gt;</span>: A hexadecimal number that references the physical
+					waveform index in the run-time timing settings; it must be in the range from <code>0</code>
+					through <code>FF</code>.<p>Note that the numbers do not need to be prefixed with 0x.</p></li>
+				<li><span class="keyword">&lt;wfDescription&gt;</span>: This is an optional sequence of the resulting
+					waveforms. It is ignored in the waveform mapping.<p>In the standard mode, each edge in this
+						description is prefixed with the name of the edge (for example, "d1:0 d2:1"). In the fast
+						mode, the description consists simply of the sequence of level (for example, "01").</p></li>
+				<li><span class="keyword">&lt;states&gt;</span>: The waveform that will be replaced by the corresponding
+					index into the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>.<p>Waveforms are described by a series of state
+						characters. These state characters are supported:</p><ul>
+						<li>For drive actions: 0 and 1</li>
+						<li>For compare actions: L and H</li>
+						<li>For both drive and compare actions: X, M, U, and Z<p>You can append <code>_ni</code>
+								to a state sequence to indicate that it refers to the non-interruptible version of the
+								sequence.</p></li>
+					</ul></li>
+			</ul><p>The compatible syntax cannot be mixed in one wavetable with either the native or the
+				native standard syntax.</p></section>
+		<section class="section"><h2>Native syntax</h2><p>In the native syntax, a waveform is specified in different
+				ways depending on the type of pin:</p><ul>
+				<li>I
+					pins<div></div><pre class="prettyprint copyable singleline"><span class="keyword">&lt;wfIndex&gt;&lt;fastWf&gt;&lt;slowWf&gt;&lt;states&gt;</span></pre></li>
+				<li>O
+					pins<div></div><pre class="prettyprint copyable singleline"><span class="keyword">&lt;wfIndex&gt;&lt;receiveWf&gt;[&lt;windowWf&gt;]&lt;states&gt;</span></pre></li>
+				<li>I/O
+					pins<div></div><pre class="prettyprint copyable singleline"><span class="keyword">&lt;wfIndex&gt;&lt;fastWf&gt;&lt;slowWf&gt;&lt;receiveWf&gt;[&lt;windowWf&gt;]&lt;states&gt;</span></pre></li>
+			</ul><p>The elements have these meanings:</p><ul>
+				<li><span class="keyword">&lt;wfIndex&gt;</span>: A hexadecimal number that references the physical
+					waveform index in the run-time timing settings; it must be in the range from <code>0</code>
+					through <code>FF</code>.<p>Note that the numbers do not need to be prefixed with 0x.</p></li>
+				<li><span class="keyword">&lt;fastWf&gt;</span>: This is a description of the fast (f) waveform as a
+					sequence of levels.</li>
+				<li><span class="keyword">&lt;slowWf&gt;</span>: This is a description of the slow (s) waveform as a
+					sequence of levels.<p>The fast and slow waveforms are combined to provide four levels:</p><ul>
+						<li>fast 0, slow 0: <span class="keyword">vil</span></li>
+						<li>fast 0, slow 1: <span class="keyword">v3h</span> - <span class="keyword">vih</span> +
+							<span class="keyword">vil</span></li>
+						<li>fast 1, slow 0: <span class="keyword">vih</span></li>
+						<li>fast 1, slow 1: <span class="keyword">v3h</span></li>
+					</ul></li>
+				<li><span class="keyword">&lt;receiveWf&gt;</span>: This is a description of the receive edges a sequence
+					of levels.</li>
+				<li><span class="keyword">&lt;windowWf&gt;</span>: This is a description of the window compare edges as a
+					sequence of levels.<p>This column is optional.</p></li>
+				<li><span class="keyword">&lt;states&gt;</span>: The waveform that will be replaced by the corresponding
+					index into the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>.<p>Waveforms are described by a series of state
+						characters. These state characters are supported:</p><ul>
+						<li>For drive actions: 0, 1, N, and . (period). N and . are considered the same.</li>
+						<li>For receive and compare actions: L, H, X, and . (period). X and . are considered to be
+								different.<p>You can append <code>_ni</code> to a state sequence to indicate that it
+								refers to the non-interruptible version of the sequence.</p></li>
+					</ul></li>
+			</ul><p>The native syntax requires an HSM3G or HSM6800 card.</p></section>
+		<section class="section"><h2>Native standard syntax</h2><p>In the native syntax, a waveform is specified
+				as:</p><pre class="prettyprint copyable singleline"><span class="keyword">&lt;wfIndex&gt;&lt;wfDescription&gt;&lt;states&gt;</span></pre><p>The
+				elements have these meanings:</p><ul>
+				<li><span class="keyword">&lt;wfIndex&gt;</span>: A hexadecimal number that references the physical
+					waveform index in the run-time timing settings; it must be in the range from <code>0</code>
+					through <code>FF</code>.<p>Note that the numbers do not need to be prefixed with 0x.</p></li>
+				<li><span class="keyword">&lt;wfDescription&gt;</span>: This is a description of the waveform as a series
+					of pairs of edge names and levels. <p>For I pins, fast and slow edges must be specified in
+						paris, for example, "f1:0 s1:1 f2:1 s2:1". Fast and slow edges are combined as in the native
+						syntax, described above.</p>
+					<p>For O pins, there is a series of receive edges, for example, "r1:H, r2:L".</p></li>
+				<li><span class="keyword">&lt;states&gt;</span>: The waveform that will be replaced by the corresponding
+					index into the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>.<p>Waveforms are described by a series of state
+						characters. These state characters are supported:</p><ul>
+						<li>For drive actions: 0, 1, N, and . (period). N and . are considered the same.</li>
+						<li>For receive and compare actions: L, H, X, and . (period). X and . are considered to be
+								different.<p>You can append <code>_ni</code> to a state sequence to indicate that it
+								refers to the non-interruptible version of the sequence.</p></li>
+					</ul></li>
+			</ul><p>The native standard syntax requires an HSM3G or HSM6800 card.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Compatible syntax</h3><p>In the <a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+using defaultxmode 3 
+<span class="keyword">...</span></pre><p>In
+				the wavetable
+			file:</p><pre class="prettyprint linenums copyable">WAVETBL "Compatible"
+PINS pin1    # fast-mode  
+"000" 000
+"001" 001
+"011" 011
+...
+PINS pin1    # std-mode  
+"d1:0 d2:0 d3:0" 000
+"d1:0 d2:0 d3:1" 001
+"d1:0 d2:1 d3:1" 011
+<span class="keyword">...</span></pre></div>
+		<div class="example"><h3>Native syntax</h3><p>In the <a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+using defaultxmode 3 
+<span class="keyword">...</span></pre><p>In
+				the wavetable
+			file:</p><pre class="prettyprint linenums copyable">WAVETBL "Native"
+PINS pin_i  
+# idx  fast  slow name
+   0  "000" "000" 000
+   1  "001" "000" 001
+   2  "001" "001" 00Z
+   3  "011" "000" 011
+<span class="keyword">...</span>
+PINS pin_o 
+# idx  rec   win  name  
+   0  "LLL" "000" LLL
+   1  "LLH" "000" LLH
+   2  "LHL" "000" LHL
+   3  "LHH" "000" LHH
+<span class="keyword">...</span>
+PINS pin_io
+# idx  fast  slow  rec   win  name
+   0  "000" "000" "..." "000" 000
+   1  "001" "000" "..." "000" 001
+   2  "001" "001" "..." "000" 00Z
+   3  "111" "111" "LLX" "000" LL
+<span class="keyword">...</span></pre></div>
+		<div class="example"><h3>Native standard syntax</h3><p>In the <a href="67574.htm" title="The pin mapping file maps pin definitions from the Device access file to pin or pin group specifications from the SmarTest Pin configuration file. The MTL compiler creates test patterns only for SmarTest pins for which APG pin names have been specified in the pin mapping file.">Pin mapping file</a>:</p><pre class="prettyprint linenums copyable"><span class="keyword">...</span>
+using defaultxmode 3 
+<span class="keyword">...</span></pre><p>In
+				the wavetable
+			file:</p><pre class="prettyprint linenums copyable">WAVETBL "Native_std"
+PINS pin_i
+# idx  fast&amp;slow                      name
+   0  "s1:0 f1:0 s2:0 f2:0 s3:0 f3:0" 000
+   1  "s1:0 f1:0 s2:0 f2:0 s3:0 f3:1" 001
+   2  "s1:0 f1:0 s2:0 f2:0 s3:1 f3:1" 00Z
+<span class="keyword">...</span>
+
+PINS pin_o
+# idx  receive         name
+   0  "r1:L r2:L r3:L" LLL
+   1  "r1:L r2:L r3:H" LLH
+   2  "r1:L r2:H r3:L" LHL
+<span class="keyword">...</span></pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="101981.htm" title="The waveform mapping file is an optional configuration file that is needed for Indirect waveform mapping. It maps calculated patterns from the APG program to indexes into the timing settings specified in SmarTest at run-time.">Waveform mapping file</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: Introduced native and native standard syntax</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 102554</span><script type="text/javascript">var ti='102554';var tt='Waveform mapping file syntax'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

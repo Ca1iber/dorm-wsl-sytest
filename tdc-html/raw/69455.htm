@@ -1,0 +1,883 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This section describes the GPIB communication between the driver and the prober."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GPIB communication flow for TEL probers</title></head><body id="_69455"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 69455</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GPIB communication flow for TEL probers</h1>
+	
+	
+	<div><p>This section describes the GPIB communication between the driver and the
+		prober.</p>
+		<section class="section"><h2>Ignored SRQs</h2><p>The following table lists service requests (SRQs) from the prober that are ignored by the
+				driver.</p><table class="frame-topbot"><caption><span>TEL prober SRQs that are ignored by the driver</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_69455__entry__1"><p>Ignored prober SRQs</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_69455__entry__2"><p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__1"><p><kbd class="userinput">0x4e</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__2"><p>Assistance needed</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__1"><p><kbd class="userinput">0x68</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__2"><p>Manual test</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__1"><p><kbd class="userinput">0x50</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__2"><p>Prober error</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__1"><p><kbd class="userinput">0xff</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__2"><p>Parameter error</p>
+							</td>
+						</tr>
+					</tbody></table><p>These SRQs require direct operator operations at the prober. The driver waits until the operation
+				is cleared.</p><p>The table below shows the communication between the driver
+				and the prober. The actions and messages are listed in sequential order.</p><p>See <em><a href="69288.htm" title="The conventions in the table below are used in this chapter to describe GPIB/LAN communication:">Conventions for GPIB communication</a></em> for descriptions of the
+				syntax.</p><table class="frame-bottom"><caption><span>GPIB communication path for TEL probers</span></caption><colgroup><col><col><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_69455__entry__11"><p>Message from driver</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_69455__entry__12"><p>Message from prober</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_69455__entry__13" colspan="2"><p>Comments</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="3"><p><kbd class="userinput">init: &lt;lot
+										start&gt;&lt;machine ID&gt;</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="3"><p><kbd class="userinput">load cassette: &lt;lot
+										start&gt;</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">lot start:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x52</kbd><strong>|</strong><kbd class="userinput">0x70</kbd><strong>|</strong><kbd class="userinput">0x60</kbd><strong>|</strong><kbd class="userinput">0x4c</kbd><strong>|</strong><kbd class="userinput">0x48</kbd><strong>|</strong><kbd class="userinput">0x62]0x46</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Initial die of wafer contacted, or</p>
+								<p>The SRQs are used for:</p>
+								<p><kbd class="userinput">0x52 </kbd>Wafer name receive</p>
+								<p><kbd class="userinput">0x70 </kbd>Cassette map setup</p>
+								<p><kbd class="userinput">0x60 </kbd>Random wafer test</p>
+								<p><kbd class="userinput">0x4c </kbd>Alignment error</p>
+								<p><kbd class="userinput">0x48 </kbd>Lot end</p>
+								<p><kbd class="userinput">0x62 </kbd>Pause</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">[0x52</kbd><strong>|</strong><kbd class="userinput">0x70</kbd><strong>|</strong><kbd class="userinput">0x60</kbd><strong>|</strong><kbd class="userinput">0x4c</kbd><strong>|</strong><kbd class="userinput">0x48</kbd><strong>|</strong><kbd class="userinput">0x62]0x4a
+										0x46</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Initial wafer, initial die of wafer contacted.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">retest wafer:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">b</kbd><em>xxxyyy</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Recontact first die of wafer, for example
+										<kbd class="userinput">b001001</kbd> for die 1, 1.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x47</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Index complete, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x4f</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Outside of wafer, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x4b</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Wafer end.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">load new wafer:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">a</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests reference die position.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><em>xxxyyy</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Returns reference die position, for example
+										<kbd class="userinput">001001</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">A</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests current die position.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><em>xxxyyy</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Returns current die position, for example
+										<kbd class="userinput">001001</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">Z</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Move chuck up when the configuration
+									parameter tel_send_z_command is set up to "yes".</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x43</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Chuck is up, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0xC3</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>(78S only)</p>
+								<p>Chuck is up and profile probe on wafer.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">load new wafer:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">U</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Unload wafer.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x46</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Unload OK, next wafer loaded, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x48</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Unload OK, LOT end.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">unload wafer (abort
+										test):</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">VF</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Abort current LOT.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x48</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Unload OK, LOT end.</p>
+								<p>Note: Not sent if configuration value tel_send_wafer_abort is set to "no". In this case
+									the command "U" unload wafer is sent.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">get dies (prober is
+										master):</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">A</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests current die position.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><em>xxxyyy</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Returns current die position, for example
+										<kbd class="userinput">001001</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">Z</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Move chuck up.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x43 </kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Chuck is up, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0xC3</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>(78S only)</p>
+								<p>Chuck is up and profile probe on wafer.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">O</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Request for dies on wafer, multi-site
+									scenarios only.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><em>pppppppp</em><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>(20S only)</p>
+								<p>Site population as byte, for example <kbd class="userinput">01111000</kbd>, <em>p</em> = [0, 1]
+									or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><em>p</em><kbd class="userinput">+</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>(78S or P8)</p>
+								<p>Site population, <em>p</em> = [@, A, B, ...O].</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">get dies (SmarTest is
+										master):</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">b</kbd><em>xxxyyy</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Contact die position, for
+										example <kbd class="userinput">b001002</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x47</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Index step complete, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x4f</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Outside of wafer, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x4b</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Wafer end.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">A</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests current die position.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><em>xxxyyy</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Returns current die position, for example
+										<kbd class="userinput">001002</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">Z</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Move chuck up when the configuration
+									parameter tel_send_z_command is set up to "yes".</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x43</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Chuck is up, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0xC3</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>(78S only)</p>
+								<p>Chuck is up and profile probe on wafer.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">O</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests for dies on wafer, multi-site
+									scenarios only.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><em>pppppppp</em><strong> |</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>(20S only)</p>
+								<p>Site population as byte, for example <kbd class="userinput">01111000</kbd>, <em>p</em> = [0, 1]
+									or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><em>p</em><kbd class="userinput">+</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>(78S or P8)</p>
+								<p>Site population, <em>p</em> = [@, A, B, ...O].</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">bin dies</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">C</kbd><em>ibbb...</em><kbd class="userinput">*</kbd><em>ibbb...</em></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Send bin data string, where <em>i</em>
+									represents the pass/fail information and <em>bbb...</em> represents the binning
+									information.</p>
+								<p>For 20S probers, the characters <kbd class="userinput">0</kbd>, <kbd class="userinput">1</kbd>,
+										<kbd class="userinput">2</kbd>, <kbd class="userinput">4</kbd>, and <kbd class="userinput">8</kbd> are
+									used.</p>
+								<p>For 78S and P8 probers, the characters <kbd class="userinput">@</kbd>,
+									<kbd class="userinput">A</kbd>, <kbd class="userinput">B</kbd>, <kbd class="userinput">D</kbd>, and
+										<kbd class="userinput">H</kbd> are used.</p>
+								<p>For P12 and P8 probers, when the binary binning method is enabled, the driver supports up
+									to 1,000,000 (0 to 999,999) bins. For example, <span class="keyword">C@O@GB@@@@</span> represents
+									passing the die bin to 9999; <span class="keyword">OCBDO@@@</span> represents passing the die bin to
+									999999.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x4d] 0x59</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Bin data accepted, optionally preceded by a
+									continuous fail SRQ that is ignored.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">Q</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Step to next die (only, if prober is
+									master)</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x47</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Index step complete, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x4b</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Wafer end, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x48</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Cassette end.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">reprobe:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">D</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Move chuck down.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x44</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Chuck is down.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">Z</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Move chuck up.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0x43</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Chuck is up, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">[0x62] 0xC3</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>(78S only)</p>
+								<p>Chuck is up and profile probe on wafer.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">pause prober:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">e</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Pauses prober.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">unpause prober:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p><kbd class="userinput">0x59</kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Stop is released, resumed to normal
+									operation, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><kbd class="userinput">0x4b</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Forced end of test.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">wafer ID:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">W </kbd><strong>|</strong></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>(20S only)</p>
+								<p>Requests wafer ID, or</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">n</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>(78S or P8)</p>
+								<p>Requests wafer ID.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p>"<kbd class="userinput">string</kbd>"</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Returns wafer ID.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">Probe ID:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">g</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests probe ID.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p>"<kbd class="userinput">string</kbd>"</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Returns probe ID.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">equipment &lt;machine number&gt;
+										&lt;machine ID&gt;</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">machine number:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">F</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests machine number.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p><em>nnn</em></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Returns machine number send back, for example
+										<kbd class="userinput">314</kbd>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">machine ID:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">?V</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Requests machine ID.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__12"><p>"<kbd class="userinput">string</kbd>"</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_69455__entry__13" colspan="2"><p>Returns machine ID as string.</p>
+								<p>Note: Not sent if configuration value <kbd class="userinput">tel_send_id_query</kbd> is set to
+										"<kbd class="userinput">no</kbd>"</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">probe needle
+										cleaning:</kbd></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p><kbd class="userinput">p</kbd></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>clean probe</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>0x59</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>function performed</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>0x62</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>error occurred</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11 _69455__entry__12 _69455__entry__13" colspan="4"><p><kbd class="userinput">query status: &lt;query
+										wafer_size&gt; &lt;query die_height&gt; &lt;query die_width&gt; &lt;query wafer_units&gt;
+										&lt;query wafer_flat&gt; &lt;query center_x&gt; &lt;query center_y&gt; &lt;query pos_x&gt;
+										&lt;query pos_y&gt; &lt;query lot_number&gt; &lt;query wafer_id&gt; &lt;query
+										wafer_number&gt; &lt;query cass_status&gt; &lt;query chuck_temp&gt; &lt;query
+										multisite_location_number&gt; &lt;query error_code&gt;</kbd></p>
+								<p>This only applies to P8 and P12 handlers.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query wafer_size:</p>
+								<p><code>WS</code></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the wafer size with
+										<code>ph_wafer_size=PROB_HND_CALL(ph_get_status wafer_size)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query die_height:</p>
+								<p><code>DH</code></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the die height with
+										<code>PROB_HND_CALL(ph_get_status die_height)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query die_width:</p>
+								<p><code>DW</code></p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the die width with
+										<code>PROB_HND_CALL(ph_get_status die_width)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query wafer_units:</p>
+								<p><code>WU</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the units used for die with
+										<code>PROB_HND_CALL(ph_get_status wafer_units)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query wafer_flat:</p>
+								<p><code>WF</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the wafer flat with
+										<code>PROB_HND_CALL(ph_get_status wafer_flat)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query center_x:</p>
+								<p><code>CD</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the x coordinate of the center die
+									with <code>PROB_HND_CALL(ph_get_status center_x)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query center_y:</p>
+								<p><code>CD</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the y coordinate of the center die
+									with <code>PROB_HND_CALL(ph_get_status center_y)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query pos_x:</p>
+								<p><code>WD</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the positive direction of x
+									coordinate with <code>PROB_HND_CALL(ph_get_status pos_x)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query pos_y:</p>
+								<p><code>WD</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the positive direction of y
+									coordinate with <code>PROB_HND_CALL(ph_get_status pos_y)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query lot_number:</p>
+								<p><code>g</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+								<p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the lot number with
+										<code>PROB_HND_CALL(ph_get_status lot_number)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query wafer_ID:</p>
+								<p><code>n</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the wafer ID with
+										<code>PROB_HND_CALL(ph_get_status wafer_ID)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query wafer_number:</p>
+								<p><code>w</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the wafer number with
+										<code>PROB_HND_CALL(ph_get_status wafer_number)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query cass_status:</p>
+								<p><code>S</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the cassette information with
+										<code>PROB_HND_CALL(ph_get_status cass_status)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query chuck_temp:</p>
+								<p><code>f1</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the temperature of the hot chuck with
+										<code>PROB_HND_CALL(ph_get_status chuck_temp)</code>.</p>
+								<p>The format of the returned string is <code>current
+										temperature:&lt;aaaabbbb&gt;</code>. <code>aaaa</code> presents the current
+									temperature and <code>bbbb</code> presents the setting temperature.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query multi_site_location_number:</p>
+								<p><code>G</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the multisite location number which is part of the wafer parameter information with
+										<code>PROB_HND_CALL(ph_get_status</code> multi_site_location_number<code>)</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__11"><p>query error_code:</p>
+								<p><code>s</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__12"><p>"string"</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69455__entry__13" colspan="2"><p>Query the error code with
+										<code>PROB_HND_CALL(ph_get_status error_code)</code></p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 69455</span><script type="text/javascript">var ti='69455';var tt='GPIB communication flow for TEL probers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

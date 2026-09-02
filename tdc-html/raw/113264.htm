@@ -1,0 +1,166 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="You will use test methods also to connect and disconnect the signal pins of a dynamic DC test."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up the (dis-)connect tasks for a dynamic DC test and building the test methods</title><meta name="keywords" content="diagnostic subsystem diagnostic sub-system testmethod"></head><body id="_113264"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 113264</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up the (dis-)connect tasks for a dynamic DC test and building the test
+		methods</h1>
+	
+	
+	<div><p>You will use test methods also to connect and disconnect the signal pins of a dynamic DC
+		test.</p>
+		<p>The power pins are handled by the test flow, that is, they connect and disconnect
+			automatically. Only the connect and disconnect of the signal pins (PMU) must be programmed in a
+			test method.</p>
+		<p>Once this is done, you can build the test method project.</p>
+		<p>The test method example code below connects and disconnects the PMU signal pins, and also
+			ensures they are disconnected in case of an error.</p>
+		<div></div><pre class="prettyprint linenums copyable">...
+class DCDynDemoTests_connect: public testmethod::TestMethod
+{
+protected:
+//Add your class member variable here.
+
+protected:
+/**
+ *Initialize the parameter interface to the testflow.
+ *This method is called just once after a testsuite is created.
+ *
+ *Note: TestMethod API should not be used in this method.
+ */
+virtual void initialize()
+{
+  //Add your intialization code here.
+}
+
+/**
+ *This test is invoked per site.
+ */
+virtual void run() 
+{
+  SPMU_TASK connectTask;
+
+  ON_FIRST_INVOCATION_BEGIN();
+
+    // Connect the power pins
+    CONNECT();
+  
+    // Connect the PMU pins
+    for (INT i = 0; i &lt; numPMUPins; ++i) {
+      SPMU_PIN_TASK&amp; pinTask(connectTask.pin(pmuPins[i]));
+      pinTask.relay("NT");
+      pinTask.iForce(0.01);
+      pinTask.mode("VM_HIZ");
+      pinTask.clamp(1500 mA);
+      pinTask.min(0 V);
+      pinTask.max(7 V);
+      pinTask.settling(0 ms);
+    }
+    // Ensure the PMU is disconnected in case of an error.
+    connectTask.execMode(TM::FORCE_OFF);
+    connectTask.execute();
+          
+    for (INT i = 0; i &lt; numPMUPins; ++i) {
+      SPMU_PIN_TASK&amp; pinTask(connectTask.pin(pmuPins[i]));
+      pinTask.settling(250 us);
+    }
+    connectTask.execMode(TM::FORCE_ON);
+    connectTask.execute();    
+  
+  ON_FIRST_INVOCATION_END();
+  
+  return;
+}
+
+/**
+ *This function will be invoked once the specified parameter's value is changed.
+ *@param parameterIdentifier
+ *
+ *Note: TestMethod API should not be used in this method.
+ */
+virtual void postParameterChange(const string&amp; parameterIdentifier)
+{
+  //add your code
+}
+
+};
+REGISTER_TESTMETHOD("DCDynDemoTests.connect",DCDynDemoTests_connect);
+
+
+/**
+ *Testmethod class.
+ *
+ *For each testsuite using this testmethod, one object of this
+ *class is created.
+ */
+class DCDynDemoTests_disconnect: public testmethod::TestMethod
+{
+protected:
+//Add your class member variable here.
+
+protected:
+/**
+ *Initialize the parameter interface to the testflow.
+ *This method is called just once after a testsuite is created.
+ *
+ *Note: TestMethod API should not be used in this method.
+ */
+virtual void initialize()
+{
+  //Add your intialization code here.
+}
+
+/**
+ *This test is invoked per site.
+ */
+virtual void run()  
+{
+  SPMU_TASK connectTask;
+
+  ON_FIRST_INVOCATION_BEGIN();
+  
+    // Disconnect the PMU pins.
+    for (INT i = 0; i &lt; numPMUPins; ++i) {
+      SPMU_PIN_TASK &amp; pinTask(connectTask.pin(pmuPins[i]));
+      pinTask.relay("NT");
+      pinTask.iForce(0);
+      pinTask.mode("VM_HIZ");
+      pinTask.clamp(1500 mA);
+      pinTask.min(0 V);
+      pinTask.max(7 V);
+      pinTask.settling(0 ms);
+    }
+    connectTask.execMode(TM::FORCE_OFF);
+    connectTask.execute();    
+
+    // Disconnect the power pins.
+    DISCONNECT();
+  
+  ON_FIRST_INVOCATION_END();
+  
+  return;
+}
+
+/**
+ *This function will be invoked once the specified parameter's value is changed.
+ *@param parameterIdentifier
+ *
+ *Note: TestMethod API should not be used in this method.
+ */
+virtual void postParameterChange(const string&amp; parameterIdentifier)
+{
+  //add your code
+}
+
+};
+REGISTER_TESTMETHOD("DCDynDemoTests.disconnect",DCDynDemoTests_disconnect);</pre><div></div>
+		<p>Once the test methods are complete, you must build the test method project. </p>
+		<ol>
+			<li>Open the C/C++ perspective. </li>
+			<li>In the Project Explorer right-click the test method project and <span class="uicontrol">Build
+					Project</span>. </li>
+			<li>Check the console view that the test methods were correctly built.</li>
+		</ol>
+		<p>Next you can define the test suites in the testflow editor and set the previously defined test
+			methods and primaries.</p>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="113194.htm" title="This step of the dynamic DC test setup defines the test suites in the testflow editor and sets the previously defined test methods and primaries.">Setting up the testflow for a dynamic DC test</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 113264</span><script type="text/javascript">var ti='113264';var tt='Setting up the (dis-)connect tasks for a dynamic DC test and building the test methods'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

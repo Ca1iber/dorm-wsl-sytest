@@ -1,0 +1,161 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Mathematical Derivation Used to Initialize Arrays with Sinusoidal Waveforms</title><meta name="keywords" content="wave form waveform table"></head><body id="_109710"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 109710</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Mathematical Derivation Used to Initialize Arrays with Sinusoidal Waveforms</h1>
+	
+	<div>
+		<p>Scott Chesnut, Verigy</p>
+		<p>Paper ID: 109710 January 2009</p>
+		<section class="section"><h2>Introduction</h2><p>Since the early 1970s, digital signal processing has become
+				common place. Yet digital creation of waveforms is not often described. What follows is a
+				description of the mathematical process one uses to create single tones, multi-tones, complex
+				multi-tones and IF signals.</p></section>
+		<section class="section"><h2>Single Tone Creation</h2><p>In general, a sinusoidal varying quantity can be
+				expressed as</p><p><img src="109711.png" alt="Math_Deriv_(Equation 1)"><strong> (Equation 1)</strong></p><p>Where:</p><p><span class="keyword">F(t)</span> = Instantaneous value of
+				the cosine function</p><p><span class="keyword">A</span> = Amplitude or maximum value</p><p>ω = Frequency
+				in radians per second</p><p><span class="keyword">t</span> = Time in seconds</p><p><img src="109716.png" alt="Theta"> = Phase angle in radians (theta)</p><p>Since an angle of 2<img src="109339.png" alt="Pi (small)">radians corresponds to one complete cycle, a tone frequency in cycles per second or
+				hertz (Hz) can be described as:</p><p><img src="109718.png" alt="Math_Deriv (Equation 2)"><strong> (Equation 2)</strong></p><p>This can be rearranged as follows:</p><p><img src="109719.png" alt="Math_Deriv (Equation 3)"><strong> (Equation 3)</strong></p><p>By substituting Equation 3 into equation 1 we get:</p><div class="p"><figure class="fignone">
+					<img src="109720.png" alt="Math_Deriv Eq1+Ep3">
+				</figure></div><p>Because computers cannot emulate continuous time, the variable
+					<span class="keyword">t</span> will be renamed: <img src="109733.png" alt="Math_Deriv_delta_t"> thus also making the function <em>F</em> a discrete time function. So now the equation
+				becomes:</p><p><img src="109723.png" alt="Math_Deriv (Equation 4)"><strong> (Equation 4)</strong></p><p>We would like to digitally synthesize <img src="109724.png" alt="Math_Deriv_ft">. Again, computers cannot emulate continuous frequency, so we will have to
+				mathematically represent <img src="109724.png" alt="Math_Deriv_ft"> in terms that are <em>computer friendly</em>. To do so, assume that the waveform to be
+				created is to be coherent.</p><p>If so, it can be described by the following
+					equation:</p><p><img src="109726.png" alt="Math_Deriv (Equation 5)">
+				<strong>(Equation 5, Coherent Sampling Equation)</strong></p><p>Where:</p><p>M = Number cycles in a
+				waveform; an integer</p><p>N = Number of samples used to describe that waveform; an
+					integer.</p><p><img src="109724.png" alt="Math_Deriv_ft"> = The frequency of the tone to be produced; a real number.</p><p><img src="109728.png" alt="Math_Deriv_fs"> = The sample rate; the rate (frequency) at which the waveform samples are sourced or
+				sampled; a real number.</p><p>Solving for <img src="109724.png" alt="Math_Deriv_ft"></p><p><img src="109730.png" alt="Math_Deriv (Equation 6)">
+				<strong>(Equation 6)</strong></p><p>Substituting this into equation 4:</p><p><img src="109731.png" alt="Math_Deriv (Equation 7)">
+				<strong>(Equation 7)</strong></p><p>This function which will generate a discrete value<img src="109732.png" alt="Math_Deriv_F(delta_t)">, for every discrete unit of time <img src="109733.png" alt="Math_Deriv_delta_t"> (deltaT).</p><p>We can initialize an array with a set of these discrete values if this
+				equation is put into a C++ <code>for</code> loop - as is done
+				below:</p><pre class="prettyprint linenums copyable">DOUBLE TimeOffset, deltaT ;
+ARRAY_DOUBLE F;   //Declare an array of double floating point values.
+for (deltaT= 0; deltaT &lt; One Waveform Period; deltaT + TimeOffset)
+{
+&lt;equation7&gt; //Fill array with the function values for each deltaT.
+}</pre><p>Loop
+				control maintenance of the above routine becomes messy, though. The routine has the following
+				problems:</p><ul>
+				<li>If the coherent waveform has more that one waveform period, the loop control
+						(<code>for</code>) statement breaks down.</li>
+				<li>If the <code>TimeOffset</code> variable is not integrally related to the <code>One
+						Waveform Period</code> variable, coherency of the waveform is lost.</li>
+			</ul><p>The solution to problem number one is to replace the variable <code>One Waveform
+					Period</code> with another called <code>Unit Test Period</code> (UTP) or some form of it.
+				Doing so allows us to describe waveforms of any number of cycles. The equation for UTP is given
+				as:</p><p><img src="109740.png" alt="Math_Deriv (Equation 8)">
+				<strong>(Equation 8)</strong></p><p>The UTP is the amount of time required to collect N samples of a
+				waveform. That is, N times the period <img src="109741.png" alt="Math_Deriv_Ts"> is the number of seconds required to collect a waveform. With this in mind, we can use
+				the concept of the UTP to help provide a solution to problem number two.</p><p>The best way to
+				solve problem number two is to replace <img src="109733.png" alt="Math_Deriv_delta_t"> with a quantity which is related to the total number of samples to be sourced or
+				measured, or better yet, to the UTP. Doing so will also help represent equation components in
+					<em>computer friendly</em> terms.</p><p>By substituting <img src="109743.png" alt="Math_Deriv_1/fs"> for <img src="109741.png" alt="Math_Deriv_Ts"> in equation 8 above it becomes</p><div class="p"><figure class="fignone">
+					<img src="109745.png" alt="Math_Deriv (Equation 8b)">
+				</figure></div><p>So one unit of time, <img src="109733.png" alt="Math_Deriv_delta_t">, can be described as: <img src="109747.png" alt="Math_Deriv_delta_t="></p><p>Two units of time become: <img src="109748.png" alt="Math_Deriv_2delta_t="> and so on. If we replace the numerator of this equation with an integer variable, say
+					<code>i</code>, then<img src="109749.png" alt="Math_Deriv_delta_t (i)">. By doing so we have produced a solution to problem number two and our
+					<code>for</code> loop becomes: (we have set <img src="109716.png" alt="Theta"> to zero for simplicity).</p><p>The following code uses <img src="109751.png" alt="Math_Deriv_F[i]-1"> as <span class="keyword">F1,</span> <img src="109749.png" alt="Math_Deriv_delta_t (i)">
+				<span class="keyword">deltaT1</span>, <img src="109754.png" alt="Math_Deriv_F[i]-2"> as
+				<span class="keyword">F2</span>.</p><pre class="prettyprint linenums copyable">int i;
+ARRAY_DOUBLE F;   //Declare an array of double floating point values.
+for (i= 0; i &lt; N; i++) 
+{
+F1; //Fill array with the function values for each deltaT1
+}</pre><p>This
+				equation can be simplified because the terms <img src="109728.png" alt="Math_Deriv_fs"> in the numerator and denominator cancel out. It then
+				becomes:</p><pre class="prettyprint linenums copyable">int i;
+ARRAY_DOUBLE F;   //Declare an array of double floating point values.
+for (i= 0; i &lt; N; i++) 
+{
+F2; //Fill array with the function values for each deltaT1
+}</pre><p>The
+				resulting array will contain <span class="keyword">N</span> elements of a sine wave which describes a
+				waveform containing <code>M</code> cycles. Preservation of coherent waveform representation
+				has been accomplished.</p></section>
+		<section class="section"><h2>Multi Tone Creation</h2><p>Now that the process of initializing an array with
+				the discrete values of a single tone has been described, extending these concepts to development
+				of multi-tone waveform generation will be visited.</p><p>In general, a multi-tone sinusoidally
+				varying quantity can be expressed as the sum of multiple separate tones.</p><div class="p"><figure class="fignone">
+					<img src="109756.png" alt="Math_Deriv_F(t)">
+				</figure></div><p>By the mathematical process we used to derive the single tone discrete time
+				function, the discrete time function for an <span class="keyword">n</span> toned waveform becomes:</p><div class="p"><figure class="fignone">
+					<img src="109757.png" alt="Math_Deriv_F[i]-3">
+				</figure></div><p>Where:</p><p><img src="109758.png" alt="Math_Deriv_Mn"> = Number cycles in a waveform <span class="keyword">n</span>; an integer.</p><p>Keep in mind that
+				the number of cycles of each tone must fit integrally into coherent sampling equation and
+				satisfy equation 9 below:</p><p><img src="109759.png" alt="Math_Deriv (Equation 9)">
+				<strong>(Equation 9, Multi-tone Coherent Sampling Equation)</strong></p><p><span class="keyword">N</span> = Number
+				of samples used to describe the total UTP of all tones in waveform; an integer.</p><p>Note that
+				this number is the same for all tones.</p><p><img src="109761.png" alt="Math_Deriv_Theta_n"> = The absolute phase of the tone (relative to zero radians).</p><p>This quantity may be
+				used to change the phases of the individual tones relative to another. To convert degrees to
+				radians multiply the desired phase offset by <img src="109762.png" alt="Math_Deriv_degree convert">.</p><p>With <img src="109763.png" alt="Math_Deriv_F[i]-4"> as F1, the C++ routine to initialize an array with the values of this multi-tone would
+				become:</p><pre class="prettyprint linenums copyable">int i;
+ARRAY_DOUBLE F;   //Declare an array of double floating point values.
+DOUBLE PH;
+for (i= 0; i &lt; N; i++) 
+{
+  &lt;F1&gt;
+}</pre></section>
+		<section class="section"><h2>Complex Multi Tone Creation</h2><p>Now that the process of initializing an
+				array with the discrete values of a multi tone has been described, extending these concepts to
+				development of multi-tone complex waveform generation will be visited.</p><p>In General, a
+				multi-tone sinusoidally varying complex quantity can be expressed as the real and imagined
+				components of the sum of multiple separate tones.</p><div class="p"><figure class="fignone">
+					<img src="109764.png" alt="Math_Deriv_Freal (t)">
+				</figure></div><p>And</p><div class="p"><figure class="fignone">
+					<img src="109765.png" alt="Math_Deriv_Fimag (t)">
+				</figure></div><p>Where:</p><p><span class="keyword">F.real(t)</span> = The real portion of the complex
+				waveform.</p><p><span class="keyword">F.imag(t)</span> = The imaginary portion of the complex
+				waveform.</p><p>Condering:</p><p><img src="109768.png" alt="Math_Deriv_Freal [i]"> as F1 and <img src="109769.png" alt="Math_Deriv_Fimag [i]"> as F2, the C++ routine to initialize an array with the values of this multi-tone would
+				become:</p><pre class="prettyprint linenums copyable">int i;
+ARRAY_COMPLEX F;   //Declare an array of complex double floating point values.
+for (i= 0; i &lt; N; i++) 
+{
+  &lt;F1&gt;
+  &lt;F2&gt;
+}</pre></section>
+		<section class="section"><h2>Up Converted Complex Multi Tone Creation </h2><p>Now that the process of
+				initializing an array with complex multitones has been described, extending these concepts to
+				development of an <code>IF</code> complex waveform generation will be
+					visited.</p><p><code>IF</code> signals are useful when encoding/decoding data which is to
+				be sent or received using a single ADC (or DAC) - as is the case when information is sent via
+				radio waves to/from an antenna.</p><p>Below is a description of how an <code>IF</code>
+				signal could be created and received in hardware (ADCs, mixers, DACs, Local Oscillators). We
+				will want to replicate this process in software and write the <code>IF</code> waveform to an
+				array.</p><div class="p"><figure class="fignone">
+					<img src="109770.png" alt="Math_Deriv_figure">
+				</figure></div><p>The IF waveform referenced above can be created within a C++ algorithm.</p><p>An LO
+				(local oscillator) waveform will be of a very high frequency whose cycle count; Mlo will be very
+				large.</p><p>We create an IF signal by multiplying the complex multi-tone by the LO tone in the
+				following approximate manner:</p><ul>
+				<li>Transmitted IF Waveform = LO*(Multi-Tone)</li>
+			</ul><p>In reality the multi-tone's real and imaginary components are multiplied by the real and
+				imaginary components of the LO to obtain the IF (real) waveform as follows:</p><ul>
+				<li><span class="keyword">IF_Waveform[i]=Tone1.real[i]*LO.real[i]-Tone1.imag[i]*LO.imag[i]</span><p>or</p></li>
+				<li><span class="keyword">IF_Waveform[i]=Tone1.real[i]*LO.real[i]+Tone1.imag[i]*LO.imag[i]</span></li>
+			</ul><p>Considering:</p><p><img src="109768.png" alt="Math_Deriv_Freal [i]"> as F1</p><p><img src="109769.png" alt="Math_Deriv_Fimag [i]"> as F2</p><p><img src="109775.png" alt="Math_Deriv_LO.real"> as F3</p><p><img src="109776.png" alt="Math_Deriv_LO.imag"> as F4 and recalling the C++ routine to initialize an array with the values of this
+				multi-tone from the previous section, we
+				have:</p><pre class="prettyprint linenums copyable">int i;
+ARRAY_COMPLEX F;   //Declare the multi-tone array.
+ARRAY_COMPLEX LO;   //Declare the local oscillator array.
+ARRAY_COMPLEX IF;   //Declare the intermediate frequency array.
+Double maxval(0);
+for (i= 0; i &lt; N; i++)
+{
+  &lt;F1&gt;
+  &lt;F2&gt;
+  &lt;F3&gt;
+  &lt;F4&gt;
+ <span class="keyword">IF[i]=F.real[i]*LO.real[i]-F.imag[i]*LO.imag[i]</span>
+  //find the max value of the IF array so that it can be used later to keep from
+  //clipping the waveform as it comes out of an AWG.
+  if (fabs(IF[i]) &gt; maxval)  maxval = fabs(if[i]);
+}
+//Scale the real waveform to keep from clipping the waveform as it comes out of the AWG
+for (i= 0; i &lt; N; i++)
+{
+ <span class="keyword">IF[i]=IF[i]/maxval;</span>
+}</pre><p>The
+				resulting IF waveform is not complex and can be sent or received from a single DAC or ADC just
+				as it could be sent out a single antenna.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 109710</span><script type="text/javascript">var ti='109710';var tt='Mathematical Derivation Used to Initialize Arrays with Sinusoidal Waveforms'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This API is used mainly for error handling purposes."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>ERROR_EXIT</title></head><body id="_29309"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 29309</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">ERROR_EXIT</h1>
+	
+	
+	<div><p>This API is used mainly for error handling purposes.</p>
+		<section class="section"><p>This API terminates the current testflow or test program execution with the specified
+				termination type (error handler type) immediately. </p><div class="p">This can also call your custom function in the test method shared library to be used currently
+				before terminating the testflow or program execution. You can use this custom function for error
+				handling purposes such as recovering the occurred trouble, and so on.<div class="note"><span class="title">Note</span> Do not
+					use this API inside any of the <a href="20281.htm" title="Special test suites are executed at a particular point in time, which can be either dependent or independent of the testflow. For example, downloading an initial set of values to the test system, or defining what will be executed if you abort the testflow.">Special test suites</a>, as the handling is not compatible with
+					the testflow executor.</div></div></section>
+		<section class="section"><h2>EXCEPTION_INFO</h2><p>A class <code>EXCEPTION_INFO</code> is defined to contain the error information. In your
+				custom function, you can refer to the error information using the
+					<code>EXCEPTION_INFO</code> object and the member functions as below.</p><pre class="prettyprint linenums copyable">const EXCEPTION_INFO&amp; info;
+info.getExitCase()</pre><p>One of
+					<code>TM::EXIT_CASE</code> is returned. This indicates an error and its API
+				category.</p><pre class="prettyprint copyable singleline">info.getName(): </pre><p>The name of the API where an error
+				occurred is returned as string data.</p><pre class="prettyprint copyable singleline">info.getMessage(): </pre><p>Issued
+				error message for the API is returned as string data.</p></section>
+		<section class="section"><h2>EXIT_CASE</h2><p>The enumeration TM::EXIT_CASE defines the categories of APIs
+				in which the error occurred. The categories include <code>SETUP</code>,
+					<code>EXECUTE</code>, <code>RESULT</code>, <code>COMPUTATION</code>,
+					<code>TEST_CONTROL</code>, <code>DC_TEST</code>, <code>GPIB</code>,
+					<code>MULTI_SITE</code>, <code>MISC</code>, <code>DIGITAL_TEST</code>,
+					<code>SPECSEARCH</code>, <code>SEQUENCER_CONTROL</code>, <code>COMMON_CLASS</code>,
+				and <code>ALL</code>. </p></section>
+		<section class="section"><h2>EXIT_TYPE</h2><p>The enumeration <kbd class="userinput">TM::EXIT_TYPE </kbd>is
+				defined to contain the exit types. Its options are listed in the table below:</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+					<tr id="_29309__d3353e27" class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_29309__d3353e27__entry__1"><p>Error Handler Type (<kbd class="userinput">TM::EXIT_TYPE</kbd>)</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_29309__d3353e27__entry__2"><p>Description</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr id="_29309__d3353e46" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>ABORT_FLOW</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>All sites that have not been binned yet will be aborted and binned to the otherwise
+								bin.</p>
+							<p>The testflow execution ends after the current run. It needs user interaction to restart
+								the next testflow execution.</p>
+						</td>
+					</tr>
+					<tr id="_29309__d3353e62" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>EXIT_FLOW</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>All sites of the current test suite, which are to be executed, are sent to the
+								otherwise bin. </p>
+							<p>All other sites continue their normal flow logic. There is no termination at the end of
+								the current testflow execution.</p>
+						</td>
+					</tr>
+					<tr id="_29309__d3353e78" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>EXIT_TO_BIN</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>A failing site of the current test suite is disconnected and sent to the otherwise bin. Test
+								suite execution continues with the other sites. There is no termination at the end of the
+								current testflow execution.</p>
+						</td>
+					</tr>
+					<tr id="_29309__d3353e91" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>RETURN_TO_FLOW</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>For the current test site the test method execution is terminated and the test suite
+								is set to fail (continues a fail branch in case of a "run and branch" node). The test method
+								will be called for all the remaining sites without any more special handling.</p>
+						</td>
+					</tr>
+					<tr id="_29309__d3353e104" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>RETRY</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>For the current test site the test method execution is retried after the current
+								result is logged as unreliable. </p>
+							
+						</td>
+					</tr>
+					<tr id="_29309__d3353e122" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>INTERACTIVE</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>A dialog box opens. You can select one of the above error handler actions in the
+								dialog box interactively.</p>
+						</td>
+					</tr>
+					<tr id="_29309__d3353e135" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>THROUGH</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>The test method program execution is continued even if an error occurs. Note that
+								this is valid only for GPIB and Computation API (<kbd class="userinput">GPIB_XXXX</kbd> and
+									<kbd class="userinput">DSP_XXXX</kbd>).</p>
+						</td>
+					</tr>
+					<tr id="_29309__d3353e154" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__1"><p>NONE</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_29309__d3353e27__entry__2"><p>No exception is thrown. The previously installed exception handlers will be
+								removed.</p>
+						</td>
+					</tr>
+				</tbody></table><p>This API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/ExceptionHandler.h</span>.</p></section>
+		<h2>Syntax</h2><div class="syntax"><p>For terminating testflow or program execution immediately, or for disconnecting a failing site of
+				the current test suite and letting the other sites continue execution.</p><pre class="prettyprint copyable singleline">ERROR_EXIT(TM::EXIT_TYPE <span class="keyword">type</span>);</pre><p>For
+				terminating testflow or program execution immediately and printing the warning message in UI
+				report
+				window</p><pre class="prettyprint copyable singleline">ERROR_EXIT(TM::EXIT_TYPE <span class="keyword">type</span>, bool <span class="keyword">outputWarning</span>);</pre><p>For
+				calling your custom function before terminating the
+				execution</p><pre class="prettyprint copyable singleline">ERROR_EXIT(TM::EXIT_TYPE *<span class="keyword">func</span>, void *<span class="keyword">arg</span>);</pre><p>To
+				set up a custom function as an error handler, the type of a custom function must be defined as
+					<code>TM::EXIT_TYPE</code>, and it must return a value as TM::EXIT_TYPE at the end of the
+				function. This means to specify how to terminate the testflow or program execution after running
+				your function code. The custom function is in the following
+				structure.</p><pre class="prettyprint linenums copyable">TM::EXIT_TYPE Func_Name(const EXCEPTION_INFO&amp; info, void* arg)
+{
+ //Your Error Handler Program
+ return TM::ABORT_FLOW; //return one of TM::EXIT_TYPE
+}</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-1 rowsep-0" id="_29309__entry__19"><p>I/O</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29309__entry__20"><p>Parameter</p>
+							</th>
+							<th class="colsep-1 rowsep-0" id="_29309__entry__21"><p>Description / Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__19"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__20"><p><span class="keyword">type</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__21"><p>An error handler (termination type of testflow or program execution) that you want
+									to set. This must be one in <code>TM::EXIT_TYPE</code>. See the above definition of
+										<code>TM::EXIT_TYPE</code>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__19"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__20"><p><span class="keyword">outputWarning</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__21"><p>Whether to print the warning message in UI report window. It can be true or
+									false.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__19"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__20"><p><span class="keyword">func</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__21"><p>The custom function name to be called. This is the pointer to the function. If you
+									set this pointer, the function that is pointed to will be immediately executed. Declare
+									this as global or static variable if necessary.</p>
+								<p>The function has to return a value as TM::EXIT_TYPE. This API needs to refer to the
+									returned value.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__19"><p>I</p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__20"><p><span class="keyword">arg</span></p>
+							</td>
+							<td class="colsep-1 rowsep-0" headers="_29309__entry__21"><p>The void pointer for data to be handed to the custom function. This parameter
+									allows you to handle any data type of data. Declare this as a global or static variable if
+									necessary.</p>
+								<p>This void pointer is given to the second argument of the custom function. If you do not
+									need to give data to the custom function, specify the 0.</p>
+							</td>
+						</tr>
+					</tbody></table></div>
+		<h2>Examples</h2><div class="example"><h3>Terminate the execution
+				interactively</h3><pre class="prettyprint linenums copyable">INT timeout;
+Routing.pin("Aout").connect(TM::SINGLE);
+Analog.DGT("Aout").enable();
+START_TEST();
+WAIT_TEST_DONE(1, &amp;timeout);
+
+if (timeout == 1)
+{
+ ABORT_TEST();
+ ERROR_EXIT(TM::INTERACTIVE);
+}
+
+Analog.DGT("Aout").disable();
+Routing.pin("Aout").disconnect();
+FLUSH();
+
+// Code for retrieving/calculation/judgment</pre><p>
+				.</p><p> .</p><p>If a timeout error (fatal error) occurs in the
+					<kbd class="userinput">WAIT_TEST_DONE</kbd> API, the analog sequencers and digital sequencer are
+				aborted by the <kbd class="userinput">ABORT_TEST</kbd> API. Then, the
+					<kbd class="userinput">ERROR_EXIT</kbd> API opens a dialog box for asking the termination method of
+				program execution.</p></div>
+		<div class="example"><h3>Handle the execution error with custom function (no second
+				argument)</h3><pre class="prettyprint linenums copyable">TM::EXIT_TYPE ErrHandler(const EXCEPTION_INFO&amp; info, void *arg)
+{
+ static called = 0;
+ if (called == 0)
+ {
+ called++;
+ return TM::RETRY;
+ } 
+ else
+ {
+ return TM::ABORT_FLOW;
+ }
+}
+
+class ExMethod: public testmethod::TestMethod
+{
+ .
+ . 
+
+ virtual void run( )
+ {
+ INT timeout;
+
+ Routing.pin("Aout").connect(TM::SINGLE);
+ Analog.DGT("Aout").enable();
+ START_TEST();
+ WAIT_TEST_DONE(1, &amp;timeout);
+
+ if (timeout == 1)
+ {
+ ABORT_TEST();
+ ERROR_EXIT(ErrHandler, 0);
+ }
+
+ Analog.DGT("Aout").disable();
+ Routing.pin("Aout").disconnect();
+ FLUSH();
+ // Code for retrieving/calculation/judgment
+ .
+ .
+ return;
+ }
+ .
+ .
+}</pre><p>The
+				function <kbd class="userinput">ErrHandler</kbd> is a user function set by the
+					<kbd class="userinput">ERROR_EXIT</kbd> API as an error handler. This example does not use the second
+				argument of the function <kbd class="userinput">ErrHandler</kbd>.</p><p>If a timeout error (fatal
+				error) occurs in the WAIT_TEST_DONE API, program execution jumps to the function ErrHandler
+				after the digital sequencer and analog sequencers are aborted by the ABORT_TEST API. In this
+				function, if it is the first error, the current test suite execution (program execution) is
+				retried, or the testflow execution is terminated. </p><p>These termination actions are defined
+				on the return statement using one of the enumerator TM::EXIT_TYPE (that is, the return value of
+				this user function).</p></div>
+		<div class="example"><h3>Handle the execution error with custom function (using second
+				argument)</h3><pre class="prettyprint linenums copyable">TM::EXIT_TYPE ErrHandler(const EXCEPTION_INFO&amp; info, void *arg)
+{
+ static called = 0;
+ ABORT_TEST();
+ if (*((INT *) arg) == 1)
+ {
+ if (called == 0)
+ {
+ called++;
+ cout &lt;&lt; "Retry First Test!" &lt;&lt; endl;
+ return TM::RETRY;
+ } 
+ else
+ {
+ cout &lt;&lt; "Abort Testflow (1)" &lt;&lt; endl;
+ return TM::ABORT_FLOW;
+ }
+ } 
+
+ if (*((INT *) arg) == 2)
+ {
+ cout &lt;&lt; "Abort Testflow (2)" &lt;&lt; endl;
+ return TM::ABORT_FLOW;
+ } 
+}
+
+class ExMethod: public testmethod::TestMethod
+{
+ .
+ . 
+
+ virtual void run( )
+ {
+ INT timeout;
+ static INT errno = 0; 
+
+ Routing.primary(1);
+ Analog.DGT("Aout").enable();
+ START_TEST();
+ WAIT_TEST_DONE(1, &amp;timeout);
+
+ if (timeout == 1)
+ {
+ errno = 1;
+ ERROR_EXIT(ErrHandler, &amp;errno);
+ }
+
+ Analog.DGT("Aout").disable();
+ FLUSH();
+
+ // Code for retrieving/calculation/judgment
+
+ Routing.primary(2);
+ Analog.DGT("Aout").enable();
+ START_TEST();
+ WAIT_TEST_DONE(1, &amp;timeout);
+
+ if (timeout == 1)
+ {
+ errno = 2;
+ ERROR_EXIT(ErrHandler, &amp;errno);
+ }
+
+ Analog.DGT("Aout").disable();
+ FLUSH();
+
+ // Code for retrieving/calculation/judgment
+
+ return;
+ }
+ .
+ .
+}</pre><p>The
+				function <kbd class="userinput">ErrHandler</kbd> is a user function set by the
+					<kbd class="userinput">ERROR_EXIT</kbd> API as an error handler. This example uses the second
+				argument of the function <kbd class="userinput">ErrHandler</kbd> to indicate that a timeout error has
+				occurred, and in which test (first or second).</p><p>If a timeout error (fatal error) occurs in
+				the first <kbd class="userinput">WAIT_TEST_DONE</kbd> API, program execution jumps to the function
+					<kbd class="userinput">ErrHandler</kbd>. In this function, the digital sequencer and analog
+				sequencers are aborted by the <kbd class="userinput">ABORT_TEST</kbd> API, and then the current
+				testsuite execution (program execution) is retried if it is the first error, or the testflow
+				execution is terminated. </p><p>If a timeout error (fatal error) occurs in the second
+					<kbd class="userinput">WAIT_TEST_DONE</kbd> API, program execution jumps to the function
+					<kbd class="userinput">ErrHandler</kbd>. In this function, the digital sequencer and analog
+				sequencers are aborted by the <kbd class="userinput">ABORT_TEST</kbd> API and the testflow execution
+				is terminated.</p></div>
+		<div class="example"><h3>Handle a specific site that fails upon a safety disconnect</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    STRING fw_answer;
+ON_FIRST_INVOCATION_BEGIN();
+    CONNECT();
+      FUNCTIONAL_TEST();
+    ON_FIRST_INVOCATION_END();
+
+    if (GET_FUNCTIONAL_RESULT()==1) {
+        cout &lt;&lt; "[INFO] The functional test passed on site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; "." &lt;&lt; endl;
+        TEST("","",TM::Pass,0);
+    }
+    else {
+        FW_TASK("PSAS? PQFC,260,(dps)\n",fw_answer);
+        if (strstr(fw_answer.c_str(), "PSAS P,") != NULL) {
+            cout &lt;&lt; "[INFO] The functional test failed on site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " due to pattern compares." &lt;&lt; endl;
+            TEST("","",TM::Fail,0,TM::CONTINUE);
+        }
+        else {
+            cout &lt;&lt; "[INFO] The functional test failed on site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; " due to safety disconnect." &lt;&lt; endl;
+            TEST("","",TM::Fail,0,TM::CONTINUE);
+            cout &lt;&lt; "[INFO] Calling exception: EXIT_TO_BIN. Failing site is sent to otherwise bin." &lt;&lt; endl;
+            ERROR_EXIT(TM::EXIT_TO_BIN);
+        }
+    }
+    return;
+}</pre><div></div>
+			<p>In the example above, the termination type <span class="keyword">EXIT_TO_BIN</span> disconnects a
+				specific site of the current test suite which observes a safety disconnect, and sends the
+				failing site to the otherwise bin. Testflow or program execution is not terminated because the
+				other sites continue their normal flow logic.</p>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="20935.htm" title="This section explains the prim error handling approach using the SET_EXCEPTION_HANDLER API.">How to handle the fatal errors with SET_EXCEPTION_HANDLER</a></div><div><a href="29710.htm" title="This API sets one of the system-supplied error handlers for a fatal error that occurred in the specified API category. If a fatal error that aborts the current test program execution occurs in an API in the specified API category, the error handler is executed.">SET_EXCEPTION_HANDLER</a></div><div><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.3: New parameter outputWarning to control whether to print warning message in UI
+					report window.</li><li>SmarTest 7.4.4: New EXIT_TYPE called "EXIT_TO_BIN" is provided to enhance handling of UHC4(T)
+					safety disconnects.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 29309</span><script type="text/javascript">var ti='29309';var tt='ERROR_EXIT'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

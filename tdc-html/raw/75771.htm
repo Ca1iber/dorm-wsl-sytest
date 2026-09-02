@@ -1,0 +1,48 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Every DC test stores its measurement parameters in a DC set, which is identified by a number. All those DC tests that (can) define a PPMU test use a common pool of DC sets, which are stored in the Sequencer Memory: if the firmware commands they issue specify the same DC set number, they refer to the same object."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DC set management</title></head><body id="_75771"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 75771</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DC set management</h1>
+	
+	
+	<div><p>Every DC test stores its measurement parameters in a <em>DC set</em>, which is identified
+		by a number. All those DC tests that (can) define a PPMU test use a common pool of DC sets, which
+		are stored in the Sequencer Memory: if the firmware commands they issue specify the same DC set
+		number, they refer to the same object. </p>
+		<p>DC set pools are managed by SmarTest in the following way.</p>
+		<p>The basic features of this method are:</p>
+		<ul>
+			<li>Download the parameters only once, at the first execution of the testflow, and to reuse them
+				for the following loop repetitions.</li>
+			<li>Provide every DC test within a testflow with its own dedicated DC set so that the parameters
+				of all tests are available for the second and all following loop repetitions (devices).<div class="note"><span class="title">Note</span> Some of the test methods that define a PPMU test refine the second principle by
+					introducing DC tasks and measurement sets, see <em><a href="75653.htm" title="If a testflow containing several DC tests is to be executed in a loop, and the measurement parameters are to be downloaded only once, these parameters must be stored at different locations in order that the parameters of all tests are available for the second and all subsequent testflow repetitions. Most DC test API's achieve this by creating a new DC set for every additional test. But some PPMU API's use the DC sets more economically, as will now be explained.">Using DC Sets Economically: DC Sets and Measurement Sets</a></em>.</div></li>
+		</ul>
+		<p>The dedicated DC sets have a number &gt; 2 (&gt; 1 for <kbd class="userinput">SPMU_TASK</kbd> DC
+			sets). DC sets 1 and 2 (1 for <kbd class="userinput">SPMU_TASK</kbd> DC sets) are reserved for
+			emergency situations (see below). </p>
+		<p>The following figure illustrates the principle, and also indicates the throughput improvement
+			provided by the optimization:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="30239.png" alt="Test Time and DC Set with Optimization">
+			</figure></div>
+		<p>Note the following restrictions of this method:</p>
+		<ul>
+			<li>Every parameter definition of a PPMU test is stored in the DC set as an individual action.
+				There is a maximum total number of all actions in all DC sets that are defined for the DC set
+				pool used by PPMU tests. This maximum is specified with the <kbd class="userinput">m_sets</kbd>
+				parameter of the <kbd class="userinput">.technology</kbd> file, which is located in the main directory
+				of the device. If this maximum is exceeded, testflow execution is canceled. In this case,
+				increase the number by editing the technology file with an ASCII editor. By default,
+					<kbd class="userinput">m_sets</kbd> is set to 1028. The maximum value that can be specified is 12800.
+					<p>You can also change the runtime value of the maximum number of actions with the
+						<kbd class="userinput">DSCP</kbd> firmware command. But be aware that this does not change the value
+					in the <kbd class="userinput">.technology</kbd> file. </p></li>
+			<li>The maximum number of DC sets that can be created in this way for one DC set pool is 256. If
+				a testflow contains more than 256 DC sets that use the same pool, the parameters for the
+					257<sup>th</sup> and all following DC sets of the respective type are stored in DC set 1 (and
+				2, if available) according to the first method. Consequently, these parameters must be
+				downloaded for every loop repetition.</li>
+		</ul>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.0.0: 256 DC sets supported per DC set pool.</li><li>SmarTest 7.0.3: Standard test functions are not supported.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 75771</span><script type="text/javascript">var ti='75771';var tt='DC set management'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

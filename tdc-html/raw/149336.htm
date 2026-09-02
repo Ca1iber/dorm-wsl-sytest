@@ -1,0 +1,96 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In high-site-count applications, the SMC_ARM() API should be used within the FIRST_INVOCATION block to create a common thread for all active sites and to minimize the overhead in test time for calling functions and handling of threads. A common thread receives a list of all active sites and the site() API is to be used in the SMC_BackgroundProcessing() function to set a site to be processed from this list."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>rdi.site()</title></head><body id="_149336"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 149336</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">rdi.site()</h1>
+	
+	
+	<div><p>In high-site-count applications, the <span class="keyword">SMC_ARM()</span> API should be used
+		within the <span class="keyword">FIRST_INVOCATION</span> block to create a common thread for all
+		active sites and to minimize the overhead in test time for calling functions and handling of
+		threads. A common thread receives a list of all active sites and the
+			<span class="keyword">site()</span> API is to be used in the
+			<span class="keyword">SMC_BackgroundProcessing()</span> function to set a site to be processed
+		from this list.</p>
+		<section class="section">
+			<div class="note"><span class="title">Note</span> Function <span class="keyword">site()</span> can be used only in a only in a <a href="149335.htm#_149335__dle_Common_thread">Common thread</a>. The function cannot be used in a "Thread
+				per site" implementation.<a name="fnsrc_1" href="#fntarg_1"><sup>1)</sup></a></div>
+		</section>
+		<h2>Syntax</h2><div class="syntax">
+			<p>The API is applicable for DC, SmartVec, Digital Capture and Error Map APIs.</p>
+		</div><div class="syntax">
+			<div></div><pre class="prettyprint copyable singleline">rdi.site(int site).id(...).getValue(); // ...getVector(), ...getVectorBit(), ...</pre><div></div>
+			<table class="frame-topbot"><caption><span>List of parameters</span></caption><colgroup><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_149336__entry__1">
+								<p>Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_149336__entry__2">
+								<p>Description</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_149336__entry__1">
+								<p><var class="varname">site</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_149336__entry__2">
+								<p>The number of the site to be processed.</p>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		
+		<h2>Example</h2><div class="example">
+			<div></div><pre class="prettyprint linenums copyable">virtual void run()
+{
+    RDI_INIT();
+
+    ON_FIRST_INVOCATION_BEGIN();
+
+        rdi.hiddenUpload(TA::ALL);
+
+        RDI_BEGIN();
+
+            rdi.dc("a").pin("A").vForce(1).iMeas().execute();
+            rdi.digCap("b").pin("B").samples(1000).execute();
+
+        RDI_END();
+
+        ARRAY_I activeSite;
+
+        GET_ACTIVE_SITES(activeSite);
+
+        SMC_ARM(activeSite);
+
+    ON_FIRST_INVOCATION_END();
+
+    return;
+}
+
+public:
+
+void SMC_backgroundProcessing(ARRAY_I activeSite)
+{
+    double  result;
+    ARRAY_I vec;
+
+    //
+    // Retrieve result for each active site
+    //
+    for (int I = 0; I &lt; activeSite.size(); i++)
+    {
+        result = rdi.site(activeSite[i]).id("a").getValue();
+        vec    = rdi.site(activeSite[i]).id("b").getVectorBit();
+    }
+}</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="149335.htm" title="SmartRDI can be used in combination with the SmartCalc (SMC) framework. This allows you to move time consuming calculations and uploads of test results to separate background threads and executing them in parallel.">Using SmartCalc (SMC) with SmartRDI</a></div><div><a href="347204.htm" title="SmartCalc (SMC) uses multi thread capabilities of the system controller for minimizing the test time. Setting up multi threading is supported as separate thread per site or as common thread for all sites that is also known as single thread.">SmartCalc "Thread per site" and "Common thread"</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.3.1</li><li>SmartRDI 2.4.5: rdi.site().id().getXXX() can be called anywhere inside a test
+					method's run() function; the error map result supports common thread
+					SMC.</li></ol></div><div class="fs"><div class="p"><a name="fntarg_1" href="#fnsrc_1"><sup>1)</sup></a>  Before SmartRDI 2.4.5, <span class="keyword">rdi.site()</span>
+					has to be called only inside the <span class="keyword">SMC_BackgroundProcessing()</span>
+					function. In SmartRDI 2.4.5 and newer versions, <span class="keyword">rdi.site()</span>
+					can be called anywhere inside the test method's <span class="keyword">run()</span>
+					function. This enhancement supports the usage of the same post-processing code
+					structure for background and foreground processing.</div></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 149336</span><script type="text/javascript">var ti='149336';var tt='rdi.site()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

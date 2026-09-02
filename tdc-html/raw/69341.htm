@@ -1,0 +1,411 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The table below shows the GPIB communications between driver and handler."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>GPIB communication flow for Seiko-Epson handlers</title></head><body id="_69341"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 69341</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">GPIB communication flow for Seiko-Epson handlers</h1>
+	
+	
+	<div><p>The table below shows the GPIB communications between driver and handler.</p>
+		<div class="p">Actions and messages are listed in sequential order in the table. The syntax is described in
+				<a href="69288.htm" title="The conventions in the table below are used in this chapter to describe GPIB/LAN communication:">Conventions for GPIB communication</a>.<table class="frame-topbot"><caption><span>GPIB communication flow for Seiko-Epson handlers</span></caption><colgroup><col style="width:100pt"><col style="width:100pt"><col style="width:400pt"></colgroup><thead>
+						<tr>
+							<th class="rowsep-1" id="_69341__entry__1">
+								<p>Message from driver</p>
+							</th>
+							<th class="rowsep-1" id="_69341__entry__2">Message from handler</th>
+							<th class="rowsep-1" id="_69341__entry__3">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1 _69341__entry__2 _69341__entry__3" colspan="3">Init: &lt;running query&gt;</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1 _69341__entry__2 _69341__entry__3" colspan="3">Running query:</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><kbd class="userinput">FR?</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The driver asks if the handler is running.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><kbd class="userinput">FR</kbd><em>n</em></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The handler returns <kbd class="userinput">0</kbd> or <kbd class="userinput">1</kbd>.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1 _69341__entry__2 _69341__entry__3" colspan="3">Wait for devices: [SRQ]</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><kbd class="userinput">SRQ:</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The driver waits for an SRQ.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><p><em>SRQ</em></p></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The handler returns a test start SRQ.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1 _69341__entry__2 _69341__entry__3" colspan="3">site population:</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><kbd class="userinput">FULLSITES?</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The driver asks for the current population.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><kbd class="userinput">FULLSITES</kbd><em>n</em></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The handler returns the bit-coded site population.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><code>BARCODE?</code></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">
+								<p>The driver asks for the barcodes.</p>
+								<p>This command is available only for Hon Tech handlers that have
+										"<span class="keyword">hontech_request_barcode</span>" configured to "<code>yes</code>" in the
+									configuration file.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><code>BARCODE:</code><em>n</em></td>
+							<td class="rowsep-1" headers="_69341__entry__3">
+								<p>The handler returns 32 barcodes. Barcodes are separated by commas. The barcode for
+									disabled sites is 0. The last one is for site 1.</p>
+								<p>For example, with four sites enabled, the handler returns 32 barcodes as follows:</p>
+								<p><code>BARCODE:0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,MR1200HJKL00000H000000004,MR1200HJKL00000H000000003,MR1200HJKL00000H000000002,MR1200HJKL00000H000000001;</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><code>ECHOCOE</code>:<em>n</em></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The driver returns the received barcodes.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><code>ECHOCODEOK</code> | <code>ECHOCODENG</code></td>
+							<td class="rowsep-1" headers="_69341__entry__3">
+								<p>The handler confirms the barcode information with <code>ECHOCODEOK</code> or
+										<code>ECHOCODENG</code>. </p>
+								<p><code>ECHOCODEOK</code> means the correct barcode information has been received,
+										<code>ECHOCODENG</code> means some received barcodes are not correct and the driver
+									is to abort the testflow.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1 _69341__entry__2 _69341__entry__3" colspan="3">Bin devices:</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><kbd class="userinput">BINON:XXXXXXXX,XXXXXXXX,XXXXXXXX,XXXXXXXX;</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">
+								<p>The driver sends bin information. "X" presents data of each site: </p>
+								<p>- <kbd class="userinput">0</kbd>: no data </p>
+								<p>- <kbd class="userinput">1</kbd> to <kbd class="userinput">F</kbd>: bin 1 to 15</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><kbd class="userinput">ECHO:XXXXXXXX,XXXXXXXX,XXXXXXXX,XXXXXXXX;</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__3">
+								<p>The handler returns the bin information.</p>
+								<p>The first "X" is for Site 32 and the last "X" is for Site 1. </p>
+							</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><kbd class="userinput">ECHOOK</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__2"></td>
+							<td class="rowsep-1" headers="_69341__entry__3">The driver confirms that the bin information is correct.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__1"><kbd class="userinput">ECHONG</kbd></td>
+							<td class="rowsep-1" headers="_69341__entry__2"><code>.</code></td>
+							<td class="rowsep-1" headers="_69341__entry__3">
+								<p>If the bin information is not correct, the driver sends <span class="keyword">ECHONG</span>.</p>
+								<p>If an ECHONG is sent back to the handler, the BINON command is repeated and an ECHO is
+									expected. If the ECHO bin information is incorrect again, a last ECHONG is sent and an
+									error message is displayed.</p>
+							</td>
+						</tr>
+					</tbody></table><table class="frame-topbot"><caption><span>GPIB communication flow for Hon Tech handlers only</span></caption><colgroup><col style="width:100pt"><col style="width:100pt"><col style="width:400pt"></colgroup><thead>
+						<tr>
+							<th class="rowsep-1" id="_69341__entry__51">Message from driver</th>
+							<th class="rowsep-1" id="_69341__entry__52">Message from handler</th>
+							<th class="rowsep-1" id="_69341__entry__53">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__51 _69341__entry__52 _69341__entry__53" colspan="3">Lot end (only for <a href="69339.htm" title="This section provides general information about the Seiko-Epson GPIB handler driver.">Hon Tech
+									handlers</a>):</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__51"></td>
+							<td class="rowsep-1" headers="_69341__entry__52"><code>0xC0</code></td>
+							<td class="rowsep-1" headers="_69341__entry__53">The handler sends the special SRQ.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__51"><code>SRQKIND?</code></td>
+							<td class="rowsep-1" headers="_69341__entry__52"></td>
+							<td class="rowsep-1" headers="_69341__entry__53">The driver asks for the SRQ type.</td>
+						</tr>
+						<tr>
+							<td class="rowsep-1" headers="_69341__entry__51"></td>
+							<td class="rowsep-1" headers="_69341__entry__52"><code>SRQKIND 08</code></td>
+							<td class="rowsep-1" headers="_69341__entry__53">The handler returns the lot end signal.</td>
+						</tr>
+					</tbody></table></div>
+		<table class="frame-topbot"><caption><span>Status queries for Hon Tech handlers</span></caption><colgroup><col style="width:100pt"><col style="width:100pt"><col style="width:400pt"></colgroup><thead>
+					<tr>
+						<th class="rowsep-1" id="_69341__entry__64">Message from driver</th>
+						<th class="rowsep-1" id="_69341__entry__65">Message from handler</th>
+						<th class="rowsep-1" id="_69341__entry__66">Description</th>
+					</tr>
+				</thead><tbody>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64 _69341__entry__65 _69341__entry__66" colspan="3">Query status: <p>&lt;query barcode&gt;, &lt;query
+								bincount&gt;, &lt;query force &gt;, &lt;query setsitemap&gt;, &lt;query setsoak&gt;,
+								&lt;query settemp&gt;, &lt;query temparm&gt;, and &lt;query testarm&gt;</p><p>These status
+								queries are available only for <a href="69339.htm" title="This section provides general information about the Seiko-Epson GPIB handler driver.">Hon Tech handlers</a>.</p></td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">Query barcode: <code>barcode?</code></td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query all the site barcodes with </p>
+							<p><code>barcode_all_sites=PROB_HND_CALL(ph_get_statusbarcode)</code>.</p>
+							<p>Query a specific site barcode with</p>
+							<p><code>barcode_site=PROB_HND_CALL(ph_get_status barcodesitenumber)</code>.</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query bincount:</p>
+							<p><code>BinCount?</code></p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the binning count with</p>
+							<p><code>bin_count=PROB_HND_CALL(ph_get_status bincount)</code></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query force:</p>
+							<p><code>Force?</code></p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the handler arm contact force with</p>
+							<p><code>force=PROB_HND_CALL(ph_get_status force)</code></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64"></td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66"></td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query setsitemap:</p>
+							<p><code>SETSITEMAP?</code></p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the handler site map with:</p>
+							<p><code>Site_map=PROB_HND_CALL(ph_get_status setsitemap)</code></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query setsoak:</p>
+							<p><code>SETSOAK?</code></p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the handler soak time with:</p>
+							<p><code>soak_time=PROB_HND_CALL(ph_get_status setsoak)</code></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query settemp:</p>
+							<p><code>SETTEMP?</code></p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the handler temperature with:</p>
+							<p><code>temperature=PROB_HND_CALL(ph_get_status settemp)</code></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query temparm:</p>
+							<p><code>TempArm?</code></p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the handler about the temperature of each testing arm with:</p>
+							<p><code>temperature=PROB_HND_CALL(ph_get_status temparm)</code></p>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__64">
+							<p>Query testarm:</p>
+							<p>Test Arm?</p>
+						</td>
+						<td class="rowsep-1" headers="_69341__entry__65"><em>"string"</em></td>
+						<td class="rowsep-1" headers="_69341__entry__66">
+							<p>Query the handler about the ID of the current test arm with:</p>
+							<p><code>test_arm=PROB_HND_CALL(ph_get_status testarm)</code></p>
+						</td>
+					</tr>
+				</tbody></table>
+		<div class="p">
+			<table class="frame-topbot"><caption><span>GPIB communication flow for Chroma 3180 handlers</span></caption><colgroup><col style="width:100pt"><col style="width:100pt"><col style="width:400pt"></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_69341__entry__95">Message from driver</th>
+							<th class="colsep-0 rowsep-1" id="_69341__entry__96">Message from handler</th>
+							<th class="colsep-0 rowsep-1" id="_69341__entry__97">Description</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95 _69341__entry__96 _69341__entry__97" colspan="3">
+								<p>Wait for devices: <code>[SRQ]</code></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95"></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__96"><code>SRQ</code></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__97">The handler tells the tester it is ready.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95 _69341__entry__96 _69341__entry__97" colspan="3">Site population:</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95"><code>SITENUMBER?</code></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__96"></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__97">The tester is standby.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95"></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__96"><code>SITENUMBER,xxxxxxxx</code></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__97">The handler sends the site number, for example,
+									<code>SITENUMBER00000005,1#025NTA18BS000022,2#025NTA18BS000035,3#BARCODE</code>.<p>The
+										<code>BARCODE</code> indicates a barcode ID.</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95 _69341__entry__96 _69341__entry__97" colspan="3">Binning:</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95"><code>BIN,yyyyyyyy</code></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__96"></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__97">The tester informs the handler the result of testing. For example,
+									<code>BIN,00000541</code>, the result has been received.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__95"></td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__96">
+								<p>No receive | <code>BIN 0</code> | <code>BIN 1</code> | <code>BIN 2
+									~</code></p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_69341__entry__97">
+								<ul>
+									<li>Not received the <code>BIN,yyyyyyyy</code>, the handler considers timeout with a
+											<code>HANG-DOS</code> fail.</li>
+									<li><code>BIN 0</code>: The handler considers "ERROR" without definition.</li>
+									<li>
+										<code>BIN 1</code>: The handler considers "PASS".</li>
+									<li><code>BIN 2 ~</code>: If the diagnosis is "FAIL".</li>
+								</ul>
+							</td>
+						</tr>
+					</tbody></table>
+		</div>
+		<table class="frame-topbot"><caption><span>Auto-retest communication flow for Hon Tech handlers </span></caption><colgroup><col style="width:100pt"><col style="width:100pt"><col style="width:400pt"></colgroup><thead>
+					<tr>
+						<th class="rowsep-1" id="_69341__entry__116">Message from driver</th>
+						<th class="rowsep-1" id="_69341__entry__117">Message from handler</th>
+						<th class="rowsep-1" id="_69341__entry__118">Description</th>
+					</tr>
+				</thead><tbody>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"><code>LOTCLEAR</code></td>
+						<td class="rowsep-1" headers="_69341__entry__117"></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The driver requests to clear lot data on the handler.</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"></td>
+						<td class="rowsep-1" headers="_69341__entry__117"><code>LOTCLEARED</code> | <code>SETTINGNG</code></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The handler returns <code>LOTCLEARED</code> or <code>SETTINGNG</code>.<ul>
+								<li><code>LOTCLEARED</code>: All data are cleared.</li>
+								<li><code>SETTINGNG</code>: Lot data cannot be cleared.</li>
+							</ul></td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"><code>INPUTQTY <em>xxx</em></code></td>
+						<td class="rowsep-1" headers="_69341__entry__117"></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The driver sets a lot quantity to the handler.</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"></td>
+						<td class="rowsep-1" headers="_69341__entry__117"><code>SETTINGOK</code> | <code>SETTINGNG</code></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The handler returns <code>SETTINGOK</code> or <code>SETTINGNG</code>.<ul>
+								<li><code>SETTINGOK</code>: Setting is OK with nothing error.</li>
+								<li><code>SETTINGNG</code>: Lot data cannot be set.</li>
+							</ul></td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"><code>SRQKIND <em>x</em></code></td>
+						<td class="rowsep-1" headers="_69341__entry__117"></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The driver asks the handler for running status.</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"></td>
+						<td class="rowsep-1" headers="_69341__entry__117"><code>SRQKIND 2</code> | <code>SRQKIND 4</code> | <code>SRQKIND 8</code> |
+								<code>SRQKIND 10</code></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The handler returns the status.<ul>
+								<li><code>SRQKIND 2</code>: FT lot start.</li>
+								<li><code>SRQKIND 4</code>: RT lot start.</li>
+								<li><code>SRQKIND 8</code>: Lot end.</li>
+								<li><code>SRQKIND 10</code>: Final lot end.</li>
+							</ul></td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"><code>LOTORDER <em>x</em></code></td>
+						<td class="rowsep-1" headers="_69341__entry__117"></td>
+						<td class="rowsep-1" headers="_69341__entry__118">Based on the <code>SRQKIND</code> command, the tester replies
+								<code>LOTORDER</code>.</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"></td>
+						<td class="rowsep-1" headers="_69341__entry__117"><code>LOTORDER 0</code> | <code>LOTORDER 2</code></td>
+						<td class="rowsep-1" headers="_69341__entry__118">
+							<ul>
+								<li><code>LOTORDER 0</code>: The handler can start running.</li>
+								<li><code>LOTORDER 2</code>: The tester replies to perform ART or clean out the lot
+									end.</li>
+							</ul>
+						</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"><code>LOTRETESTCLEAR</code></td>
+						<td class="rowsep-1" headers="_69341__entry__117"></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The driver sends the request to clear lot data on the handler.</td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116"></td>
+						<td class="rowsep-1" headers="_69341__entry__117"><code>LOTCLEARED</code> | <code>SETTINGNG</code></td>
+						<td class="rowsep-1" headers="_69341__entry__118">The handler returns <code>LOTCLEARED</code> or <code>SETTINGNG</code>.<ul>
+								<li><code>LOTCLEARED</code> All lot data is cleared.</li>
+								<li><code>SETTINGNG</code>: Lot data cannot be cleared.</li>
+							</ul></td>
+					</tr>
+					<tr>
+						<td class="rowsep-1" headers="_69341__entry__116 _69341__entry__117 _69341__entry__118" colspan="3">For how to set the auto-retest feature in your application
+							model file, see the <a href="149840.htm#_149840__auto_retest">Example 2: Auto-retest</a> in <a href="149840.htm" title="The following two examples explain how to get 2D barcodes and do auto-retest on GS! handlers.">Examples: 2D barcode and auto-retest</a>.</td>
+					</tr>
+				</tbody></table>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="104408.htm" title="This function retrieves various kinds of production information from probers or handlers. Different parameters are supported for different probers or handlers.">Function: ph_get_status</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>SmarTest 7.3.2: Adds status querying for HonTech handler.</li><li>SmarTest 7.4.2: Adds barcode querying for HonTech handler.</li><li>SmarTest 7.5.3: Adds the communication flow for Chroma 3180 handlers.</li><li>SmarTest 7.6.0: Adds the auto-retest communication flow for HonTech handler</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 69341</span><script type="text/javascript">var ti='69341';var tt='GPIB communication flow for Seiko-Epson handlers'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

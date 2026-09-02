@@ -1,0 +1,86 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>PSFC, PSFC? - (Parallel Setup FoCus)</title><meta name="keywords" content="PSFC_, Fo, Cus"></head><body id="_98698"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98698</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">PSFC, PSFC? - (Parallel Setup FoCus)</h1>
+	
+	
+	<div><p>The <span class="keyword">PSFC</span> command serves to restrict certain changes of setup data to
+		a proper subset of the available sites. It does this by setting or unsetting the <em>setup
+			focus</em> for individual sites. By default, all sites have the setup focus.</p>
+		<section class="section"><p>Note that some setup commands do not take the setup focus into account. These commands
+				will always change the setup data of all sites, regardless of any restrictions configured with
+					<span class="keyword">PSFC</span>. Commands that comply with the setup focus are the timing and level
+				setup commands; in contrast, most vector setup commands disregard it (but not <a href="98853.htm" title="The VECD command downloads data in binary format into the vector area of the pin given by pin, from the absolute address address for the length length. The target area is determined by the applic parameter; the interpretation of the data depends on the specified target area. If necessary, VECD extends the size of the target area.">VECD</a> and <a href="98850.htm" title="The VECC command downloads data in a compressed binary format into the vector area of the pin (given by the parameter pin), from the absolute address (given by the parameter address) and for the specified length (given by the parameter length). The target area is determined by the applic parameter; the interpretation of the data depends on the specified target area. If necessary, VECC extends the size of the target area. Downloading the data with the VECC command in compressed format is generally faster than downloading it in uncompressed format.">VECC</a>).</p><div class="caution"><span class="title">CAUTION</span> Using
+					<span class="keyword">PSFC</span> directly may have the effect that the site control window does not show
+				the correct information about which sites are active and which are not. This may lead to sites,
+				thought to be inactive, being updated by site control FW commands with undesirable results or
+				even damage. To avoid this, the site control should normally be performed via the site control
+				window (see <a href="42588.htm" title="You use the site control to:">Using the site control</a>) or test method
+				APIs.</div><p>Note also that not all sites that
+				are configured in the pin configuration are necessarily available for testing. If a site uses a
+				channel that is inactivated in the <span class="filepath">MCDIgnore</span> file (see <!--a href="service<87919.htm"-->MCDIgnore file in Service_Guide Part
+					1<!--/a-->), this site cannot be used for testing.</p><p>The <span class="keyword">PSFC?</span> query
+				returns the sites that have currently the setup focus.</p></section>
+		<div class="syntax"><h2>PSFC</h2><pre class="prettyprint copyable singleline">PSFC {site|"site_string"|ALL}</pre></div><div class="syntax"><h2>PSFC?</h2><pre class="prettyprint linenums copyable">
+PSFC? [STR]</pre><p>returns</p><pre class="prettyprint copyable singleline">PSFC {"site_string"|ALL}</pre></div><div class="syntax"><h2>Parameters</h2><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">site</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>A single integer representing the site number.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><var class="varname">site_string</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1">
+								<p>A string of characters ("0" or "1"). The length of the string
+									corresponds to the number of the configured sites. The
+										<span class="keyword">n</span><sup>th</sup> character of this string
+									stands for site <em>n</em>.</p>
+								<ul>
+									<li>
+										<p>1 means that the site is (to be) addressed by any
+											subsequent commands that take the setup focus into
+											account.</p>
+									</li>
+									<li>
+										<p>0 means that the site is not (to be) addressed by any
+											subsequent commands.</p>
+									</li>
+								</ul>
+								<p>If some of the sites that are required to get the setup focus are
+									not available (because they use a channel that is inactivated in
+									the <span class="filepath">MCDIgnore</span> file) the setup status of
+									these sites will not be changed.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><span class="keyword">ALL</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>In the command, this means that all sites that are available for testing
+									(that is, do not use a channel that is inactivated in the <span class="filepath">MCDIgnore</span>
+									file) are to be addressed by subsequent (setup focus aware) commands. </p>
+								<p><span class="keyword">ALL</span> is returned in the query reply, if the query is issued without the
+										<span class="keyword">STR</span> parameter, and if all available sites have the setup focus.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><p><var class="varname">STR</var></p>
+							</td>
+							<td class="colsep-0 rowsep-1"><p>forces the query to return a site string even if all available sites
+									have the setup focus. This can be used to check if some sites are not available.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax"><h2>Application</h2><p>Site control window. </p></div><div class="syntax"><h2>Errors</h2><p>An error is generated if not all pins at the site have had their channels assigned by the
+					<span class="keyword">PALS</span> command.</p></div>
+		
+		
+		
+		
+		<h2>Example</h2><div class="example"><pre class="prettyprint copyable singleline">PSFC "11111110"</pre><p>In this example, 8 sites are defined. The
+					<span class="keyword">PSFC</span> command unsets the setup focus for the last site. The setup data of
+				this site will not be changed by any subsequent command execution.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><!--a href="service<87919.htm"-->MCDIgnore usage and restrictions<!--/a--></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98698</span><script type="text/javascript">var ti='98698';var tt='PSFC, PSFC? - (Parallel Setup FoCus)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

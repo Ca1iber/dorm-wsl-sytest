@@ -1,0 +1,136 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="In order to post-process the measurement results, you must upload these results from the result area (in the channel memory) into a result cache (on the workstation). A result cache is a map whose values are TMU_RESULTS objects, and which admits two key types, string and integer (intended for distinguishing different pin lists and different shots). A TMU_RESULTS object can hold all result types, raw data as well as computed data, for one pair of pin list and shot. You can upload the measurement results on the TMU_TASK and on the TMU_PINS level."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Uploading results with TMU_TASK and TMU_PINS</title></head><body id="_132762"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 132762</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Uploading results with TMU_TASK and TMU_PINS</h1>
+	
+	
+	<div><p>In order to post-process the measurement results, you must upload these results from the
+		result area (in the channel memory) into a result cache (on the workstation). A result cache is a
+		map whose values are <span class="keyword">TMU_RESULTS</span> objects, and which admits two key types,
+		string and integer (intended for distinguishing different pin lists and different shots). A
+			<span class="keyword">TMU_RESULTS</span> object can hold all result types, raw data as well as computed
+		data, for one pair of pin list and shot. You can upload the measurement results on the
+			<span class="keyword">TMU_TASK</span> and on the <span class="keyword">TMU_PINS</span> level.</p>
+		<p>The results are uploaded for all sites, but only if the latest measurement was executed after
+			the last upload. </p>
+		
+		
+		<section class="section"><h2>Using TMU_TASK </h2><p>The general form for uploading the results from a
+					<span class="keyword">TMU_TASK</span> object with, for example, the <span class="keyword">uploadRawResults()</span>
+				member function,
+					is</p><p>&lt;<span class="keyword">task_name</span>&gt;<span class="keyword">.uploadRawResults(</span>&lt;<span class="keyword">shot_number</span>&gt;<span class="keyword">)</span></p><p>If
+				no shot number is specified, this format will upload the results for all shots. A default result
+				cache, which is structured by pairs of pin list (<span class="keyword">TMU_PINS</span> object, as defined
+				with the <span class="keyword">pin()</span> member function of the <span class="keyword">TMU_TASK</span> object) and
+				shot, will be created automatically. </p><p>If, for example, two pin lists have been defined by
+				the <span class="keyword">pin()</span> member function of the <span class="keyword">TMU_TASK</span> object, and two
+				shots are executed for both of them, four <span class="keyword">TMU_RESULTS</span> objects will be
+				created. The keys of these objects are built up from the pin list and the shot number, in this
+				order.</p><p>The default result cache is retrieved by the <span class="keyword">getResultCache()</span>
+				member function of the <span class="keyword">TMU_TASK</span> object. The generated
+					<span class="keyword">TMU_RESULTS</span> objects must be accessed according to the structure of their
+				keys, that is, the pin list must be specified before the shot number. Accordingly, the general
+				form of accessing the results for one pair of pin list and shot
+					is</p><p>&lt;<span class="keyword">task_name</span>&gt;<span class="keyword">.getResultCache().pins(</span>&lt;<span class="keyword">pinlist</span>&gt;<span class="keyword">)[</span>&lt;<span class="keyword">shot_number</span>&gt;
+					-1<span class="keyword">]</span></p><p>or
+					</p><p>&lt;<span class="keyword">task_name</span>&gt;<span class="keyword">.getResultCache().pins(</span>&lt;<span class="keyword">pinlist</span>&gt;<span class="keyword">).shot(</span>&lt;<span class="keyword">shot_number</span>&gt;<span class="keyword">)</span></p><p>If
+				you specify a shot number &gt; 0 with <span class="keyword">uploadRawResults()</span>, the upload will be
+				restricted to the specified shot. However, you still have to specify the shot number as in the
+				default case. </p><p>If, for example, you want to upload only the results of shot 2, the correct
+				format
+					is</p><p>&lt;<span class="keyword">task_name</span>&gt;<span class="keyword">.getResultCache().pins(</span>&lt;<span class="keyword">pinlist</span>&gt;)<span class="keyword">.shot(2)</span></p><p>or</p><p>&lt;<span class="keyword">task_name</span>&gt;<span class="keyword">.getResultCache().pins(</span>&lt;<span class="keyword">pinlist</span>&gt;<span class="keyword">)[1]</span></p>
+			<p>See <a href="125624.htm" title="The TMU_TASK is a container class representing a time measurement unit (TMU) set. It can be used with TASK_LIST.">TMU_TASK</a> for more details on the <span class="keyword">TMU_TASK</span> class.</p></section>
+		<section class="section"><h2>Using TMU_PINS</h2><p>The general form for uploading the results from a
+					<span class="keyword">TMU_PINS</span> object with the <span class="keyword">uploadRawResults()</span> member
+				function
+					is</p><p>&lt;<span class="keyword">task_name</span>&gt;<span class="keyword">.pin(</span>&lt;<span class="keyword">pinlist</span>&gt;<span class="keyword">).uploadRawResults(</span>&lt;<span class="keyword">result_cache</span>&gt;,&lt;<span class="keyword">shot_number</span>&gt;<span class="keyword">)</span></p><p>When
+				you use a <span class="keyword">TMU_PINS</span> object for uploading, you must specify the target result
+				cache with the <span class="keyword">uploadRawResults()</span> function. You can specify any key or index
+				with this cache: If the respective object does not yet exist, it will be created. As with the
+					<span class="keyword">TMU_TASK</span> member function of the same name, the results for all shots of the
+				pin list in question will be uploaded by default; in this case, a <span class="keyword">TMU_RESULTS</span>
+				object will be created for each shot. Thus, the general form for accessing the results for one
+				shot
+					is</p><p>&lt;<span class="keyword">result_cache</span>&gt;<span class="keyword">[</span>&lt;<span class="keyword">shot_number</span>&gt;
+					-1<span class="keyword">]</span></p><p>or</p><p>&lt;<span class="keyword">result_cache</span>&gt;<span class="keyword">.shot(</span>&lt;<span class="keyword">shot_number</span>&gt;<span class="keyword">)</span>,</p><p>where <span class="keyword">result_cache</span> is the object specified in the
+					<span class="keyword">uploadRawResults()</span> function.</p>
+			<p>See <a href="125625.htm" title="The TMU_PINS class holds the TMU settings for one or multiple pins. It also provides the functions to access and modify the TMU properties.">TMU_PINS</a> for more details on the <span class="keyword">TMU_PINS</span> class.</p></section>
+		<h2>Examples</h2><div class="example"><h3>Description</h3><p>The following code performs TMU measurements for two pin
+				lists. Two shots are executed for each of
+				them.</p><pre class="prettyprint linenums copyable">TMU_TASK task;
+
+ON_FIRST_INVOCATION_BEGIN();
+
+task.pin("P1,P2").setNumShots(2).set ...;
+task.pin("P3,P4").setNumShots(2).set ...;
+
+task.setup();
+task.setAsPrimary();
+
+
+for(i=0;i&lt;2;i++)
+{
+  task.execute();
+}
+
+ON_FIRST_INVOCATION_END();</pre><p>The
+				measurement results can be uploaded in different ways. The following code segments show 5
+				options to create four <span class="keyword">TMU_RESULTS</span> objects each of which contains the
+				measurement values for one combination of pin list and shot (on all
+			sites).</p></div>
+		<div class="example"><h3>Upload with TMU_TASK
+				(1)</h3><pre class="prettyprint linenums copyable">task.uploadRawResults();
+
+TMU_RESULTS P1_P2_result_1 = task.getResultCache().pins("P1,P2").shot(1);
+TMU_RESULTS P1_P2_result_2 = task.getResultCache().pins("P1,P2").shot(2);
+TMU_RESULTS P3_P4_result_1 = task.getResultCache().pins("P3,P4")[0];
+TMU_RESULTS P3_P4_result_2 = task.getResultCache().pins("P3,P4")[1];</pre><p>In
+				this example, the four <span class="keyword">TMU_RESULTS</span> objects of the default result cache are
+				transferred into four different user defined result objects.</p></div>
+		<div class="example"><h3>Upload with TMU_TASK
+				(2)</h3><pre class="prettyprint linenums copyable">task.uploadRawResults();
+
+TMU_RESULTS P1_P2_result_1 = task.getResultCache()["P1,P2"].shot(1);
+TMU_RESULTS P1_P2_result_2 = task.getResultCache()["P1,P2"].shot(2);
+TMU_RESULTS P3_P4_result_1 = task.getResultCache()["P3,P4"][0];
+TMU_RESULTS P3_P4_result_2 = task.getResultCache()["P3,P4"][1];</pre><p>This
+				example differs from the first one only in that the pin string key is specified in abbreviated
+				form.</p></div>
+		<div class="example"><h3>Upload with TMU_PINS
+				(1)</h3><pre class="prettyprint linenums copyable">TMU_RESULTS P1_P2;
+TMU_RESULTS P3_P4;
+
+task.pin("P1,P2").uploadRawResults(P1_P2["one"],1);
+task.pin("P1,P2").uploadRawResults(P1_P2["two"],2);
+task.pin("P3,P4").uploadRawResults(P3_P4.shot(1),1);
+task.pin("P3,P4").uploadRawResults(P3_P4.shot(2),2);</pre><p>In
+				this example, two different caches are used for the two pin lists. One cache is keyed by
+				strings, the other by integers.</p></div>
+		<div class="example"><h3>Upload with TMU_PINS
+				(2)</h3><pre class="prettyprint linenums copyable">TMU_RESULTS&amp; P1_P2;
+TMU_RESULTS&amp; P3_P4;
+
+task.pin("P1,P2").uploadRawResults(P1_P2);
+task.pin("P3,P4").uploadRawResults(P3_P4);
+TMU_RESULTS P12_1 = P1_P2.shot(1);
+TMU_RESULTS P12_2 = P1_P2.shot(2);
+TMU_RESULTS P34_1 = P3_P4[0];
+TMU_RESULTS P34_2 = P3_P4.shot(2);</pre><p>In
+				this example, two intermediate result caches are used. With each of these, the
+					<span class="keyword">uploadRawResults()</span> function (lines 3, 4) creates two
+					<span class="keyword">TMU_RESULTS</span> objects, one for every shot.</p></div>
+		<div class="example"><h3>Upload with TMU_PINS
+				(3)</h3><pre class="prettyprint linenums copyable">TMU_RESULTS result_array;
+
+task.pin("P1,P2").uploadRawResults(result_array[0],1);
+task.pin("P1,P2").uploadRawResults(result_array[1],2);
+task.pin("P3,P4").uploadRawResults(result_array[2],1);
+task.pin("P3,P4").uploadRawResults(result_array[3],2); </pre><p>In
+				this example, one integer keyed cache is used for all four combinations of pin list and
+				shot.</p><div class="note"><span class="title">Note</span> The calls of the <span class="keyword">uploadRawResults()</span> function are
+				placed after the <span class="keyword">ON_FIRST_INVOCATION</span> block so that this block can be
+				identical in all examples. But in a real application they should be included in the
+					<span class="keyword">ON_FIRST_INVOCATION</span> block.</div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125624.htm" title="The TMU_TASK is a container class representing a time measurement unit (TMU) set. It can be used with TASK_LIST.">TMU_TASK</a></div><div><a href="125625.htm" title="The TMU_PINS class holds the TMU settings for one or multiple pins. It also provides the functions to access and modify the TMU properties.">TMU_PINS</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.4</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 132762</span><script type="text/javascript">var ti='132762';var tt='Uploading results with TMU_TASK and TMU_PINS'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This hook function is called (if activated, see Activating a Hook Function) on every PROB_HND_CALL from the application model, after the driver has performed all necessary actions for this call."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>phHookActionDone</title><meta name="keywords" content="ph, Hook, Action, Done"></head><body id="_42320"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 42320</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">phHookActionDone</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="42321.htm">Parameters:</a></li><li><a href="42322.htm" title="User-specific code should be added in a case section for the respective driver function called by the PROB_HND_CALL of the application model.">User-Specific Code:</a></li></ol></div></nav>
+	
+	
+	<div><p>This hook function is called (if activated, see <em><a href="42332.htm" title="To tell the driver that a hook function should be called during the driver execution, the hook function must be activated. Deactivated hook function, although existent in the ph_hhook.c source file, will not be called (see also Special Functions in the Hook Source File).">Activating a Hook Function</a></em>) on every
+		PROB_HND_CALL from the application model, <strong>after</strong> the driver has performed all necessary
+		actions for this call.</p>
+		<p>The simple example functionality of the hook function template demonstrates how to use the
+			function <em>phStateGetSiteInfo</em>.</p>
+		<p><em><a href="42350.htm" title="If you have unpacked the driver sources, as described in Unpacking the Driver and Hook Sources, man pages are available for all driver functions defined in the header files which are located in the directory">Appendix B: Man Pages for Driver Functions</a></em> describes how to get information about this function, and about
+			other functions which can be called from within a hook function.</p>
+		<div></div><pre class="prettyprint linenums copyable">phHookError_t phHookActionDone(
+    phFrameAction_t call/* the identification of an incoming
+                         call from the application model */,
+    phEventResult_t *result/* the result of this hook call */,
+    char *parm_list_input/* the parameters passed over from
+                          the application model */,
+    int parmcount/* the parameter count */,
+    char *comment_out/* the comment to be send back */
+                    /* to the application model , as */
+                    /* already set by the driver */
+    int *comlen/* the length of this comment */,
+    phTcomUserReturn_t *stReturn  /* SmarTest return value, */
+                                  as  already set by the driver */
+)
+{
+    /* some local variables */
+
+#ifdef ACTION_DONE_IMPLEMENTED
+    phStateSiteUsage_t *sitePopulation;
+    int entries;
+    int i;
+    static long deviceCount = 0L;
+#endif
+
+    /* do checks and trace the call first */
+    CheckInitialized(&amp;hook);
+    phLogHookMessage(hook.myLogger, PHLOG_TYPE_TRACE, 
+                     "phHookActionDone(0x%08lx,\"%s\",%d,\"%s\",%d,P%p)",
+                     (long) call,
+                     parm_list_input ? parm_list_input : "(NULL)", parmcount, 
+                     comment_out ? comment_out : "(NULL)", comlen, 
+                     stReturn);
+
+#ifdef ACTION_DONE_IMPLEMENTED
+
+    /* Here is a sample implementation which prints out a
+    message after each performed ph_device_start call and 
+     ph_device_start call from the application model, and
+    calculates the device count */
+
+    switch (call)
+    {
+      case PHFRAME_ACT_DEV_START:
+
+      /* get the handler's site population status and count all devices */
+
+      if (phStateGetSiteInfo(hook.myState, &amp;sitePopulation,
+          &amp;entries) == PHSTATE_ERR_OK)
+      {
+        for (i=0; i&lt;entries; i++)
+        if (sitePopulation[i] == PHSTATE_SITE_POPULATED)
+        deviceCount++;
+      }
+
+      phLogHookMessage(hook.myLogger, 
+                       PHLOG_TYPE_MESSAGE_0,
+                       "end of ph_device_start recognized by hook function,
+    total: %ld", deviceCount);
+     break;
+
+     case PHFRAME_ACT_DEV_DONE:
+       phLogHookMessage(hook.myLogger, PHLOG_TYPE_MESSAGE_0,
+                       "end of ph_device_done recognized by hook function");
+     break;
+
+     default:
+       /* nothing to do */
+     break;
+    }
+
+    return PHHOOK_ERR_OK;
+
+#else
+
+    /* hook was not activated */
+    return PHHOOK_ERR_NA;
+
+#endif
+}</pre><div></div>
+		<div class="note"><span class="title">Note</span> For all type definitions, see the header files corresponding to the respective
+			type. The header files are located in the directory <em>... /GenericHandler/include</em>/ and in
+				<em>... /GenericProber/include</em> For example, for the type <strong>phTcom</strong><em>UserReturn_t</em> see
+			the header file <strong>phTcom.h</strong>.</div>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 42320</span><script type="text/javascript">var ti='42320';var tt='phHookActionDone'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,907 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>An Unprecedented Solution on DDR3</title><meta name="keywords" content="DDR, 3"></head><body id="_120438"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 120438</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">An Unprecedented Solution on DDR3</h1>
+	
+	<div>
+		<p>My-Way Wang, Verigy</p>
+		<p>Paper-ID: 120438 April 2010</p>
+		<section class="section"><h2>Abstract</h2><p>This paper addresses the fundamental operations of DDR3 and how
+				the V93000 HSM series test system benefits customers that use DDR3. Because different data
+				sequences output by DDR3 are organized under a different starting column address and burst types
+				(see Table-1), current ATE test systems have yet to successfully achieve the goal of unifying
+				all possible DDR3 conditions within one universal pattern. However, this goal has now been
+				achieved by the V93000 HSM series, thanks in part to its unique software
+				architecture.</p><p>This paper also explains in detail the method and algorithm used to achieve
+				this goal, which involves complicated C-Language programming skills. In addition, this paper
+				demonstrates the advantage of the V93000 SW APG architecture, as well how customers will benefit
+				from developing test programs on the V93000 HSM.</p><div class="p"><figure class="fignone">
+					<img src="120439.png" alt="An Unprecedented Solution on DDR3">
+				</figure></div><p><strong>Table 1</strong></p></section>
+		<section class="section"><h2>Introduction</h2><p>DDR3 SDRAM (double-data-rate three synchronous dynamic
+				random access memory) is the successor of DDR2 SDRAM. Though the prototypes of DDR3 were
+				manufactured in early 2005, it did not become a mainstream commodity SDRAM until this year. The
+				two predominant reasons why DDR3 took so long to become mainstream was the over-supply of DDR2
+				and the global financial crisis. These two factors combined to cause a DDR3 price crash. Now
+				that the economy is gradually recovering, several DRAM IDMs are beginning to slowly ramp mass
+				production volume. Factor this with Windows 7 driving PC turnover, most semiconductor analysts
+				forecast that the era of DDR3 is coming.</p><p>The major feature of DDR3 is a doubling of the
+				transfer data rate over DDR2, achieved by using 8-bit wide prefetch buffer. In addition, DDR3
+				consumes less power, has a bigger chip capacity (up to 8 gigabits), and maintains better signal
+				integrity.</p><p>Due to the unique structure of SDRAM and the limitations of current ATE memory, the challenge
+				that has long bothered testing engineers has been the lack of an efficient testing program that
+				covers all possible conditions. This paper addresses that challenge and offers a new testing
+				solution using the V93000 HSM series.</p></section>
+		<section class="section"><h2>DDR3 test challenge</h2></section>
+		<section class="section"><h2>Challenge description</h2><p>This testing challenge came from the era of SDR
+				(single-data-rate), and it becomes more complicated on DDR3. In Table-1 (extracted from
+				JESD79-3D), it describes the relationship between #1.Burst-length, #2.Burst-type, and#3.Starting
+				Column address for READ/WRITE operations respectively. For example, whenever a memory controller
+				(chipset) wants to communicate with DDR3 (SDRAM), the controller chip first sends an (E)MRS
+				command to set up the operating mode of memory, which includes Burst-length and Burst-type.
+				Secondly, the controller sends a "READ/WRITE" command to memory after "ACTIVE" command follows
+				some predefined timing delay. Starting Column address will simultaneously be interpreted by
+				Column decoder of DDR3. There is a brief example to explain this concept in more detail.</p><div class="p"><figure class="fignone">
+					<img src="120441.png" alt="An Unprecedented Solution on DDR3 (3)">
+				</figure></div><p>Assuming DDR3 (SDRAM) configures x8 IOs, the data stream inside Column 0 through
+				Column 7 of DDR3 (shown in Table-2), operates on Burst-Length=8, Burst-type=Sequential. Once the
+				controller sends Column 0 as starting column address combined with "READ" command, DDR3 will
+				output a data stream in the sequence shown in Table-2 (39,1A,84,05,FE,BC,65,72) after the
+				predefined latencies. Further, if the controller sends Column 2 as the starting column address
+				with other conditions remaining the same, DDR3 drives its output in another sequence
+				(84,05,39,1A,65,72,FE,BC). If you are shrewd enough, you'll find what seems like a boundary
+				between low nibble and high nibble. As mentioned in above example, Data stream starts at column
+				2, followed by column 3, then wraps to the beginning point (column 0) rather than crossing the
+				boundary (column 4). From a testing viewpoint, this weird data stream sequence is a nightmare
+				for testing engineers. Using current ATE test systems, test engineers do not have the ability to
+				generate a universal pattern to satisfy these 32 (2 Burst-length x 2 Burst-type x 8 Starting
+				address) testing conditions because the architecture of current mainstream memory ATE is
+				designed on HW APG (Auto-test Pattern Generator) and uses low level language to develop test
+				patterns. Not only is it impossible to provide 8 sets of different random data, but there's also
+				no way to determine the next 1-7 following address from the starting column address. Let's take
+				"MARCH" [2], a typical test pattern for SRAM &amp; DRAM, as an example. Due to the restrictions
+				described above, testing engineers need to create 32 different patterns for one "MARCH" as shown
+				in Table-3.</p><table class="frame-bottom"><caption><span>Table 3</span></caption><colgroup><col><col><col><col><col><col></colgroup><thead>
+						<tr>
+							<th class="bg_green colsep-1 rowsep-1" id="_120438__entry__1" colspan="4"><p>March</p>
+							</th>
+							<th class="bg_green colsep-1 rowsep-1" id="_120438__entry__2"><p>HW APG</p>
+							</th>
+							<th class="bg_green colsep-1 rowsep-1" id="_120438__entry__3"><p>Verigh HSM</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1" rowspan="16"><p>BL=4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1" rowspan="8"><p>Sequenial</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_1.asc</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__3" rowspan="32"><p>March.prog</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>2</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_2.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=2</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_3.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_4.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>5</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_5.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>6</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=5</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_6.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>7</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=6</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_7.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>8</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=7</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_8.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>9</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1" rowspan="8"><p>Interleaved</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_9.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>10</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_10.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>11</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=2</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_11.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>12</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_12.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>13</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_13.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>14</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=5</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_14.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>15</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=6</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_15.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>16</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=7</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_16.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>17</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1" rowspan="16"><p>BL=8</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1" rowspan="8"><p>Sequenial</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_17.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>18</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_18.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>19</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=2</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_19.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>20</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_20.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>21</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_21.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>22</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=5</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_22.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>23</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=6</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_23.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>24</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=7</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_24.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>25</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1" rowspan="8"><p>Interleaved</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=0</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_25.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>26</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=1</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_26.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>27</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=2</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_27.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>28</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=3</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_28.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>29</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=4</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_29.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>30</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=5</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_30.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>31</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=6</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_31.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>32</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__1"><p>SA=7</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__2"><p>March_32.asc</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Verigy HSM Solutions</h2><p>In the high speed industry, the V93000 is well
+				known as a cutting-edge SOC. HSM (High Speed Memory) overcomes the two drawbacks presented in
+				the last example by leveraging the proven per-pin timing architecture and technology of 93000
+				platform. HSM is designed on per-pin SW APG, so there is no HW APG limitations (usually comes
+				from data/address registers, general counters) to support any kind of address topologic memory.
+				Another great innovation is supporting C-language on pattern development. There is a template
+				coding shown
+				below.</p><pre class="prettyprint linenums copyable">//..
+Main()
+{
+//..
+    Initialize();
+    Region_Write();
+    Region_Read();
+//..
+}
+
+Initialize()
+{
+//..
+    MRS(Bank0, code0);
+    A1_A0=code&amp;0x3;
+    A3=code&amp;0x8;
+    if(A1_A0==2)
+    {
+        BL=4;
+    }
+    else
+    {
+        BL=8;
+    }
+//..
+}
+
+Region_Read()
+{
+//..
+for (Col = Col_init; Col&lt;Col_end; Col+=shift)
+{
+Active (Bank, Row);
+Delay(tRCD);
+Read(Bank, Col, DQ_SA, DQ_N1, DQ_N2, DQ_N3, DQ_N4, DQ_N5, DQ_N6, DQ_N7);
+Delay(tRTP);
+Precharge(Bank);
+Delay(tRP);
+Refresh();
+}
+//..
+}
+
+Read(_Bank, _Col, _DQ_SA, _DQ_N1, _DQ_N2, _DQ_N3, _DQ_N4, _DQ_N5, _DQ_N6, _DQ_N7)
+{
+//..
+    if(A3)
+    {
+    DQ_BUS_rearrange_Intlv ();
+    }
+    else
+    {
+    DQ_BUS_rearrange_Seq ();
+    }
+//..
+}
+
+DQ_BUS_rearrange_Intlv()
+{
+//..
+Y_warp=_Col&amp;0x3;
+Y_2=_Col&amp;0x4;
+Y_others=_Col&amp;(Col_MAX-BL);
+SA=Y_others|Y_2|(Y_wrap^0)&amp;0x3;
+N1=Y_others|Y_2|(Y_wrap^1)&amp;0x3;
+N2=Y_others|Y_2|(Y_wrap^2)&amp;0x3;
+N3=Y_others|Y_2|(Y_wrap^3)&amp;0x3;
+N4=Y_others|(~Y_2)&amp;0x4|(Y_wrap^0)&amp;0x3;
+N5=Y_others|(~Y_2)&amp;0x4|(Y_wrap^1)&amp;0x3;
+N6=Y_others|(~Y_2)&amp;0x4|(Y_wrap^2)&amp;0x3;
+N7=Y_others|(~Y_2)&amp;0x4|(Y_wrap^3)&amp;0x3;
+//..
+}
+
+DQ_BUS_rearrange_Seq()
+{
+//..
+Y_warp=_Col&amp;0x3;
+Y_2=_Col&amp;0x4;
+Y_others=_Col&amp;(Col_MAX-BL);
+SA=Y_others|Y_2|(Y_wrap+0)&amp;0x3;
+N1=Y_others|Y_2|(Y_wrap+1)&amp;0x3;
+N2=Y_others|Y_2|(Y_wrap+2)&amp;0x3;
+N3=Y_others|Y_2|(Y_wrap+3)&amp;0x3;
+N4=Y_others|(~Y_2)&amp;0x4|(Y_wrap+0)&amp;0x3;
+N5=Y_others|(~Y_2)&amp;0x4|(Y_wrap+1)&amp;0x3;
+N6=Y_others|(~Y_2)&amp;0x4|(Y_wrap+2)&amp;0x3;
+N7=Y_others|(~Y_2)&amp;0x4|(Y_wrap+3)&amp;0x3;
+//..
+}
+
+//..</pre></section>
+		<section class="section"><h2>Conclusion</h2><p>The above C-language template consists of main, sub-function,
+				for-loop, if-else condition, parameters assignment and ALU. The most sophisticated part resides
+				in DQ_BUS_rearrange_X, although the details are not shown. The versatility of a C-language base
+				allows you to do almost anything you would like to, such as mathematic equations, bit
+				operations, global/local variables and arrays.</p><p>One other thing to note about the benefit
+				of a C-language base is that it is simple to make a universal pattern that satisfies the 32
+				conditions of Table-1 &amp; Table-3. If you want to add more testing conditions for example, tRCD, RL,
+				CWL), it can still be done easily, as illustrated in Table-4.What this means for the test
+				engineer is a future where only one universal pattern plus one excel sheet can handle all
+				testing conditions. Consider that if your current HW-APG ATE cannot satisfy tomorrow's memory
+				devices, regardless of improved functionality or speed, can you afford to continue waiting?
+				Verigy's HSM series has already achieved what test engineers have long clamored for, while also
+				providing an upgradable per-pin test processor for higher data rate performance, and a flexible
+				per-pin compiler-based APG scheme for future enhanced functionalities. With Verigy's HSM series,
+				the future is now.</p></section>
+		<section class="section"><h2>References</h2><p>[1] JEDEC Committee JESD79-3D. Table 3 - Burst Type &amp;
+				Burst Order, pp 25</p><p>[2] Van de Goor, A.J. "Testing Semiconductor Memories: Theory and
+				Practice", 1991</p><table class="frame-topbot"><caption><span>Table 4</span></caption><colgroup><col><col><col><col><col><col><col></colgroup><thead>
+						<tr>
+							<th class="bg_green colsep-0 rowsep-0" id="_120438__entry__107"><p>&nbsp;</p>
+							</th>
+							<th class="bg_green colsep-0 rowsep-0" id="_120438__entry__108"><p>CL-nRCD-nRP</p>
+							</th>
+							<th class="bg_green colsep-0 rowsep-0" id="_120438__entry__109"><p>BL</p>
+							</th>
+							<th class="bg_green colsep-0 rowsep-0" id="_120438__entry__110"><p>Type</p>
+							</th>
+							<th class="bg_green colsep-0 rowsep-0" id="_120438__entry__111"><p>SA</p>
+							</th>
+							<th class="bg_green colsep-0 rowsep-0" id="_120438__entry__112"><p>HW APG</p>
+							</th>
+							<th class="bg_green colsep-1 rowsep-0" id="_120438__entry__113"><p>Verigh HSM</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__108" rowspan="22"><p>5-5-5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109" rowspan="16"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110" rowspan="8"><p>S</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_1.asc</p>
+							</td>
+							<td class="colsep-1 rowsep-1" headers="_120438__entry__113" rowspan="40"><p>March.prog</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>2</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_2.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>3</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>2</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_3.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>3</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_4.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_5.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>6</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_6.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>6</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_7.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>8</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_8.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>9</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110" rowspan="8"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_9.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>10</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>1</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_10.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>11</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>2</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_11.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>12</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>3</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_12.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>13</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_13.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>14</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>5</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_14.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>15</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>6</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_15.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>16</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_16.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>17</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109" rowspan="6"><p>8</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>S</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_17.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>32</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_32.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>33</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__108" rowspan="5"><p>6-6-6</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>S</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_33.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>64</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>8</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_64.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>65</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__108" rowspan="6"><p>7-7-7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>S</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_65.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>96</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>8</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_96.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__108"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__108"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>161</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_120438__entry__108" rowspan="5"><p>10-10-10</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>4</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>S</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>0</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>March_161.asc</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__107"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__109"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__110"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__111"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_120438__entry__112"><p>&nbsp;</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_120438__entry__107"><p>192</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_120438__entry__109"><p>8</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_120438__entry__110"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_120438__entry__111"><p>7</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_120438__entry__112"><p>March_192.asc</p>
+							</td>
+						</tr>
+					</tbody></table></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 120438</span><script type="text/javascript">var ti='120438';var tt='An Unprecedented Solution on DDR3'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

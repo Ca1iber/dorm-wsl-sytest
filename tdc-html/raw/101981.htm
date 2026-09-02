@@ -1,0 +1,80 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The waveform mapping file is an optional configuration file that is needed for Indirect waveform mapping. It maps calculated patterns from the APG program to indexes into the timing settings specified in SmarTest at run-time."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Waveform mapping file</title><meta name="keywords" content="wave form waveform table"></head><body id="_101981"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 101981</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Waveform mapping file</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="102554.htm" title="The syntax of the waveform mapping file is similar to that of the Timing file, although not identical to it. Wavetables for waveform mapping can be specified in three different variants of a basic syntax. These syntaxes cannot be mixed within one PINS block, but one wavetable may contain PINS blocks with different syntaxes.">Waveform mapping file syntax</a></li></ol></div></nav>
+	
+	
+	<div><p>The waveform mapping file is an optional configuration file that is needed for <a href="75996.htm" title="Much like direct waveform mapping, indirect waveform mapping converts the waveforms created by the compiler to indexes into the timing file that are added to the vector file. Instead of using the timing file, however, it uses a separate waveform mapping file.">Indirect waveform mapping</a>. It maps calculated patterns from the APG program
+		to indexes into the timing settings specified in SmarTest at run-time.</p>
+		<div class="p"><figure class="fignone">
+				<img src="102553.png" alt="Miniature scheme of file dependencies with .wmap file highlighted">
+			</figure></div>
+		<p>The waveform mapping file has the <span class="filepath">.wmap</span> file name extension. It is
+			referenced from the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> with the <span class="keyword">:waveformMap:</span> keyword.</p>
+		<p>The waveform mapping file contains for each pin or pin group a list with matching pairs of
+			indexes and waveforms. During compilation, the MTL compiler takes the waveform compiled for the
+			pins in question and looks it up in the list. It then takes the corresponding index and includes
+			that in the final vector file.</p>
+		<div class="note"><span class="title">Note</span> Under certain conditions, you can also use a waveform mapping file in place of a
+			timing file for direct waveform mapping. See the discussion of the
+				<span class="keyword">:waveformMap:</span> keyword in <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a>.</div>
+		<h2>Example</h2><div class="example"><pre class="prettyprint linenums copyable"># covers clock-like combination only
+# [1 ][0 ][1 ][0 ]
+PINS CK ()
+ 0 "1010"  1010
+80 "1010"  1010_ni
+
+# covers nClock-like combination only
+# [0 ][1 ][0 ][1 ]
+PINS CKn ()
+ 0 "0101"  0101 
+80 "0101"  0101_ni 
+
+# covers all possible combinations
+# [01][01][01][01]
+PINS Address_Bus Bank_Addr_Bus CASn CKE CSn RASn WEn ODT RESETn DM_Bus ()
+ 0 "0000"  0000      
+ 1 "0001"  0001
+ 2 "0010"  0010
+ 3 "0011"  0011
+<span class="keyword">...</span>
+ f "1111"  1111
+80 "0000"  0000_ni      
+<span class="keyword">...</span>
+8f "1111"  1111_ni
+
+# covers tCK-based combinations only
+# [01][01][01][01]
+# [01][01][i ][i ]
+# [i ][i ][01][01]
+# [i ][i ][i ][i ]
+PINS DQi_Bus DQSi_DiffBus ()
+ 0 "iiii"  iiii
+ 1 "ii00"  ii00
+ 2 "ii01"  ii01
+ 3 "ii10"  ii10
+<span class="keyword">...</span>
+18 "11ii"  11ii
+80 "iiii"  iiii_ni
+<span class="keyword">...</span>
+98 "11ii"  11ii_ni
+
+# covers all possible combinations 
+# [LHX][LHX][LHX][LHX]
+PINS DQ_Bus DQS_DiffBus ()
+ 0 "LLLL"   LLLL
+ 1 "LLLH"   LLLH
+ 2 "LLLX"   LLLX
+ 3 "LLHL"   LLHL
+<span class="keyword">...</span>
+50 "XXXX"   XXXX
+80 "LLLL"   LLLL_ni
+<span class="keyword">...</span>
+d0 "XXXX"   XXXX_ni</pre><div class="note"><span class="title">Note</span> If <a href="67809.htm" title="An x-mode is a way to send multiple edges to the DUT in one test system cycle. For example, x4 mode means that the test system can send four edges to the DUT in each cycle.">Transparent x-modes</a> are used, no names are permitted within the parentheses.
+				The correct syntax in this case is, for example, <code>PINS clock ()</code>.</div><div class="note"><span class="title">Note</span> An unmodified SmarTest timing file can be used in place of the waveform mapping file
+				for indirect waveform mapping. This requires copying the timing file and referencing it from the
+				APG pattern file using the syntax for direct waveform mapping. (That is, giving both file name
+				and wavetable name arguments for the <span class="keyword">:waveformMap:</span> keyword.)</div></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="101915.htm">MTL Configuration Files</a></div><div><a href="67573.htm" title="Waveform mapping refers to the process by which patterns of logical zeros and ones created by the APG program are converted to physical waveforms that are sent to the tester pins.">Waveform mapping</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 101981</span><script type="text/javascript">var ti='101981';var tt='Waveform mapping file'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

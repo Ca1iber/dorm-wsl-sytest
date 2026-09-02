@@ -1,0 +1,74 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The first line of a level master file must be"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Master file format for level setup</title><meta name="keywords" content="masterfile"></head><body id="_91575"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 91575</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Master file format for level setup</h1>
+	
+	
+	<div><p>The first line of a level master file must be</p>
+		<section class="section"><pre class="prettyprint copyable singleline">hp93000,level_master_file,0.1</pre><p>The second line has the
+				format</p><pre class="prettyprint copyable singleline"><span class="keyword">testerfile</span>: &lt;<span class="keyword">tester_file_name</span>&gt;</pre><p>It
+				specifies the tester setup file which is to be split or into which the subfiles are to be
+				merged.</p><p>The subsequent lines in the level master file associate level equation sets with a
+				subfile.</p><p>You can also separate common blocks (each enclosed by<kbd class="userinput">
+					#begin&lt;block_description&gt;</kbd> and <kbd class="userinput">#end</kbd>) that are placed at
+				the top of the equation set section. Note that common blocks can be placed everywhere within the
+				level setup file. But only those at the top of the section are recognized by the Setup
+				Management tool.</p><p>The set of common blocks and the level sets are associated with a subfile
+				by a line which specifies the type of the part, its number, and the associated subfile.
+				Different level sets can be associated with the same subfile.</p><p>The paths for the subfiles
+				can be relative or absolute. The reference directory for relative paths is the directory of the
+				master file.</p><p>You can insert comments everywhere in the file. They are identified by the
+				hash (<kbd class="userinput">#</kbd>) character at the start of a line.</p></section>
+		<section class="section"><h2>Master file entries</h2><pre class="prettyprint linenums copyable"><span class="keyword">EQNSET</span> &lt;<span class="keyword">equationset_number</span>&gt; [<span class="keyword">PIN_ALIAS_SET</span> &lt;<span class="keyword">pin_alias_set_name</span>&gt;]: &lt;<span class="keyword">file_name</span>&gt;
+<span class="keyword">TESTDATA</span> &lt;<span class="keyword">testdata_name</span>&gt;: &lt;<span class="keyword">file_name</span>&gt; 
+<span class="keyword">DEFINES</span>: &lt;<span class="keyword">file_name</span>&gt;
+<span class="keyword">GENERAL</span>: &lt;<span class="keyword">general_info_file</span>&gt;</pre><ul>
+				<li><span class="keyword">EQNSET</span>:<p>Each level equation set starts with the
+							<span class="keyword">EQNSET</span> keyword followed by an equation set number and a descriptive name.
+						For more information, see <a href="56945.htm" title="A level equation set starts with the EQNSET header keyword followed by an equation set number and a descriptive name, the description.">Equation set number and description</a>.</p>
+					<p>The <span class="keyword">PIN_ALIAS_SET</span> keyword identifies the alias set used in the equation
+						set of the assembled level setup file.</p>
+					<p>When the assembled level setup file is split with the Setup Management Tool, the alias set
+						is removed from the generated sub-file and package pin names are used.</p></li>
+				<li><span class="keyword">TESTDATA</span>:<p>Automatically created by SmarTest in case of DCScale dynamic
+						measurements. For more information, see <a href="100076.htm" title="The DFTD command is a generic command which serves to download or upload a collection of event based test data coded in XML. The elements of the collection have a certain type, which is defined within the XML code. Currently, two such types are supported, namely DC sets and (only for Smart Scale) DC waveforms. The DFTD? query returns selected test data elements.">DFTD</a>.</p>
+					
+				</li>
+				<li><span class="keyword">DEFINES</span>:<p>Manually added by the user inside the master file. The keyword
+							<span class="keyword">DEFINES</span> adds the capability of defying port specific sets to multi-port
+						equation sets. For more information, see <a href="55267.htm" title="In a multiport setup an equation set is associated with ports. One or more ports may be included in the same equation set and as in a non-multiport setting and multiple timing sets can be assigned to every equation. It is recommended that multiple timing sets per equation settings are not utilized. In cases where synchronization among ports is required, the definition of multiple timing sets may become a problem on the calculation of the synchronization interval and/or increase the test time.">Multi-port equation
+						setup</a>.</p></li>
+				<li><span class="keyword">GENERAL</span>:<p>Automatically added when the <a href="98310.htm" title="When switching level sets and DPS sets between two test suites, you can set the switching order.">level
+							switching order</a> was changed and saved. The level switching order is saved in the
+						auto-generated file <span class="filepath">GENERAL.lev</span>.</p></li>
+			</ul></section>
+		<section class="section"><h2>Format of automatically generated file names</h2><p>When the Setup Management
+				Tool splits the level setup file and finds a part for which no entry exists in the master file,
+				it creates a new subfile for this part with the following name
+				pattern.</p><pre class="prettyprint linenums copyable">eqnset_&lt;<span class="keyword">equation_set_number</span>&gt;.lev
+defines.lev</pre><p>You
+				can add a user defined prefix to the names with the environment
+					variable <span class="keyword">VERIGY93000_MFH_PREFIX</span>.
+				Specify</p><pre class="prettyprint copyable singleline">export VERIGY93000_MFH_PREFIX=&lt;<em>prefix</em>&gt;</pre><p>in the
+				shell where you start SmarTest.</p></section>
+		<h2>Example</h2><div class="example"><h3>Level master
+				file</h3><pre class="prettyprint linenums copyable">hp93000,level_master_file,0.1
+
+# this is a comment
+testerfile: demo.lev
+
+EQNSET 1 [PIN_ALIAS_SET usb_set]: files/eqnset01.lev
+EQNSET 2 : files/eqnset02.lev
+EQNSET 3 : files/eqnset_34.lev
+EQNSET 4 : files/eqnset_34.lev
+TESTDATA : files/testdata.lev
+DEFINES : files/defines.lev
+GENERAL: GENERAL.lev</pre><p>In
+				the assembled level setup file <code>demo.lev</code>, the alias set <code>usb_set</code>
+				is used in the equation set 1. When <code>demo.lev</code> is splitted, the alias set
+					<code>usb_set</code> is removed from the generated sub-file <code>eqnset01.lev</code>
+				and package pin names are used.</p></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="105670.htm" title="The collision that may happen in the level master file is the equation set number collision. The setup management tool can handle the collision automatically. You can also manually resolve the collision.">Collision handling for the level master file</a></div><div><a href="91498.htm" title="The first line of a timing master file must be">Master file format for timing setup</a></div><div><a href="105671.htm" title="The collisions that may happen in timing master file include EQNSET number, WAVETABLE name, MULTIPORT name, CLOCK_SET number (contain related MULTIPORT) and TESTDATA name (DC Dynamic).">Collision handling for the timing master file</a></div><div><a href="105673.htm" title="The collision that may happen in waveform master file is the label name collision of sub-files.">Collision handling for the waveform master file</a></div><div><a href="91462.htm" title="Equation based level and timing setups are stored in the setup file as a string parameter of the EQSP firmware command, which serves to download the setup data to the tester. One parameter of this command is the number of bytes that are to be downloaded. If the actual size of the setup data does not match the specified number, EQSP issues an error. This makes it difficult to edit a normal setup file outside of SmarTest, because you will usually have to adjust the number of bytes when you change the data.">Editing the level and timing subfiles</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 6.5.2: Renamed macro variable AGILENT93000_MFH_PREFIX to
+					VERIGY93000_MFH_PREFIX.</li><li>SmarTest 6.5.3: New keyword PIN_ALIAS_SET.</li><li>SmarTest 6.5.4: From patch 8, the entry GENERAL is supported.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 91575</span><script type="text/javascript">var ti='91575';var tt='Master file format for level setup'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

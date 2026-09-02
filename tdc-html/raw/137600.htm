@@ -1,0 +1,151 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="STIL Reader can convert STIL files to V93000 patterns that capture digital data from the DUT and store it for later analysis and processing."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Setting up digital capture with STIL Reader</title></head><body id="_137600"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 137600</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Setting up digital capture with STIL Reader</h1>
+	
+	
+	<div><p>STIL Reader can convert STIL files to V93000 patterns that capture digital data from the
+		DUT and store it for later analysis and processing.</p>
+		
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>This is done with the help of two custom STIL extensions,
+					<span class="keyword">DCapFilter</span> and <span class="keyword">DCapSetup</span>, as well as the timing
+				edge.</p><p>Create digital capture patterns if you want to use the DUT output for later
+				analysis.</p></section><section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure STIL Reader is <a href="118707.htm" title="STIL Reader is delivered and installed as part of the STDL RPM.">installed</a>.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Create a new, empty STIL file.</span>
+				<div><p>You can create the file in Eclipse, in a suitable text editor, or in the STIL Reader
+						window.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Create a <a href="143772.htm" title="DCapSetup objects specify the pins to be used for digital capture.">DCapSetup</a> object to specify which pins will be used for the digital
+					capture:</span>
+				<div><pre class="prettyprint linenums copyable">DCapSetup <span class="keyword">&lt;setup_name&gt;</span> {
+  Pins "<span class="keyword">&lt;pin_names&gt;</span>";
+}</pre><p>Replace
+							<span class="keyword">&lt;setup_name&gt;</span> with the name you want to give the setup and
+							<span class="keyword">&lt;pin_names&gt;</span> with the names of the pins from which you want to
+						capture the digital data.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>If you want to capture two samples per test system cycle, specify
+						<code>digital_capture_res = double</code> in the <a href="118724.htm" title="The STIL Reader setup file lets you control the operation of the STIL Reader in great detail.">STIL Reader setup file</a>.</span>
+				<div><p>If you do not specify the <code>digital_capture_res</code> parameter or specify
+							<code>digital_capture_res = std</code>, one sample will be taken per cycle.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>For each data set you want to capture, create one <a href="143755.htm" title="DCapFilter objects specify settings for capturing digital data.">DCapFilter</a> object:</span>
+				<div><pre class="prettyprint linenums copyable">DCapFilter <span class="keyword">&lt;filter_name&gt;</span> {
+  Type              Capture;               ## Currently always Capture
+  TransferMode      <span class="keyword">&lt;transfer_mode&gt;</span>;       ## Parallel or Serial
+  FrameCount        <span class="keyword">&lt;number_of_frames&gt;</span>;    ## Number of captured frames
+  VectorsPerFrame   <span class="keyword">&lt;vectors_per_frame&gt;</span>;   ## Number of data bits per pin per frame
+  VectorsPerSample  <span class="keyword">&lt;vectors_per_sample&gt;</span>;  ## Number of vectors per sample
+  DiscardOffset     <span class="keyword">&lt;offset&gt;</span>;              ## Number of vectors discarded at the start
+  DiscardVectors    <span class="keyword">&lt;discard_vectors&gt;</span>;     ## Number of skipped vectors between frames
+  DiscardFrames     <span class="keyword">&lt;discard_frames&gt;</span>;      ## Number of discarded frames at the beginning
+}</pre><p>If
+						desired, you can create multiple DCapFilter objects. These objects can capture data from the
+						same pins or from different pins.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>Add the DCapSetup and DCapFilter objects to the PatternExec object:</span>
+				<div><pre class="prettyprint linenums copyable">PatternExec <span class="keyword">&lt;object_name&gt;</span> {
+  DCapSetup <span class="keyword">&lt;setup_name&gt;</span>    ## Use the name from step 2
+  DCapFilter <span class="keyword">&lt;filter_name&gt;</span>  ## Use the name from step 4
+}</pre><p>If
+						you have created multiple DCapFilter objects in step 4, include one "DCapFilter" line for each
+						of these objects. Specify the <span class="keyword">PatternBurst</span> and the other parameters of the
+						PatternExec block as required.</p>
+				</div>
+			</li><li class="stepexpand">
+				<span>If you want to perform selective capture, update the pin data to use the C edge where you
+					want to capture the data.</span>
+				<div><p>STIL Reader will mask all receive edges to avoid exceeding timing limitations of
+						SmarTest.</p>
+					<p>For
+					example:</p><pre class="prettyprint linenums copyable">Timing {
+  WaveformTable t1 {
+    Period '100ns';
+    Waveforms {
+      clk { P  { '0ns'  D; '50ns' D; } }
+      data { 01 { '50ns' D/U;         } }
+      data { H  { '10ns' Z; '50ns' C; } }
+    }
+  }
+}</pre></div>
+			</li><li class="stepexpand">
+				<span>Save the file.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>You have created a STIL file that can be converted to a test program for digital
+				capture on the V93000 system.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Example</h2></div><pre class="prettyprint linenums copyable">STIL 1.0 { Design D22; }
+
+Header {
+  Title "Digital Capture example";
+}
+
+Signals {
+  clk In;
+  data InOut;
+}
+
+SignalGroups {
+  AllS = 'clk + data';
+}
+
+DCapSetup DS1 {
+  Pins  "data";
+}
+
+DCapFilter DF1 {
+  Type             Capture;
+  TransferMode     Parallel;
+  VectorsPerFrame  8;
+}
+
+DCapFilter DF2 {
+  Type             Capture;
+  TransferMode     Parallel;
+  FrameCount       1;
+  VectorsPerFrame  8;
+  VectorsPerSample 1;
+  DiscardOffset    2; 
+  DiscardVectors   1; 
+}
+
+
+Timing {
+  WaveformTable t1 {
+    Period '100ns';
+    Waveforms {
+      clk { P  { '0ns'  D; '50ns' D; } }
+      data { 01 { '50ns' D/U;         } }
+      data { H  { '10ns' Z; '50ns' C; } }
+    }
+  }
+}
+
+PatternBurst B1 {
+  PatList { 
+    P1;
+  }
+}
+
+PatternExec PE1 {
+  DCapSetup    DS1;
+  DCapFilter   DF1;
+  DCapFilter   DF2;
+  PatternBurst B1;
+}
+
+
+Pattern P1 { 
+  W t1;
+  V { clk = P; data =0; }
+  V { clk = P; data =H; }
+  V { clk = P; data =H; }
+}</pre></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>Convert the file normally using STIL Reader.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="118776.htm">Using STIL Reader</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 137600</span><script type="text/javascript">var ti='137600';var tt='Setting up digital capture with STIL Reader'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

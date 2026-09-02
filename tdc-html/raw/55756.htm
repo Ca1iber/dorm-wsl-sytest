@@ -1,0 +1,73 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DSM feature checks for the following important error cases. Some of the error checks are only performed when the program is downloaded into the hardware."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DSM Error Checking</title></head><body id="_55756"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 55756</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DSM Error Checking</h1>
+	
+	
+	<div><p>The DSM feature checks for the following important error cases. Some of the error checks
+		are only performed when the program is downloaded into the hardware.</p>
+		<ol>
+			<li>Sequencer program is checked against the available data in DSRC label<p>The number of source
+					data bits requested by the sequencer program, which is normally dependent on the loop count of
+					the MAIN label using source memory, cannot exceed the size limit of the DSRC label. Otherwise,
+					the following error message will be printed in the report window and the program download
+					fails:</p><pre class="msgblock">ERROR: Label "dsmtest", vec no &lt;vec_no&gt;, cmd no &lt;cmd_no&gt;, instr SOURCE - 
+The SOURCE actions exceed the boundary of the source label!"</pre></li>
+			<li>Source port is checked against the port used by the MAIN label<p>The source port, which is
+					the port used by the DSRC label, must be a subset, or equal to, the port used by the MAIN
+					label. Otherwise an error message will be printed in the report window and programming of the
+						<code>STARTSRC</code> instruction in the Pattern Tool or Firmware Interface fails.</p></li>
+			<li>Memory Location checking<p>The software will check the memory location restriction when you
+					add a new <code>STARTSRC</code> instruction in the Pattern Tool or Firmware Interface. </p></li>
+			<li>Sequencer Program is checked against the <code>SOURCE_DATA_TEMPLATE</code> defined in
+					VVC<p>The parameters for the <code>SOURCE</code> instruction must be consistent with the
+						<code>SOURCE_DATA_TEMPLATE</code> defined in VVC. If there's any mis-match, a warning
+					message will be printed in the report window.</p>
+				<p>For example, regarding the MAIN Label shown in <a href="19901.htm" title="After a MAIN pattern (label) for DSM has been defined, you can enter in the Vector Editor the actual vectors which contain the input data of the device and the expected output data. This topic takes the audio device as the example. The operation for the other demo devices is similar.">Entering the
+						Vectors</a>, if you define "<code>SOURCE 2,5</code>" instead of "<code>SOURCE
+						2,4</code>", the software will print out the following warning message at the proper
+					time:</p><pre class="msgblock">WARNING: Label "dsmtest", vec no &lt;vec_no&gt;, cmd no &lt;cmd_no&gt;, instr SOURCE - 
+Possible incorrect usage of source memory. Reading 10 vectors from DSRC label 
+does not match VVC which defines a 8-vector segment at the current source memory 
+location, so undesired or inactive vectors may be read!</pre></li>
+			<li>SOURCE_DATA_TEMPLATE is checked across pins in the same VVC<p>The software requires that the
+					number of bits being sourced should be same across all pins of one single source port. If
+					there's any violation, the software will raise an error when parsing the VVC as shown in the
+					following example.</p>
+				<div class="p"><figure class="fignone">
+						
+						<img src="22463.png" alt="Source Data Template Error">
+					</figure></div>
+				<p>The VVC Definition is an error
+					case:</p><pre class="prettyprint linenums copyable">PINS pin1
+SOURCE_DATA_TEMPLATE R[7-0]
+MAPPING 
+    0    low
+    1    high
+
+PINS pin2
+SOURCE_DATA_TEMPLATE  L[7-1]
+MAPPING
+    0    low
+    1    high</pre><p>The
+					solution is adding one extra static bit into the source memory to align the source memory
+					vectors across different pins.</p>
+				<p>VVC Definition is a correct
+				case:</p><pre class="prettyprint linenums copyable">PINS pin1
+SOURCE_DATA_TEMPLATE  R[7-0]
+MAPPING
+    0    low
+    1    high
+
+PINS pin2
+SOURCE_DATA_TEMPLATE  L[7-1],0
+MAPPING
+    0    low
+    1    high</pre></li>
+			<li>Only limited Sequencer Instructions can be nested into a Counted Loop structure<p>Only
+						<code>GENV</code>, <code>SOURCE</code>, <code>REPEAT</code> and
+						<code>NOP</code> can be nested in a counted loop structure. If there's any violation, an
+					error message will be printed in the report window.</p></li>
+		</ol>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 55756</span><script type="text/javascript">var ti='55756';var tt='DSM Error Checking'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

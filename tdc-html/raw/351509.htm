@@ -1,0 +1,88 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Protocol speed is specified by getClockSpeed() in the protocol class. When the protocol speed is slower than the primary timing period, it is automatically adapted to the primary timing."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Automatic speed adaptation</title></head><body id="_351509"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351509</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Automatic speed adaptation</h1>
+	
+	
+	<div><p>Protocol speed is specified by getClockSpeed() in the protocol class. When the protocol
+		speed is slower than the primary timing period, it is automatically adapted to the primary timing. </p>
+		<section class="section">
+			<div class="p">When this happens, protocol labels are padded to fit the protocol speed. The following two
+				examples illustrate the code and label padding. <table class="ly"><caption><span></span></caption><colgroup><col style="width:300pt"><col style="width:300pt"></colgroup><tbody>
+							<tr>
+								<td>When the protocol speed is set to 1 MHz in the protocol class: </td>
+								<td>The timing period is 100 ns, the labels are padded as follows:</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="p">
+										<div></div><pre class="prettyprint linenums copyable">class MyProtocolI2C_1MHz : public ProtocolI2C {
+...
+virtual std::string getName() const { return "I2C_1MHz"; }
+
+virtual double getClockSpeed() const { return 1 MHz ; }
+};
+
+REGISTER_PROTOCOL(MyProtocolI2C_1MHz);</pre><div></div>
+									</div>
+								</td>
+								<td>
+									<figure class="fignone">
+										
+										<img src="351510.png" alt="auto_speed_adaptation_label">
+									</figure>
+								</td>
+							</tr>
+							<tr>
+								<td>When the protocol speed is set to 50 KHz in the protocol class: </td>
+								<td>The timing period is 100 ns, the labels are padded as follows:</td>
+							</tr>
+							<tr>
+								<td>
+									<div class="p">
+										<div></div><pre class="prettyprint linenums copyable">class MyProtocolI2C_50KHz : public ProtocolI2C {
+...
+
+virtual std::string getName() const {return "I2C_50KHz";}
+
+virtual double getClockSpeed() const {return 50 KHz;}
+
+};
+
+REGISTER_PROTOCOL(MyProtocolI2C_50MHz);</pre><div></div>
+									</div>
+								</td>
+								<td>
+									<figure class="fignone">
+										
+										<img src="351511.png" alt="auto_speed_adaptation_label_padding">
+									</figure>
+								</td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		<section class="section"><h2>Protocol speed change in transactions</h2>Some protocols may require the
+			protocol speed changeable. Some transactions need a higher speed at sending data while a lower
+			one at receiving. The following image illustrates speed changes on the fly.<figure class="fignone">
+				
+				<img src="351512.png" alt="protocol_speed_change">
+			</figure></section>
+		<h2>Example</h2><div class="example">
+			<div class="p">To achieve the speed change, you need to set both change speed and restore speed for a
+				transaction in the protocol class. For example,
+				<div></div><pre class="prettyprint linenums copyable">virtual double getClockSpeed() const {return 5.0 MHz; 
+virtual void defineReadRegister(SPI&amp; spi, ULONG64 address, int numberOfData) {
+  // Normal speed at 5 MHz
+  spi.sendData(address, 16);
+  
+  // Slow down the speed for shift out data
+  spi.changeSpeed(1.8 MHz);
+  spi.receiveData(0, 8, "data_out");
+  spi.restoreSpeed();
+
+  // Normal speed at 5 MHz
+  spi.sendData(0, 8);  // Reserved 
+}</pre></div>
+		</div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351509</span><script type="text/javascript">var ti='351509';var tt='Automatic speed adaptation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

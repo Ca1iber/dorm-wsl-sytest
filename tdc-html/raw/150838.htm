@@ -1,0 +1,259 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Fast Sync enables the local synchronization of the test processor."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to use Fast Sync</title></head><body id="_150838"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 150838</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to use Fast Sync</h1>
+	
+	
+	<div><p>Fast Sync enables the local synchronization of the test processor.</p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div><p>Make sure you are using SmarTest 7.4.0 or later versions.</p>
+			<p>Make sure the device pins, which belong to a mach loop, are located on the same test
+				processor. For best throughput, minimize the number of independent match loops on a
+				test processor.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>According to the steps described in <a href="101480.htm" title="Multiport operation allows you to test different parts of a DUT with independent timing sets or spec variables using a single memory test pattern.">Multiport operation</a>, define a port or
+					ports for the Fast Sync pins and ports for other pins.</span>
+			</li><li class="stepexpand">
+				<span>Define levels as usual.</span>
+			</li><li class="stepexpand">
+				<span>Set up the a <a href="55263.htm" title="The concept of a single-port timing setup (see Single-port timing setup) applies to the individual ports of a multiport setup. A multiport timing specifies the same data as a single-port timing setup - but for every port.">multiport timing</a>.</span>
+			</li><li class="stepexpand">
+				<span>Create a <a href="55271.htm" title="The specification combines the port-specific timing setups (port-specific equation sets and port-specific wavetables) to a complete timing setup of the device, and defines spec values for the spec variables declared in the equation sets.">multiport timing specification</a>.</span>
+			</li><li class="stepexpand">
+				<span>Define a clock group for the fast sync port as shown in <a href="150838.htm#_150838__ex_Multiport_timing">Example 1: Multiport timing</a>.</span>
+			</li><li class="stepexpand">
+				<span>Refer to <a href="128881.htm" title="A multiport burst is the combination of one or more port bursts that are executed in parallel in a multiport test.">Creating a multiport burst</a> to set up the pattern.</span>
+			</li><li class="stepexpand">
+				<span>In the <span class="uicontrol">Flow Data Editor</span>, on the
+						<span class="uicontrol">Flags</span> tab, set the <a href="342556.htm#_342556__row_site_match_mode">site_match_mode</a> testflow flag to
+						<span class="uicontrol">off</span>.</span>
+			</li><li class="stepexpand">
+				<span>On the <span class="uicontrol">Test Suites</span> tab, choose each test suite, and in
+					the opened <span class="uicontrol">Properties</span> view, under the <span class="uicontrol">Site
+						Control</span> section, set the <a href="342556.htm#_342556__row_site_match">Site Match</a> flag to <span class="uicontrol">OFF</span>.</span>
+			</li><li class="stepexpand">
+				<span>Define the max number of match ports on a test processor using the commands
+						<a href="98752.htm" title="The SQST command serves to control the state of a set of sequencers. This sequencer set is determined by an execution context which consists of a list of ports; it comprises the sequencers that belong to these ports. The ports of a user defined execution context must be a subset of the ports that are contained in the current start label. The port set of this label constitutes the global execution context. For more information on execution contexts see Using execution contexts.">SQST, SQST? - (SeQuencer STate)</a> and <a href="150830.htm" title="The NIFE command defines the number of independent error propagations.">NIFE, NIFE? - (Number of Independent Fast Error)</a> in <a href="28770.htm" title="The DISCONNECT API disconnects the test system resources from the DUT and sets the tester to the &#34;disconnect&#34; state unless they are already disconnected. If the test resources are already disconnected, this API performs no action. This API works the same as the disconnect testmethod or Disconnect item of the main menu, and performs the following sequences:">disconnected</a> mode.</span>
+				<div>For a test method example, refer to <a href="150838.htm#_150838__ex_Define_match_ports_on_TP">Example 2: Define the max number of match ports on a test processor</a> below.</div>
+			</li><li class="stepexpand">
+				<span>In the test method, use the <a href="98760.htm" title="The STME command defines the state of the site match function. The site match function controls if all sites are started simultaneously (option OFF), or successively with a slight delay (option ON). The command does nothing if a single site is configured.">STME FAST</a> firmware
+					command to enable the Fast Sync feature.</span>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p>The overhead for site scaling synchronization is significantly
+			reduced.</p></section>
+		<h2>Examples</h2><section id="_150838__ex_Multiport_timing"><h3>Example 1: Multiport timing</h3>
+			
+			<div class="p"><figure class="fignone">
+				<img src="348946.png" alt="How to use Fast Sync - Multiport timing">
+			</figure></div>
+		</section>
+		<section id="_150838__ex_Define_match_ports_on_TP"><h3>Example 2: Define the max number of match ports on a test processor</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">class SetNife: public testmethod::TestMethod
+{
+public:
+    Boolean firstRun;
+
+protected:
+    int mErrorProb;
+
+    virtual void initialize()
+    {
+        addParameter("errorProb", "int", &amp;mErrorProb, testmethod::TM_PARAMETER_INPUT)
+                   .setDefault("0");
+
+        firstRun = true;
+    }
+
+    virtual void run()
+    {
+        if (firstRun)
+        {
+            ON_FIRST_INVOCATION_BEGIN();
+
+                DISCONNECT();
+
+                if ( mErrorProb &lt; 1 || mErrorProb &gt; 8 )
+                {
+                    cout &lt;&lt; "NIFE not set!!!" &lt;&lt; endl;
+                }
+                else
+                {
+                    char buf[1000];
+
+                    sprintf (buf, "SQST OFF\nNIFE %i\n", mErrorProb);
+
+                    FW_TASK(buf);
+                }
+
+            ON_FIRST_INVOCATION_END();
+
+            firstRun = false;
+        }
+
+        return;
+
+    } // virtual void run()
+...
+...
+};
+REGISTER_TESTMETHOD(...);</pre><div></div>
+		</section>
+		<section><h3>Example 3: Use the Fast Sync feature for blocking functional test</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">class BlockingFuncTest: public testmethod::TestMethod
+{
+protected:
+
+    int mFast;
+
+    virtual void initialize()
+    {
+        addParameter("fast", "int", &amp;mFast, testmethod::TM_PARAMETER_INPUT)
+                   .setDefault("1");
+    }
+
+    virtual void run()
+    {
+        static STRING tsName;
+        static STRING lblName;
+
+        ON_FIRST_INVOCATION_BEGIN();
+
+            GET_TESTSUITE_NAME(tsName);
+
+            lblName = Primary.getLabel();
+
+            CONNECT();
+
+            mFast?FW_TASK("STME FAST,\n"):FW_TASK("STME ON,\n");
+
+            FUNCTIONAL_TEST();
+
+            FW_TASK("STME OFF,\n");
+
+        ON_FIRST_INVOCATION_END();
+
+        Boolean res = GET_FUNCTIONAL_RESULT();
+
+        TEST(tsName, lblName, res?TM::Pass:TM::Fail,true);
+
+        return;
+
+    } // virtual void run()
+...
+...
+};
+REGISTER_TESTMETHOD(...);</pre><div></div>
+		</section>
+		<section><h3>Example 4: Use the Fast Sync feature for non-blocking functional test</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">class NonBlockingFuncTest: public testmethod::TestMethod
+{
+protected:
+
+    int mFast;
+
+    virtual void initialize()
+    {
+        addParameter("fast", "int", &amp;mFast, testmethod::TM_PARAMETER_INPUT)
+                   .setDefault("1");
+    }
+
+    virtual void run()
+    {
+        static STRING tsName;
+        static STRING lblName;
+
+        ON_FIRST_INVOCATION_BEGIN();
+
+            GET_TESTSUITE_NAME(tsName);
+
+            lblName = Primary.getLabel();
+
+            CONNECT();
+
+            mFast?FW_TASK("STME FAST,\n"):FW_TASK("STME ON,\n");
+
+            START_TEST();
+
+            WAIT_TEST_DONE(TM::WAIT_DIGITAL);
+
+            FW_TASK("STME OFF,\n");
+
+       ON_FIRST_INVOCATION_END();
+
+       Boolean res = GET_FUNCTIONAL_RESULT();
+
+       TEST(tsName, lblName, res?TM::Pass:TM::Fail,true);
+
+        return;
+
+    } // virtual void run()
+...
+...
+};
+REGISTER_TESTMETHOD(...);</pre><div></div>
+		</section>
+		<section><h3>Example 5: Use the Fast Sync feature for Independent Sequencer Run on the Smart Scale
+				cards</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">class IndependentSequencerRuns: public testmethod::TestMethod
+{
+protected:
+
+    int mFast;
+
+    virtual void initialize()
+    {
+            addParameter("fast", "int", &amp;mFast, testmethod::TM_PARAMETER_INPUT)
+                        .setDefault("1");
+    }
+
+    virtual void run()
+    {
+        static STRING tsName;
+        static STRING lblName;
+
+        ON_FIRST_INVOCATION_BEGIN();
+
+            GET_TESTSUITE_NAME(tsName);
+
+            lblName = Primary.getLabel();
+
+            CONNECT();
+
+            SEQUENCER_CONTEXT_ITEM s1("matchCt");
+            SEQUENCER_CONTEXT_ITEM s2("otherCt");
+
+            s1.setPorts("match");
+            s2.setPorts("other");
+
+            SEQUENCER_CONTEXT seqCon;
+
+            seqCon.add(s1).add(s2).apply();
+
+            mFast?FW_TASK("STME FAST,\n"):FW_TASK("STME ON,\n");
+
+            START_TEST("matchCt");
+            FUNCTIONAL_TEST("otherCt");
+            WAIT_TEST_DONE(TM::WAIT_DIGITAL,"matchCt");
+
+            FW_TASK("STME OFF,\n");
+
+        ON_FIRST_INVOCATION_END();
+
+        Boolean res = GET_FUNCTIONAL_RESULT("match");
+
+        TEST(tsName, lblName, res?TM::Pass:TM::Fail,true);
+
+        return;
+
+    } // virtual void run()
+...
+...
+};
+REGISTER_TESTMETHOD(...);</pre><div></div>
+		</section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="150814.htm" title="Serial interfaces on many DUTs require non-deterministic handling. Normally they consist of a small number of pins (1, 2 or 4). Fast Sync enables the local synchronization of the test processor (TP). It enables up to 8 sync ports reacting independently on non-deterministic DUT responses per test processor.">Fast Sync</a></div><div><a href="150830.htm" title="The NIFE command defines the number of independent error propagations.">NIFE, NIFE? - (Number of Independent Fast Error)</a></div><div><a href="98760.htm" title="The STME command defines the state of the site match function. The site match function controls if all sites are started simultaneously (option OFF), or successively with a slight delay (option ON). The command does nothing if a single site is configured.">STME, STME? - (SiTe Match Enable)</a></div><div><a href="29803.htm" title="This API judges the test data as pass/fail and logs it.">TEST</a></div><div><a href="29400.htm" title="Returns the pass/fail result of the last measurement. The measurement can be either a functional test, PPMU, SPMU or DPS measurement. The function can as well return the pass/fail result of the last functional test executed in a multiport burst pattern or return the pass/fail result for a specific pin and a specific execution context.">GET_FUNCTIONAL_RESULT()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.4.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 150838</span><script type="text/javascript">var ti='150838';var tt='How to use Fast Sync'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

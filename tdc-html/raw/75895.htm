@@ -1,0 +1,159 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Maintenance operations are procedures that need to be performed regularly during the testing of a device, most commonly refreshes."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Maintenance operations</title></head><body id="_75895"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 75895</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Maintenance operations</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="103635.htm" title="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled.">Setting up a maintenance operation</a></li><li><a href="118570.htm" title="Maintenance operations (refreshes) can be manually enabled and disabled under program control in the APG program file. This is optional for single refresh maintenance operations but mandatory for multiple refreshes maintenance operations.">Enabling and disabling maintenance operations in APG program file</a></li><li><a href="103880.htm" title="Reusable maintenance operations using the vector mode require wavetables that contain every waveform twice, once for use in interruptible sequences, once for use in non-interruptible sequences. (This is not true for maintenance operations in sequencer mode, which works with standard wavetables.)">Wavetables for maintenance operations</a></li><li><a href="103645.htm" title="In addition to compiling maintenance operations together with the main() routine, they can also be compiled separately and called from other routines.">Reusable maintenance operations</a></li></ol></div></nav>
+	
+	
+	<div><p>Maintenance operations are procedures that need to be performed regularly during the
+		testing of a device, most commonly refreshes.</p>
+		<p>Maintenance operations consist of a series of vectors (compiled from device accesses and other
+			instructions) to be performed and an interval in which an operation is to occur. With this
+			information, MTP schedules them automatically, avoiding any need for you to insert them manually
+			into your test patterns.</p>
+		<p>Because maintenance operations can only occur at specific points during a test, MTP provides
+			features to regulate where maintenance operations can and cannot occur and to influence their
+			automated scheduling.</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="75884.png" alt="Maintenance operation periods during execution of a memory test pattern">
+			</figure></div>
+		<section class="section"><h2>Maintenance operation periods</h2><p>The maintenance operation period is the
+				desired interval between two executions of the maintenance operation. It is specified using the
+					<span class="keyword">maintop_time_a</span> keyword for single refresh operations, or the
+					<span class="keyword">static_maintop_time_x</span> (x can be any given letter) keywords for multiple
+				refreshes operations in the <a href="101980.htm" title="The timing file contains information about device cycles, edges, waveforms, and clocks.">Timing file</a>.</p><p>The longest maintenance operation
+				period possible is 9.2 seconds (2<sup>28</sup> times the test system period). The shortest
+				possible period is 16 times the test system period.</p></section>
+		<section class="section"><h2>Maintenance operation types</h2><ul>
+				<li>Single refresh maintenance operation: Use only one refresh during a memory pattern
+						execution.<p>Both the static and dynamic timer modes support this type.</p>
+					<p>The single static refresh maintenance operation supports both single-port and multiport
+						operations.</p></li>
+				<li>Multiple refreshes maintenance operation: Use more than one refresh during a memory pattern
+					execution. You can switch from one refresh to another refresh but only one refresh is allowed
+					at any point of the running time of a memory pattern execution.<p>Only the static timer mode
+						supports this type.</p>
+					<p>The multiple static refreshes maintenance operation supports both single-port and multiport
+						operations.</p></li>
+			</ul><p>For more information on the timer modes, see below "Timer modes: static vs. dynamic
+				refreshes".</p></section>
+		
+		<section class="section"><h2>Executing maintenance operations</h2>
+				<p>Maintenance operations are triggered by the type of waveform: If the refresh counter reaches zero, the
+					refresh is executed at the next interruptible waveform in the pattern stream. (Interruptible
+					waveforms have an index below 0x80.)</p>
+					<p>It requires replicated wavetables, that is, wavetables in which each waveform is included
+						twice, once in its normal (interruptible) form and once in its non-interruptible form. This is
+						described in <a href="103880.htm" title="Reusable maintenance operations using the vector mode require wavetables that contain every waveform twice, once for use in interruptible sequences, once for use in non-interruptible sequences. (This is not true for maintenance operations in sequencer mode, which works with standard wavetables.)">Wavetables for maintenance operations</a>.</p>
+					<p>You control the execution of refreshes in vector mode by specifying either places where
+						interrupts are possible or parts of the sequence that cannot be interrupted, as described in
+						"Interruptible and non-interruptible sequences", below.</p>
+					<p>To use the vector mode, specify <span class="keyword">VEC</span> in the <span class="keyword">using
+						interruptCtrl</span> statement in the <a href="102516.htm" title="The syntax of the pin mapping file is similar to that of the Pin configuration file, although not identical to it.">pin mapping file</a> or set
+						the <span class="keyword">interrupCtrl</span> pin attribute to <span class="keyword">VEC</span>.</p>
+			</section>
+		<section class="section"><h2>Interruptible and non-interruptible sequences</h2><p>After the refreshes have
+				been set (see <a href="103635.htm" title="Setting up a device maintenance operation, such as a refresh, requires modifications to several of the configuration files in addition to writing the program from which the operation is compiled.">Setting up a maintenance operation</a>) and enabled (see <a href="118570.htm" title="Maintenance operations (refreshes) can be manually enabled and disabled under program control in the APG program file. This is optional for single refresh maintenance operations but mandatory for multiple refreshes maintenance operations.">Enabling and
+					disabling maintenance operations</a>), the program can be interrupted at any location. To
+				mark the non-interruptible locations, you can use either <span class="keyword">nis{}</span> or
+					<span class="keyword">is{}</span>.</p><p>The <span class="keyword">is{}</span> and <span class="keyword">nis{}</span>
+				keywords let you indicate to the compiler where maintenance operations may and may not occur in
+				your code:</p><ul>
+				<li>Using <span class="keyword">is{}</span> indicates that the program is not interruptible in general,
+					except in locations marked by the <span class="keyword">is{}</span> statement. <span class="keyword">is{}</span>
+					must be empty between the curly braces.</li>
+				<li>Using <span class="keyword">nis{}</span> indicates that the program can be interrupted at any
+					location, except between the statements contained between the curly braces.</li>
+			</ul><p>One program may contain either <span class="keyword">is{}</span> or <span class="keyword">nis{}</span>, but
+				not both. Programs for pins in sequencer mode may contain only <span class="keyword">is{}</span>
+				instructions. Details on these keywords are available in <a href="102609.htm" title="In addition to 'for' loops, MTL contains control structures for specifying interruptible and non-interruptible sequences.">Other control structures</a>.</p></section>
+		<section class="section"><h2>Timer modes: static vs. dynamic refreshes</h2><p>Maintenance operations can be
+				either static or dynamic:</p><ul>
+				<li>Static operations are compiled into the pattern. They offer the advantage of being available
+					between tester cycles but require recompilation every time the maintenance period or interval
+					setting is changed.<p>Static maintenance operation are specified by declaring the
+							<span class="keyword">:timerMode:</span> to be <span class="keyword">static</span> in the <a href="68405.htm" title="The device architecture file describes the physical characteristics of the DUT, in particular the mapping of logical to physical addresses.">Device architecture file</a>.
+						The information on the timing to be used has to be added to the <a href="68403.htm" title="The APG pattern file is the &#34;master&#34; file for the compiler. It contains the locations of all the other files needed as well as (optionally) program parameters and the mode context.">APG pattern file</a> using
+						the <span class="keyword">:timing:</span> keyword.</p>
+					<p>Static mode supports:</p><ul>
+						<li>Both the single and multiple refreshes maintenance operations</li>
+						<li>Both singel-port and multiport operations.<p>The static refresh cannot be used together with the
+								accumulated interval mode.</p></li>
+					</ul></li>
+				<li>Dynamic maintenance operations are executed through a hardware counter and are applied by
+					SmarTest at runtime. They can occur only on tester cycle boundaries but require no
+					recompilation when the maintenance period or interval settings change.<p>Dynamic mode supports
+						only the single refresh maintenance operations.</p><p>Dynamic mode is not
+						supported with DC Scale card
+						DPS128/64.</p></li>
+			</ul></section>
+		<section class="section"><h2>Interval modes: compensated vs. accumulated modes</h2><p>There are two ways in
+				which the test system can handle the counter, which involve differences in finding the desired
+				points in the pattern for executing the maintenance operation:</p><ul>
+				<li>Compensated mode: One way is for the system to calculate the desired points by starting from
+					the beginning of the memory pattern and adding the specified maintenance periods. For example,
+					with a maintenance period of 300 ns, the desired execution points would be at 300 ns, 600 ns,
+					900 ns, and so on, after the beginning of the memory pattern. This is called the compensated
+					interval mode.</li>
+				<li>Accumulated mode: The other way is to count the maintenance period from the actual date of
+					the last maintenance operation. For example, with a maintenance period of 300 ns, the first
+					maintenance operation is scheduled for 300 ns after the start of the memory pattern. An
+					uninterruptible sequence may be located at 300 ns, causing the maintenance operation to start
+					at 380 ns. In this case, the second maintenance operation would start at 680 ns (start of the
+					first maintenance operation plus maintenance period). This is called the accumulated
+						mode.<p>Using the accumulated mode together with static refreshes requires an HSM3G or HSM6800
+						card.</p></li>
+			</ul><p>The interval mode is specified with the <span class="keyword">:intervalMode:</span> keyword in the
+					<a href="102472.htm" title="The syntax of the device architecture file follows the conventions of the MTL compiler syntax.">device architecture file</a>.</p></section>
+		<section class="section"><h2>Maintenance operations and DC events</h2><p>The PMU type of DC events causes
+				the execution of the pattern to be interrupted. These interruptions can take up to 1.3 ms, which
+				may exceed the maximum refresh interval for the DUT.</p><p>If you use PMU type DC events, make
+				sure to take this effect into account when writing your patterns. </p></section>
+		<h2>Examples</h2><div class="example"><h3>Structure example</h3><p>This example assumes a maintenance operation period
+				taken from the data sheet of a memory device with a maintenance operation period of 300 ns. The
+				test system cycle period is 100 ns. This causes a maintenance operation subroutine to be called
+				on test system cycles 3, 6, ... as shown in the example below.</p><div class="p"><figure class="fignone">
+					
+					<img src="75962.png" alt="Maintenance operation example with test system cycle of 100ns">
+				</figure></div><p>If the test system cycle period is reduced to 50 ns and the maintenance operation
+				period remains 300 ns long, the maintenance operation subroutine is called on test system cycle
+				number 6 as shown in the example below.</p><div class="p"><figure class="fignone">
+					
+					<img src="75963.png" alt="Maintenance operation example with test system cycle of 50ns">
+				</figure></div><div class="note"><span class="title">Note</span> The maintenance operation period numbers in the above examples
+				differ from the numbers for common memory devices. They are used just to explain the maintenance
+				operation concept.</div></div>
+		<div class="example"><h3>Code
+			example</h3><pre class="prettyprint linenums copyable">main ()
+{
+  // write device
+  for (rowAddr=0 ; rowAddr&lt;rowMax; rowAddr+=1)
+  {
+    // no maintenance operation allowed during full device write
+    is {}
+    for (colAddr=0 ; colAddr&lt;colMax ; colAddr+=1)
+    {
+       write (rowAddr, colAddr, data);
+    }
+  }
+
+  // read device
+  for (rowAddr=0 ; rowAddr&lt;rowMax; rowAddr+=1)
+  {
+     // no maintenance operation allowed during burst read
+     // maintenance operation can occur in between bursts
+     for (colAddr=0 ; colAddr&lt;colMax ; colAddr+=burstLength)
+     {
+       is {}
+       read_burst (rowAddr, colAddr, data);
+     }
+  }
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="67573.htm" title="Waveform mapping refers to the process by which patterns of logical zeros and ones created by the APG program are converted to physical waveforms that are sent to the tester pins.">Waveform mapping</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>MTP 3.0.1: New mode for dynamic refresh: sequencer</li><li>MTP 3.0.1: PMU type DC events may prevent timely refreshes</li><li>MTP 3.0.1: Maintenance operation can be enabled and disabled under program
+					control</li><li>MTP 3.0.3: (MTP on SOC 103.0.0) The sequencer mode is now available in both MTP on HSM and
+					MTP on SOC</li><li>MTP 3.1.6: (MTP on SOC 103.3.0) Multiple static refreshes maintenance operation is
+					available in both MTP on HSM and MTP on SOC</li><li>MTP 3.1.6: (MTP on SOC 103.3.0) The static refresh supports multiport
+					operation.</li><li>MTP 3.1.6: (MTP on SOC 103.3.0) New keyword: static_maintop_time_x (x can be any given
+					letter) is added for the multiple refreshes maintenance operation periods.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 75895</span><script type="text/javascript">var ti='75895';var tt='Maintenance operations'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

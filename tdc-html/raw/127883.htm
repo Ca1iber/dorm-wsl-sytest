@@ -1,0 +1,141 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Using "Inheriting and Overloading" concept in creating reusable universal test method library</title><meta name="keywords" content="testmethod UTM"></head><body id="_127883"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 127883</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Using "Inheriting and Overloading" concept in creating reusable universal test method
+		library</h1>
+	
+	<div>
+		<p>ZhiJun Xue, Zane Jiang, Verigy</p>
+		<p>Paper-ID: 127883 May 2011</p>
+		<section class="section"><h2>Introduction</h2><p>Test method is a critical software component in the V93000
+				test program. For a determined test condition and instrument, the test procedure, which is
+				implemented with test method, is highly reusable. This article introduces how to build a
+				reusable but customizable universal test method (UTM) library.</p><p>The basic idea is to
+				leverage the "design pattern" concept in software engineering. A "design pattern" is a general
+				reusable solution to a commonly occurring problem in software design. A "design pattern" is a
+				description or template on how to solve a problem that can be reused in many different
+				situations. Carefully studying the test procedure of a mixed signal or RF IP block, we can find
+				that the procedure fits some "pattern" so that the "design pattern" concept can be leveraged in
+				creating test method.</p></section>
+		<section class="section"><h2>Template method Pattern Introduction</h2><p>This article will introduce one
+				pattern to handle specific issues that happen when developing a kind of TM code in the V93000.
+				Sometimes test engineers want to specify the order of operations of some kind of test, such as a
+				general RF test, but allow variation for their own implementations of some of the steps. A
+				general mixed signal and RF test "design pattern" can be described as the following diagram, and
+				we can use the "template method pattern" in implementing the test method.</p><div class="p"><figure class="fignone">
+					
+					<img src="127926.png" alt="The pattern of a general mixed signal or RF test">
+				</figure></div><p>Figure 1: The pattern of a general mixed signal or RF test</p><p>The Template
+				Method pattern is a fundamental technique for code reuse.</p><p>It defines the skeleton of an
+				algorithm in one test, deferring some steps (for example, "manage L/B signal path, Hardware setup" etc)
+				to subclasses. Template Method, which is implemented with a C++ class, lets subclasses redefine
+				certain steps of an algorithm without changing the algorithm's structure.</p><p>With C++
+				programming, first a class is created that provides the basic steps in the "template method
+				pattern". These steps are implemented using methods. Later on, subclasses change the methods in
+				parent class to implement real actions. Thus the general Task is saved in one place but the
+				concrete steps may be changed by the subclasses. The template method thus manages the larger
+				picture of test semantics, and more refined implementation details of selection and sequence of
+				methods.</p><p>This larger picture calls abstract and non- abstract methods for the test at
+				hand. The non-abstract methods are completely controlled by the template method but the abstract
+				methods, implemented in subclasses, provide the pattern's expressive power and degree of
+				freedom. Some or all of the abstract methods can be specialized in a subclass, allowing the
+				writer of the subclass to provide particular behavior with minimal modifications to the larger
+				semantics.</p><p>The template method (which is non-abstract) remains unchanged in this pattern,
+				ensuring that the subordinate non-abstract methods and abstract methods are called in the
+				originally-intended sequence.</p><p>The template method pattern is very useful in TM development
+				especially for:</p><ul>
+				<li>Let subclasses implement (through method overriding) behavior that can vary behavior to fit
+					a dedicated DUT, DUT board and test requirement;</li>
+				<li>Avoid duplication in the code: localize common behavior (for example, start sequencer, data
+					uploading, etc.) among subclasses and place it in a common class (in this case, a super
+						class).<p>In other words, the test engineer can focus on DUT, DUT board and waveform
+						processing stuff, instead of those instrument relevant activities; Those instrument relevant
+						activities in common class (super class that is finally delivered as a shared library) can be
+						easily upgraded while not changing the code in subclass;</p></li>
+				<li>The best practice (for example, SmartCalc framework, suitable use of "FLUSH" etc.) can be placed in
+					a common class, so that high efficient test program can be expected;</li>
+				<li>Control at what point(s) sub-classing is allowed. As opposed to a simple polymorphic
+					override, where the base method would be entirely rewritten allowing radical change to the
+					workflow, only the specific steps/details of the workflow are allowed to change;</li>
+			</ul><p>In a template method, the parent class calls the operations of a subclass and not the
+				other way around. This is an inverted control structure that's sometimes referred to as "the
+				Hollywood principle," as in, "Do not call us, we'll call you".</p><p>There is basic C++ knowledge
+				used in the above pattern.</p><p>Inheritance lets the developer define classes that model
+				relationships among types, sharing what is common and specializing only that which is inherently
+				different. Members defined by the base class are inherited by its derived classes. The derived
+				class can use, without change, those operations that do not depend on the specifics of the
+				derived type. It can redefine those member functions that do depend on its type, specializing
+				the function to take into account the peculiarities of the derived type. Finally, a derived
+				class may define additional members beyond those it inherits from its base class.</p><p>Virtual
+				functions overcome the problems with the type-field solution by allowing the programmer to
+				declare functions in a base class that can be redefined in each derived class. Virtual functions
+				can be used to define different behavior dynamically during TM executing.</p><div class="p"><figure class="fignone">
+					
+					<img src="127927.png" alt="An example of C++ inheritance, overloading and virtual function">
+				</figure></div><p>Figure 2, An example of C++ inheritance, overloading and virtual function</p><p>The
+				introduction of self-contained, registration free "Unified Test Method" since SMT 6.1 provides a
+				powerful tool in implementing the above concept. First of all, the new style test method is just
+				a C++ class and the developer can use inheritance or overloading methods to refine any steps in
+				the run () function but not touch the source code. The customization can effectively handle the
+				diversity of routing setup, analysis algorithm, datalog, etc.</p></section>
+		<section class="section"><h2>The hierarchy structure of a test method library</h2><p>In the following
+				section, we introduce how to build a comprehensive test method step by step by inheriting a
+				father class in the library.</p><p>Figure 3 is the base class GeneralMxdTest, which is the
+				implementation of the mixed signal test "template method pattern" as shown in Figure 1.</p><div class="p"><figure class="fignone">
+					
+					<img src="127928.png" alt="Customizable test method - the general mixed signal tet method class">
+				</figure></div><p>Figure 3 Customizable test method - the general mixed signal tet method
+				class</p><p>C++ virtual function is defined and used in the "run()" that is actually invoked by
+				SmarTest to execute a test. The "execution" process is broken into maximum granularity so that
+				if necessary, the developer can re-define any virtual member function in the child
+				class.</p><p>In fact, in the base class, we Do not actually define any virtual function and just
+				provide a framework. Developers can overload that virtual function according to their
+				requirements in the child class.</p><ol>
+				<li>doProcessPrometers(): Validate input parameter;</li>
+				<li>doSetup():<ol type="a">
+						<li>Instrument_Setup(): setup analog module and all other modules, analog setup can be called
+							here or with API to program analog module (smartest 6.5);</li>
+						<li>TAM_Setup(): Setup the DUT to a test mode, a general case is to invoke protocol
+							transaction API to modify a pattern and then run the pattern to set up registers;</li>
+						<li>LB_Routing_Setup(): call a routing setup or with API to manage the signal path on the
+							loadboard.</li>
+					</ol></li>
+				<li>doMeasurement(): Execute the test, make exceptional error processing for example, timeout, no
+					trigger etc.) and then retrieve captured response to workstation</li>
+				<li>doAnalysis():<ol type="a">
+						<li>Data_Transform(): Make necessary transformation of captured waveform etc.</li>
+						<li>DSP_Calc(): Calculate required result;</li>
+					</ol></li>
+				<li>doReset(): Reset loadboard, analog module, etc. and make them ready for next
+					measurement;</li>
+				<li>doDatalog(): Make datalog.</li>
+			</ol><p>Figure 4 illustrates inheriting the GeneralMxdTest to create a general class for single
+				DAC test, the key overloading is as the virtual function "doMeasurement", in which a general
+				single digitizer operation is implemented.</p><div class="p"><figure class="fignone">
+					
+					<img src="127929.png" alt="Customizable test method - General single DAC test test method class">
+				</figure></div><p>Figure 4 Customizable test method - General single DAC test test method
+				class</p><p>Figure 5 illustrates the process of creating a test method for a specific DAC noise
+				testing, by inheriting the General DAC test class General_Single_DAC_Test. The key overloading
+				here is the virtual function "Instrument_Setup" and "DSP_Calc". In the function
+				Insturement_Setup(), we coded the DGT setup (for example, sample rate, etc. that is necessary to make
+				the DAC noise measurement); while the overloaded function "DSP_Calc" is to implement the
+				customer defined algorithm in calculating the noise.</p><div class="p"><figure class="fignone">
+					
+					<img src="127976.png" alt="Customizable test method - Test method class of TestIP RFM noise test">
+				</figure></div><p>Figure 5 Customizable test method - Test method class of TestIP RFM noise
+				test</p><p>The final test method class to execute an RFM DAC noise measurement is in figure 6.
+				To implement the noise test of an RFM DAC in an SOC, we need to make a suitable LB connection,
+				as overloading the virtual function "LB_Routing_Setup". Another necessary setup is to control
+				the DUT suitable for the RFM DAC testing, and this is implemented by overloading the virtual
+				function TAM_setup().</p><div class="p"><figure class="fignone">
+					
+					<img src="127977.png" alt="Customizable test method - Test method class of device specific RFM noise test">
+				</figure></div><p>Figure 6 Customizable test method - Test method class of device specific RFM noise
+				test</p></section>
+		<section class="section"><h2>Conclusion</h2><p>The introduction of UTM opens the door to using some object
+				oriented programming methods, such as "design pattern", "inheritance and overloading," etc. in
+				test method programming. With this software method, we can build reusable and easy-to-customize
+				test methods efficiently.</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 127883</span><script type="text/javascript">var ti='127883';var tt='Using "Inheriting and Overloading" concept in creating reusable universal test method library'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

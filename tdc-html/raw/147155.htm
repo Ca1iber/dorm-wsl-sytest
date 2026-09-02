@@ -1,0 +1,60 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Informs the tester to execute the current functional test, while freeing up the computer for processing other work, for example, Hidden upload."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>MTP_MEMORY_TEST.startTest()</title></head><body id="_147155"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 147155</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">MTP_MEMORY_TEST.startTest()</h1>
+	
+	
+	<div><p>Informs the tester to execute the current functional test, while freeing up the computer
+		for processing other work, for example, <a href="136161.htm" title="SmartCalc automatically determines the package size of data to be uploaded to the test system controller. It performs an optimized upload behind a currently running test (sequencer execution).">Hidden upload</a>. </p>
+		<section class="section"><div class="note"><span class="title">Note</span> To wait until the tester finishes testing, while keeping the computer
+				idle, use <a href="147168.htm" title="Used in conjunction with startTest(). For details, see MTP_MEMORY_TEST.startTest().">waitTestDone()</a>. </div><div class="note"><span class="title">Note</span> You also can use
+					<a href="129009.htm" title="The execute() member function of MTP_MEMORY_TEST lets you execute the functional test as the conditions set in the setup functions and generate the test results.">execute()</a> to execute a test. However,
+				<span class="keyword">execute()</span>, which packages the <span class="keyword">startTest()</span> and
+					<span class="keyword">waitTestDone()</span> two functions, does not allow you to use the computer during
+				testing.</div></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">void startTest();</pre><p><strong>List of parameters</strong></p><p>There are no parameters.</p><p><strong>Return value</strong></p><p>There is no return value.</p></div>
+		<h2>Example</h2><div class="example"><p>Testing using the hidden-upload algorithm and hiding
+			SMC-overhead.</p><pre class="prettyprint linenums copyable">void SMCApiValidationTest::SMC_II_Mode()
+{
+  std::string resultArea;
+  GET_TESTSUITE_NAME(resultArea);
+
+  MTP_MEMORY_TEST memoryTest(resultArea);
+  memoryTest.enableAddressBasedResults(true);
+  memoryTest.setBitmapMode(MTP::BINARY_ENCODING);
+
+  // Test Execution
+  ON_FIRST_INVOCATION_BEGIN();
+  {
+    CONNECT();
+
+    // Define a new result area configuration set.
+    RESULT_AREA_CONFIG_SET resConfSet(resultArea);
+    // Configure this result area for all pins.
+    RESULT_AREA_CONFIG_PINS&amp; resConfSetPins = resConfSet.pin("@");
+    resConfSetPins.setErrorMapResultAreaSize(1024);
+
+    // Inform tester to execute such functional test
+    memoryTest.startTest();
+
+    // Enable hidden calculation
+    FOR_EACH_SITE_BEGIN()
+        // kick off calculation thread
+        SMC_ARM(memoryTest);
+    FOR_EACH_SITE_END();
+
+    // The workstation is waiting for functional test completion
+    memoryTest.waitTestDone();
+  }
+  ON_FIRST_INVOCATION_END();
+}
+
+void SMCApiValidationTest::SMC_backgroundProcessing(MTP_MEMORY_TEST memoryTest)
+{
+  // Hidden calculation
+  memoryTest.judgeAndLog();
+  memoryTest.generateBitmapFile();
+}</pre></div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="147168.htm" title="Used in conjunction with startTest(). For details, see MTP_MEMORY_TEST.startTest().">MTP_MEMORY_TEST.waitTestDone()</a></div><div><a href="129009.htm" title="The execute() member function of MTP_MEMORY_TEST lets you execute the functional test as the conditions set in the setup functions and generate the test results.">MTP_MEMORY_TEST.execute()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in MTP 3.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 147155</span><script type="text/javascript">var ti='147155';var tt='MTP_MEMORY_TEST.startTest()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

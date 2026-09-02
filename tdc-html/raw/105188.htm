@@ -1,0 +1,263 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>UHC4T specific setup tasks</title><meta name="keywords" content="UHCDPS CSDPS UHC-4 UHC4T UHC4-T, UHC, 4, T"></head><body id="_105188"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 105188</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">UHC4T specific setup tasks</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="110083.htm" title="Each DC Scale UHC4T card occupies two pogo block locations">UHC4T standard configuration in the Smart Scale test system</a></li></ol></div></nav>
+	
+	
+	<div>
+		<section class="section">
+			<div class="p">The following sections are available in this topic:<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-0"><ul>
+										
+									<li><a href="105188.htm#_105188__s_UHC4T_in_the_model_file">UHC4T configuration in the model file</a></li>
+										<li><a href="105188.htm#_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels">Assignment of UHC4T power channels</a></li>
+										<li><a href="105188.htm#_105188__s_Pin_configuration">Pin configuration</a></li>
+										<li><a href="105188.htm#_105188__s_Ganging">Ganging</a></li>
+									</ul></td>
+								<td class="colsep-0 rowsep-0"><ul>
+										<li><a href="105188.htm#_105188__s_Equations">Equations</a></li>
+										<li><a href="105188.htm#_105188__s_Level_setup">Level setup</a></li>
+										<li><a href="105188.htm#_105188__s_Load_changes">Load changes</a></li>
+										<li><a href="105188.htm#_105188__s_Current_limiter_protection">Current limiter protection</a></li>
+									</ul></td>
+							</tr>
+						</tbody></table></div>
+		</section>
+		
+		<section class="section" id="_105188__s_UHC4T_in_the_model_file"><h2>UHC4T configuration in the model
+				file</h2><p>The UHC4T cards must be defined in the <a href="79176.htm" title="In the DPS section, each available device power supply (DPS) card must be defined. &#34;DPS card&#34; in this context means the DC Scale cards.">DPS section</a>
+				and in the <a href="106944.htm" title="In the POGOCABLING section of the model file you define the mapping between card slots (the physical position of the channel cards within the card cage respective the control segment) and pogo blocks on the DUT interface. This feature allows flexible routing between card cage slots and pogo blocks on the DUT interface.">POGOCABLING section</a> of the model file, or the <a href="255461.htm" title="The CARD_CONFIGURATION section describes the setup of physical cards in the tester. It includes the physical location, card name and also the mapping between card slots (the physical position of the cards) and pogo blocks on the DUT interface.">CARD_CONFIGURATION section</a> of the
+					<a href="255459.htm" title="Configuration files called model files are used by SmarTest to set the test head hardware configuration - equipped cards, pogo cable assemblies, and their connections to pogo blocks. The default name of the model file is tester.model.">tester.model</a> file. The software identifier is
+					<span class="keyword">DCS-UHC4T</span>.</p>Two different pogo cable assemblies are available for the
+			UHC4T card. The two pogo cable assemblies must be defined in the sections of the model files as follows:<ul>
+				<li id="_105188__d6134e123"><strong>DC Scale UHC4T with E8013UHP
+						cable</strong><p>The four channels are routed to two pogo blocks that are
+						combined into a single unit, thereby occupying an S1/S2 pogo block pair. Only the S1 position
+						must be entered in the model file, the software blocks the adjacent S2 position
+						automatically.</p><div class="p">Example
+						(tester.model):<div></div><pre class="prettyprint linenums copyable">CARD_CONFIGURATION
+    slot = 107, HW = UHC4T, pogoblocks = 230</pre></div><p>Example
+						(model/legacy):</p><pre class="no-prettify"><code>POGOCABLING
+    214: pogoblocks = "230"
+    ...
+    ...
+DPS
+    23001-23004: type = DCS-UHC4T
+    ...
+    ...</code></pre><div></div>The
+					example above shows that only pogo block A is defined as block 230 in the
+						<span class="keyword">POGOCABLING</span> section. Pogo Block B is automatically assigned to the adjacent
+					S2 position 430.<div class="p">
+						<div class="note"><span class="title">Note</span> The <span class="keyword">DPS</span> section shows that all four channels are assigned
+							to pogo block 230 although they are physically wired to the two blocks 230 and 430.</div>
+					</div></li>
+				<li id="_105188__d6134e149"><strong>DC Scale UHC4T with E8024UHPS
+						cable</strong><p>In contrast to E8013UHP cable, the four channels are routed to
+						two pogo blocks that can be installed in any position within the limitations presented by the
+						cable length. Both pogo blocks are to be defined by keywords <span class="keyword">type</span>, followed
+						by <span class="keyword">subtype</span> and <span class="keyword">config</span>.</p><div class="p">Example
+						(tester.model):<div></div><pre class="prettyprint linenums copyable">CARD_CONFIGURATION
+    slot = 108, HW = UHC4T, pogoblocks = 319, 
+                            type = REDIRECT,
+                            subtype = E8024UHPS, 
+                            config = 319:(319) 319:(322)</pre></div><p>Example
+						(model/legacy):</p><pre class="no-prettify"><code>POGOCABLING
+    217: pogoblocks = "319", type=REDIRECT, subtype=E8024UHPS, config="319=319,322"
+    ...
+    ...
+DPS
+    31901-31904: type = DCS-UHC4T
+    ...
+    ...</code></pre><div></div>The
+					example above shows that pogo block A is defined as block 319 in the
+						<span class="keyword">POGOCABLING</span> section. The following code <code>type...</code>,
+						<code>subtype...</code>, and <code>config...</code> defines that the two pogo blocks
+					of the E8024UHPS cable are installed at position 319 (Block A) and 322 (Block B).<div class="p">
+						<div class="note"><span class="title">Note</span> The <span class="keyword">DPS</span> section shows that all four channels are assigned
+							to pogo block 319 although they are physically wired to the two blocks 319 and 322.</div>
+					</div></li>
+			</ul></section>
+		<section class="section" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels"><h2>Assignment of UHC4T power channels</h2><div class="p">The DC Scale UHC4T features four channels that are routed to two physical pogo
+				blocks. The following table shows how SmarTest assigns the four channels to the
+					<span class="uicontrol">Tester Channels</span>.<table class="frame-topbot"><caption></caption><colgroup><col><col><col></colgroup><thead>
+							<tr>
+								<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__1">UHC4 / UHC4T channel</th>
+								<th class="align-center colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__2">Physical pogo block</th>
+								<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__3">Tester Channel</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__1">P1</td>
+								<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__2" rowspan="2">B</td>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__3">aaa01</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__1">P2</td>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__3">aaa02</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__1">P3</td>
+								<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__2" rowspan="2">A</td>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__3">aaa03</td>
+							</tr>
+							<tr>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__1">P4</td>
+								<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__3">aaa04</td>
+							</tr>
+						</tbody></table>"aaa" in the table above is to be replaced with the physical position of pogoblock A.
+				This applies to all four channels.</div>
+			<p>The four <span class="uicontrol">Tester Channels</span> channels are assigned to pogo block A
+				although they are physically wired to two blocks.</p><p>For more information regarding the UHC4T channels and the physical pogo blocks,
+				refer to <a href="107600.htm" title="The DC Scale UHC4 / UHC4T power supply card requires special high power pogo pins, which have a different pad layout and different dimensions than other card types.">UHC4T pogo pin assignment</a>. For information regarding the <span class="uicontrol">Tester
+					Channels</span>, refer to <a href="105636.htm" title="The following table describes the parameters of DPS Pins editor.">DPS Pins editor</a>.</p><p>Example:</p><table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-0"></td>
+							<td class="colsep-0 rowsep-0"><pre class="no-prettify"><code>POGOCABLING
+    217: pogoblocks = "319", type=REDIRECT, subtype=E8024UHPS, config="319=319,322"
+    ...
+    ...
+DPS
+    31901-31904: type = DCS-UHC4T
+    ...
+    ...</code></pre><div class="p"><table class="frame-topbot"><caption></caption><colgroup><col><col><col><col><col></colgroup><thead>
+												<tr>
+												<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__16"> UHC4T channel</th>
+												<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__17">Physical pogo block</th>
+												<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__18">Physical pogo block position</th>
+												<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__19">Value of "config"</th>
+												<th class="colsep-0 rowsep-1" id="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__20">Tester Channel</th>
+												</tr>
+											</thead><tbody>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__16">P1</td>
+												<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__17" rowspan="2">B</td>
+												<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__18" rowspan="2">322</td>
+												<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__19" rowspan="2">319=...,322</td>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__20">31901</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__16">P2</td>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__20">31902</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__16">P3</td>
+												<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__17" rowspan="2">A</td>
+												<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__18" rowspan="2">319</td>
+												<td class="align-center colsep-0 rowsep-1 valign-middle" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__19" rowspan="2">319=319, ...</td>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__20">31903</td>
+												</tr>
+												<tr>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__16">P4</td>
+												<td class="colsep-0 rowsep-1" headers="_105188__s_SMT7_Assignment_of_UHC4_UHC4T_power_channels__entry__20">31904</td>
+												</tr>
+											</tbody></table></div>
+								<div class="p">The example above assumes that the physical block A is installed at position 319 and
+									block B at 322. The pogo cable assembly E8024UHPS is required
+									for this configuration.<div class="caution"><span class="title">CAUTION</span>  All four channels
+										are assigned to pogo block 319 although they are physically
+										wired to the two blocks 319 and 322.</div></div></td>
+						</tr>
+					</tbody></table></section>
+		<section class="section" id="_105188__s_Pin_configuration"><h2>Pin configuration</h2><p>DC Scale UHC4T pins can be configured only for <a href="94453.htm" title="For DPS mode specify the pin type as DPS+. In DPS mode you can use the DC Scale cards like a DPS-slot DPS, to supply devices with power during the execution of a test flow. Each of the channels can source and sink current at a programmed voltage, and each channel can measure the voltages and currents supplied.">DPS operating mode</a>. To configure  UHC4T
+				pins you use the <a href="105636.htm" title="The following table describes the parameters of DPS Pins editor.">DPS Pins editor</a>. You do not need to specify a load capacitance for the
+					UHC4T pins.</p></section>
+		<section class="section" id="_105188__s_Ganging"><h2>Ganging</h2><div><p>The parallel connection of DC Scale UHC4T channels is supported for any number of successive channels
+					within a card and any number of cards within a test head.</p>
+				<p>Cross-card ganging requires a daisy chain connection from the last channel of a card to the
+					first channel of the next card within the ganging group: On the DUT board, the "Gang_out" pin
+					is to be wired to the "Gang_in" pin of the next card.</p>
+				</div>For more information, refer to section <a href="107325.htm#_107325__s_Ganging_and_unganging">Ganging and unganging DC Scale UHC4T channels</a> in <a href="107325.htm" title="Besides its various power, operating, and measurement modes, the DC Scale UHC4T card offers further features, for example:">UHC4T features</a>.<p>Ganging groups are
+				defined in the <a href="105636.htm" title="The following table describes the parameters of DPS Pins editor.">DPS Pins editor</a>:</p><ul>
+				<li>
+					<p>To specify ganging on the same card, you can specify the range of channels to be ganged by
+						"-" (hyphen).</p>
+				</li>
+				<li>
+					<p>To specify ganging across UHC4T cards, separate the channel
+						ranges on the cards by comma (,):</p>
+					<p>On the DUT board, pin "Gang_out" on physical pogo block "A" must be connected to "Gang_in"
+						on physical block "B" of the next card. This will connect the ganging controller output of the
+						first card (P4 = Tester channel ...04) to the ganging controller input (P1 = Tester channel
+						...01) of the next card.</p>
+				</li>
+			</ul><div class="p">
+				<figure class="fignone">
+					
+					<img src="106869.png" alt="DPS Pins setting for UHC4T">
+				</figure>
+			</div><p>Alternatively you can use the <a href="106906.htm" title="The DDIC (Define DUT Interface Connection) command describes the DUT board traces that are needed to support ganging across DC Scale cards (UHC4T). The command therefore specifies pogo pins, not pin names.">DDIC, DDIC? - (Define DUT Interface Connection)</a> and <a href="98551.htm" title="The DFPS (DeFine Power Supply) command tells the software which DPS channel is connected to the specified device pin, and the polarity of the channel. The DFPS? query returns the existing channel, polarity and assigned pin number.">DFPS, DFPS? - (DeFine Power Supply)</a> commands
+				in the pin configuration file to specify the ganging across UHC4T cards. For
+				example:</p><pre class="no-prettify"><code>hp93000,config,0.1
+DDIC CONN,(230GO,227GI)
+...
+DFPS (23004,22701),POS,(VDDCI)</code></pre><p>At
+				the beginning of the pin configuration file the DDIC command describes the DUT board traces that
+				are needed to support ganging across UHC4T cards. First the DDIC command
+				must define, which connections are available on the DUT board, then the gang can be defined by
+				the DFPS command.</p></section>
+		<section class="section" id="_105188__s_Equations"><h2>Equations</h2><p>To use all features of the DC Scale UHC4T card, you must use equations. For
+				details see <a href="16859.htm" title="The goal of a level setup is to assign values to the level resources like drive levels, compare levels, load currents, power supply voltage.">Equation based level setup</a> and <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a> (also <a href="16886.htm" title="Each DPS pin definition is introduced by the DPSPINS keyword and has the following global syntax:">DPSPINS</a>).</p></section>
+		<section class="section" id="_105188__s_Level_setup"><h2>Level setup</h2><p>The Level Setup tool displays the currently active settings of the DC Scale UHC4T
+				card as follows:</p><ul>
+				<li>Force voltage (vout)</li>
+				<li>Clamp current (ilimit)</li>
+				<li>Settling time (t_ms)</li>
+				<li>Off current state (offcurr)</li>
+				<li>Force voltage range (vout_frc_rng)</li>
+				<li>Clamp current range (iout_clamp_rng)</li>
+				<li>disable_const_curr_check flag</li>
+				<li>Connect state (connect_state)</li>
+				<li>Current limiter protection (curr_limiter).</li>
+			</ul><p>Except for the connect state and the current limiter mode, the Level Setup tool does not display
+					UHC4T specific features (for example, fast preload time and voltage drop
+				threshold).</p></section>
+		<section class="section" id="_105188__s_Load_changes"><h2>Load changes</h2>
+			
+			<p>The <a href="107325.htm#_107325__s_Peak_mode">peak mode</a> of the UHC4T minimizes
+				the step response time after a load change, but the load change delivers a peak current for a
+				few microseconds.</p>
+			<p>One of the UHC4T protection features is the automatic disconnection of a
+				channel if the currents increase too high during connect or disconnect (load change). The
+				voltage ramp parameters (<a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">vout_rise_..., vout_fall_...</a>) allow you to
+				specify setup times and slew rates separately for rising and falling DPS voltage transitions,
+				and thus avoid disconnection of channels due to too high currents.</p>
+		</section>
+		<section class="section" id="_105188__s_Current_limiter_protection"><h2>Current limiter protection</h2><p>The UHC4T provides an integrated current limiter protection mode. When activated, the shutdown of
+				the system due to too high power consumption of the UHC4T card can be avoided. For details on the security and safety features
+				see section <a href="107325.htm#_107325__s_Current_limiter_protection_UHC4T">Current limiter protection</a> in <a href="107325.htm" title="Besides its various power, operating, and measurement modes, the DC Scale UHC4T card offers further features, for example:">UHC4T features</a>.</p>
+			<div class="p">The current limiter protection is to be enabled in the level setup equations using parameter
+					<a href="16887.htm#_16887__protect">protect</a> of the <a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a> as
+				shown for pin <var class="varname">UHC4T_dps2</var> in the following example:<table class="ly"><caption></caption><colgroup><col><col></colgroup><tbody>
+							<tr>
+								<td class="colsep-0 rowsep-0">
+									<div></div><pre class="prettyprint linenums copyable">...
+DPSPINS UHC4T_dps1
+
+    vout    =     4.0    # [V]
+    ilimit  =  5000.0    # [mA]
+
+DPSPINS UHC4T_dps2
+
+    <strong>protect</strong>
+    vout    =     3.3    # [V]
+    ilimit  = 10000.0    # [mA]
+...</pre><div></div>
+								</td>
+								<td class="colsep-0 rowsep-0">
+									<div class="note"><span class="title">Note</span> The protection is <strong>disabled by default</strong>
+										if parameter <span class="keyword">protect</span> is not defined in
+										the equations.</div>
+								</td>
+							</tr>
+						</tbody></table></div>
+			<p>The setting of <span class="keyword">protection</span> can be inspected and modified in the DPS
+				pins view of the <span class="uicontrol">Level Setup</span> tool. The value is available in
+				the rightmost section of the window in the <span class="uicontrol">curr_limiter</span>
+				column:</p><div class="p"><figure class="fignone">
+					<img src="147136.png" alt="UHC4T current limiter options">
+				</figure></div><p>If a protection case occurred, a flag is set which can be read with the
+					<a href="81300.htm" title="This test method allows you to check the status of the DPS channels after executing a functional test.">dc_tml DpsStatus</a> and the <a href="121968.htm" title="This test method allows you to check the status of the DPS channels after executing a functional test. It checks for various DPS states, and returns a pass/fail result.">multi_group_dc_tml DpsStatus</a> test methods.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="105634.htm#_105634__s_DC_Scale_pin_setup">DC Scale pin (PMU mode) setup</a></div><div><a href="17548.htm" title="The pin information is entered in the pin configuration area of the corresponding Pin setting editor. The digital pins editor also contains the context information.">Pin setting editors</a></div><div><a href="16859.htm" title="The goal of a level setup is to assign values to the level resources like drive levels, compare levels, load currents, power supply voltage.">Equation based level setup</a></div><div><a href="16887.htm" title="Parameters of the DPSPINS resources define the behavior of DPS pins in the equation based level setup. Specific keywords and values are to be used to define the resource parameters.">DPSPINS resources</a></div><div><a href="79176.htm" title="In the DPS section, each available device power supply (DPS) card must be defined. &#34;DPS card&#34; in this context means the DC Scale cards.">DPS section</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 6.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 105188</span><script type="text/javascript">var ti='105188';var tt='UHC4T specific setup tasks'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

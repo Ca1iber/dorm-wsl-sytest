@@ -1,0 +1,57 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="When using the FLUSH API, the following points should be considered:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Working with FLUSH()</title></head><body id="_123084"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 123084</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Working with FLUSH() </h1>
+	
+	
+	<div><p>When using the FLUSH API, the following points should be considered:</p>
+		<section class="section"><ul>
+				<li>FLUSH is a semi-automatic mean to minimize HW access and to optimize HW setups to achieve
+					better test time.</li>
+				<li>Each HW access takes time. Analog setups may get cached and activated (flushed) in a single
+					shot when performing a FLUSH(). In addition the internal wait time can be optimized, which
+					would be otherwise required for each single HW access.</li>
+				<li>HW setup optimization means that FLUSH may recognize situations where it can avoid redundant
+					setups for example, a disconnect, if the next test suite is performing a connection again).</li>
+				<li>FLUSH() execution time is in a range of 1 to 10 and more ms dependent on the complexity of
+					the HW changes.</li>
+				<li>It scales with number of cores, actions, sequencer program length and tester period. MSE is
+					in the range of 60%.</li>
+				<li>Although FLUSH() tries to optimize execution time, unnecessary calls of FLUSH() will add
+					test time.</li>
+				<li>Debugging may require to put additional FLUSH()'s in the code to force immediate activation
+					to allow visibility in debug tools, which needs to be removed later for production.</li>
+			</ul></section>
+		<section class="section"><h2>Example</h2><p>Test program with 500 testsuites with one unnecessary FLUSH()
+				each may end up with an overhead of 500 x 3ms = 1.5s</p></section>
+		<section class="section"><h2>Useful Facts about the use of FLUSH</h2><ul>
+				<li>EXECUTE_TEST, EXECUTE_GROUP, START_TEST, DIGITAL_CAPTURE_TEST and NB_DIGITAL_CAPTURE_START
+					contain a FLUSH.</li>
+				<li>FUNCTIONAL_TEST() only activates digital primaries such as timing and levels and, therefore,
+					typically has a faster execution time.</li>
+				<li>No FLUSH() is required, for example, for trigger(), abort() and getXXX()/isRunning().</li>
+				<li>In most use cases, there is no need for the explicit usage of FLUSH(). This is shown in the
+					following examples.<div class="caution"><span class="title">CAUTION</span> If the device or the tester is in a critical setup
+						for example, very high power or low power mode) and the next test potentially uses a
+							<code>FUNCTIONAL_TEST()</code> (which would NOT flush the disconnect) it is recommended
+						to perform an explicit <code>FLUSH()</code> after the disconnect.</div>
+				</li>
+			</ul></section>
+		<section class="section"><h2>Example</h2><p>The following examples show how to keep the use of FLUSH to a
+				minimum in an example for an analog test using a hardware trigger.</p><p><strong>Example 1</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="123440.gif" alt="RF Coding Example with HW &amp; SW Trigger">
+				</figure></div><p><strong>Example 2</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="123178.png" alt="Analog Test Using a Hardware Trigger">
+				</figure></div><p><strong>Example 3</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="123441.png" alt="Analog test using a SW trigger">
+				</figure></div><p><strong>Example 4</strong></p><div class="p"><figure class="fignone">
+					
+					<img src="123442.png" alt="Analog test with SW trigger without sequencer run">
+				</figure></div></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="29338.htm" title="This topic contains:">FLUSH</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.4: HW of analog modules cannot be accessed when the master clock is switched off.
+					An error is issued and the message is displayed in the report window.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 123084</span><script type="text/javascript">var ti='123084';var tt='Working with FLUSH()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

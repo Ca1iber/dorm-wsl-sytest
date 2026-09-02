@@ -1,0 +1,156 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The vector variable configuration (VVC) defines frame source templates for the source pins, and how the binary content of the vector variables is to be translated into waveform DC/DC power units. The VVC is structured as follows:"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Vector variable configuration</title><meta name="keywords" content="config"></head><body id="_19880"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 19880</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Vector variable configuration</h1>
+	
+	
+	<div><p>The vector variable configuration (VVC) defines frame source templates for the source
+		pins, and how the binary content of the vector variables is to be translated into waveform
+		DC/DC power units. The VVC is structured as follows:</p>
+		<div class="p"><figure class="fignone">
+				
+				<img src="22439.png" alt="Vector Variable Configuration">
+			</figure></div>
+		<p>The following is the VVC syntax:</p>
+		<div></div><pre class="prettyprint linenums copyable"><span class="keyword">ATTR</span> DIGDATA | DIGDATA FLAT
+<span class="keyword">VARIABLES</span><span class="keyword">Variable</span> (, <span class="keyword">Variable</span>)*
+<span class="keyword">PINS</span><span class="keyword">pin</span>(, <span class="keyword">pin</span>) *
+<span class="keyword">SOURCE_DATA_TEMPLATE</span>: <span class="keyword">Template_Section</span>(; <span class="keyword">Template_Section</span>) *
+<span class="keyword">MAPPING</span>
+<span class="keyword">0</span><span class="keyword">device_cycle_name_1</span> | %<span class="keyword">physical_waveform_index_1</span>
+<span class="keyword">1</span><span class="keyword">device_cycle_name_2</span> | %<span class="keyword">physical_waveform_index_2</span></pre><div></div>
+		<p>The asterisk stands for 0 or more occurrences of the preceding expression enclosed by
+			parentheses. The internal structure of a <span class="keyword">Template_Section</span> is explained
+			below.</p>
+		<section class="section"><h2>VVC
+				Attributes</h2><pre class="prettyprint copyable singleline"><span class="keyword">ATTR</span> DIGDATA | DIGDATA FLAT</pre><p>The
+				attribute decides whether the source data is located in a DSRC label or in the main label:</p><ul>
+				<li><code>DIGDATA</code> indicates that the source data is stored in a DSRC label.</li>
+				<li><code>DIGDATA FLAT</code> indicates that the source data is included in the main label.
+					
+				</li>
+			</ul></section>
+		<section class="section"><h2>VVC
+					Variables</h2><pre class="prettyprint copyable singleline"><span class="keyword">VARIABLES</span><span class="keyword">Variable</span> (, <span class="keyword">Variable</span>)*</pre><p>One<span class="keyword">
+					VARIABLES</span> statement can define multiple variables (separated by a comma), which are
+				used in one VVC. Each variable is used in the source data template to represent one specific
+				waveform. Only alphabetic or numeric characters can be used as the variable name. The space
+				character is not allowed as part of the name.</p><p>The variables that are defined in the VVC
+				are strictly speaking vector variable templates. The real vector variables are defined in the
+				VVC usage. However, if you use the GUI to define the VVC and VVCU, the VVC variable names will
+				also be used for the actual vector variables. The vector variables defined in the VVCU are the
+				ones that must be used by the <span class="keyword">VECTOR</span> API.</p></section>
+		<section class="section"><h2>Pin Info</h2><p>A VVC can contain several Pin Info blocks. The indivdual
+				statements are (the asterisk stands for 0 or more occurrences of the preceding expression
+				enclosed by parentheses):</p><ul>
+				<li><span class="keyword">PINS</span><span class="keyword">pin</span> (, <span class="keyword">pin</span>) *<p>This parameter
+						specifies the source pins to which this Pin Info block is to apply. If more than one pin is
+						specified, the pin names must be separated by a comma. Note that pin groups are not
+						supported.</p></li>
+				<li><span class="keyword">SOURCE_DATA_TEMPLATE</span>: <span class="keyword">Template_Section</span> (;
+						<span class="keyword">Template_Section</span>) *<p>The <span class="keyword">SOURCE_DATA_TEMPLATE</span> is a
+						string expression that describes the frame source template for the pins defined in the
+							<code>PINS</code> section. It consists of one or more sections, which are separated by a
+						semicolon. If the VVC is associated with a DSRC label, the main label from which the source
+						data are applied must contain a separate <span class="keyword">SRCV</span> instruction for every
+						section.</p>
+					<p>A template section can consist of one or more variable or fixed constituents. The variable
+						constituents have the following format:</p>
+					<p><span class="keyword">Variable</span>[<span class="keyword">Bit_Index_or_Range</span> (,
+							<span class="keyword">Bit_Index_or_Range</span>)*]</p>
+					<p><span class="keyword">Variable</span> must have been defined in the <span class="keyword">VARIABLES</span>
+						statement. Note that the parentheses belong to the meta-language (that is, they must not be
+						specified in the expression), whereas the brackets belong to the object language (that is,
+						they must be specified). The asterisk, which also belongs to the meta-language, stands for 0
+						or more occurrences of the preceding expression enclosed by parentheses.</p>
+					<p>The bit index or bit range selects bits of the waveform that is represented by
+							<span class="keyword">Variable</span>. An example is <code>LEFT[3,4,7-15]</code>.</p>
+					<p>Besides such variable constituents, a template can also contain fixed bits, which correspond
+						to a single waveform. These can be identified by</p><ul>
+						<li>the device cycle name, or </li>
+						<li>the waveform index (which must be prefixed with <span class="keyword">%</span>), or</li>
+						<li>0 or 1, which will be interpreted according to the definitions in the
+								<span class="keyword">MAPPING</span> section.<p>If the same fixed expression is repeated
+									<span class="keyword">n</span> times, this can be abbreviated as
+									<span class="keyword">expression</span>{<span class="keyword">n</span>}. You can also require that when the
+								VVCU is modified and the static data is downloaded again, certain waveforms are not
+								overwritten. This is coded as #{<span class="keyword">n</span>}, which means that <span class="keyword">n</span>
+								continuous waveforms are to be left as they are.</p>
+							
+							<p>The following is an example:</p>
+							<p><code>SOURCE_DATA_TEMPLATE 0{4},vvc_var[0-3],one,one,%2,%4</code></p>
+							<p>It consists of 4 times the waveform that is mapped to 0 in the <span class="keyword">MAPPING</span>
+								section, a vector variable of width 4, 2 times the waveform with the device cycle name
+									<code>one</code>, and the waveforms with the DC/DC power units 2 and 4.</p></li>
+					</ul></li>
+				<li><span class="keyword">MAPPING</span><p><span class="keyword">0</span><span class="keyword">device_cycle_name_1</span> |
+							<span class="keyword">%</span><span class="keyword">physical_waveform_index_1</span></p>
+					<p><span class="keyword">1</span><span class="keyword">device_cycle_name_2</span> |
+							<span class="keyword">%</span><span class="keyword">physical_waveform_index_2</span></p>
+					<p>The source data is normally accessed by the vector variables. Vector variables contain a bit
+						sequence. This bit sequence must be translated into a sequence of waveform DC/DC power units. The
+							<span class="keyword">MAPPING</span> section defines which waveform DC/DC power units are associated with 0 and
+						with 1. Note that 0 and 1 must not be mapped to the same index. The mapping is also used in
+						the <span class="keyword">SOURCE_DATA_TEMPLATE</span>, where you can specify fixed elements by 0 or
+						1.</p>
+					<p>You can either specify the waveform index directly in the format
+							<span class="keyword">%</span><span class="keyword">physical_waveform_index</span>, or the device cycle name of
+						the respective waveform. In the latter case, the name must be included in double quotes if it
+						contains spaces.</p></li>
+			</ul><p>The following is a complete Pin Info
+			block:</p><pre class="prettyprint linenums copyable">PINS pin1, pin2
+ <code>SOURCE_DATA_TEMPLATE 0{4},vvc_var[0-3],one,one,%2,%4</code>
+ <code>MAPPING</code>
+ <code>0 zero</code>
+ <code>1 one</code></pre></section>
+		<h2>Examples</h2><div class="example"><h3>Serial application examples</h3><p>The design of the VVC is very flexible, so
+				it can be used for a wide variety of applications, especially to any vector sequence with
+				repetitive pattern. The following examples briefly show how the VVC is used.</p><div class="p"><figure class="fignone">
+					
+					<img src="22440.png" alt="Serial application of a vector variable configuration">
+				</figure></div><p>This setup can be implemented both with a normal and a flat setup:</p><ol>
+				<li><strong>Normal setup</strong>: The main label sources the variable waveform data (sections 2 and 4)
+					from a separate DSRC
+						label:<div></div><pre class="prettyprint linenums copyable">SOURCE_DATA_TEMPLATE L[3-0];R[3-0]
+- or -
+SOURCE_DATA_TEMPLATE L[3,2,1,0];R[3,2,1,0]
+- or -
+SOURCE_DATA_TEMPLATE L[3],L[2],L[1],L[0];R[3],R[2],R[1],R[0]</pre><p>Sections
+						2 and 4 are sourced in the main label by two <span class="keyword">SRCV</span> instructions inside a
+						counted loop. Sections 1, 3, 5 are defined in the main label.</p>
+					<div class="note"><span class="title">Note</span> The semicolon separates two sections of a frame source template.</div>
+				</li>
+				<li><strong>Flat setup</strong>: Both static and variable vectors are contained in the main
+					label:<div></div><pre class="prettyprint copyable singleline">SOURCE_DATA_TEMPLATE One,Zero,One,One,L[3-0],One,Zero,One,Zero,R[3-0],Zero,One,Zero,Zero</pre></li>
+			</ol><p>The flat setup can greatly reduce the possibility of the queue empty problem, compared
+				with using a counted loop to source the waveform data, so the test system can run at a higher
+				speed.</p></div>
+		<div class="example"><h3>Parallel application example</h3><div class="p"><figure class="fignone">
+					
+					<img src="22441.png" alt="Parallel application of a vector variable configuration">
+				</figure></div><p>To source the variable waveform data from a separate DSRC label, the following VVC
+				can be used for the above parallel
+			application.</p><pre class="prettyprint linenums copyable">ATTR DIGDATA #Source type
+
+#Declaration of variables
+VARIABLES R,G,B
+
+PINS R_In
+SOURCE_DATA_TEMPLATE R[7-0]
+MAPPING
+0 d0
+1 d1
+
+PINS G_In
+SOURCE_DATA_TEMPLATE G[7-0]
+MAPPING
+0 d0
+1 d1
+
+PINS B_In
+SOURCE_DATA_TEMPLATE B[7-0]
+MAPPING
+0 d0
+1 d1</pre></div>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 19880</span><script type="text/javascript">var ti='19880';var tt='Vector variable configuration'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

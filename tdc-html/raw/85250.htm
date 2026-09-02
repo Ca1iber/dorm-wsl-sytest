@@ -1,0 +1,100 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SmarTest Data Formatter Quick Start Guide</title><meta name="keywords" content="Smar, Test"></head><body id="_85250"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 85250</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SmarTest Data Formatter Quick Start Guide</h1>
+	
+	<div>
+		<p>The SmarTest Data Formatter converts SmarTest test results to Standard Test Data Format (STDF)
+			version 4. The SmarTest Data Formatter can generate STDF in real-time, while SmarTest is
+			generating test results, or it can post-process files that contain test results (also known as
+			event data log files). </p>
+		<p>The SmarTest Data Formatter is included with SmarTest. The SmarTest Data Formatter component is
+			also available on the SmarTest Software Download website.</p>
+		<section class="section" id="_85250__generate-stdf"><h2>How to generate STDF data</h2>
+			
+			<p>The SmarTest Data Formatter is enabled with the configuration option
+					<code>formatter.stdf.generateStdf=true</code> in the
+					<span class="filepath">/etc/opt/hp93000/soc_common/datalog/global.conf</span> file. If the SmarTest Data
+				Formatter has been enabled, it starts automatically when SmarTest starts. You do not need to
+				explicitly call the formatter from the application model.</p>
+			<p>To convert data log files to STDF, the SmarTest Data Formatter can be executed from the
+				command line. To process a data log file, enter:</p>
+			<div></div><pre class="prettyprint copyable singleline">dataformatter -d <span class="keyword">&lt;data log file name&gt;</span></pre><div></div>
+			<div class="note"><span class="title">Note</span> The Data Formatter program is located in
+					<span class="filepath">/opt/hp93000/soc/formatter/bin</span>. The data log file is located in
+					<span class="filepath">/var/opt/hp93000/soc/tmp/93k.xxx</span>, where <span class="filepath">93k.xxx</span>
+				indicates a session specific directory. When SmarTest terminates abnormally, for example,
+				because it loses the connection to the license server, this file is moved to
+					<span class="filepath">/tmp/DataCollection</span>.</div>
+			<p>To generate STDF from a testflow execution, the SmarTest Data Formatter must be enabled and
+				you must change the configuration option
+					<code>formatter.stdf.generateStdfFromTestflowEditor=true</code> in the
+					<span class="filepath">/etc/opt/hp93000/soc_common/datalog/global.conf</span> file. The next section
+				describes the STDF configuration further.</p>
+		</section>
+		<section class="section" id="_85250__configure-stdf"><h2>Configuring STDF</h2>
+			
+			<div class="note" id="_85250__differences_between_edl_and_stdf"><span class="title">Note</span> 
+				<p>SmarTest logs floating-point values with 8-byte precision in the native EDL format, while
+					STDF is limited to 4-byte precision. This may lead to rounding in STDF logs. Also, numbers
+					bigger than about 3.0e38 can be represented in EDL (to a limit of about 1.7e308) but are logged
+					as "inf" in STDF.</p>
+				<p>In rare cases, STDF logs may therefore deviate from EDL logs, and evaluating them may give
+					different results.</p>
+			</div>
+		</section>
+		<section class="section" id="_85250__config-files"><h2>Configuration files</h2>
+			
+			<p>The options for the SmarTest Data Formatter are set in two configuration files:</p>
+			<ul>
+				<li><span class="filepath">global.conf</span> contains configuration options for the location of STDF
+					output files and for generating STDF from the Testflow Editor.</li>
+				<li><span class="filepath">formatter.stdf.main.conf</span> contains configuration options for
+					STDF-specific settings.</li>
+			</ul>
+			<p>The STDF configuration can be applied to STDF data that is generated in real-time or while
+				post-processing data log files. To specify an STDF configuration for a data log file that is
+				converted to STDF from the command line, enter the following at the command line:</p>
+			<div></div><pre class="prettyprint copyable singleline">dataformatter -d <span class="keyword">&lt;data log filename&gt;</span> -c <span class="keyword">&lt;STDF configuration path&gt;</span></pre><div></div>
+			<p><span class="keyword">&lt;STDF configuration path&gt;</span> is a directory containing the STDF
+				configuration files. If the <code>-c</code> option is omitted, the standard configuration
+				files (see below) are used.</p>
+		</section>
+		<section class="section" id="_85250__config-file-locations"><h2>Configuration file locations</h2>
+			
+			<p>Configuration files can be located in different places:</p>
+			<ul>
+				<li>SmarTest is installed with standard STDF configuration files in the
+						<span class="filepath">/etc/opt/hp93000/soc_common/datalog</span> directory, which are linked to from
+						<span class="filepath">/etc/opt/hp93000/soc/datalog</span>. The options in
+						<span class="filepath">/etc/opt/hp93000/soc/datalog</span> are used by default, as long as no other
+					files are available or specified (see below).<p>You must have root access to edit these
+						configuration files.</p></li>
+				<li>A different location for the configuration files can be specified in the
+						<span class="keyword">DATAFORMATTER_SYSTEM_CONFIG_DIRECTORY</span> environment variable.<p>For example,
+						this shell command causes SmarTest to look for configuration files in the specified
+						folder:</p><pre class="prettyprint copyable singleline">export DATAFORMATTER_SYSTEM_CONFIG_DIRECTORY=/users/myself/my_dataformatter_config</pre><p>As
+						above, you can copy the standard configuration files and edit them to your desired
+						configuration.</p>
+					<p>If a configuration file is specified in this environment variable, the standard
+						configuration file is ignored. If the environment variable points to a file that does not
+						exist, an error message is generated and the formatter cannot run.</p></li>
+				<li>Each device can have an additional device-specific STDF configuration: If there is a folder
+						<span class="filepath">datalog</span> in the device folder, any configuration file in this folder is
+					used to modify the STDF settings from the standard configuration file or the configuration file
+					specified in the environment variable (whichever is in effect).<p>You can copy the standard
+						configuration files to the <span class="filepath">datalog</span> folder and edit them as desired. The
+						device-specific configuration file need not be complete, that is, it is possible to specify
+						only some of the options in it and delete the rest.</p>
+					<p>If a particular configuration option is specified in both locations, the setting from the
+						device-specific configuration is used.</p></li>
+			</ul>
+		</section>
+		<section class="section" id="_85250__view-stdf-as-text"><h2>Viewing STDF files as text</h2>
+			
+			<p>The STDF reader can be used to view the text representation of the STDF file. To view an STDF
+				file as text, type the following at the command line:</p>
+			<div></div><pre class="prettyprint copyable singleline">/opt/hp93000/soc/formatter/bin/STDFreader <span class="keyword">&lt;STDF filename&gt;</span> &gt; <span class="keyword">&lt;Text output file name&gt;</span></pre><div></div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.0: hp83_to_stdf formatter discontinued</li><li>SmarTest 7.2.1: Data collection files are now moved on abnormal shutdowns.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 85250</span><script type="text/javascript">var ti='85250';var tt='SmarTest Data Formatter Quick Start Guide'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

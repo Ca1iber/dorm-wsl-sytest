@@ -1,0 +1,347 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The DPSR command writes a search condition for one or more setup pins into a search set. The setup pins are the pins for which an edge is moved or a spec variable modified during the search."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>DPSR, DPSR? - (Define Parallel SeaRch)</title><meta name="keywords" content="DPSR_, Sea, Rch"></head><body id="_98574"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 98574</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">DPSR, DPSR? - (Define Parallel SeaRch)</h1>
+	
+	
+	<div><p>The <span class="keyword">DPSR</span> command writes a search condition for one or more setup pins
+		into a search set. The setup pins are the pins for which an edge is moved or a spec variable
+		modified during the search.</p>
+		<section class="section">
+			<p>A search set contains a collection of search conditions that can be executed in
+				parallel with the <span class="keyword">EXSR</span> (EXecute SeaRch) command. The search set
+				is identified by a number. If a search set with the specified number does not exist,
+					<span class="keyword">DPSR</span> will create it. If the set already exists,
+					<span class="keyword">DPSR</span> will add the condition to the existing collection. You
+				can also delete a search condition from a search set with the
+					<span class="keyword">DPSR</span> command.</p>
+			<p><span class="keyword">DPSR</span> itself has no site related parameter. But it associates the
+				new condition with all those sites that were put into setup focus by the last
+				execution of the <span class="keyword">PSFC</span> command. By default, all sites have the
+				setup focus.</p>
+			<p>A search set can contain only one search condition for any combination of setup pin
+				and site. If a new condition creates a conflict in this respect, the affected old
+				definitions will be changed, but only as far as necessary. For example, if the new
+				condition specifies only one setup pin, and an old definition, which holds for the
+				same site and has more than one setup pin, also contains this setup pin, then the
+				pin of the new condition will be removed from the old condition, but the condition
+				itself will be kept. An example will be given below.</p>
+			<p>The <span class="keyword">DPSR?</span> query returns all conditions of the specified search set
+				for the site that has the query focus. The query focus is set for a site by the
+					<span class="keyword">PQFC</span> command.</p>
+			<p>With this command you configure setups of those sites that have the setup focus: For
+			more information, see also: <a href="98698.htm" title="The PSFC command serves to restrict certain changes of setup data to a proper subset of the available sites. It does this by setting or unsetting the setup focus for individual sites. By default, all sites have the setup focus.">PSFC, PSFC?</a>.</p>
+			<p>With this command you can retrieve site specific information (only one site can be in
+			focus at a time). For the site in focus, SmarTest displays results in the Testflow Editor and in
+			the result tools. Also, any firmware queries report setup and results for the site currently in
+			focus only.</p>
+		</section>
+		<section class="section"><h2>Temporarily changing the primary port on a Pin Scale system</h2>
+			
+			<p>If you specify the setup pins by a single port, and this port is contained in the
+				primary timing specification when the search is executed with
+					<span class="keyword">EXSR</span>, it will be used as the primary port, that is, the port
+				from which the period resolution is derived. <a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR</a> will
+				also reset the primary port after the search has been finished.</p>
+			<p>This feature applies only if</p>
+			<ul>
+				<li>the search is executed on a Pin Scale system,</li>
+				<li>a spec variable, and not a hardware resource, is changed in the search, and</li>
+				<li>this variable occurs in the period definition for the specified port.</li>
+			</ul>
+			<p>For detailed information on the primary port, see <a href="127456.htm" title="Both shmoo tests and parallel searches can be based on modification of spec variables. When this spec variable is used in the definition of the tester period, the period length should be modified in each step according to the step width of the search or shmoo plot definition. If, however, the test is performed on a Pin Scale system, and the port on which the search or measurement is to be performed is not the first port within the timing specification, this requirement will usually not be met in a standard multi-port setup.">Modifying the
+					period for a search or shmoo in a multi-port setup</a>. Note also the
+				following points:</p>
+			<ul>
+				<li>The <span class="keyword">DPSR</span> commands are stored within a search set in the order
+					in which they were issued. If several searches over different ports are defined
+					in the same search set, SmarTest selects the port of the first pertinent
+						<span class="keyword">DPSR</span> command as the primary port.</li>
+				<li>If the different ports belong to different clock domains, SmarTest selects the
+					primary port per clock domain according to the same principles.</li>
+			</ul>
+		</section>
+		<div class="syntax">
+			<h2>DPSR</h2>
+			<div></div><pre class="prettyprint copyable singleline">DPSR {<var class="varname">set_nr</var>}, ["<var class="varname">exec_context</var>",] [(<var class="varname">setup_pinlist</var>)|(<var class="varname">primary_port</var>)], [(<var class="varname">result_pinlist</var>)], [<var class="varname">wait_time</var>,] [<var class="varname">search_type</var>], [<var class="varname">max_err_count</var>,] {<var class="varname">#spec(data)</var>}</pre><div></div>
+		</div><div class="syntax"></div><div class="syntax"><h2>DPSR?</h2><pre class="prettyprint copyable singleline">DPSR? {<var class="varname">set_nr</var>} [, (<var class="varname">setup_pinlist</var>)]</pre><p>returns:</p><pre class="prettyprint copyable singleline">DPSR {<var class="varname">set_nr</var>}, ["<var class="varname">exec_context</var>",] (<var class="varname">setup_pinlist</var>), (<var class="varname">result_pinlist</var>), [<var class="varname">wait_time</var>,] <var class="varname">search_type</var>, [<var class="varname">max_err_count</var>], {<var class="varname">#spec(data)</var>}</pre><div></div>Extra
+			parameters <span class="keyword">exec_context</span> and <span class="keyword">wait_time</span> are returned
+			only if they have been defined by <span class="keyword">DPSR</span>.<table class="frame-none"><caption><span>Parameters</span></caption><colgroup><col><col><col><col></colgroup><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">set_nr</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">
+								<p>The mandatory parameter specifies the number of the search set in
+									which the condition is to be stored.</p>
+								<p>The maximum number is 128.</p>
+								<p>If a search set with this number does not yet exist, it will be
+									created.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">exec_context</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">
+								<p>The extra parameter defines an execution context.</p>
+								<p>For more information on execution contexts see <a href="135848.htm" title="Execution contexts allow you to run subsets of one or even more than one multiport burst independently and in parallel. Such an execution context consists of a port list that is associated with a name. In order to activate it, you must specify the name when you start the test. Generally, the ports of the context must be a subset of the ports in the current start label.">Using execution contexts</a>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">setup_pinlist</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">
+								<p>The optional parameter defines the pins for which an edge is to
+									be moved or a spec variable is to be modified.</p>
+								<p>If this parameter is omitted, all pins will be used as setup
+									pins.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">primary_port</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">
+								<p>This optional parameter is only relevant for Pin Scale
+									systems.</p>
+								<p>Specifies the setup pins by a single port name. The difference to
+									a setup pin list is that the port will be used as the primary
+									port by <a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR</a>.</p>
+								<p>Note that this only holds if you specify the setup pins by one
+									single port. If you enter more than one port, the list will be
+									treated as a normal setup pin list.</p>
+								<p>This parameter is only applicable if <span class="keyword">spec_name</span>
+									as specified in the <var class="varname">#spec(data)</var> parameter
+									occurs in the period definition for the specified port in the
+									primary multi-port timing specification.</p>
+								<p>Add <span class="keyword">@UNCHANGED</span> to suppress the switch of the
+									primary port..</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">result_pinlist</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">
+								<p>The optional parameter defines the output pins whose results are
+									contributing to the test result.</p>
+								<p>If the parameter is omitted, all output and I/O pins will
+									contribute to the result. If you specify an empty
+										<span class="keyword">#spec(data)</span> parameter, the
+										<var class="varname">result_pinlist</var> parameter is ignored.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">wait_time</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">The extra parameter specifies a wait
+								time between the functional test runs in milliseconds.<p>Valid
+									range: 0 … 2<sup>31</sup> - 2</p><p>Default value if not
+									specified: 0 ms</p></td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="3"><var class="varname">search_type</var></td>
+							<td class="colsep-0 rowsep-0" colspan="3">
+								<p>The optional parameter specifies the search type.</p>
+								<p>This parameter determines the format of the
+										<var class="varname">#spec(data)</var> parameter. If you specify an
+									empty <var class="varname">#spec(data)</var> parameter, the
+										<var class="varname">search_type</var> parameter will be
+									ignored.</p>
+								<p>Currently, the following values are allowed:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><span class="keyword">FUNC</span></td>
+							<td class="colsep-0 rowsep-0" colspan="2">Functional search</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">ERCT</span></td>
+							<td class="colsep-0 rowsep-1" colspan="2">
+								<p>With this option, an additional error count check is performed
+									internally for each repetition of the functional test. If the
+									number of errors is smaller than the value specified by the
+										<var class="varname">max_err_count</var> parameter, then the
+									functional test will count as passed, and the search be
+									terminated for a FAIL/PASS transition. The edge position / spec
+									value of this test repetition will then be returned as the
+									transition point by <span class="keyword">RSSR?</span>.</p>
+								<p>Note that it depends on the settings of <span class="keyword">DRCM</span>
+									whether failing cycles or failing edges are counted.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">max_err_count</var></td>
+							<td class="colsep-0 rowsep-1" colspan="3">
+								<p>This extra parameter specifies the maximum number of errors for
+									which a repetition of the functional test will still count as
+									passed.</p>
+								<p>The parameter must be defined and is only processed if the
+										<var class="varname">search_type</var> is
+									<span class="keyword">ERCT</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="15"><var class="varname">#spec(data)</var></td>
+							<td class="colsep-0 rowsep-0" colspan="3">
+								<p>The mandatory binary data that define the search condition. The
+									general format is:</p>
+								<p><code>#Nn<sub>1</sub>n<sub>2</sub>n...n<sub>N</sub>data_stream</code></p>
+								<p>where the digit <var class="varname">N</var> defines the number of the
+									digits <var class="varname">n</var><sub>i</sub> (1 ≤
+										<var class="varname">i</var> ≤ <var class="varname">N</var>) that specify
+									the length of <var class="varname">data_stream</var> in bytes.</p>
+								<p>The format of the data stream itself is determined by the
+										<var class="varname">search_type</var> parameter. For search types
+										<span class="keyword">FUNC</span> and <span class="keyword">ERCT</span>
+									(currently the only search types), the format is</p>
+								<p><code>{spec_type}, {"spec_name"|resource}, {search_mode},
+										{start}, {stop}, [step_size], [resolution]</code></p>
+								<p>You can delete a search condition by specifying an empty data
+									stream with <span class="keyword">#10</span>. If you omit all the other
+									parameters and specify <span class="keyword">#10</span> for the
+										<span class="keyword">#spec(data)</span> parameter, the whole search
+									set will be erased. </p>
+								<p>The meaning of the individual sub-parameters is as follows:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="4">
+								<p><var class="varname">spec_type</var></p>
+							</td>
+							<td class="colsep-0 rowsep-0" colspan="2">
+								<p>Specifies whether a spec variable or a resource is modified, and
+									in the former case also the type of the spec variable. This
+									parameter determines the allowed values of the following
+									parameter.</p>
+								<p>Possible values of the <span class="keyword">spec_type</span> parameter
+									are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><span class="keyword">TIM</span></td>
+							<td class="colsep-0 rowsep-0">A timing spec variable is to be modified.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><span class="keyword">LEV</span></td>
+							<td class="colsep-0 rowsep-0">A level spec variable is to be modified.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><span class="keyword">RES</span></td>
+							<td class="colsep-0 rowsep-1">A hardware resource is to be modified.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">spec_name</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">
+								<p>The name of a spec variable must be specified if
+										<var class="varname">spec_type</var> is set to
+										<span class="keyword">TIM</span> or <span class="keyword">LEV</span>.</p>
+								<p><span class="keyword">DPSR</span> does not accept the format </p>
+								<p><code>spec_name@port_name,</code></p>
+								<p>that is, spec names that are qualified by a port name. If the
+									same spec variable is used in more than one port, the setup pins
+									determine on which ports the value of the variable is
+									modified.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">resource</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">
+								<p>A resource must be specified if <var class="varname">spec_type</var> is
+									set to <span class="keyword">RES</span> Currently, the only allowed
+									resources are edges, which must be specified in the standard
+									format, <span class="keyword">di</span> or <span class="keyword">ri</span>.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" rowspan="4"><var class="varname">search_mode</var></td>
+							<td class="colsep-0 rowsep-0" colspan="2">
+								<p>This parameter defines the search algorithm.</p>
+								<p>Possible values are:</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><span class="keyword">L</span></td>
+							<td class="colsep-0 rowsep-0">Specifies a linear search from the start of the search
+								range at intervals defined by <var class="varname">step_size</var>.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-0"><span class="keyword">B</span></td>
+							<td class="colsep-0 rowsep-0">Specifies a binary search between the start and the stop positions.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1">
+								<p><span class="keyword">LB</span></p>
+							</td>
+							<td class="colsep-0 rowsep-1">Specifies a combined linear and binary search. A linear search is
+								performed at intervals defined by <var class="varname">step_size</var>. When
+								a PASS/FAIL transition is found, an additional binary search is
+								performed in the interval between the last passed and the first
+								failed test, or the last failed and the first passed test.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">start</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">&gt;Specifies the starting point of the
+								search. If the value is greater than the <var class="varname">stop</var>
+								value, the search will go backward.</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">stop</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">Specifies the end point of the
+								search. If the value is smaller than the <var class="varname">start</var>
+								value, the search will go backward. </td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">step_size</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">
+								<p>This parameter specifies the step width of a linear search. The
+									unit depends on the <var class="varname">spec_type</var> parameter. For
+									a spec search, it is the unit of the spec variable. For a
+									resource search, it is ns.</p>
+								<p>This parameter is mandatory for a linear search, and optional for
+									a binary search.</p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1"><var class="varname">resolution</var></td>
+							<td class="colsep-0 rowsep-1" colspan="2">
+								<p>This parameter specifies the resolution of the search. For a
+									binary search, this is the minimum length of the interval
+									between the returned PASS value and the returned FAIL value. For
+									a linear search, the <var class="varname">start</var>,
+										<var class="varname">stop</var>, and <var class="varname">step_size</var>
+									values will be rounded to multiples of the specified resolution. </p>
+								<p>If the parameter is omitted, the smallest values allowed by the
+									software ( for spec variables) or the hardware (for edges) will
+									be used.</p>
+							</td>
+						</tr>
+					</tbody></table></div><div class="syntax">
+			<h2>Application</h2>
+			<p>Parallel Search Tests.</p>
+		</div><div class="syntax">
+			<h2>Errors</h2>
+			<p>An error is generated if: </p>
+			<ul>
+				<li>One of the specified pins is not configured.</li>
+				<li>The resource name is incorrect.</li>
+				<li>The search set number is greater than 128.</li>
+			</ul>
+		</div>
+		
+		
+		
+		
+		<h2>Example</h2><div class="example">
+			<div></div><pre class="prettyprint linenums copyable"><kbd class="userinput">&gt; </kbd>PSFC ALL
+&gt; DPSR 3,,,FUNC,#219,TIM,"f",B,30,130,,
+&gt; PSFC 2
+&gt; DPSR 3,(IN1),,FUNC,#220,TIM,"del",B,0,110,,
+&gt; PQFC 1
+&gt; DPSR? 3,(@)
+&lt; DPSR 3,(@),(@),FUNC,#9000000019,TIM,"f",B,30,130,,
+&gt; PQFC 2
+&gt; DPSR? 3,(@)
+&lt; DPSR 3,(OUT1),(@),FUNC,#9000000019,TIM,"f",B,30,130,,
+&lt; DPSR 3,(IN1),(@),FUNC,#9000000020,TIM,"del",B,0,110,,</pre><div></div>
+			<p>This example illustrates:</p>
+			<ul>
+				<li>How the same search can be defined differently for different sites.</li>
+				<li>How an existing condition is partially overwritten when a new condition is
+					partially inconsistent with it.</li>
+			</ul>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="127456.htm" title="Both shmoo tests and parallel searches can be based on modification of spec variables. When this spec variable is used in the definition of the tester period, the period length should be modified in each step according to the step width of the search or shmoo plot definition. If, however, the test is performed on a Pin Scale system, and the port on which the search or measurement is to be performed is not the first port within the timing specification, this requirement will usually not be met in a standard multi-port setup.">Modifying the period for a search or shmoo in a multi-port setup (Pin Scale)</a></div><div><a href="98762.htm" title="The STRS? query repeats a functional test in a loop. With each test execution, the value of a (timing or level) spec variable is systematically modified within a specified interval for all those pins that are specified in the query and depend on the spec variable in question in their (timing or level) setup. The goal of the search is to identify that value of the variable where the test result changes from PASS to FAIL or from FAIL to PASS.">STRS? - (Spec TRansition Search)</a></div><div><a href="98602.htm" title="The EXSR command executes all the search conditions of a search set, as defined with the DPSR command, and stores a result for each condition. The searches are executed in parallel for all pins on the active sites. The results for different search sets are stored at different locations and do not overwrite each other.">EXSR - (EXecute SeaRch)</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.0: Setting the primary port</li><li>SmarTest 7.5.1: New extra parameter wait_time</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 98574</span><script type="text/javascript">var ti='98574';var tt='DPSR, DPSR? - (Define Parallel SeaRch)'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

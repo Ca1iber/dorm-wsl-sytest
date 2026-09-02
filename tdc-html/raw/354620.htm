@@ -1,0 +1,112 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The XPS256 card features a surge tracker per channel that monitors the voltage between the high sense (PS#) and ground sense (GS#) pins or the output current of the PMU."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>XPS256 programming - Surge tracker</title><meta name="keywords" content="XPS, 256"></head><body id="_354620"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 354620</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">XPS256 programming - Surge tracker</h1>
+	
+	
+	<div><p>The XPS256 card features a surge tracker per channel that monitors the voltage
+		between the high sense (PS#) and ground sense (GS#) pins or the output current of the
+		PMU.</p>
+		<section class="section"><h2>API overview</h2><p>The complete functionality of the
+				surge tracker is covered by the APIs <a href="141283.htm" title="The DPS_AUX_TASK class controls the surge tracker and the TMU (Time Measure Unit) of DC Scale cards.">DPS_AUX_TASK</a> and <a href="141284.htm" title="The DPS_AUX_PIN_TASK class is a subsidiary data container of the DPS_AUX_TASK API.">DPS_AUX_PIN_TASK</a>.</p><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+						<tr>
+							<th class="colsep-0 rowsep-1" id="_354620__entry__1">
+								<p>Functionality</p>
+							</th>
+							<th class="colsep-0 rowsep-1" id="_354620__entry__2">
+								<p>Member function</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__1">
+								<p>Select and enable the surge tracker</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__2">
+								<p><a href="141294.htm" title="The DPS_AUX_PIN_TASK.setMode() member function sets the surge tracker operating mode or selects the TMU (Time Measure Unit) comparator pair of DC Scale cards.">DPS_AUX_PIN_TASK.setMode()</a></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__1">
+								<p>Set the voltage or current thresholds</p>
+								<ul class="simple">
+									<li>XPS256 supports setting both the voltage thresholds and the
+										current thresholds in a single setup.</li>
+								</ul>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__2">
+								<p><a href="141292.htm" title="The DPS_AUX_PIN_TASK.selectVSensorSetThresholds() member function selects the voltage sensor and sets the low and high thresholds.">DPS_AUX_PIN_TASK.selectVSensorSetThresholds()</a></p>
+								<p><a href="141293.htm" title="The DPS_AUX_PIN_TASK.selectISensorSetThresholds() member function selects the current sensor and sets the low and high thresholds.">DPS_AUX_PIN_TASK.selectISensorSetThresholds()</a></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__1">
+								<p>Write the accumulated status to the test method cache and clear
+									the accumulated status</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__2">
+								<p><a href="141295.htm" title="This member function retrieves the flags &#34;High voltage or current of surge tracker exceeded&#34; or &#34;Low voltage or current of surge tracker exceeded&#34; from the hardware.">DPS_AUX_PIN_TASK.checkSurgeTracker()</a></p>
+							</td>
+						</tr>
+						<tr>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__1">
+								<p>Read the accumulated status from the test method cache</p>
+							</td>
+							<td class="colsep-0 rowsep-1" headers="_354620__entry__2">
+								<p><a href="141291.htm" title="The DPS_AUX_TASK.getSurgeTrackerStatus() member function retrieves the status of the surge tracker from the test method cache. The surge tracker of the DC Scale cards monitors the voltage via sense lines or monitors the output current of the channels.">DPS_AUX_TASK.getSurgeTrackerStatus()</a></p>
+							</td>
+						</tr>
+					</tbody></table></section>
+		<section class="section"><h2>Kelvin test / sense connection test in <span>Hardware view</span></h2>
+			
+			<p>The Kelvin test / sense connection test is supported by the <a href="69687.htm" title="The Hardware view is part of the Hardware Perspective and is associated with the Pin Browser view.">Hardware view</a>
+				for the XPS256 pins in <a href="354249.htm#_354249__s_Hardware_view">DPS operating
+					mode</a> or in <a href="354253.htm#_354253__s_Hardware_view">PMU operating
+					mode</a>.</p>
+		</section>
+		<section class="section"><h2>Application note</h2><dl>
+				
+					<dt class="dlterm">Surge tracker is silently disabled in temporarily unganged mode</dt>
+					<dd>
+						<p>Note that on <span>DPS128/64 and XPS256</span> you cannot execute a current
+				compare on a ganged group of channels in unganged mode. Already activated
+				comparators are silently disabled in unganged mode. A user notification (Error or
+				warning) is omitted in this case, to avoid any interrupt in the testflow. The
+				previous state of the comparators is automatically restored after the ganged group
+				has been restored.</p>
+					</dd>
+				
+			</dl></section>
+		<h2>Example</h2><div class="example"><h3>Simultaneously tracking the voltage and the current</h3>
+			
+			<div class="p">
+				<div></div><pre class="prettyprint linenums copyable">DPS_AUX_TASK auxTask;
+
+ON_FIRST_INVOCATION_BEGIN();
+{
+    auxTask.pin("XPS256_PMU_1")
+            .setMode                    (TM::SURGE_TRACKER)
+            .selectVSensorSetThresholds (-0.5 V, 3.5 V)
+            .selectISensorSetThresholds (-0.1 A, 0.4 A);
+
+    auxTask.execute();
+
+    ...
+    ...
+
+    auxTask.pin("XPS256_PMU_1").checkSurgeTracker(TM::AGAINST_BOTH);
+}
+ON_FIRST_INVOCATION_END();
+
+TM::SURGE_TRACKER_STATUS statusVoltage, statusCurrent;
+
+auxTask.getSurgeTrackerStatus("XPS256_PMU_1", statusVoltage, statusCurrent);
+
+cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; ", Voltage surge tracker: " &lt;&lt; statusVoltage &lt;&lt; endl;
+cout &lt;&lt; "Site " &lt;&lt; CURRENT_SITE_NUMBER() &lt;&lt; ", Current surge tracker: " &lt;&lt; statusCurrent &lt;&lt; endl;
+</pre><div></div>
+			</div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="351111.htm" title="The XPS256 card features a surge tracker per channel that monitors the voltage between the high sense (PS#) and ground sense (GS#) pins or the output current of the PMU.">XPS256 surge tracker</a></div><div><a href="354167.htm" title="The XPS256 card features several mechanisms for the self-protection of the card and for indicating the operating state, unusual operating conditions or test results.">XPS256 status flags</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.10.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 354620</span><script type="text/javascript">var ti='354620';var tt='XPS256 programming - Surge tracker'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

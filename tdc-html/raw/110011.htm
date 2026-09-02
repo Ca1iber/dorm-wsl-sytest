@@ -1,0 +1,205 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Novel Clock Signal Analysis - Rise/Fall Time, Jitter and Jitter Separation</title></head><body id="_110011"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 110011</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Novel Clock Signal Analysis - Rise/Fall Time, Jitter and Jitter Separation</h1>
+	
+	<div>
+		<p>Hideo Okawara, Verigy</p>
+		<p>Paper ID 110011</p>
+		<section class="section"><h2>Abstract</h2><p>Since the unit interval of digital signal for high-speed
+				digital communication is getting narrower year by year, the analog aspects of digital signals
+				are becoming critical. Rise time, fall time and jitter are the most typical factors to represent
+				the digital signal integrity. A waveform sampler is one of the useful analog resources in mixed
+				signal testers. Utilizing a 6 GHz bandwidth sampler (<strong>MCC</strong>), you can capture high-speed
+				digital signals and analyze them precisely. This paper reports how the <strong>MCC</strong> measures a
+				1.25 GHz clock signal and how to analyze the waveform with various DSP techniques. It contains
+				time-domain waveform analysis and spectrum analysis. With looking at the original noisy
+				waveform, the total jitter can be calculated. By applying <strong>FFT</strong> and creating a frequency
+				domain spectrum, random jitter and deterministic jitter can be separated. With applying
+					<strong>IFFT</strong>, the noise-free waveform can be extracted from the original waveform, and the
+				rise/fall times and the duty cycle ratio can be calculated.</p></section>
+		<section class="section"><h2>Key Words</h2><p>High-speed Digital, Rise Time, Fall Time, Jitter, Jitter
+				Separation, Waveform Sampler, FFT, IFFT</p></section>
+		<section class="section"><h2>Introduction</h2><p>Digital signals are simple high/low discrete signals;
+				however analog aspects are becoming critical for high-speed digital communication signals
+				because the unit interval is getting narrower year by year. Rise time, fall time and jitter are
+				the most typical factors to represent the digital signal integrity. There are many sophisticated
+				methodologies available in digital testers to evaluate these parameters. When utilizing
+				conventional pin electronics, the logic compare level and edge timing must be swept for
+				reconstructing the waveform. This can be time-consuming, and sometimes has limited
+				accuracy.</p><p>A waveform sampler is a useful analog resource in mixed signal testers. The
+				module ID <strong>MCC</strong> is one of the excellent analog resources in the V93000 SOC test system. It
+				has the analog bandwidth of 10 GHz (@-6 dB) and 6 GHz (@-3 dB), maximum 110 Msps of actual
+				sampling rate and 16-bit resolution. There are four independent differential input channels
+				available in a single module so that it is appropriate for multi-site testing. By utilizing
+					<strong>MCC</strong>, you can capture high-speed digital signals and analyze their waveform and spectrum
+				precisely.</p><p>This paper reports how the <strong>MCC</strong> measures a 1.25 GHz clock signal and how
+				you can analyze the captured waveform data by applying various DSP techniques. Two different
+				approaches are described here. One is time-domain waveform analysis and the other is
+				frequency-domain spectrum analysis. Looking at the original noisy waveform, the total jitter can
+				be calculated.</p><p>In the first section, applying <strong>FFT</strong> and creating a frequency domain
+				spectrum, jitter components are estimated by sorting the spectrum. By separating specific
+				spurious components, random jitter and deterministic jitter can be estimated. In the second
+				section, applying reshuffling and <strong>IFFT</strong> method, the noise-free waveform can be extracted
+				from the original data. Then you can easily figure out the rise/fall times and the duty cycle
+				ratio from the noise-free waveform. After that the jitter is estimated by examining the trace
+				thickness at the rising/fall edges.</p></section>
+		<section class="section"><h2>Experimental Results</h2></section>
+		<section class="section"><h2>Test Configuration</h2><p>Figure 1 shows the experimental block diagram for the
+				data processing described in this paper. Two Pin Scale 3600 digital pin drivers generate a
+				differential 1250 MHz clock stream. The differential signal of the clock stream is measured by
+				the sampler <strong>MCC</strong>.[1]</p><div class="p"><figure class="fignone">
+					<img src="110014.png" alt="Novel_Clock figure 1 Test Block Diagram">
+				</figure></div><p><strong>Figure 1. Test Block Diagram</strong></p><p>There are eight independent timing-edges
+				available in the pin driver. Equally spaced 8 edges construct 4 clock pulses in a single vector
+				period, as depicted in Figure 2. This is called X8-mode.</p><div class="p"><figure class="fignone">
+					<img src="110015.png" alt="Novel_Clock figure 2 X8-Mode Clock Generation">
+				</figure></div><p><strong>Figure 2. X8-Mode Clock Generation</strong></p><p>In order to clearly demonstrate the
+				effect of the methods, the drivers used in the experiment is not calibrated on purpose so that
+				there are some edge placement errors in the 8 edge locations, which would appear as the
+				deterministic jitter of the clock stream. In other words the test signal would be small phase
+				modulated clock stream.</p><p>Figure 3 is a photograph of the load board. The two boards used
+				for connecting the tester resources are identical. One is used for digital pin drivers and the
+				other is used for the measurement by <strong>MCC</strong>. They are carefully designed for high-speed
+				signal integrity, considering the material of the board, impedance control of the traces and via
+				holes.</p><div class="p"><figure class="fignone">
+					<img src="110016.jpg" alt="Novel_Clock figure 3 DUT Board">
+				</figure></div><p><strong>Figure 3. DUT Board</strong></p></section>
+		<section class="section"><h2>Test Condition</h2><p>In sampler applications, the key to get successful
+				results is to set up a strict coherent condition, which can be described as the equation
+				below.</p><p><img src="110017.png" alt="Novel_Clock (Equation 1)"><strong>(Equation 1)</strong></p><p><span class="keyword">Ft</span> : test signal
+					frequency</p><p><span class="keyword">Fs</span> : sampling frequency of the
+					sampler</p><p><span class="keyword">M</span> : number of clock waveform cycles</p><p><span class="keyword">N</span>
+				: number of the sampling points</p><p><span class="keyword">Mx</span> : aliased bin
+					number</p><p><span class="keyword">K</span> : frequency zone number</p><div class="p"><figure class="fignone">
+					<img src="110018.png" alt="Novel_Clock figure 4 Coherency Calculator">
+				</figure></div><p><strong>Figure 4. Coherency Calculator</strong></p><p>The Coherency Calculator shown in
+				Figure 4 is handy and helpful for the strict coherent conditioning. This tool performs Equation
+				(1), helping you figure out the precise sampling frequency. First, <span class="keyword">Ft</span> is 1250
+				MHz and <span class="keyword">N</span> is decided as 65536. <span class="keyword">Fs</span> is planned as slightly
+				less than 110 Msps, which is the maximum specification of <strong>MCC</strong>, and <span class="keyword">Mx</span>
+				is decided as 3001 here. Consequently the precise sampling frequency is calculated as Figure 4
+				depicts. This tool is still a stand-alone Java tool. In the near future it may be able to
+				integrate into the Eclipse framework as a plug-in.</p></section>
+		<section class="section"><h2>Spectrum Analysis</h2><div class="p"><figure class="fignone">
+					<img src="110019.png" alt="Novel_Clock figure 5 Waveform and Spectrum">
+				</figure></div><p><strong>Figure 5. Waveform and Spectrum</strong></p><p>Figure 5 shows the captured waveform
+				and its frequency spectrum. There are 3001 cycles of clock waveform captured in 65,536 points so
+				that the waveform does not really look like a waveform.</p><div class="p"><figure class="fignone">
+					<img src="110020.png" alt="Novel_Clock figure 6 Spectrum Analysis">
+				</figure></div><p><strong>Figure 6. Spectrum Analysis</strong></p><p>Examining the spectrum precisely, the
+				fundamental signal and its harmonics up to 7<sup>th</sup>, which are colored yellow in Figure 6,
+				can be found, and they make up the primitive waveform of the clock. In the very vicinity of the
+				fundamental you can find a small residual phase noise, which is colored red. This makes up a
+				random jitter.</p><p>With summing up the residual phase noise power as shown in Figure 7, you
+				can estimate the random jitter components of the signal using Equations (2) and
+					(3).</p><p><img src="110021.png" alt="Novel_Clock (Equation 2)"><strong>(Equation 2)</strong></p><p><img src="110022.png" alt="Novel_Clock (Equation 3)"><strong>(Equation 3)</strong></p><div class="p"><figure class="fignone">
+					<img src="110023.png" alt="Novel_Clock figure 7 Phase Noise as Random Jitter">
+				</figure></div><p><strong>Figure 7. Phase Noise as Random Jitter</strong></p><p>You can find lots of big spurs
+				in the rest of the spectral lines colored blue. The spurs except the harmonics make up the
+				deterministic jitter. The clock stream is generated with X8-mode of the pin driver. The
+				experimental data in this paper is captured without any focused edge calibration. Consequently
+				the total clock stream contains relatively big edge placement errors, which occur every four
+				clock pulses so that the clock stream would be seen as 1/4 clock-rate phase-modulated clock
+				signal as depicted in Figure 2. Therefore they cause the noticeable spurs.</p><p>With summing up
+				the power of big blue spurs as shown in Figure 8, you can estimate the deterministic jitter
+				components of the signal using Equations (4) and (5). The fundamental and harmonics components
+				are excluded in this calculation.</p><p><img src="110024.png" alt="Novel_Clock (Equation 4)"><strong>(Equation 4)</strong></p><p><img src="110025.png" alt="Novel_Clock (Equation 5)"><strong>(Equation 5)</strong></p><div class="p"><figure class="fignone">
+					<img src="110026.png" alt="Novel_Clock figure 8 Spurs as Deterministic Jitter">
+				</figure></div><p><strong>Figure 8. Spurs as Deterministic Jitter</strong></p><p>From the spectrum in Figure 6,
+				the random jitter and the deterministic jitter are calculated as 0.86[ps.rms] and 5.4[ps.rms]
+				respectively so that the total jitter would become 6.3[ps.rms].</p><div class="p"><figure class="fignone">
+					<img src="110027.png" alt="Novel_Clock figure 9 Typical Jitter Performance">
+				</figure></div><p><strong>Figure 9. Typical Jitter Performance</strong></p><p>The experimental result shown in
+				this paper does not indicate the true performance of the Pin Scale 3600 pin electronics. A
+				well-calibrated Pin Scale 3600 channel usually has 2 to 3[ps.rms] of jitter as Figure 9 shows.
+				This is measured by a Digital Channel Analyzer (DCA).</p></section>
+		<section class="section"><h2>Waveform Analysis</h2><p>There are 3001 cycles of the clock waveform captured
+				in the time domain data. You can replicate a single cycle of the clock waveform by applying a
+				handy API for coherent reconstruction as follows.</p><pre class="prettyprint copyable singleline">DSP_SHUFFLE(WaveIn, WaveOut, 3001);</pre><div class="p"><figure class="fignone">
+					<img src="110028.png" alt="Novel_Clock figure 10 Reconstructed Waveform">
+				</figure></div><p><strong>Figure 10. Reconstructed Waveform</strong></p><p>It reconstructs the waveform as
+				Figure 10, in which the signal has actually been processed to locate in the center of the
+				window. The centering process is an application of <strong>FFT</strong>, which is described in detail at
+				VOICE 2007.[2]</p><div class="p"><figure class="fignone">
+					<img src="110029.png" alt="Novel_Clock figure 11 Spectrum">
+				</figure></div><p><strong>Figure 11. Spectrum</strong></p><p>Applying FFT to the reconstructed waveform, the
+				spectrum looks as Figure 11. The bin #1 is the fundamental component, and the harmonics
+				components are lined up from the bin #2 and higher bins. Closely examining the spectrum in the
+				vicinity of DC, the lower graph shows that the fundamental and up to 7<sup>th</sup> harmonics
+				are significant so that in this particular example, a total of eight components including DC can
+				reconstruct the primitive waveform.</p><div class="p"><figure class="fignone">
+					<img src="110030.png" alt="Novel_Clock figure 12 Noise-free Waveform">
+				</figure></div><p><strong>Figure 12. Noise-free Waveform</strong></p><p>Collecting the 8 spectral components
+				and applying <strong>IFFT</strong>, the noise-free clock waveform is reconstructed as the fine line in the
+				thick trace in Figure 12. When deciding the logic high (100%) and low (0%) levels, the level
+				histogram method is applied in the vertical direction. The detailed processing is also described
+				in the article cited above.[2] Then you can easily calculate the rise and fall times 109ps
+				between 20% and 80% levels. This result is much better than the specification 150ps.[3] The duty
+				cycle ratio is derived 49.6%.</p><p>When you closely examine the rising and falling edges of the
+				waveform, you find the thick trace is actually composed with data dots as Figure 13
+				shows.</p><p>Small areas in the rising and falling edges around the mid level of the waveform,
+				for example, areas between 40% and 60% levels can be used to estimate jitter values.</p><p>The
+				idea is that the voltage errors are interpreted into the time errors with referring the slew
+				rate of the edges.</p><div class="p"><figure class="fignone">
+					<img src="110031.png" alt="Novel_Clock figure 13 Fluctuation">
+				</figure></div><p><strong>Figure 13. Fluctuation</strong></p><div class="p"><figure class="fignone">
+					<img src="110032.png" alt="Novel_Clock figure 14 Noise to Jitter Conversion">
+				</figure></div><p><strong>Figure 14. Noise to Jitter Conversion</strong></p><p>Figure 14 shows the methodology.
+				The ideal reference line is the reconstructed noise-free trace in Figure 11. Or for simplicity,
+				instead of the reconstructed waveform, you may create linear regression lines using an
+					<code>API DSP_REG1()</code>, which figures out the slope and offset of the estimated
+				straight line. Then you can calculate how far each dot is located away from the ideal location.
+				The voltage errors can be interpreted into the time errors by the slew-rate or slope of the
+				ideal line. Consequently the total jitter can be calculated by the time error
+				array.</p><p>Figure 15 shows that the method described in Figure 14 is applied to the
+				reconstructed clock waveform. In this example the edges from 40% to 60% are supposed to be
+				linear.</p><div class="p"><figure class="fignone">
+					<img src="110033.png" alt="Novel_Clock figure 15 Total Jitter CalculatioNovel_Clock figure 15 Total Jitter Calculation">
+				</figure></div><p><strong>Figure 15. Total Jitter Calculation</strong></p><p>In Figure 15, the total jitter is
+				calculated as 26.4[ps.p-p] and 4.7[ps.rms] for the rising edge, and 28.5[ps.p-p] and 5.7[ps.rms]
+				for the falling edge. The rms values match the total jitter calculated by the spectrum method in
+				the previous section. In order to examine the waveform precisely, this figure is plotted by
+				using <strong>gnuplot</strong> instead of the standard signal analyzer. You can see the edge placement is
+				not well aligned in this particular example. That's why the jitter result is bigger than the
+				normal Pin Scale 3600 channel performance.</p></section>
+		<section class="section"><h2>Discussion</h2><p>Jitter is the timing fluctuation of a signal crossing over a
+				certain threshold level. The spectrum method described in section 3 and the waveform method
+				described in section 4 do not measure the time parameters directly. These methods are an
+				indirect estimation of the jitter. In the spectrum method, you need to look at the spectrum
+				precisely and decide where and how many spectral lines to collect for calculating the jitter. In
+				the waveform method, you need to look at the waveform precisely and decide appropriate areas to
+				draw the regression lines for calculating the jitter. This is an important process to be done
+				during online debug.</p><p>In the spectrum method in section 3, the spurs falling in the
+				fundamental bin and its harmonics bins cannot be counted in the jitter calculation. Also, the
+				noise floor is not considered. It would contain not only jitter but also quantization noise of
+				the A/D converter in the instrument as well. This method should be applied to relatively large
+				jitters.</p><p>In the waveform method in section 4, the voltage error is converted into the time
+				error with regard to the slew rate of the edges. As you can notice, Y-axis errors include not
+				only the jitter components but also the intrinsic voltage noise and quantization noise. So this
+				method can also be viable for relatively large jitter.</p></section>
+		<section class="section"><h2>Conclusion</h2><p>A clock waveform is one of the most typical test signals in
+				the waveform sampler applications. In this paper, the waveform sampler <strong>MCC</strong> measures the
+				1.25GHz clock signal. The jitter estimation procedures are precisely discussed. Two different
+				approaches - the spectrum analysis and the waveform analysis - are demonstrated step by step.
+				Both results correlate well with each other. The spectrum method can separate random jitter and
+				the deterministic jitter. In the waveform analysis, the rise/fall times and the duty ratio
+				calculations are discussed. Each method utilizes sophisticated DSP methodologies, which are
+				provided in the V93000 SOC test system. Each method extracts jitter values indirectly so that
+				you need to examine the spectrum and waveform precisely and decide the areas of analysis during
+				the online debug stage. These methods are used in production today.</p></section>
+		<section class="section"><h2>Acknowledgement</h2><p>The author wishes to acknowledge the kind advice and
+				active discussion of his colleague Juergen Wolf, Verigy.</p></section>
+		<section class="section"><h2>Biography</h2><p><strong>Hideo Okawara</strong> is a Principal Application Consultant for
+				Verigy, based in Japan. Mr. Okawara joined Hewlett-Packard in 1975, originally involved in
+				research and development for an impedance analyzer, a capacitance meter and mixed-signal LSI
+				testers. He moved into applications in the mid-1980s. As the company evolved from HP to Agilent
+				and now to Verigy, Mr. Okawara has continued as an applications engineer/consultant for mixed
+				signal test. With Verigy's Center of Expertise, he focuses on consulting and developing test
+				methodologies for digital consumer devices. He earned both a bachelors and masters degree in
+				electrical engineering from Tohoku University in Sendai, Japan.</p></section>
+		<section class="section"><h2>References</h2><p>[1] Verigy, E7050-91017 V93000 System Reference</p><p>[2]
+				Hideo Okawara, Novel Eye Pattern Test Method by Waveform Sampler, VOICE 2007, 2007</p><p>[3]
+				Verigy, V93000 Specifications</p></section>
+	</div>
+</article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 110011</span><script type="text/javascript">var ti='110011';var tt='Novel Clock Signal Analysis - Rise/Fall Time, Jitter and Jitter Separation'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The SYNCHRONIZED_TEST class sets up a synchronized test within a test method. It is derived from the PROTOCOL_TEST class."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SYNCHRONIZED_TEST</title></head><body id="_125390"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 125390</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SYNCHRONIZED_TEST</h1>
+	
+	
+	<div><p>The <code>SYNCHRONIZED_TEST</code> class sets up a synchronized test within a test
+		method. It is derived from the <code>PROTOCOL_TEST</code> class.</p>
+		<section class="section"><p>An object of this class is declared in the test method implementation. It can be
+				populated with a sequence of transactions implemented by subsidiary classes
+					<code>TRANSACTION_SEQUENCE()</code> and <code>TRANSACTION()</code>. The test can be
+				synchronized to other ports by adding synchronization points between transaction sequences,
+				which must be defined as part of another port's pattern. If multiple instances of one test
+				should run in a single functional test, then they must be cloned and attached to new
+				synchronization points.</p><p>The synchronized test is the main interface for execution of
+				protocol based synchronized functional test. Each synchronized test object is associated with a
+				port and uniquely named. At any functional test execution each port of the selected multiport
+				burst can only be associated with a synchronized test or simulated vectors and it can execute
+				only a single synchronized test. If similar transaction sequences are required on multiple
+				ports, a separate function has to be defined to create multiple objects. This way no clone
+				operation on the test or transaction sequence object is required.</p><div class="note"><span class="title">Note</span> If you
+				want to debug a synchronized protocol test with the Timing Diagram, you must place a breakpoint
+				in the test method code before calling the <span class="keyword">unlink()</span> function.</div><p>This
+				API is defined in the header file
+					<span class="filepath">/opt/hp93000/soc/prod_com/include/MAPI/SynchronizedTest.h</span>.</p></section>
+		<section class="sectiontitlefake"><h2>Syntax</h2></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">SYNCHRONIZED_TEST(const STRING&amp; port);
+SYNCHRONIZED_TEST(const STRING&amp; port, const STRING &amp;label, const STRING &amp;wavetable, const STRING&amp; name);</pre></section>
+		<section class="section"><h3>Member
+			functions</h3><pre class="prettyprint linenums copyable">TRANSACTION_SEQUENCE&amp; add(const STRING&amp; syncPort, const STRING&amp; syncMarker);
+
+SYNCHRONIZED_TEST&amp; resetSynchronization(INT sequenceIndex);
+SYNCHRONIZED_TEST&amp; setSynchronization(INT sequenceIndex, const STRING&amp; syncPort, const STRING&amp; syncMarker);
+
+TRANSACTION&amp; syncTransaction(const STRING&amp; transactionName, const STRING&amp; syncPort, const STRING&amp; syncMarker);
+
+Boolean flush();
+
+static UINT64 getResult(const STRING&amp; test, const STRING&amp; resultName);
+static STRING getResult(const STRING&amp; test, const STRING&amp; resultName, TM::FORMAT format);
+
+static void unlink();
+static void unlink(const STRING &amp;label);
+static void unlink(const STRING &amp;name, const STRING &amp;label);
+
+void link();
+
+void relink();
+void link();</pre></section>
+		<section class="section"><h3>Constructor</h3><pre class="prettyprint linenums copyable">SYNCHRONIZED_TEST(const STRING&amp; port);
+SYNCHRONIZED_TEST(const STRING&amp; port, const STRING &amp;label, const STRING &amp;wavetable, const STRING&amp; name);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+					<tr id="_125390__d501e35" class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_125390__d501e35__entry__1"><p>I/O</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__d501e35__entry__2"><p>Parameter</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__d501e35__entry__3"><p>Description</p>
+						</th>
+					</tr>
+				</thead><tbody>
+					<tr id="_125390__d501e56" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__1"><p>I</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__2"><p><span class="keyword">port</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__3"><p>Protocol port used to generate synchronized protocol test pattern for.</p>
+						</td>
+					</tr>
+					<tr id="_125390__d501e75" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__1"><p>I</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__2"><p><span class="keyword">label</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__3"><p>(optional) Multiport burst label of the non protocol ports/pins.</p>
+							<p>If not provided, the current sequencer start label is used.</p>
+						</td>
+					</tr>
+					<tr id="_125390__d501e97" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__1"><p>I</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__2"><p><span class="keyword">wavetable</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__3"><p>(optional) Wavetabe to be used by synchronized test protocol pattern.</p>
+							<p>If not provided, the current primary timing/wavetable specification is used.</p>
+						</td>
+					</tr>
+					<tr id="_125390__d501e119" class="rowsep-1">
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__1"><p>I</p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__2"><p><span class="keyword">name</span></p>
+						</td>
+						<td class="colsep-0 rowsep-0" headers="_125390__d501e35__entry__3"><p>(optional) Identifier of the synchronized protocol test label.</p>
+							<p>If not provided, it will be assembled using the name of the current test suite, the
+								multiport burst label and the <span class="keyword">port</span> provided.</p>
+						</td>
+					</tr>
+				</tbody></table><p>Creates a synchronized test object associated with given <span class="keyword">port.</span></p><p>If no <span class="keyword">name</span> is provided, the name will automatically be generated
+			from the current test suite name, the provided port and the multi-port burst label.</p><p>If no <span class="keyword">wavetable</span> is provided, it will be specified through the
+			primary specification of timing/wavetable at the time when the synchronized test object is
+			constructed.</p><p>If no multi-port burst <span class="keyword">label</span> is provided, it will be specified
+			through the sequencer start label set at the time when the synchronized test object is
+			constructed.</p><p>The synchronized test's protocol pattern will be generated based on the provided
+				<span class="keyword">wavetable</span> and associate it with the given multi-port burst
+				<span class="keyword">label</span>. When the according sequencer program is generated, it is hooked into
+			that multi-port burst label and thus can be executed as part of a functional test running on that
+			label. </p><p>The actual test definition will be cached beyond the execution of a single test method
+			so that subsequent identical definitions using the same name and same sequence of transactions
+			will not require modifications of the resulting pattern.</p><div class="note"><span class="title">Note</span> If the same <span class="keyword">name</span> is used sequentially for different
+			synchronized tests for example, in different test suites) the previous definition will be
+			overwritten.</div><div class="note"><span class="title">Note</span> It is not allowed to specify several protocol test objects with
+			identical name existing concurrently!</div><div class="note"><span class="title">Note</span> Possible setup
+				errors will be shown only when executing the member function <code>flush()</code>, refer to
+				the description of this member function below.</div><p>Execution of synchronized test is
+				performed by the standard APIs used to execute functional tests, after the synchronized test
+				object is associated with a sequencer start label. The translation of a transaction sequence to
+				a digital pattern is time critical and optimized for multiple executions of the same
+				synchronized test.</p><p>Transactions which receive data from the device can cause two kinds of
+				failures:</p><ul>
+				<li>Protocol violations: This may occur if fixed fields in the transaction do not match the data
+					received.</li>
+				<li>Expected data failure: This failure type depends on the mode in which a synchronized test is
+						executed.<p>If a read transactions capture device responses the fail condition can only be
+						determined in the test method code by checking the result value of the read operation.</p>
+					<p>If a read transaction is compare against expected data the global pass/fail condition will
+						immediately be affected by the non-matching response.</p></li>
+			</ul></section>
+		<section class="sectiontitlefake"><h2>Member functions</h2></section>
+		<section class="section"><h3>add()</h3><pre class="prettyprint copyable singleline">TRANSACTION_SEQUENCE&amp; add(const STRING&amp; syncPort, const STRING&amp; syncMarker);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_125390__entry__16"><p>I/O</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__17"><p>Parameter</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__18"><p>Description</p>
+						</th>
+					</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__16"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__17"><p><span class="keyword">syncPort</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__18"><p>(optional) Port to be used for synchronization.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__16"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__17"><p><span class="keyword">syncMarker</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__18"><p>(optional) Name of the marker the new sequence will be synchronized with.</p>
+								<p>If not specified, an empty string "" has to be used.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Adds an empty transaction sequence to the end of the test.</p><p>The new sequence is
+				synchronized to the specified <span class="keyword">syncMarker</span> which must be defined in the pattern
+				selected on the specified <span class="keyword">syncPort</span>.</p><div class="note"><span class="title">Note</span> Delay cycles or
+				delay time specified in addition to synchronization will be applied after
+				synchronization.</div><p>If no <span class="keyword">syncMarker</span> is used, an empty string must be
+				given. In this case the transaction execution will start without inserting any idle vectors
+				(except a delay is specified via the <code>PROTOCOL_TEST</code> class).</p><p>If the
+					<span class="keyword">syncMarker</span> is specified, then also the <span class="keyword">syncPort</span> must be
+				specified.</p><p>If multiple transaction sequences are added all <span class="keyword">syncPorts</span> must be in the same synchronization group. If none of these transaction sequences has
+				a <span class="keyword">syncPort</span> specified, the synchronized test will then run without the
+				transactions being synchronized.</p></section>
+		<section class="section"><h3>resetSynchronization()</h3><pre class="prettyprint copyable singleline">SYNCHRONIZED_TEST&amp; resetSynchronization(INT sequenceIndex);</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_125390__entry__25"><p>I/O</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__26"><p>Parameter</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__27"><p>Description</p>
+						</th>
+					</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__25"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__26"><p><span class="keyword">sequenceIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__27"><p>Index of sequence from which all synchronization points shall be removed.</p>
+								<p>Valid range: 0 to <code>getLength()-1</code></p>
+							</td>
+						</tr>
+					</tbody></table><p>Removes all synchronization point assignments from a transaction
+			sequence.</p></section>
+		<section class="section"><h3>setSynchronization()</h3><pre class="prettyprint copyable singleline">SYNCHRONIZED_TEST&amp; setSynchronization(INT sequenceIndex, const STRING&amp; syncPort, const STRING&amp; syncMarker);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_125390__entry__31"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125390__entry__32"><p class="tableheading">Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125390__entry__33"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__31"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__32"><p><span class="keyword">sequenceIndex</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__33"><p>Index of sequence to the new synchronization point shall be add.</p>
+								<p>Valid range: 0 to <code>getLength()-1</code></p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__31"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__32"><p><span class="keyword">syncPort</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__33"><p>Port to be used for synchronization.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__31"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__32"><p><span class="keyword">synchMarker</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__33"><p>Name of the marker the sequence will be synchronized with.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Sets a synchronization point to a transaction sequence at a specified port.</p><p>Any
+				previously set synchronization points are overwritten. The effect is the same as if the
+				transaction sequence was initially added specifying the same sync point.</p><div class="note"><span class="title">Note</span> Delay cycles or delay time specified in addition to synchronization will be applied after
+				synchronization.</div></section>
+		<section class="section"><h3>syncTransaction()</h3><pre class="prettyprint copyable singleline">TRANSACTION&amp; syncTransaction(const STRING&amp; transactionName, const STRING&amp; syncPort, const STRING&amp; syncMarker);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_125390__entry__43"><p>I/O</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__44"><p>Parameter</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__45"><p>Description</p>
+						</th>
+					</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__43"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__44"><p><span class="keyword">transactionName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__45"><p>Identifier of the transaction to be add.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__43"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__44"><p><span class="keyword">syncPort</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__45"><p>Port to be used for synchronization.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__43"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__44"><p><span class="keyword">syncMarker</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__45"><p>Name of the marker the sequence will be synchronized with.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Appends the specified transaction as a new synchronized transaction sequence to the
+				end of the synchronized
+				test.</p><div class="note"><span class="title">Note</span> Delay cycles or delay time specified in addition to synchronization will be applied
+				after synchronization.</div></section>
+		<section class="section"><h3>flush()</h3><pre class="prettyprint copyable singleline">Boolean flush();</pre><table class="frame-topbot"><caption><span>Parameter</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+						<th class="colsep-0 rowsep-0" id="_125390__entry__55"><p>I/O</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__56"><p>Parameter</p>
+						</th>
+						<th class="colsep-0 rowsep-0" id="_125390__entry__57"><p>Description</p>
+						</th>
+					</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__55"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__56"><p><span class="keyword">boolean</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__57"><p><span class="keyword">TRUE</span> is returned if no error occurred.</p>
+								<p><span class="keyword">FALSE</span> is returned if the test setup cannot be translated to a
+									pattern.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Finishes the definition of the synchronized test and translates it to a pattern
+				representation ready to be executed by functional test. This method must be called before test
+				execution because the functional test itself has no link back to the synchronized test. The link
+				is established by this method, which hooks the synchronized test into the multiport burst label
+				to be executed by a functional test. For executing the test, the associated multi-port burst
+				label must be selected as the start label (either via test suite dialog settings or the
+					<code>PRIMARY_STATUS</code> class).</p><p>Executing this method will prevent further access
+				to previously acquired result values on the same test object.</p><p>The function will return
+					<span class="keyword">FALSE</span> if the test has a bad setup and cannot be translated to a pattern
+				for example, missing synchronization point, missing label name...).</p><p>If the synchronized test
+				object's name conflicts with other protocol test object names that exist concurrently, the
+				method call will fail (refer to the constructor description).</p></section>
+		<section class="section"><h3>getResult()</h3><pre class="prettyprint linenums copyable">static UINT64 getResult(const STRING&amp; test, const STRING&amp; resultName);
+static STRING getResult(const STRING&amp; test, const STRING&amp; resultName, TM::FORMAT format);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_125390__entry__61"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125390__entry__62"><p class="tableheading">Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125390__entry__63"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__61"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__62"><p><span class="keyword">test</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__63"><p>Identifier of the synchronized test.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__61"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__62"><p><span class="keyword">resultName</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__63"><p>Result identifier of the synchronized test results.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__61"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__62"><p><span class="keyword">format</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__63"><p>Specifies the format of the returned sting.</p>
+								<p>Possible formats are:</p>
+								<p><code>TM::HEX</code> hexadecimal literal prefixed with 0x</p>
+								<p><code>TM::BIN</code> binary literal prefixed with 0b</p>
+								<p><code>TM::SCS</code> the captured bits without any prefix</p>
+								<p><code>TM::SYMBOL</code> symbolic value, if the parameter was set up with symbolic
+									values</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__61"><p>O</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__62"><p>&nbsp;</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__63"><p>&nbsp;</p>
+							</td>
+						</tr>
+					</tbody></table><p>This method is a static version of the method <code>getResult()</code>.</p><p>It
+				returns the result of a read transaction associated with <span class="keyword">resultName</span> of a
+				synchronized <span class="keyword">test</span>. The synchronized test does not need to exist as an object
+				when calling this method. Thus it can be used in multi-site applications where only the result
+				identifier is known and the actual test object is out of scope already.</p><div class="note"><span class="title">Note</span> If
+				return values are required larger than 64 bit, use the <code>static STRING
+					getResult()</code> method.</div></section>
+		<section class="section"><h3>unlink()</h3><pre class="prettyprint linenums copyable">static void unlink();
+static void unlink(const STRING &amp;label);
+static void unlink(const STRING &amp;name, const STRING &amp;label);</pre><table class="frame-topbot"><caption><span>Parameters</span></caption><colgroup><col><col><col></colgroup><thead>
+						<tr class="rowsep-1">
+							<th class="colsep-0 rowsep-0" id="_125390__entry__76"><p>I/O</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125390__entry__77"><p class="tableheading">Parameter</p>
+							</th>
+							<th class="colsep-0 rowsep-0" id="_125390__entry__78"><p>Description/Range</p>
+							</th>
+						</tr>
+					</thead><tbody>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__76"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__77"><p><span class="keyword">label</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__78"><p>Multiport burst label used with the synchronized test.</p>
+							</td>
+						</tr>
+						<tr class="rowsep-1">
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__76"><p>I</p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__77"><p><span class="keyword">name</span></p>
+							</td>
+							<td class="colsep-0 rowsep-0" headers="_125390__entry__78"><p>Identifier of the synchronized test.</p>
+							</td>
+						</tr>
+					</tbody></table><p>Removes the association between the flushed synchronized test identified by its
+					<span class="keyword">name</span> and the multiport burst <span class="keyword">label</span>. It must be used, for
+				example, if the same multi-port burst is to be used for more than one protocol test within one
+				testflow.</p><p>If <span class="keyword">name</span> is not specified to identify the synchronized test,
+				it removes existing associations between all flushed synchronized tests and the provided
+				multi-port burst <span class="keyword">label</span>.</p><p>If no parameter is given, it removes all
+				existing associations between all flushed synchronized tests and their accordingly specified
+				multi-port burst labels.</p><p>This method does not wait for the next <code>flush()</code>
+				to update the synchronized test data. It immediately removes the associations between
+				synchronized tests and multi-port burst labels.</p></section>
+		<section class="section"><h3>link()</h3><pre class="prettyprint copyable singleline">void link();</pre><p>Links the related synchronized
+				test object to the originally defined multiport burst. This function works only, if
+					<code>SYNCHRONOZED_TEST.unlink()</code> has been executed before.</p></section>
+		<section class="section"><h3>relink()</h3><pre class="prettyprint copyable singleline">void relink();</pre><p>Relinks the related
+				protocol test object to the originally defined multiport burst after removing all associations
+				between all protocol tests and existing multiport labels first. As such it combines the
+				functions <code>SYNCHRONOZED_TEST.unlink()</code> and
+					<code>SYNCHRONOZED_TEST.link()</code>.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="125165.htm" title="With synchronized protocol tests, the test method API provides means to attach a sequence of transactions to a synchronization point. Synchronization points (markers) can be set up in a user vector of a concurrently running port.">Vector based synchronization</a></div><div><a href="145703.htm" title="PROTOCOL_TEST is an abstract class that contains the common member functions of several derived classes each of which represents a different kind of protocol based test. Two such classes are SYNCHRONIZED_TEST and SERIAL_LINK_TEST. You cannot create a PROTOCOL_TEST object directly, but only through a derived class.">PROTOCOL_TEST</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.1.0</li><li>SmarTest 7.2.0: New method link().</li><li>SmarTest 7.2.1: New method relink().</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 125390</span><script type="text/javascript">var ti='125390';var tt='SYNCHRONIZED_TEST'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content=""><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>The PART_ID field in the PRR</title></head><body id="_81320"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 81320</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">The PART_ID field in the PRR</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="142792.htm" title="Subdie wafer testing is a special case of wafer testing, where one set of wafer coordinates can represent multiple dies.">Subdie wafer testing</a></li></ol></div></nav>
+	
+	
+	<div><p></p>
+		<section class="section"><h2>Default device identification numbering</h2><p>The data formatter automatically
+				generates unique integer identification numbers for each device in the lot. If you are executing
+				a multisite test on four different sites, the device on each site will receive a unique integer
+				identification number (Dev@). For example, the first devices tested would be numbered 1, 2, 3, 4
+				and the next set of devices on those four sites would be numbered 5, 6, 7, 8. This is the
+				default behavior.</p></section>
+		<section class="section"><h2>Subdie identification numbering</h2><p>When you perform <a href="142792.htm" title="Subdie wafer testing is a special case of wafer testing, where one set of wafer coordinates can represent multiple dies.">Subdie wafer testing</a>
+				and want each subdie to have its own part ID in the EDL report, you must set the test program
+				parameter <span class="keyword">SubdieTestingEnable</span> to <span class="keyword">true</span>.</p><ul>
+				<li>If <span class="keyword">SubdieTestingEnable</span> is set to <span class="keyword">true</span>, each subdie
+					will have a unique PART_ID value. </li>
+				<li>If <span class="keyword">SubdieTestingEnable</span> is not <span class="keyword">true</span>, SmarTest uses the
+					default numbering described above. All subdies at the same (X, Y) coordinate will have the same
+					PART_ID values and will be identified as retest results.</li>
+			</ul><p>The following code example shows how to set up
+				<span class="keyword">SubdieTestingEnable</span>.</p><pre class="prettyprint linenums copyable">{ lot
+  ACTIONS
+  ...
+  SubdieTestingEnable = CONST_INPUT(true);
+  ...
+  { WAFER [({LotID}),({WaferID})] wafer:
+    ACTIONS
+    SubdieTestingEnable = CONST_INPUT(true);
+    ...
+    { DEVICE subdie:
+      ACTIONS
+      SubID = AUTOINCREMENT;
+      SITE1_PART_ID = CONST_INPUT({SubID});
+      ...
+    }
+    ...
+  }
+  ...
+}</pre></section>
+		<section class="section"><h2>User-defined device identification numbering</h2><p>You can specify custom part
+				identification numbering from the application model. To do this, you must populate application
+				model variables with values that follow this naming
+					structure:</p><p>SITE<span class="keyword">&lt;N&gt;</span>_PART_ID (where N is the site
+				number)</p><p>For example, if you are testing devices on three sites and you want to set the
+				identification numbers for those devices, you need to populate the following
+				variables:</p><pre class="prettyprint linenums copyable">SITE1_PART_ID = ...
+SITE2_PART_ID = <span class="keyword">...</span>
+SITE3_PART_ID = <span class="keyword">...</span></pre><p>These
+				variables must be populated before the <span class="keyword">DEVICE_TEST</span> command in the application
+				model. It is recommended that you populate these variables inside the <span class="keyword">DEVICE</span>
+				level in the application model before <span class="keyword">DEVICE_TEST</span> is executed.</p></section>
+		<section class="section"><h2>New PART_ID values for retested devices</h2><p>When you retest devices, you may
+				need each retested device to have its own new PART_ID value in the STDF output. Then, you must
+				set the parameter <span class="keyword">OverridePartIdForRetestDevice</span> to <span class="keyword">true</span> in
+				your application model file and set the variable <span class="keyword">SITEn_PART_ID</span> to new values.
+				</p><p>The following example shows the
+				setup.</p><pre class="prettyprint linenums copyable">...
+  OverridePartIdForRetestDevice = CONST_INPUT(true);
+  ...
+    SITE1_PART_ID = 1015;
+    SITE2_PART_ID = 1016;
+    ...
+...</pre><p>As
+				a result of this setup, the retested devices use the new PART_ID values in the output, which are
+				"1015" and "1016" as in the example.</p><p>If you do not set the parameter
+					<span class="keyword">OverridePartIdForRetestDevice</span> to <span class="keyword">true</span> and no new PART_ID
+				values in your application model file, the retested devices will keep using their original
+				PART_ID values.</p></section>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="142792.htm" title="Subdie wafer testing is a special case of wafer testing, where one set of wafer coordinates can represent multiple dies.">Subdie wafer testing</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced before SmarTest 6.3.2</li><li>SmarTest 7.1.0: hp83_to_stdf formatter discontinued</li><li>SmarTest 7.2.0: Introduced SubdieTestingEnabled variable</li><li>SmarTest 7.4.2: Introduced OverridePartIdForRetestDevice</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 81320</span><script type="text/javascript">var ti='81320';var tt='The PART_ID field in the PRR'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

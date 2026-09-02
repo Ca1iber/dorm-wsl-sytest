@@ -1,0 +1,158 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="This is a template of an SPI protocol class which defines the basic properties and operation logics of the protocol."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>SPI protocol class template</title></head><body id="_351516"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351516</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">SPI protocol class template</h1>
+	
+	
+	<div><p>This is a template of an SPI protocol class which defines the basic properties and
+		operation logics of the protocol.</p>
+		<section class="section">
+			<div></div><pre class="prettyprint linenums copyable">
+#include "RA_protocols.h"
+
+namespace {
+
+using namespace RA;
+using namespace std;
+
+/**
+ * This is a template of an SPI protocol class which defines the basic properties
+ * and operation logics of the protocol.
+ */
+class SPITemplate : public ProtocolSPI {
+public:
+SPITemplate() {}
+virtual ~SPITemplate() {}
+
+/**
+ * (Mandatory)
+ * Create a singleton.
+ */
+RA_CREATE_SINGLETONE(SPITemplate);
+
+/**
+ * (Mandatory)
+ * Give a reasonable name as an ID to identify this protocol class.
+ * This name can be used in Test Method to switch to this protocol,
+ * e.g. RA_SWITCH_PROTOCOL("SPITemplate");
+ */
+virtual std::string getName() const { return "SPITemplate"; }
+
+/**
+ * (Mandatory)
+ * Define the speed of this protocol.
+ */
+virtual double getClockSpeed() const { return 5 MHz ; }
+
+protected:
+/**
+ * (Mandatory)
+ * Define the logics of the register write operation.
+ */
+virtual void defineWriteRegister(SPI&amp; spi, ULONG64 address, ULONG64 data) {
+spi.ssLow();
+spi.sendData(address, 16);
+spi.sendData(data, 8, "data_in");
+spi.ssHigh();
+}
+
+/**
+ * (Mandatory)
+ * Define the logics of the register read operation.
+ */
+virtual void defineReadRegister(SPI&amp; spi, ULONG64 address, int numberOfData) {
+spi.ssLow();
+spi.sendData(address, 16);
+spi.receiveData(0, 8, "data_out");
+spi.ssHigh();
+}
+
+/**
+ * (Mandatory)
+ * Define the logics of the register compare operation.
+ */
+virtual void defineCompareRegister(SPI&amp; spi, ULONG64 address, ULONG64 expectData, ULONG64 maskData) {
+spi.ssLow();
+spi.sendData(address, 16);
+spi.compareData(0, 8, expectData, maskData);
+spi.ssHigh();
+}
+
+/**
+ * (Mandatory)
+ * Define how the data and/or the address is set into parameter(s).
+ */
+virtual void composeRegisterWriteData(ParameterSetter&amp; param, ULONG64 address, ULONG64 data) {
+param.setValue("data_in", data);
+}
+
+/**
+ * (Mandatory)
+ * Define how parameters are assembled to the result of a register read operation.
+ */
+virtual ULONG64 composeRegisterReadData(ParameterGetter&amp; param) {
+return param.getValue("data_out");
+}
+
+/**
+ * (Mandatory)
+ * Define the pin to be used as CLK.
+ */
+virtual std::string getPinName_SCLK() const { return "SPI_CLK"; }
+
+/**
+ * (Mandatory)
+ * Define the pin to be used as MOSI(Master Out Slave In).
+ */
+virtual std::string getPinName_MOSI() const { return "SPI_MOSI"; }
+
+/**
+ * (Mandatory)
+ * Define the pin to be used as MISO(Slave Out Master In).
+ */
+virtual std::string getPinName_MISO() const { return "SPI_MISO"; }
+
+/**
+ * (Optional)
+ * Define the pin to be used as SS.
+ */
+virtual std::string getPinName_SS() const { return "SPI_SS"; }
+
+/**
+ * (Optional)
+ * Define Bit Order in shift data.
+ * Default is MSB.
+ */
+virtual BIT_ORDER getBitOrder() const { return MSB_FIRST; }
+
+/**
+ * (Optional)
+ * CLK_IDLE_LOW:  is a clock which idles at 0, and each cycle consists of a pulse of 1.
+     *                That is, the leading edge is a rising edge, and the trailing edge is a falling edge.
+     * CLK_IDLE_HIGH: is a clock which idles at 1, and each cycle consists of a pulse of 0.
+ *                That is, the leading edge is a falling edge, and the trailing edge is a rising edge.
+ * Default is CLK_IDLE_LOW.
+ */
+virtual MODE_CPOL getCPOL() const { return CLK_IDLE_LOW; }
+
+/**
+ * (Optional)
+ * LATCH_AT_LEADING_EDGE:  the "out" side changes the data on the trailing edge of the preceding clock cycle,
+     *                         while the "in" side captures the data on (or shortly after) the leading edge of the clock cycle.
+     * LATCH_AT_TRAILING_EDGE: the "out" side changes the data on the leading edge of the current clock cycle,
+ *                         while the "in" side captures the data on (or shortly after) the trailing edge of the clock cycle.
+ * Default is LATCH_AT_LEADING_EDGE.
+ */
+virtual MODE_CPHA getCPHA() const { return LATCH_AT_LEADING_EDGE; }
+
+};
+
+/**
+ * (Mandatory)
+ * Register this protocol class to the RA lib.
+ */
+REGISTER_PROTOCOL(SPITemplate);
+}</pre><div></div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 7.6.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351516</span><script type="text/javascript">var ti='351516';var tt='SPI protocol class template'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

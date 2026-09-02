@@ -1,0 +1,297 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Most modern libraries require a modern C++ standard. SmarTest uses the Red Hat Developer Toolset to support modern C++."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>Enabling modern C++ support for SmarTest 7</title><meta name="keywords" content="Smar, Test"></head><body id="_351792"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 351792</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">Enabling modern C++ support for SmarTest 7</h1>
+	
+	
+	<div><p>Most modern libraries require a modern C++ standard. SmarTest uses the Red Hat Developer
+		Toolset to support modern C++.</p>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Before you begin</h2></div>
+			<p>For information on the Red Hat Developer Toolset, see: <a href="https://access.redhat.com/documentation/en-us/red_hat_developer_toolset/10/html/user_guide/index" target="_blank" rel="external noopener" class="ex">User Guide - Red Hat Developer Toolset</a></p>
+			<p>Starting SmarTest without enabling the developer toolset, uses the older GCC 4.8 compiler,
+				which does not support modern C++ standards. To use modern C++, use GCC 10. However, the GCC 10
+				devtoolset compiler is stricter. It returns more warnings and errors about valid code. For
+				further information about compatibility of different GCC versions and modes, see: </p>
+			<p><a href="https://access.redhat.com/documentation/en-us/red_hat_developer_toolset/10/html/user_guide/chap-GCC#sect-GCC-CPP-Compatibility" target="_blank" rel="external noopener" class="ex">Red Hat Developer Toolset - GNU C++ Compiler - C++
+					Compatibility</a></p>
+		</section>
+		
+		<section class="section"><h2>Enabling the devtoolset</h2>
+			
+			<p>To enable the devtoolset-10, enter the command:</p>
+			<p><kbd class="userinput">scl enable devtoolset-10 </kbd><var class="varname">&lt;cmd&gt;</var>
+			</p>
+			<p>If command includes options, add <kbd class="userinput">--</kbd> before the command.</p>
+			<p>Examples:</p>
+			<p><kbd class="userinput">scl enable devtoolset-10 -- HPSmarTest -o</kbd></p>
+			<p><kbd class="userinput">scl enable devtoolset-10 bash</kbd></p>
+			<p><kbd class="userinput">scl enable devtoolset-10 make</kbd></p>
+		</section>
+		<section class="section"><h2>Enabling C++14 support</h2>
+			
+			<p>After enabling devtoolset-10, you can use C++14. C++14 with GNU extensions is the default
+				standard for GCC 10. </p>
+			<p>To enable C++14 without GNU extensions, use the option:</p>
+			<p><kbd class="userinput">-std=c++14</kbd>
+			</p>
+		</section>
+		<section class="section"><h2>Enabling C++98 support</h2>
+			
+			<p>C++98 with GNU extensions is the default standard for GCC 4.8 (RHEL 7.4:
+					<span class="filepath">/usr/bin/g++</span>).</p>
+			<p>To use GCC 10 from devtoolset-10, use the command line parameter:</p>
+			<p><kbd class="userinput">-std=gnu++98</kbd></p>
+			<p>To enable C++98 without GNU extensions, for both compilers use the option: </p>
+			<p><kbd class="userinput">-std=c++98</kbd>. </p>
+			<div class="p">To change the flag in the Work Center:<ol>
+					<li>Open the project properties of your test method project.</li>
+					<li>In <span class="menucascade"><span class="uicontrol">C/C++ Build</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Settings</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Tool Settings</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">GCC C++ Compiler</span><abbr title="and then"> &gt; </abbr><span class="uicontrol">Dialect</span></span>, set <span class="uicontrol">Language standard</span> to the standard required (for
+						example, ISO C++98) or use <span class="uicontrol">Other dialect flags</span> field if the flag is not
+						listed. <p><img src="351793.png" alt="C++ Compiler Dialect dialog box.png"></p></li>
+				</ol></div>
+		</section>
+		<section class="section"><h2>Using GCC 10</h2>
+			
+			<p>Using GCC 10 in place of GCC 4.8 brings with it some added restrictions and changes in
+				behaviour including the following: </p>
+			<div class="p">
+				<dl>
+					
+						<dt class="dlterm">Warnings using GCC 10</dt>
+						<dd>GCC 10 issues more warnings than GCC 4.8. If you are, for example, compiling with
+								<kbd class="userinput">-Werror</kbd>, you must fix these often valid warnings or explicitly not
+							treat them as errors using: <p><kbd class="userinput">-Wno-error=</kbd></p><p>Alternatively,
+								completely ignore them using:</p><p><kbd class="userinput">-Wno-</kbd></p><p>Examples:
+									</p><p><kbd class="userinput">-Wno-error=stringop-truncation</kbd>
+							</p><p><kbd class="userinput">-Wno-error=format-overflow=</kbd>
+							</p><p><kbd class="userinput">-Wno-address-of-packed-member</kbd></p></dd>
+					
+					
+						<dt class="dlterm">Non-standard-compliant code rejected by GCC 10</dt>
+						<dd>Some non-standard-compliant code that was accepted by GCC 4.8 is not accepted by GCC
+								10.<p>For complex values, assignment to <span class="keyword">imag()</span> and
+									<span class="keyword">real()</span> is no longer accepted. Use setter functions
+									<span class="keyword">imag(double)</span> and <span class="keyword">real(double)</span> instead.</p><p>The
+								stream classes of the standard library can no longer be compared with NULL. Evaluate the
+								stream in a boolean context. Instead of using <kbd class="userinput">if (file != NULL) ...</kbd>
+								use <kbd class="userinput">if (file)</kbd>. </p></dd>
+					
+					
+						<dt class="dlterm">Stream output</dt>
+						<dd>Output to streams now behaves more intuitively: <div></div><pre class="prettyprint linenums copyable">int f()
+{
+  std::cout &lt;&lt; "b";
+  return 1;
+}
+
+int main()
+{
+  std::cout &lt;&lt; "a " &lt;&lt; f() &lt;&lt; " c\n";
+  return 0;
+}</pre><p>Output GCC 10:</p><pre class="prettyprint copyable singleline">a b1 c</pre><p>Output GCC
+								4.8:</p><pre class="prettyprint copyable singleline">ba 1 c</pre><p>If you previously implemented a firmware stream
+								class, the behavior of such a class is affected by this change.</p><p>Failing
+								example:</p><pre class="prettyprint linenums copyable">double get_vterm()
+{
+  fw_out &lt;&lt; // ... some FW command
+  ...
+  return v;
+}
+
+void do_cmd() // ... failing example
+ //
+{
+   fwout &lt;&lt; "TERM PRM,A," &lt;&lt; get_vterm() &lt;&lt; "...";
+}
+</pre><p>Corrected example: </p><pre class="prettyprint linenums copyable">double get_vterm()
+{
+  fw_out &lt;&lt; // ... some FW command
+  ...
+  return v;
+}
+
+void do_cmd() // ... corrected example
+{
+  const double vterm = get_vterm();
+  fwout &lt;&lt; "TERM PRM,A," &lt;&lt; vterm &lt;&lt; "...";
+}</pre></dd>
+					
+					
+						<dt class="dlterm">Streaming between streams</dt>
+						<dd>It is no longer possible to stream from one stream to another.<p>Example
+								1:</p><pre class="prettyprint linenums copyable">std::ostringstream ostr;
+ostr &lt;&lt; 123;
+std::cout &lt;&lt; ostr &lt;&lt; '\n';</pre><p>Example
+							2:</p><pre class="prettyprint linenums copyable">std::ostringstream ostr;
+ostr &lt;&lt; 123;
+std::cout &lt;&lt; ostr.str() &lt;&lt; '\n';</pre></dd>
+					
+				</dl>
+			</div>
+		</section>
+		<section class="section"><h2>C++98 specific considerations</h2>
+			
+			<p>For the following APIs there is a compiler warning when using the compile option -Wpedantic in
+				the MAPI header: <a href="120107.htm" title="Arms the SMC_backgroundProcessing() method and passes the specified data to it.">SMC_ARM()</a>, <a href="348107.htm" title="Arms the SMC_backgroundProcessing() method, passes the specified data to it, and passes also a list of the sites to be processed to the SmartCalc framwork.">SMC_ARM_FOR_SITES()</a>, <a href="149774.htm" title="Arms the SMC_backgroundProcessing() method and passes the name of another test suite and data to it. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS()</a>, and
+					<a href="348109.htm" title="Arms the SMC_backgroundProcessing() method, passes the name of another test suite and data to it, and passes also a list of the sites to be processed to the SmartCalc framwork. This API enables you to log the data of the specified test suite in the background.">SMC_ARM_OTHER_TS_FOR_SITES()</a>.</p>
+		</section>
+		<section class="section"><h2> C++98 valid code no longer valid since C++11</h2>
+			
+			<p>Moving to C++11 or later brings with it some added restrictions and changes in behavior. Some
+				code that was valid in C++98 is no longer valid since C++11, for example:</p>
+			<dl>
+				
+					<dt class="dlterm">In-class initialization of members </dt>
+					<dd>GCC 10 does not allow in-class initialization of static data members of non-integral
+							type.<p>Invalid code:</p><pre class="prettyprint linenums copyable">class A
+{
+  static const double v = 1.1;
+};</pre><p>Valid code:</p><pre class="prettyprint linenums copyable">class A
+{
+  static const double v;
+};</pre><p>Implementation file:</p><pre class="prettyprint copyable singleline">const double A::v = 1.1;</pre></dd>
+				
+				
+					<dt class="dlterm">String literal operators</dt>
+					<dd>The string literal operators have been introduced with C++11 and, for example, macros used
+						within string concatenation must now be separated by a space to not be interpreted as string
+						literal operators. <p>Invalid code:</p><pre class="prettyprint linenums copyable">#define INT_FMT "%d"
+...
+printf("cnt = "INT_FMT "\n");</pre><p>Valid
+						code:</p><pre class="prettyprint linenums copyable">#define INT_FMT "%d"
+...
+printf("cnt = " INT_FMT "\n");</pre></dd>
+				
+				
+					<dt class="dlterm">Destructors</dt>
+					<dd>Destructors are <span class="keyword">noexcept</span> by default since C++11. If an exception is
+						thrown and not caught within a destructor or function that is marked as
+							<span class="keyword">noexcept</span>, the program terminates. If you want to allow a destructor to
+						throw an exception, you must explicitly add <kbd class="userinput">noexcept(false)</kbd> to the
+						destructor. For example: <div></div><pre class="prettyprint linenums copyable">class Guard
+{
+public:
+  Guard();
+  ~Guard() noexcept(false);
+};</pre><div></div>
+					</dd>
+				
+				
+					<dt class="dlterm">New feature conflicts</dt>
+					<dd>New features may conflict with existing ones in your code or code from third-party
+						libraries when only using the namespace <span class="keyword">std</span> (for example,
+							<code>std::function</code>) or in combination, for example, with namespace boost
+							(<code>std::weak_ptr, std::shared_ptr</code>).</dd>
+				
+				
+					<dt class="dlterm">Move semantics</dt>
+					<dd>Move semantics make explicit instantiation of <code>std::make_pair&lt;&gt;</code> invalid.
+							<p>Invalid example:</p><pre class="prettyprint linenums copyable">void f(std::pair&lt;std::string, std::string&gt; p);
+...
+f(std::make_pair&lt;std::string, std::string&gt;("abc", "def");</pre><p>Corrected
+							example:</p><pre class="prettyprint linenums copyable">void f(std::pair&lt;std::string, std::string&gt; p);
+...
+f(std::make_pair("abc", "def");</pre></dd>
+				
+			</dl>
+		</section>
+		<section class="section"><h2>Archive libraries</h2>
+			
+			<div class="p">Archive libraries are no longer distributed. Use their shared counterpart instead:<table class="frame-all"><caption><span>Archive and shared library mapping</span></caption><colgroup><col style="width:50%"><col style="width:50%"></colgroup><thead>
+							<tr>
+								<th class="colsep-1 rowsep-1" id="_351792__entry__1">archive</th>
+								<th class="colsep-1 rowsep-1" id="_351792__entry__2">shared library</th>
+							</tr>
+						</thead><tbody>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">pws/lib/libstophere.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">pws/sh_lib/libstophere.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">pws/lib/tm_funcs.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">pws/sh_lib/libtm_funcs.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">pws/lib/xse.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">pws/sh_lib/libxse.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">pws/lib/s_com.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">pws/sh_lib/libs_com.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/libluna_dl.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libluna_dl.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/multi_site.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libmulti_site.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/int64.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libint64.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/libextwidgets.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libextwidgets.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/pdb.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libpdb.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/gen_check.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libgen_check.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/libeds.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libeds.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/ui_hpt_util.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libui_hpt_util.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/libdrl.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libdrl.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/libgu.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libgu.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/ui_graphic.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libui_graphic.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/dm.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libdm.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">com/lib/fw_mx.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">com/sh_lib/libfw_mx.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">prod_com/sh_lib/libcicpi.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">prod_com/sh_lib/libcicpi.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">fw/lib/pif.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">fw/sh_lib/libpif.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">mix_sgnl/lib/libadiUP.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">mix_sgnl/sh_lib/libadiUP.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">segments/formatter/lib/libCSTDF.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">segments/formatter/sh_lib/libCSTDF.so</span></td>
+							</tr>
+							<tr>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__1"><span class="filepath">segments/formatter/lib/libSHMOO.a</span></td>
+								<td class="colsep-1 rowsep-1" headers="_351792__entry__2"><span class="filepath">segments/formatter/sh_lib/libSHMOO.so</span></td>
+							</tr>
+						</tbody></table></div>
+		</section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.6.0</li><li>SmarTest 7.6.2: GNU Compiler Collection  (GCC) version 10 support.</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 351792</span><script type="text/javascript">var ti='351792';var tt='Enabling modern C++ support for SmarTest 7'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

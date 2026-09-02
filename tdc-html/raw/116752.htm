@@ -1,0 +1,77 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en-us"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="The following describes how to set up, execute, and analyze a protocol engine test on the firmware level."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>How to set up and execute a protocol engine test</title></head><body id="_116752"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 116752</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">How to set up and execute a protocol engine test</h1><nav role="navigation"><div id="st"><h4>Subtopics</h4><ol><li><a href="118405.htm" title="It is possible to combine a PRBS test or pattern‑based SmartLoop test (see Commands for PRBS and SmartLoop tests) with transition tracking at the output pins. Since only the tracking block is needed in this case, the transition test set must be configured as the following example set PRBS_LOOPBACK_TT:">Combining transition tracking with a PRBS or pattern‑based SmartLoop test</a></li></ol></div></nav>
+	
+	
+	<div><p>The following describes how to set up, execute, and analyze a protocol engine test on
+		the firmware level.</p>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">About this task</h2></div><p>Protocol engine tests serve to cope with non-deterministic behavior of devices
+				(for example, drift or initial latency) when such a behavior is not a sufficient
+				reason to reject the device. See <a href="114244.htm" title="The protocol engine per pin, which is available on Smart Scale systems, serves to cope with non-deterministic behavior of devices on which all data transitions at the output pins are expected to occur at multiples of a unit interval (abbreviated as &#34;UI&#34;). This UI is defined by period_length/x_mode. A protocol engine test can only be executed in x4-mode or x6-mode, so that one tester cycle will comprise either 4 or 6 UI's.">Overview of the protocol engine per pin</a> for more
+			information.</p></section>
+		<section><div class="tasklabel"><h2 class="sectiontitle tasklabel">Procedure</h2></div><ol><li class="stepexpand">
+				<span>Configure the protocol engine test by defining a <em>transition test
+					set</em>:</span>
+				<ol type="a">
+					<li class="substepexpand">
+						<span>Create a transition test set with <span class="keyword">TTDF</span>.</span>
+					</li>
+					<li class="substepexpand">
+						<span>Define the transition test parameters for the appropriate pins with
+								<span class="keyword">TTCF</span>.</span>
+						<div><p>The parameters can be grouped into</p>
+							<ul>
+								<li>transition tracking parameters,</li>
+								<li>pattern matching parameters,</li>
+								<li>error handling.</li>
+							</ul>
+						</div>
+					</li>
+					<li class="substepexpand">
+						<span>Optionally, check the consistency of your definition with
+								<span class="keyword">TTVD</span>.</span>
+					</li>
+					<li class="substepexpand">
+						<span>Make the transition test set the primary such set with
+								<span class="keyword">TTPR</span>.</span>
+						<div><p>Note that the primary transition test set is <em>not</em>
+								automatically executed when you issue <span class="keyword">FTST?</span>. You
+								must activate it with the keyword <span class="keyword">TTMODE</span> in the
+								timing setup for the respective pins.</p>
+						</div>
+					</li>
+				</ol>
+			</li><li class="stepexpand">
+				<span>Define the timing setup:</span>
+				<div><p>The main points that are to be observed when defining a timing setup for a
+						protocol engine test are:</p>
+					<ul>
+						<li>The timing setup for a protocol engine test must be coded in native Pin
+							Scale 9G format (see <a href="113740.htm" title="The main difference between legacy and Smart Scale waveforms is that there are now separate sets of edges for drive actions and for tri-state actions. There are thus 16 drive edges each of which can be associated with a different delay. Waveforms for Smart Scale pins can be specified in two formats.">Defining waveform shapes for Smart Scale pins</a> and <a href="116452.htm" title="Timing equation sets for a Smart Scale pin differ from earlier versions in that different delays can now be defined for the f-edges and s-edges in the timing set. The di syntax is still supported and is taken to mean that si and fi are to be set to the same delay. However, you cannot mix the native Smart Scale syntax with the earlier syntax within the same PINS block. Special requirements for protocol engine test pins are described in Defining edge delays for a protocol engine test.">Defining edge delays for Smart Scale pins</a>).</li>
+						<li>The pins for which a protocol engine test is to be executed must be
+							marked with the <span class="keyword">TTMODE</span> keyword in the wavetable and
+							in all timing sets of the primary timing specification (see <a href="114068.htm" title="Waveforms for a protocol engine test must be defined in native Pin Scale 9G format. In addition, they must satisfy the following conditions:">Defining waveforms for a protocol engine test</a> and <a href="116454.htm" title="The keyword TTMODE marks a pin or pin group as a protocol engine test pin. It defines the x-mode for the protocol engine test and must be specified within the timing set immediately below the PINS statement. Possible x-modes are X4 and X6.">Defining edge delays and period length for a protocol engine test</a>).</li>
+						<li>In certain situations it is desirable to "freeze" the transition
+							tracker, that is, to suppress adjustment of the observation window. This
+							is controlled by the window formatter (which therefore cannot be used
+							for compare actions in a protocol engine test). For more information see
+								<a href="114309.htm" title="When a bi-directional pin is tracked, and it operates in input mode, then the tracker sees the drive data. Since these are irrelevant to the expected data stream, the tracker must be disabled during these sections of the test. For this purpose, the window formatter is used (which entails that window compares are not possible in protocol engine tests). It must be set to &#34;0&#34; to disable the tracker. This has the consequence that the observation window is &#34;frozen&#34;, that is, it is not adjusted any more, regardless of any internal transitions within the current window.">Tracking bi-directional pins</a>.</li>
+					</ul></div>
+			</li><li class="stepexpand">
+				<span>Execute the test with <span class="keyword">FTST?</span>.</span>
+				<div><div class="note"><span class="title">Note</span> If the <span class="keyword">TTMODE</span> keyword is not specified
+						within the primary timing specification, <span class="keyword">FTST?</span> will
+						ignore all transition test settings. </div><p>If you want to execute a
+						protocol engine test for a pair of differential pins, configure the test for
+						both pins in the same way. Note that only the positive connection of the pair will
+						be considered in the test, and that consequently results will be returned
+						only for the positive connection.</p>
+				</div>
+			</li></ol></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">Results</h2></div><p><span class="keyword">FTST?</span> will return a global P/F result. The outcome also
+				depends on the error handling defined with <span class="keyword">TTCF</span>.</p></section>
+		<section class="section"><div class="tasklabel"><h2 class="sectiontitle tasklabel">What to do next</h2></div><p>If you want to check the details of the test execution, issue the
+					<span class="keyword">TTDB?</span> and/or <span class="keyword">TTST?</span> queries.</p></section>
+	</div>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmarTest 7.0.1</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 116752</span><script type="text/javascript">var ti='116752';var tt='How to set up and execute a protocol engine test'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>

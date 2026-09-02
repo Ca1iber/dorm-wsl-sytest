@@ -1,0 +1,102 @@
+<!DOCTYPE html
+  SYSTEM "about:legacy-compat">
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta charset="UTF-8"><meta name="description" content="Applies an already defined switch state to utility lines and PMUX switches."><link rel="stylesheet" type="text/css" href="p.css" media="print"><link rel="stylesheet" type="text/css" href="tdc.css"><title>rdi.route().applyState()</title></head><body id="_343442"><header role="banner"><table id="vr"><tr><history> </history></tr></table><div class="ti">Topic 343442</div></header><main role="main"><article role="article" aria-labelledby="ariaid-title1">
+	<h1 class="topictitle1" id="ariaid-title1">rdi.route().applyState()</h1>
+	
+	
+	<div><p>Applies an already defined switch state to utility lines and PMUX
+		switches.</p>
+		<section class="section"><p>The function applies the selected switch state to the supported hardware. The
+				selected state may contain any combination of static utility lines, <a href="128329.htm" title="Utility lines may be controlled by the pattern sequencer via an internal data path or with the help of digital pins and a dedicated serial interface of the utility blocks. This type of controlling utility lines is referred to as &#34;dynamic access&#34; to utility lines. The advantage over the standard static access is that the utility lines can be controlled synchronously to the pattern sequencer.">sequencer‑controlled</a> utility lines. The applied switch state must already be
+				defined by the <a href="153261.htm" title="The states to be applied can be defined in the State Setup editor. The user defined states hold the switch states for all utility pins and PMUX pins and represent one of the Routing Tools main functionality.">State Setup editor</a> of the <a href="153207.htm" title="The Routing Tools editors are the graphical user interface of the Routing Tools. Global setup data, control and configuration data for utility lines and finally the switch states to be applied can be defined in the editors.">Routing Tools editors</a>.</p>
+			<p>Only one switch state may be applied and activated at time.</p>
+			<div class="p">Usage of the function:<ul>
+					<li>The function can be called in the code‑based mode or in the pattern‑based
+						mode. For more information, refer to <a href="142069.htm#_142069__s_Execution_mode">Execution mode</a> in topic <a href="142069.htm" title="SmartRDI (Rapid Development Interface) provides a high level of programming interface to create your test method program. Use the classes listed below to setup your tests.">SmartRDI</a>.</li>
+					<li>For debugging, we recommend setting the keyword <a href="146692.htm#_146692__row_ROUTING_ACK_CHECK">ROUTING_ACK_CHECK</a> of the
+							<a href="146692.htm" title="The RDI_Configure file is used to configure some default settings to be used when programming with SmartRDI. The RDI_Configure file is in folder testmethod of the loaded device. An RDI_Configure.Template file will be generated in the first run, which has all options with comments.">RDI_Configure file</a> to <span class="keyword">TRUE</span> to enable a check if
+						the route state is applied successfully to <span>PMUX</span>
+						switches.</li>
+				</ul></div>
+			<div class="p">Execution sequence:<ul>
+					<li>Code-based mode:<ul>
+							<li>Combination of static utility lines and sequencer‑controlled utility
+								lines or PMUX switches:<p>The setup of the static utility lines is
+									applied first, followed by a pattern that applies the setup of
+									the sequencer‑controlled utility lines and activates a stored
+									PMUX state.</p></li>
+							<li>Only sequencer‑controlled utility lines or PMUX switches:<p>A
+									pattern that applies the setup of the sequencer‑controlled
+									utility lines and activates a stored PMUX state is
+								started.</p></li>
+						</ul></li>
+					<li>Pattern-based mode:<p>A pattern that applies the setup of the sequencer
+							controlled utility lines and activates a stored PMUX state is started
+							within an RDI burst.</p><div class="note"><span class="title">Note</span> Any switch state that contains
+							static utility lines cannot be applied in pattern‑based mode. This
+							restriction ensures that the sequence of applying the switch state
+							corresponds to the source code.</div></li>
+				</ul></div></section>
+		<h2>Syntax</h2><div class="syntax"><pre class="prettyprint copyable singleline">routeGroup&amp; applyState(const string &amp;state);</pre><div></div>
+			<dl>
+				
+					<dt class="dlterm">List of parameters</dt>
+					<dd><table class="frame-topbot"><caption></caption><colgroup><col><col></colgroup><thead>
+									<tr>
+										<th class="colsep-0 rowsep-1" id="_343442__entry__1">Parameter</th>
+										<th class="colsep-0 rowsep-1" id="_343442__entry__2">Description</th>
+									</tr>
+								</thead><tbody>
+									<tr>
+										<td class="colsep-0 rowsep-1" headers="_343442__entry__1"><span class="keyword">state</span></td>
+										<td class="colsep-0 rowsep-1" headers="_343442__entry__2">The string defines the switch state that is to be
+												applied.<p>The selected switch state must already be
+												defined by the <a href="153261.htm" title="The states to be applied can be defined in the State Setup editor. The user defined states hold the switch states for all utility pins and PMUX pins and represent one of the Routing Tools main functionality.">State Setup
+												editor</a> of the <a href="153207.htm" title="The Routing Tools editors are the graphical user interface of the Routing Tools. Global setup data, control and configuration data for utility lines and finally the switch states to be applied can be defined in the editors.">Routing Tools editors</a>.</p></td>
+									</tr>
+								</tbody></table></dd>
+				
+				
+					<dt class="dlterm">Return value</dt>
+					<dd>A reference to the <a href="343474.htm" title="Creates a &#34;routeGroup&#34; object for controlling setups of the Routing Tools.">routeGroup</a> object.</dd>
+				
+			</dl></div>
+		<h2>Examples</h2><div class="example"><h3>Example 1</h3>
+			<div></div><pre class="prettyprint linenums copyable">RDI_INIT();
+...
+...
+ON_FIRST_INVOCATION_BEGIN();
+{
+    ...
+    ...
+    RDI_BEGIN();
+    {
+        ...
+        ...
+        rdi.route().applyState("Connect_load").execute();
+        ...
+        ...
+    }
+    RDI_END();
+    ...
+    ...
+}
+ON_FIRST_INVOCATION_END();
+...
+...</pre><div></div>
+		</div>
+		<div class="example"><h3>Example 2</h3>
+			
+			<div></div><pre class="prettyprint linenums copyable">FOR_SEMI_PARALLEL_TEST_BEGIN(config);
+  rdi.route().enableOnlyActiveSites().execute();
+  RDI_BEGIN();
+    rdi.route().applyState("ABC").execute();
+  RDI_END();
+  
+FOR_SEMI_PARALLEL_TEST_END();
+
+rdi.route().enableOnlyActiveSites().execute();</pre><div></div>
+		</div>
+	</div>
+	<nav role="navigation"><h2>Related information</h2><div class="ri"><div><a href="153207.htm" title="The Routing Tools editors are the graphical user interface of the Routing Tools. Global setup data, control and configuration data for utility lines and finally the switch states to be applied can be defined in the editors.">Routing Tools editors</a></div><div><a href="128329.htm" title="Utility lines may be controlled by the pattern sequencer via an internal data path or with the help of digital pins and a dedicated serial interface of the utility blocks. This type of controlling utility lines is referred to as &#34;dynamic access&#34; to utility lines. The advantage over the standard static access is that the utility lines can be controlled synchronously to the pattern sequencer.">Sequencer-controlled utility lines</a></div><div><a href="345122.htm" title="Enables the utility line settings on active sites and disables them on inactive sites.">rdi.route().enableOnlyActiveSites()</a></div></div></nav>
+<div class="changes"><h2>Functional changes</h2><ol><li>Introduced in SmartRDI 2.5.0</li></ol></div></article></main><footer role="contentinfo"><div class="fo"><span id="sf"></span><span id="sl"></span><span class="tj">Topic 343442</span><script type="text/javascript">var ti='343442';var tt='rdi.route().applyState()'</script></div></footer><script type="text/javascript" src="tdc.js"></script></body></html>
