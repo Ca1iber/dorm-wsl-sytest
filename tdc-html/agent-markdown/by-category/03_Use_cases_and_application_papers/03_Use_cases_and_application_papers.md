@@ -17,7 +17,7 @@ Documentation of frequent use cases, common to a broad range of applications and
 - [DC Scale DPS128/64 HC/HV Cookbook](<../../../raw/DC_Scale_DPS128_CookBook_Revision_2017-01-03.pdf>)
 - [How to set up Digital Capture](<03.07_How_to_set_up_Digital_Capture/03.07_How_to_set_up_Digital_Capture.md>)
 - [How to set up a multiport EPRC match loop](<03.08_How_to_set_up_a_multiport_EPRC_match_loop/03.08_How_to_set_up_a_multiport_EPRC_match_loop.md>)
-- [How to set up sequencer鈥慶ontrolled utility lines](<03.09_How_to_set_up_sequencer__ontrolled_utility_lines/03.09_How_to_set_up_sequencer__ontrolled_utility_lines.md>)
+- [How to set up sequencer‑controlled utility lines](<03.09_How_to_set_up_sequencer__ontrolled_utility_lines/03.09_How_to_set_up_sequencer__ontrolled_utility_lines.md>)
 - [How to do transaction based protocol testing](<03.11_How_to_do_transaction_based_protocol_testing/03.11_How_to_do_transaction_based_protocol_testing.md>)
 
 ## Test program transitions

@@ -322,7 +322,7 @@
   - `344108.htm`
 - [E8023PK pogo cable assembly: 4 VHD pogo blocks (DPS128)](02.03_DUT_board_design_reference/02.03.06.02.02.09_E8023PK_pogo_cable_assembly__4_VHD_pogo_blocks__DPS128.md)
   - `353208.htm`
-- [DPS128鈥?鈥奃PS64 pogo cable assemblies and pogo pin assignments](02.03_DUT_board_design_reference/02.03.06.02.02_DPS128____PS64_pogo_cable_assemblies_and_pogo_pin_assignments.md)
+- [DPS128鈥? DPS64 pogo cable assemblies and pogo pin assignments](02.03_DUT_board_design_reference/02.03.06.02.02_DPS128____PS64_pogo_cable_assemblies_and_pogo_pin_assignments.md)
   - `140641.htm`
 - [DPS32 and VI32 pogo pin assignment](02.03_DUT_board_design_reference/02.03.06.02.03_DPS32_and_VI32_pogo_pin_assignment.md)
   - `94192.htm`
@@ -1684,15 +1684,15 @@
   - `131128.htm`
 - [ Digital cards](02.05_Test_Head_Cards/02.05.04_Digital_cards.md)
   - `127607.htm`
-- [DPS128鈥?鈥奃PS64 sitemap](02.05_Test_Head_Cards/02.05.05.01.01_DPS128____PS64_sitemap.md)
+- [DPS128鈥? DPS64 sitemap](02.05_Test_Head_Cards/02.05.05.01.01_DPS128____PS64_sitemap.md)
   - `253983.htm`
 - [DC Scale DPS128 Device Power Supply (E8023CS/E8023CSH) - high current specifications](02.05_Test_Head_Cards/02.05.05.01.02.01_DC_Scale_DPS128_Device_Power_Supply__E8023CS_E8023CSH__-_high_current_sp.md)
   - `141967-1.htm`
-- [DPS128鈥?鈥奃PS64 specifications](02.05_Test_Head_Cards/02.05.05.01.02_DPS128____PS64_specifications.md)
+- [DPS128鈥? DPS64 specifications](02.05_Test_Head_Cards/02.05.05.01.02_DPS128____PS64_specifications.md)
   - `250495.htm`
-- [DPS128鈥?鈥奃PS64 functionality and features](02.05_Test_Head_Cards/02.05.05.01.03_DPS128____PS64_functionality_and_features.md)
+- [DPS128鈥? DPS64 functionality and features](02.05_Test_Head_Cards/02.05.05.01.03_DPS128____PS64_functionality_and_features.md)
   - `140638.htm`
-- [DPS128鈥?鈥奃PS64 hardware overview](02.05_Test_Head_Cards/02.05.05.01.04_DPS128____PS64_hardware_overview.md)
+- [DPS128鈥? DPS64 hardware overview](02.05_Test_Head_Cards/02.05.05.01.04_DPS128____PS64_hardware_overview.md)
   - `140639.htm`
 - [DPS128 V-I curves and board power restrictions](02.05_Test_Head_Cards/02.05.05.01.05.01.01_DPS128_V-I_curves_and_board_power_restrictions.md)
   - `147810.htm`
@@ -1718,11 +1718,11 @@
   - `147814.htm`
 - [DC Scale DPS128 Power Calculator](02.05_Test_Head_Cards/02.05.05.01.05.01_DC_Scale_DPS128_Power_Calculator.md)
   - `147808.htm`
-- [DPS128鈥?鈥奃PS64 power budget](02.05_Test_Head_Cards/02.05.05.01.05_DPS128____PS64_power_budget.md)
+- [DPS128鈥? DPS64 power budget](02.05_Test_Head_Cards/02.05.05.01.05_DPS128____PS64_power_budget.md)
   - `147811.htm`
-- [DPS128鈥?鈥奃PS64 in DPS operating mode](02.05_Test_Head_Cards/02.05.05.01.06_DPS128____PS64_in_DPS_operating_mode.md)
+- [DPS128鈥? DPS64 in DPS operating mode](02.05_Test_Head_Cards/02.05.05.01.06_DPS128____PS64_in_DPS_operating_mode.md)
   - `140642.htm`
-- [DPS128鈥?鈥奃PS64 in PMU operating mode](02.05_Test_Head_Cards/02.05.05.01.07_DPS128____PS64_in_PMU_operating_mode.md)
+- [DPS128鈥? DPS64 in PMU operating mode](02.05_Test_Head_Cards/02.05.05.01.07_DPS128____PS64_in_PMU_operating_mode.md)
   - `140645.htm`
 - [E8023PA pogo cable assembly: 8 HD pogo blocks (Standard)](02.05_Test_Head_Cards/02.05.05.01.08.01_E8023PA_pogo_cable_assembly__8_HD_pogo_blocks__Standard.md)
   - `141739-1.htm`
@@ -1742,13 +1742,13 @@
   - `344108-1.htm`
 - [E8023PK pogo cable assembly: 4 VHD pogo blocks (DPS128)](02.05_Test_Head_Cards/02.05.05.01.08.09_E8023PK_pogo_cable_assembly__4_VHD_pogo_blocks__DPS128.md)
   - `353208-1.htm`
-- [DPS128鈥?鈥奃PS64 pogo cable assemblies and pogo pin assignments](02.05_Test_Head_Cards/02.05.05.01.08_DPS128____PS64_pogo_cable_assemblies_and_pogo_pin_assignments.md)
+- [DPS128鈥? DPS64 pogo cable assemblies and pogo pin assignments](02.05_Test_Head_Cards/02.05.05.01.08_DPS128____PS64_pogo_cable_assemblies_and_pogo_pin_assignments.md)
   - `140641-1.htm`
 - [DPS128 and DPS64 pogo cabling and model file configuration](02.05_Test_Head_Cards/02.05.05.01.09.01_DPS128_and_DPS64_pogo_cabling_and_model_file_configuration.md)
   - `140649.htm`
 - [Timing of DC events - DPS128 / DPS64](02.05_Test_Head_Cards/02.05.05.01.09.02_Timing_of_DC_events_-_DPS128___DPS64.md)
   - `153185-1.htm`
-- [DPS128鈥?鈥奃PS64 specific setup tasks](02.05_Test_Head_Cards/02.05.05.01.09_DPS128____PS64_specific_setup_tasks.md)
+- [DPS128鈥? DPS64 specific setup tasks](02.05_Test_Head_Cards/02.05.05.01.09_DPS128____PS64_specific_setup_tasks.md)
   - `140640.htm`
 - [DC Scale DPS128/DPS64 cards](02.05_Test_Head_Cards/02.05.05.01_DC_Scale_DPS128_DPS64_cards.md)
   - `138572.htm`
@@ -3032,7 +3032,7 @@
   - `114068.htm`
 - [Defining the wavetable for a PRBS test](02.06_Command_Reference/02.06.06.01.03.02.02_Defining_the_wavetable_for_a_PRBS_test.md)
   - `118287.htm`
-- [Defining the wavetable for a pattern鈥慴ased SmartLoop test](02.06_Command_Reference/02.06.06.01.03.02.03_Defining_the_wavetable_for_a_pattern__ased_SmartLoop_test.md)
+- [Defining the wavetable for a pattern‑based SmartLoop test](02.06_Command_Reference/02.06.06.01.03.02.03_Defining_the_wavetable_for_a_pattern__ased_SmartLoop_test.md)
   - `118419.htm`
 - [Defining waveform shapes for Smart Scale pins](02.06_Command_Reference/02.06.06.01.03.02_Defining_waveform_shapes_for_Smart_Scale_pins.md)
   - `113740.htm`
@@ -3070,7 +3070,7 @@
   - `116454.htm`
 - [Defining edge delays for a PRBS test](02.06_Command_Reference/02.06.06.01.04.02.03.02_Defining_edge_delays_for_a_PRBS_test.md)
   - `118288.htm`
-- [Defining edge delays for a pattern鈥慴ased SmartLoop test](02.06_Command_Reference/02.06.06.01.04.02.03.03_Defining_edge_delays_for_a_pattern__ased_SmartLoop_test.md)
+- [Defining edge delays for a pattern‑based SmartLoop test](02.06_Command_Reference/02.06.06.01.04.02.03.03_Defining_edge_delays_for_a_pattern__ased_SmartLoop_test.md)
   - `118418.htm`
 - [Defining edge delays for Smart Scale pins](02.06_Command_Reference/02.06.06.01.04.02.03_Defining_edge_delays_for_Smart_Scale_pins.md)
   - `116452.htm`
@@ -3810,7 +3810,7 @@
   - `116779.htm`
 - [Overview of the protocol engine per pin](02.06_Command_Reference/02.06.15.01_Overview_of_the_protocol_engine_per_pin.md)
   - `114244.htm`
-- [Combining transition tracking with a PRBS or pattern鈥慴ased SmartLoop test](02.06_Command_Reference/02.06.15.02.01_Combining_transition_tracking_with_a_PRBS_or_pattern__ased_SmartLoop_tes.md)
+- [Combining transition tracking with a PRBS or pattern‑based SmartLoop test](02.06_Command_Reference/02.06.15.02.01_Combining_transition_tracking_with_a_PRBS_or_pattern__ased_SmartLoop_tes.md)
   - `118405.htm`
 - [How to set up and execute a protocol engine test](02.06_Command_Reference/02.06.15.02_How_to_set_up_and_execute_a_protocol_engine_test.md)
   - `116752.htm`
@@ -3868,9 +3868,9 @@
   - `118401.htm`
 - [How to set up and execute a PRBS test](02.06_Command_Reference/02.06.17.03_How_to_set_up_and_execute_a_PRBS_test.md)
   - `118409.htm`
-- [Defining a compliance pattern for pattern鈥慴ased SmartLoop testing](02.06_Command_Reference/02.06.17.04.01_Defining_a_compliance_pattern_for_pattern__ased_SmartLoop_testing.md)
+- [Defining a compliance pattern for pattern‑based SmartLoop testing](02.06_Command_Reference/02.06.17.04.01_Defining_a_compliance_pattern_for_pattern__ased_SmartLoop_testing.md)
   - `126514.htm`
-- [Executing a pattern鈥慴ased SmartLoop test](02.06_Command_Reference/02.06.17.04_Executing_a_pattern__ased_SmartLoop_test.md)
+- [Executing a pattern‑based SmartLoop test](02.06_Command_Reference/02.06.17.04_Executing_a_pattern__ased_SmartLoop_test.md)
   - `118400.htm`
 - [LBMD? - (LoopBack MoDe)](02.06_Command_Reference/02.06.17.05.01_LBMD__-__LoopBack_MoDe.md)
   - `118445_2.htm`
@@ -5482,7 +5482,7 @@
   - `132477.htm`
 - [TMU_RESULTS](02.07_Test_Method_Reference/02.07.04.01.251_TMU_RESULTS.md)
   - `125626.htm`
-- [TMU_TASK聽operator聽<<](02.07_Test_Method_Reference/02.07.04.01.252.01_TMU_TASK_operator.md)
+- [TMU_TASK operator <<](02.07_Test_Method_Reference/02.07.04.01.252.01_TMU_TASK_operator.md)
   - `132480.htm`
 - [Operator <<](02.07_Test_Method_Reference/02.07.04.01.252.02.01.01_Operator.md)
   - `132479.htm`
@@ -7016,7 +7016,7 @@
   - `125006.htm`
 - [Test method specific data types and variables](02.07_Test_Method_Reference/02.07.04.02_Test_method_specific_data_types_and_variables.md)
   - `125191.htm`
-- [Encoding/Decoding Table for A-Law/碌-Law](02.07_Test_Method_Reference/02.07.04.03_Encoding_Decoding_Table_for_A-Law__-Law.md)
+- [Encoding/Decoding Table for A-Law/µ-Law](02.07_Test_Method_Reference/02.07.04.03_Encoding_Decoding_Table_for_A-Law__-Law.md)
   - `29875.htm`
 - [Code Format Tables](02.07_Test_Method_Reference/02.07.04.04_Code_Format_Tables.md)
   - `29874.htm`
@@ -10402,7 +10402,7 @@
   - `114068_2.htm`
 - [Defining the wavetable for a PRBS test](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.03.02.02_Defining_the_wavetable_for_a_PRBS_test.md)
   - `118287_2.htm`
-- [Defining the wavetable for a pattern鈥慴ased SmartLoop test](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.03.02.03_Defining_the_wavetable_for_a_pattern__ased_SmartLoop_test.md)
+- [Defining the wavetable for a pattern‑based SmartLoop test](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.03.02.03_Defining_the_wavetable_for_a_pattern__ased_SmartLoop_test.md)
   - `118419_2.htm`
 - [Defining waveform shapes for Smart Scale pins](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.03.02_Defining_waveform_shapes_for_Smart_Scale_pins.md)
   - `113740_2.htm`
@@ -10440,7 +10440,7 @@
   - `116454_2.htm`
 - [Defining edge delays for a PRBS test](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.04.02.03.02_Defining_edge_delays_for_a_PRBS_test.md)
   - `118288_2.htm`
-- [Defining edge delays for a pattern鈥慴ased SmartLoop test](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.04.02.03.03_Defining_edge_delays_for_a_pattern__ased_SmartLoop_test.md)
+- [Defining edge delays for a pattern‑based SmartLoop test](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.04.02.03.03_Defining_edge_delays_for_a_pattern__ased_SmartLoop_test.md)
   - `118418_2.htm`
 - [Defining edge delays for Smart Scale pins](02.08_Setup_and_Result_Tools/02.08.04.34.02.01.04.02.03_Defining_edge_delays_for_Smart_Scale_pins.md)
   - `116452_2.htm`

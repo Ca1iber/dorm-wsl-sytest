@@ -578,7 +578,7 @@
   - `149630.htm`
 - [Sequencer-controlled utility lines](03.09_How_to_set_up_sequencer__ontrolled_utility_lines/03.09.01_Sequencer-controlled_utility_lines.md)
   - `128329.htm`
-- [How to set up sequencer鈥慶ontrolled utility lines](03.09_How_to_set_up_sequencer__ontrolled_utility_lines/03.09_How_to_set_up_sequencer__ontrolled_utility_lines.md)
+- [How to set up sequencer‑controlled utility lines](03.09_How_to_set_up_sequencer__ontrolled_utility_lines/03.09_How_to_set_up_sequencer__ontrolled_utility_lines.md)
   - `128414.htm`
 - [How to set up differential connections](03.10_How_to_set_up_differential_connections/03.10_How_to_set_up_differential_connections.md)
   - `345538.htm`
